@@ -81,14 +81,14 @@ func (State) EnumDescriptor() ([]byte, []int) {
 
 type CreateOperationRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Workflow or API kind for audit, e.g. `noop`, `datacenter_provision`, `vm_provision`, `vm_delete`, `host_provision`.
+	// Workflow or API kind for audit, e.g. `noop`, `datacenter_provision`, `vm_provision`, `vm_delete`, `vm_resize`, `host_provision`, `host_decommission`.
 	Kind string `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
 	// When kind is `datacenter_provision` or `datacenter_tier1`: datacenter resource name (`datacenters/...`).
 	DatacenterName string `protobuf:"bytes,2,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
-	// When kind is `vm_provision`, required: VM placement and SKU (see ComputeService.CreateVirtualMachine).
+	// When kind is `vm_provision`, required: VM placement (see ComputeService.CreateVirtualMachine).
+	// Pricing + shape come from vm_vcpus/vm_ram_gib/vm_cpu_class below — no per-SKU rate lookup.
 	VmProjectName    string `protobuf:"bytes,3,opt,name=vm_project_name,json=vmProjectName,proto3" json:"vm_project_name,omitempty"`
 	VmDatacenterName string `protobuf:"bytes,4,opt,name=vm_datacenter_name,json=vmDatacenterName,proto3" json:"vm_datacenter_name,omitempty"`
-	VmInstanceType   string `protobuf:"bytes,5,opt,name=vm_instance_type,json=vmInstanceType,proto3" json:"vm_instance_type,omitempty"`
 	// When kind is `vm_delete`, required: VM resource name to destroy.
 	VmName string `protobuf:"bytes,6,opt,name=vm_name,json=vmName,proto3" json:"vm_name,omitempty"`
 	// When kind is `host_provision`, required: inventory host (`hosts/...`) to join as a worker
@@ -147,8 +147,8 @@ type CreateOperationRequest struct {
 	// detaches it but does not delete it.
 	VmBootDiskName string `protobuf:"bytes,27,opt,name=vm_boot_disk_name,json=vmBootDiskName,proto3" json:"vm_boot_disk_name,omitempty"`
 	// Configurator shape stamped onto the operation so the workflow's vm-insert activity
-	// writes the same vcpus / ram_gib / cpu_class onto compute_instances. Replaces the old
-	// implicit "instance_type → SKU lookup" path. See services/pricing.Shape.
+	// writes the same vcpus / ram_gib / cpu_class onto compute_instances. See
+	// services/pricing.Shape.
 	VmVcpus    int32  `protobuf:"varint,29,opt,name=vm_vcpus,json=vmVcpus,proto3" json:"vm_vcpus,omitempty"`
 	VmRamGib   int32  `protobuf:"varint,30,opt,name=vm_ram_gib,json=vmRamGib,proto3" json:"vm_ram_gib,omitempty"`
 	VmCpuClass string `protobuf:"bytes,31,opt,name=vm_cpu_class,json=vmCpuClass,proto3" json:"vm_cpu_class,omitempty"`
@@ -162,8 +162,33 @@ type CreateOperationRequest struct {
 	VmBootDiskFromImageName string `protobuf:"bytes,34,opt,name=vm_boot_disk_from_image_name,json=vmBootDiskFromImageName,proto3" json:"vm_boot_disk_from_image_name,omitempty"`
 	VmBootDiskStorageClass  string `protobuf:"bytes,36,opt,name=vm_boot_disk_storage_class,json=vmBootDiskStorageClass,proto3" json:"vm_boot_disk_storage_class,omitempty"`
 	VmBootDiskDisplayName   string `protobuf:"bytes,37,opt,name=vm_boot_disk_display_name,json=vmBootDiskDisplayName,proto3" json:"vm_boot_disk_display_name,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	// Decommission-specific. When kind == "host_decommission", these are passed in
+	// the same request as host_name + datacenter_name so the workflow handler reads
+	// them from the request directly (no post-CreateOperation metadata patch round
+	// trip that could race or fail half-way).
+	//
+	//	decommission_skip_wipe: skip the Tinkerbell disk wipe (default false; only
+	//	                        set true when the disk is known to be wiped already).
+	//	decommission_reason: operator-supplied audit string.
+	DecommissionSkipWipe bool   `protobuf:"varint,38,opt,name=decommission_skip_wipe,json=decommissionSkipWipe,proto3" json:"decommission_skip_wipe,omitempty"`
+	DecommissionReason   string `protobuf:"bytes,39,opt,name=decommission_reason,json=decommissionReason,proto3" json:"decommission_reason,omitempty"`
+	// Clone-specific (kind == "vm_provision" driven by CloneVirtualMachine). When
+	// vm_boot_disk_clone_source is set, the workflow's HydrateInlineBootDisk activity
+	// snapshots that source Disk + clones it into a fresh PVC instead of CDI-importing
+	// from a URL — moving the (previously synchronous-at-API-edge) snapshot/clone/wait off
+	// the HTTP call so CloneVirtualMachine returns an Operation in ~ms like create.
+	//
+	//	vm_boot_disk_clone_source: source Disk resource name to snapshot + clone.
+	//	vm_clone_source_vm_name:  source VM resource name — read by the CloneFirewallRules
+	//	                          activity to copy the source's custom firewall rules onto
+	//	                          the clone after its public IP is allocated.
+	VmBootDiskCloneSource string `protobuf:"bytes,40,opt,name=vm_boot_disk_clone_source,json=vmBootDiskCloneSource,proto3" json:"vm_boot_disk_clone_source,omitempty"`
+	VmCloneSourceVmName   string `protobuf:"bytes,41,opt,name=vm_clone_source_vm_name,json=vmCloneSourceVmName,proto3" json:"vm_clone_source_vm_name,omitempty"`
+	// Delete-specific (kind == "vm_delete"). When true the VMDeleteWorkflow deletes the VM's
+	// attached disks (boot + data) instead of detaching them back to AVAILABLE.
+	VmDeleteAttachedDisks bool `protobuf:"varint,42,opt,name=vm_delete_attached_disks,json=vmDeleteAttachedDisks,proto3" json:"vm_delete_attached_disks,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *CreateOperationRequest) Reset() {
@@ -220,13 +245,6 @@ func (x *CreateOperationRequest) GetVmProjectName() string {
 func (x *CreateOperationRequest) GetVmDatacenterName() string {
 	if x != nil {
 		return x.VmDatacenterName
-	}
-	return ""
-}
-
-func (x *CreateOperationRequest) GetVmInstanceType() string {
-	if x != nil {
-		return x.VmInstanceType
 	}
 	return ""
 }
@@ -418,6 +436,41 @@ func (x *CreateOperationRequest) GetVmBootDiskDisplayName() string {
 		return x.VmBootDiskDisplayName
 	}
 	return ""
+}
+
+func (x *CreateOperationRequest) GetDecommissionSkipWipe() bool {
+	if x != nil {
+		return x.DecommissionSkipWipe
+	}
+	return false
+}
+
+func (x *CreateOperationRequest) GetDecommissionReason() string {
+	if x != nil {
+		return x.DecommissionReason
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetVmBootDiskCloneSource() string {
+	if x != nil {
+		return x.VmBootDiskCloneSource
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetVmCloneSourceVmName() string {
+	if x != nil {
+		return x.VmCloneSourceVmName
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetVmDeleteAttachedDisks() bool {
+	if x != nil {
+		return x.VmDeleteAttachedDisks
+	}
+	return false
 }
 
 type CreateOperationResponse struct {
@@ -964,13 +1017,12 @@ var File_aes_ops_v1_operations_proto protoreflect.FileDescriptor
 const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\n" +
 	"\x1baes/ops/v1/operations.proto\x12\n" +
-	"aes.ops.v1\"\xd8\r\n" +
+	"aes.ops.v1\"\xd6\x0f\n" +
 	"\x16CreateOperationRequest\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12'\n" +
 	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12&\n" +
 	"\x0fvm_project_name\x18\x03 \x01(\tR\rvmProjectName\x12,\n" +
-	"\x12vm_datacenter_name\x18\x04 \x01(\tR\x10vmDatacenterName\x12(\n" +
-	"\x10vm_instance_type\x18\x05 \x01(\tR\x0evmInstanceType\x12\x17\n" +
+	"\x12vm_datacenter_name\x18\x04 \x01(\tR\x10vmDatacenterName\x12\x17\n" +
 	"\avm_name\x18\x06 \x01(\tR\x06vmName\x12\x1b\n" +
 	"\thost_name\x18\a \x01(\tR\bhostName\x12\"\n" +
 	"\rvm_ssh_pubkey\x18\v \x01(\tR\vvmSshPubkey\x12 \n" +
@@ -1001,15 +1053,20 @@ const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\x1bvm_boot_disk_from_image_url\x18! \x01(\tR\x16vmBootDiskFromImageUrl\x12=\n" +
 	"\x1cvm_boot_disk_from_image_name\x18\" \x01(\tR\x17vmBootDiskFromImageName\x12:\n" +
 	"\x1avm_boot_disk_storage_class\x18$ \x01(\tR\x16vmBootDiskStorageClass\x128\n" +
-	"\x19vm_boot_disk_display_name\x18% \x01(\tR\x15vmBootDiskDisplayName\x1a;\n" +
+	"\x19vm_boot_disk_display_name\x18% \x01(\tR\x15vmBootDiskDisplayName\x124\n" +
+	"\x16decommission_skip_wipe\x18& \x01(\bR\x14decommissionSkipWipe\x12/\n" +
+	"\x13decommission_reason\x18' \x01(\tR\x12decommissionReason\x128\n" +
+	"\x19vm_boot_disk_clone_source\x18( \x01(\tR\x15vmBootDiskCloneSource\x124\n" +
+	"\x17vm_clone_source_vm_name\x18) \x01(\tR\x13vmCloneSourceVmName\x127\n" +
+	"\x18vm_delete_attached_disks\x18* \x01(\bR\x15vmDeleteAttachedDisks\x1a;\n" +
 	"\rVmLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a@\n" +
 	"\x12VmAnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\b\x10\tJ\x04\b\t\x10\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x05\x10\x06J\x04\b\b\x10\tJ\x04\b\t\x10\n" +
 	"J\x04\b\n" +
-	"\x10\vJ\x04\b\x1c\x10\x1dJ\x04\b#\x10$R\x10vm_network_namesR\x10vm_disk_size_gibR\x11vm_boot_image_urlR\x19vm_reuse_existing_term_idR\x1avm_boot_disk_from_snapshot\"N\n" +
+	"\x10\vJ\x04\b\x1c\x10\x1dJ\x04\b#\x10$R\x10vm_instance_typeR\x10vm_network_namesR\x10vm_disk_size_gibR\x11vm_boot_image_urlR\x19vm_reuse_existing_term_idR\x1avm_boot_disk_from_snapshot\"N\n" +
 	"\x17CreateOperationResponse\x123\n" +
 	"\toperation\x18\x01 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\")\n" +
 	"\x13GetOperationRequest\x12\x12\n" +

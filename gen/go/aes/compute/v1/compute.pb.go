@@ -147,8 +147,6 @@ type VirtualMachine struct {
 	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	ProjectName    string                 `protobuf:"bytes,2,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
 	DatacenterName string                 `protobuf:"bytes,3,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
-	// Catalog reference, e.g. skus/vm.cascadelake.c4m8 (drives usage meter suffix).
-	InstanceType string `protobuf:"bytes,4,opt,name=instance_type,json=instanceType,proto3" json:"instance_type,omitempty"`
 	// Current lifecycle state — RUNNING / STOPPED / SUSPENDED / DELETING / DELETED. Reflects DB;
 	// updated by Start/Stop/Restart/Suspend/Resume RPCs after the underlying KubeVirt subresource
 	// call succeeds.
@@ -202,17 +200,19 @@ type VirtualMachine struct {
 	// was created without `assign_public_ipv4=true`. When set, this is the same value as the
 	// PublicIp resource's ip_address.
 	PublicIpv4 string `protobuf:"bytes,22,opt,name=public_ipv4,json=publicIpv4,proto3" json:"public_ipv4,omitempty"`
-	// Tenant-private IPv6 from the UDN's /64. Populated when the UDN was provisioned with a v6
-	// subnet; pinned across stop/start by the same IPAMClaim that pins private_ipv4.
-	PrivateIpv6 string `protobuf:"bytes,23,opt,name=private_ipv6,json=privateIpv6,proto3" json:"private_ipv6,omitempty"`
+	// IPv6 address from the tenant Network's /64, on the VM's primary NIC. Pinned across
+	// stop/start by the same IPAMClaim that pins private_ipv4. Note: this is NOT "private"
+	// in the RFC1918 sense — when the DC's tenant prefix is a real GUA /48, this address
+	// is globally routable. The OVN-K UDN provides tenant isolation at the network layer,
+	// not via address scope. Lab DCs using ULA-style /48s see locally-scoped addresses here.
+	Ipv6 string `protobuf:"bytes,23,opt,name=ipv6,proto3" json:"ipv6,omitempty"`
 	// The Disk resource bound as the VM's boot device (`projects/{p}/disks/{id}`). Set on every
 	// persistent VM (containerDisk lab/ephemeral VMs leave it empty). The disk has its own
 	// lifecycle: DeleteVirtualMachine detaches it but does not delete it, so a customer can bind
 	// the same boot_disk to a fresh VM and keep their data. Use GetDisk for size + source URL.
 	BootDisk string `protobuf:"bytes,24,opt,name=boot_disk,json=bootDisk,proto3" json:"boot_disk,omitempty"`
-	// Configurator shape — the actual (vcpus, ram_gib, cpu_class) the VM was created with.
-	// Sourced from compute_instances columns (no longer derived from instance_type). Used by
-	// the metering loop to emit per-component usage events at hourly cadence.
+	// Configurator shape — the (vcpus, ram_gib, cpu_class) the VM was created with. Stored on
+	// compute_instances; drives the per-component usage events the metering loop emits hourly.
 	Vcpus    int32  `protobuf:"varint,25,opt,name=vcpus,proto3" json:"vcpus,omitempty"`
 	RamGib   int32  `protobuf:"varint,26,opt,name=ram_gib,json=ramGib,proto3" json:"ram_gib,omitempty"`
 	CpuClass string `protobuf:"bytes,27,opt,name=cpu_class,json=cpuClass,proto3" json:"cpu_class,omitempty"`
@@ -282,13 +282,6 @@ func (x *VirtualMachine) GetProjectName() string {
 func (x *VirtualMachine) GetDatacenterName() string {
 	if x != nil {
 		return x.DatacenterName
-	}
-	return ""
-}
-
-func (x *VirtualMachine) GetInstanceType() string {
-	if x != nil {
-		return x.InstanceType
 	}
 	return ""
 }
@@ -398,9 +391,9 @@ func (x *VirtualMachine) GetPublicIpv4() string {
 	return ""
 }
 
-func (x *VirtualMachine) GetPrivateIpv6() string {
+func (x *VirtualMachine) GetIpv6() string {
 	if x != nil {
-		return x.PrivateIpv6
+		return x.Ipv6
 	}
 	return ""
 }
@@ -451,12 +444,6 @@ type CreateVirtualMachineRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	ProjectName    string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
 	DatacenterName string                 `protobuf:"bytes,2,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
-	// instance_type is now a TEMPLATE HINT in the configurator era — not the source of pricing.
-	// When set (e.g. `skus/vm.cascadelake.c2m4`), the server expands it to a default
-	// (vcpus, ram_gib, cpu_class) shape, but customer-supplied vcpus / ram_gib / cpu_class
-	// OVERRIDE the template. When unset, the request must supply vcpus + ram_gib + cpu_class
-	// explicitly. Pricing comes from pricing_components rows, not from a per-SKU rate.
-	InstanceType string `protobuf:"bytes,3,opt,name=instance_type,json=instanceType,proto3" json:"instance_type,omitempty"`
 	// Optional tenant network the VM attaches to. Resource name `projects/{p}/networks/{id}`.
 	// When empty, the project's default network is used (auto-created lazily on first VM in
 	// the project + DC). Single-NIC model — every VM has exactly one network.
@@ -511,18 +498,21 @@ type CreateVirtualMachineRequest struct {
 	// without a separate CreateDisk round-trip. The created Disk shows up in ListDisks and is
 	// billed independently — DeleteVM does NOT delete it. Mutually exclusive with `boot_disk_name`.
 	BootDisk *BootDiskSpec `protobuf:"bytes,19,opt,name=boot_disk,json=bootDisk,proto3" json:"boot_disk,omitempty"`
-	// Configurator shape — customer assembles their VM from priced components. When unset the
-	// server falls back to the (vcpus, ram_gib, cpu_class) implied by `instance_type`'s
-	// template. When set, these OVERRIDE the template. Validated at the API edge against the
-	// 1–16 GiB RAM-per-vCPU ratio bounds (services/pricing.Shape.Validate).
+	// Configurator shape — customer assembles their VM from priced components. All three are
+	// REQUIRED; the server rejects with InvalidArgument if any is unset. Validated at the API
+	// edge against the 1–16 GiB RAM-per-vCPU ratio bounds (services/pricing.Shape.Validate).
 	Vcpus  int32 `protobuf:"varint,20,opt,name=vcpus,proto3" json:"vcpus,omitempty"`
 	RamGib int32 `protobuf:"varint,21,opt,name=ram_gib,json=ramGib,proto3" json:"ram_gib,omitempty"`
 	// CPU class — picks the pricing_components.vcpu/<class> row. Must match a class that has
-	// both pricing AND scheduler placement (worker host labels). When empty the server falls
-	// back to the template's class, or if no template is set, rejects with InvalidArgument.
-	CpuClass      string `protobuf:"bytes,22,opt,name=cpu_class,json=cpuClass,proto3" json:"cpu_class,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// both pricing AND scheduler placement (worker host labels). Required.
+	CpuClass string `protobuf:"bytes,22,opt,name=cpu_class,json=cpuClass,proto3" json:"cpu_class,omitempty"`
+	// Clone bookkeeping: when this create was issued by CloneVirtualMachine, the source VM
+	// resource name. Threaded into the operation so the vm_provision workflow's
+	// CloneFirewallRules activity can copy the source's custom firewall rules onto the clone
+	// once its public IP is allocated. Empty for normal (non-clone) creates. Not customer-set.
+	CloneSourceVmName string `protobuf:"bytes,23,opt,name=clone_source_vm_name,json=cloneSourceVmName,proto3" json:"clone_source_vm_name,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *CreateVirtualMachineRequest) Reset() {
@@ -565,13 +555,6 @@ func (x *CreateVirtualMachineRequest) GetProjectName() string {
 func (x *CreateVirtualMachineRequest) GetDatacenterName() string {
 	if x != nil {
 		return x.DatacenterName
-	}
-	return ""
-}
-
-func (x *CreateVirtualMachineRequest) GetInstanceType() string {
-	if x != nil {
-		return x.InstanceType
 	}
 	return ""
 }
@@ -681,10 +664,17 @@ func (x *CreateVirtualMachineRequest) GetCpuClass() string {
 	return ""
 }
 
+func (x *CreateVirtualMachineRequest) GetCloneSourceVmName() string {
+	if x != nil {
+		return x.CloneSourceVmName
+	}
+	return ""
+}
+
 // BootDiskSpec is the inline disk spec carried by CreateVirtualMachineRequest.boot_disk.
-// Exactly one of from_image_url or from_image_name must be set — empty source is rejected
-// (every boot disk needs an OS image). The resulting Disk is owned by the same project
-// as the VM and persists past DeleteVirtualMachine.
+// from_image_url is required — empty source is rejected (every boot disk needs an OS
+// image). The resulting Disk is owned by the same project as the VM and persists past
+// DeleteVirtualMachine.
 type BootDiskSpec struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
 	DisplayName string                 `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
@@ -692,15 +682,18 @@ type BootDiskSpec struct {
 	SizeGib int32 `protobuf:"varint,2,opt,name=size_gib,json=sizeGib,proto3" json:"size_gib,omitempty"`
 	// Storage tier (`nvme`). Defaults to nvme.
 	StorageClass string `protobuf:"bytes,3,opt,name=storage_class,json=storageClass,proto3" json:"storage_class,omitempty"`
-	// Streamable raw disk image URL (CDI http source). Mutually exclusive with from_image_name.
-	FromImageUrl string `protobuf:"bytes,4,opt,name=from_image_url,json=fromImageUrl,proto3" json:"from_image_url,omitempty"`
-	// Registered MachineImage (`projects/{p}/images/{id}`). Server resolves the image's source URL
-	// and forwards it to CDI. Image must belong to the same project + datacenter.
-	FromImageName string            `protobuf:"bytes,5,opt,name=from_image_name,json=fromImageName,proto3" json:"from_image_name,omitempty"`
-	Labels        map[string]string `protobuf:"bytes,7,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Annotations   map[string]string `protobuf:"bytes,8,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Streamable raw disk image URL (CDI http source). Required UNLESS clone_source_disk
+	// is set (clone path supplies the data by snapshotting an existing disk instead).
+	FromImageUrl string            `protobuf:"bytes,4,opt,name=from_image_url,json=fromImageUrl,proto3" json:"from_image_url,omitempty"`
+	Labels       map[string]string `protobuf:"bytes,7,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Annotations  map[string]string `protobuf:"bytes,8,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Clone path: when set, this boot disk is created by snapshotting the named source
+	// Disk + cloning it into a fresh PVC (done in the vm_provision workflow, not the RPC),
+	// rather than CDI-importing from from_image_url. Set by CloneVirtualMachine; customers
+	// don't set this directly. size_gib is derived from the source snapshot's restoreSize.
+	CloneSourceDisk string `protobuf:"bytes,9,opt,name=clone_source_disk,json=cloneSourceDisk,proto3" json:"clone_source_disk,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *BootDiskSpec) Reset() {
@@ -761,13 +754,6 @@ func (x *BootDiskSpec) GetFromImageUrl() string {
 	return ""
 }
 
-func (x *BootDiskSpec) GetFromImageName() string {
-	if x != nil {
-		return x.FromImageName
-	}
-	return ""
-}
-
 func (x *BootDiskSpec) GetLabels() map[string]string {
 	if x != nil {
 		return x.Labels
@@ -780,6 +766,13 @@ func (x *BootDiskSpec) GetAnnotations() map[string]string {
 		return x.Annotations
 	}
 	return nil
+}
+
+func (x *BootDiskSpec) GetCloneSourceDisk() string {
+	if x != nil {
+		return x.CloneSourceDisk
+	}
+	return ""
 }
 
 type CreateVirtualMachineResponse struct {
@@ -1042,9 +1035,14 @@ type DeleteVirtualMachineRequest struct {
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// Optimistic concurrency. Empty = unconditional delete; non-empty = require match against
 	// current row's etag, else Aborted.
-	Etag          string `protobuf:"bytes,2,opt,name=etag,proto3" json:"etag,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Etag string `protobuf:"bytes,2,opt,name=etag,proto3" json:"etag,omitempty"`
+	// When true, also delete the disks currently attached to this VM (boot + data) instead of
+	// detaching them back to AVAILABLE. Disk-first default is false — disks outlive the VM so a
+	// customer can rebuild onto the same boot disk. Set true to fully tear down the VM and
+	// reclaim its storage in one action. Irreversible: the disk data is destroyed.
+	DeleteAttachedDisks bool `protobuf:"varint,3,opt,name=delete_attached_disks,json=deleteAttachedDisks,proto3" json:"delete_attached_disks,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *DeleteVirtualMachineRequest) Reset() {
@@ -1089,6 +1087,13 @@ func (x *DeleteVirtualMachineRequest) GetEtag() string {
 		return x.Etag
 	}
 	return ""
+}
+
+func (x *DeleteVirtualMachineRequest) GetDeleteAttachedDisks() bool {
+	if x != nil {
+		return x.DeleteAttachedDisks
+	}
+	return false
 }
 
 type DeleteVirtualMachineResponse struct {
@@ -1403,8 +1408,14 @@ func (x *RestartVirtualMachineResponse) GetVirtualMachine() *VirtualMachine {
 type ResizeVirtualMachineRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// New instance_type SKU (e.g. `skus/vm.cascadelake.c8m16`). Must be a known SKU.
-	InstanceType  string `protobuf:"bytes,2,opt,name=instance_type,json=instanceType,proto3" json:"instance_type,omitempty"`
+	// New configurator shape. All three required; the server rejects InvalidArgument if any is
+	// unset (resize is not "patch one field" — it's a full re-shape so pricing + placement
+	// recompute consistently). Same 1–16 GiB RAM-per-vCPU ratio bounds as Create.
+	Vcpus  int32 `protobuf:"varint,3,opt,name=vcpus,proto3" json:"vcpus,omitempty"`
+	RamGib int32 `protobuf:"varint,4,opt,name=ram_gib,json=ramGib,proto3" json:"ram_gib,omitempty"`
+	// CPU class. Required — changing class is allowed but the cluster must have a worker with
+	// a matching `aes.metalhost/cpu-class=<class>` label or the rescheduled VM won't start.
+	CpuClass      string `protobuf:"bytes,5,opt,name=cpu_class,json=cpuClass,proto3" json:"cpu_class,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1446,18 +1457,39 @@ func (x *ResizeVirtualMachineRequest) GetName() string {
 	return ""
 }
 
-func (x *ResizeVirtualMachineRequest) GetInstanceType() string {
+func (x *ResizeVirtualMachineRequest) GetVcpus() int32 {
 	if x != nil {
-		return x.InstanceType
+		return x.Vcpus
+	}
+	return 0
+}
+
+func (x *ResizeVirtualMachineRequest) GetRamGib() int32 {
+	if x != nil {
+		return x.RamGib
+	}
+	return 0
+}
+
+func (x *ResizeVirtualMachineRequest) GetCpuClass() string {
+	if x != nil {
+		return x.CpuClass
 	}
 	return ""
 }
 
 type ResizeVirtualMachineResponse struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	VirtualMachine *VirtualMachine        `protobuf:"bytes,1,opt,name=virtual_machine,json=virtualMachine,proto3" json:"virtual_machine,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Set on the sync (in-memory / no-Temporal) path.
+	VirtualMachine *VirtualMachine `protobuf:"bytes,1,opt,name=virtual_machine,json=virtualMachine,proto3" json:"virtual_machine,omitempty"`
+	// Set when the request was dispatched as a vm_resize Operation (Temporal +
+	// DATABASE_URL). Client polls GetOperation until SUCCEEDED, then re-Gets the VM
+	// to see the new shape. The operation runs the full stop → wait-for-VMI →
+	// patch → start → DB update sequence under Temporal's retry envelope so a
+	// mid-flight crash doesn't strand the VM in STOPPED with the old shape.
+	Operation     *v1.Operation `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ResizeVirtualMachineResponse) Reset() {
@@ -1493,6 +1525,13 @@ func (*ResizeVirtualMachineResponse) Descriptor() ([]byte, []int) {
 func (x *ResizeVirtualMachineResponse) GetVirtualMachine() *VirtualMachine {
 	if x != nil {
 		return x.VirtualMachine
+	}
+	return nil
+}
+
+func (x *ResizeVirtualMachineResponse) GetOperation() *v1.Operation {
+	if x != nil {
+		return x.Operation
 	}
 	return nil
 }
@@ -1710,12 +1749,9 @@ func (x *RenewVMNowResponse) GetChargedAmountMinor() int64 {
 type ReimageVirtualMachineRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Optional: switch to a different image at reimage time. When empty, reuses the original
-	// boot source. Setting this is the canonical way to upgrade the base OS (Ubuntu 24.04 →
-	// 26.04) without recreating the VM.
-	ImageName string `protobuf:"bytes,2,opt,name=image_name,json=imageName,proto3" json:"image_name,omitempty"`
-	// Optional override of the raw image URL (when not using a registered MachineImage). Same
-	// precedence as CreateVirtualMachineRequest: image_name wins over boot_image_url.
+	// Required: streamable raw disk image URL (CDI http source). Setting this is the
+	// canonical way to upgrade the base OS (Ubuntu 24.04 → 26.04) without recreating
+	// the VM. Empty = reuse the original boot source.
 	BootImageUrl string `protobuf:"bytes,3,opt,name=boot_image_url,json=bootImageUrl,proto3" json:"boot_image_url,omitempty"`
 	// Required confirmation token. Server returns the expected value on a first call and the
 	// client echoes it back on the second to acknowledge data loss. Wire format: must equal
@@ -1759,13 +1795,6 @@ func (*ReimageVirtualMachineRequest) Descriptor() ([]byte, []int) {
 func (x *ReimageVirtualMachineRequest) GetName() string {
 	if x != nil {
 		return x.Name
-	}
-	return ""
-}
-
-func (x *ReimageVirtualMachineRequest) GetImageName() string {
-	if x != nil {
-		return x.ImageName
 	}
 	return ""
 }
@@ -2738,8 +2767,6 @@ type CloneVirtualMachineRequest struct {
 	// Display name for the new VM. Required so the customer can distinguish the clone in
 	// listings — the resource name itself is server-assigned.
 	TargetDisplayName string `protobuf:"bytes,2,opt,name=target_display_name,json=targetDisplayName,proto3" json:"target_display_name,omitempty"`
-	// Optional override; defaults to the source VM's instance_type.
-	InstanceType string `protobuf:"bytes,3,opt,name=instance_type,json=instanceType,proto3" json:"instance_type,omitempty"`
 	// Labels/annotations applied to the new VM (NOT inherited from the source — clone is for
 	// disk state, not metadata).
 	Labels        map[string]string `protobuf:"bytes,4,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -2788,13 +2815,6 @@ func (x *CloneVirtualMachineRequest) GetSourceVmName() string {
 func (x *CloneVirtualMachineRequest) GetTargetDisplayName() string {
 	if x != nil {
 		return x.TargetDisplayName
-	}
-	return ""
-}
-
-func (x *CloneVirtualMachineRequest) GetInstanceType() string {
-	if x != nil {
-		return x.InstanceType
 	}
 	return ""
 }
@@ -2885,9 +2905,8 @@ type CreateVirtualMachineFromBackupRequest struct {
 	// to a sanitised version of the display name when empty.
 	TargetDisplayName string `protobuf:"bytes,2,opt,name=target_display_name,json=targetDisplayName,proto3" json:"target_display_name,omitempty"`
 	Hostname          string `protobuf:"bytes,3,opt,name=hostname,proto3" json:"hostname,omitempty"`
-	// Optional override; defaults to the source VM's instance_type.
-	InstanceType string `protobuf:"bytes,4,opt,name=instance_type,json=instanceType,proto3" json:"instance_type,omitempty"`
-	// Configurator shape override. When unset, the server inherits the source VM's shape.
+	// Configurator shape override. When unset (any of the three), the server inherits the
+	// source VM's shape for the unset components.
 	Vcpus    int32  `protobuf:"varint,5,opt,name=vcpus,proto3" json:"vcpus,omitempty"`
 	RamGib   int32  `protobuf:"varint,6,opt,name=ram_gib,json=ramGib,proto3" json:"ram_gib,omitempty"`
 	CpuClass string `protobuf:"bytes,7,opt,name=cpu_class,json=cpuClass,proto3" json:"cpu_class,omitempty"`
@@ -2951,13 +2970,6 @@ func (x *CreateVirtualMachineFromBackupRequest) GetTargetDisplayName() string {
 func (x *CreateVirtualMachineFromBackupRequest) GetHostname() string {
 	if x != nil {
 		return x.Hostname
-	}
-	return ""
-}
-
-func (x *CreateVirtualMachineFromBackupRequest) GetInstanceType() string {
-	if x != nil {
-		return x.InstanceType
 	}
 	return ""
 }
@@ -3102,12 +3114,11 @@ var File_aes_compute_v1_compute_proto protoreflect.FileDescriptor
 
 const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\xcb\t\n" +
+	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\xac\t\n" +
 	"\x0eVirtualMachine\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12'\n" +
-	"\x0fdatacenter_name\x18\x03 \x01(\tR\x0edatacenterName\x12#\n" +
-	"\rinstance_type\x18\x04 \x01(\tR\finstanceType\x12\x14\n" +
+	"\x0fdatacenter_name\x18\x03 \x01(\tR\x0edatacenterName\x12\x14\n" +
 	"\x05state\x18\x05 \x01(\tR\x05state\x12(\n" +
 	"\x10create_time_unix\x18\x06 \x01(\x03R\x0ecreateTimeUnix\x12B\n" +
 	"\x06labels\x18\a \x03(\v2*.aes.compute.v1.VirtualMachine.LabelsEntryR\x06labels\x12Q\n" +
@@ -3124,8 +3135,8 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\bhostname\x18\x14 \x01(\tR\bhostname\x12!\n" +
 	"\fnetwork_name\x18\x15 \x01(\tR\vnetworkName\x12\x1f\n" +
 	"\vpublic_ipv4\x18\x16 \x01(\tR\n" +
-	"publicIpv4\x12!\n" +
-	"\fprivate_ipv6\x18\x17 \x01(\tR\vprivateIpv6\x12\x1b\n" +
+	"publicIpv4\x12\x12\n" +
+	"\x04ipv6\x18\x17 \x01(\tR\x04ipv6\x12\x1b\n" +
 	"\tboot_disk\x18\x18 \x01(\tR\bbootDisk\x12\x14\n" +
 	"\x05vcpus\x18\x19 \x01(\x05R\x05vcpus\x12\x17\n" +
 	"\aram_gib\x18\x1a \x01(\x05R\x06ramGib\x12\x1b\n" +
@@ -3137,11 +3148,10 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x0f\x10\x10J\x04\b\x11\x10\x12J\x04\b\x12\x10\x13R\vexternal_ipR\rdisk_size_gibR\x0eboot_image_url\"\xee\a\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x04\x10\x05J\x04\b\x0f\x10\x10J\x04\b\x11\x10\x12J\x04\b\x12\x10\x13R\rinstance_typeR\vexternal_ipR\rdisk_size_gibR\x0eboot_image_url\"\x8f\b\n" +
 	"\x1bCreateVirtualMachineRequest\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12'\n" +
-	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12#\n" +
-	"\rinstance_type\x18\x03 \x01(\tR\finstanceType\x12!\n" +
+	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12!\n" +
 	"\fnetwork_name\x18\x04 \x01(\tR\vnetworkName\x12\x1d\n" +
 	"\n" +
 	"ssh_pubkey\x18\b \x01(\tR\tsshPubkey\x12\x1b\n" +
@@ -3158,28 +3168,29 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\tboot_disk\x18\x13 \x01(\v2\x1c.aes.compute.v1.BootDiskSpecR\bbootDisk\x12\x14\n" +
 	"\x05vcpus\x18\x14 \x01(\x05R\x05vcpus\x12\x17\n" +
 	"\aram_gib\x18\x15 \x01(\x05R\x06ramGib\x12\x1b\n" +
-	"\tcpu_class\x18\x16 \x01(\tR\bcpuClass\x1a9\n" +
+	"\tcpu_class\x18\x16 \x01(\tR\bcpuClass\x12/\n" +
+	"\x14clone_source_vm_name\x18\x17 \x01(\tR\x11cloneSourceVmName\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x05\x10\x06J\x04\b\x06\x10\aJ\x04\b\a\x10\bJ\x04\b\v\x10\fR\rdisk_size_gibR\x0eboot_image_urlR\n" +
-	"image_nameR\x17user_data_snippet_names\"\xe2\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x03\x10\x04J\x04\b\x05\x10\x06J\x04\b\x06\x10\aJ\x04\b\a\x10\bJ\x04\b\v\x10\fR\rinstance_typeR\rdisk_size_gibR\x0eboot_image_urlR\n" +
+	"image_nameR\x17user_data_snippet_names\"\xfd\x03\n" +
 	"\fBootDiskSpec\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x19\n" +
 	"\bsize_gib\x18\x02 \x01(\x05R\asizeGib\x12#\n" +
 	"\rstorage_class\x18\x03 \x01(\tR\fstorageClass\x12$\n" +
-	"\x0efrom_image_url\x18\x04 \x01(\tR\ffromImageUrl\x12&\n" +
-	"\x0ffrom_image_name\x18\x05 \x01(\tR\rfromImageName\x12@\n" +
+	"\x0efrom_image_url\x18\x04 \x01(\tR\ffromImageUrl\x12@\n" +
 	"\x06labels\x18\a \x03(\v2(.aes.compute.v1.BootDiskSpec.LabelsEntryR\x06labels\x12O\n" +
-	"\vannotations\x18\b \x03(\v2-.aes.compute.v1.BootDiskSpec.AnnotationsEntryR\vannotations\x1a9\n" +
+	"\vannotations\x18\b \x03(\v2-.aes.compute.v1.BootDiskSpec.AnnotationsEntryR\vannotations\x12*\n" +
+	"\x11clone_source_disk\x18\t \x01(\tR\x0fcloneSourceDisk\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x06\x10\aR\rfrom_snapshot\"\x9c\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x05\x10\x06J\x04\b\x06\x10\aR\x0ffrom_image_nameR\rfrom_snapshot\"\x9c\x01\n" +
 	"\x1cCreateVirtualMachineResponse\x123\n" +
 	"\toperation\x18\x01 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\x12G\n" +
 	"\x0fvirtual_machine\x18\x02 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\".\n" +
@@ -3194,10 +3205,11 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\"\x90\x01\n" +
 	"\x1bListVirtualMachinesResponse\x12I\n" +
 	"\x10virtual_machines\x18\x01 \x03(\v2\x1e.aes.compute.v1.VirtualMachineR\x0fvirtualMachines\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"E\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"y\n" +
 	"\x1bDeleteVirtualMachineRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04etag\x18\x02 \x01(\tR\x04etag\"S\n" +
+	"\x04etag\x18\x02 \x01(\tR\x04etag\x122\n" +
+	"\x15delete_attached_disks\x18\x03 \x01(\bR\x13deleteAttachedDisks\"S\n" +
 	"\x1cDeleteVirtualMachineResponse\x123\n" +
 	"\toperation\x18\x01 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"0\n" +
 	"\x1aStartVirtualMachineRequest\x12\x12\n" +
@@ -3211,12 +3223,15 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x1cRestartVirtualMachineRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"h\n" +
 	"\x1dRestartVirtualMachineResponse\x12G\n" +
-	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\"V\n" +
+	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\"\x92\x01\n" +
 	"\x1bResizeVirtualMachineRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
-	"\rinstance_type\x18\x02 \x01(\tR\finstanceType\"g\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05vcpus\x18\x03 \x01(\x05R\x05vcpus\x12\x17\n" +
+	"\aram_gib\x18\x04 \x01(\x05R\x06ramGib\x12\x1b\n" +
+	"\tcpu_class\x18\x05 \x01(\tR\bcpuClassJ\x04\b\x02\x10\x03R\rinstance_type\"\x9c\x01\n" +
 	"\x1cResizeVirtualMachineResponse\x12G\n" +
-	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\"I\n" +
+	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\x123\n" +
+	"\toperation\x18\x02 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"I\n" +
 	"\x15SetVMAutorenewRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1c\n" +
 	"\tautorenew\x18\x02 \x01(\bR\tautorenew\"a\n" +
@@ -3228,13 +3243,12 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\x12\x1e\n" +
 	"\vnew_term_id\x18\x02 \x01(\tR\tnewTermId\x12(\n" +
 	"\x10journal_entry_id\x18\x03 \x01(\tR\x0ejournalEntryId\x120\n" +
-	"\x14charged_amount_minor\x18\x04 \x01(\x03R\x12chargedAmountMinor\"\xa6\x01\n" +
+	"\x14charged_amount_minor\x18\x04 \x01(\x03R\x12chargedAmountMinor\"\x99\x01\n" +
 	"\x1cReimageVirtualMachineRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
-	"\n" +
-	"image_name\x18\x02 \x01(\tR\timageName\x12$\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12$\n" +
 	"\x0eboot_image_url\x18\x03 \x01(\tR\fbootImageUrl\x12-\n" +
-	"\x12confirmation_token\x18\x04 \x01(\tR\x11confirmationToken\"h\n" +
+	"\x12confirmation_token\x18\x04 \x01(\tR\x11confirmationTokenJ\x04\b\x02\x10\x03R\n" +
+	"image_name\"h\n" +
 	"\x1dReimageVirtualMachineResponse\x12G\n" +
 	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\"Y\n" +
 	"\x12OpenConsoleRequest\x12\x12\n" +
@@ -3307,11 +3321,10 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x06metric\x18\x01 \x01(\tR\x06metric\x126\n" +
 	"\asamples\x18\x02 \x03(\v2\x1c.aes.compute.v1.MetricSampleR\asamples\"L\n" +
 	"\x14GetVMMetricsResponse\x124\n" +
-	"\x06series\x18\x01 \x03(\v2\x1c.aes.compute.v1.MetricSeriesR\x06series\"\xc1\x03\n" +
+	"\x06series\x18\x01 \x03(\v2\x1c.aes.compute.v1.MetricSeriesR\x06series\"\xb1\x03\n" +
 	"\x1aCloneVirtualMachineRequest\x12$\n" +
 	"\x0esource_vm_name\x18\x01 \x01(\tR\fsourceVmName\x12.\n" +
-	"\x13target_display_name\x18\x02 \x01(\tR\x11targetDisplayName\x12#\n" +
-	"\rinstance_type\x18\x03 \x01(\tR\finstanceType\x12N\n" +
+	"\x13target_display_name\x18\x02 \x01(\tR\x11targetDisplayName\x12N\n" +
 	"\x06labels\x18\x04 \x03(\v26.aes.compute.v1.CloneVirtualMachineRequest.LabelsEntryR\x06labels\x12]\n" +
 	"\vannotations\x18\x05 \x03(\v2;.aes.compute.v1.CloneVirtualMachineRequest.AnnotationsEntryR\vannotations\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
@@ -3319,16 +3332,15 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc5\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x03\x10\x04R\rinstance_type\"\xc5\x01\n" +
 	"\x1bCloneVirtualMachineResponse\x12G\n" +
 	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\x12(\n" +
 	"\x10vm_snapshot_name\x18\x02 \x01(\tR\x0evmSnapshotName\x123\n" +
-	"\toperation\x18\x03 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"\xba\x06\n" +
+	"\toperation\x18\x03 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"\xaa\x06\n" +
 	"%CreateVirtualMachineFromBackupRequest\x12(\n" +
 	"\x10vm_snapshot_name\x18\x01 \x01(\tR\x0evmSnapshotName\x12.\n" +
 	"\x13target_display_name\x18\x02 \x01(\tR\x11targetDisplayName\x12\x1a\n" +
-	"\bhostname\x18\x03 \x01(\tR\bhostname\x12#\n" +
-	"\rinstance_type\x18\x04 \x01(\tR\finstanceType\x12\x14\n" +
+	"\bhostname\x18\x03 \x01(\tR\bhostname\x12\x14\n" +
 	"\x05vcpus\x18\x05 \x01(\x05R\x05vcpus\x12\x17\n" +
 	"\aram_gib\x18\x06 \x01(\x05R\x06ramGib\x12\x1b\n" +
 	"\tcpu_class\x18\a \x01(\tR\bcpuClass\x12>\n" +
@@ -3345,7 +3357,7 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\r\x10\x0eR\x17user_data_snippet_names\"\xd4\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x04\x10\x05J\x04\b\r\x10\x0eR\rinstance_typeR\x17user_data_snippet_names\"\xd4\x01\n" +
 	"&CreateVirtualMachineFromBackupResponse\x12G\n" +
 	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\x12,\n" +
 	"\x12disk_snapshot_name\x18\x02 \x01(\tR\x10diskSnapshotName\x123\n" +
@@ -3479,71 +3491,72 @@ var file_aes_compute_v1_compute_proto_depIdxs = []int32{
 	2,  // 15: aes.compute.v1.StopVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
 	2,  // 16: aes.compute.v1.RestartVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
 	2,  // 17: aes.compute.v1.ResizeVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	2,  // 18: aes.compute.v1.SetVMAutorenewResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	2,  // 19: aes.compute.v1.RenewVMNowResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	2,  // 20: aes.compute.v1.ReimageVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	1,  // 21: aes.compute.v1.OpenConsoleRequest.type:type_name -> aes.compute.v1.ConsoleType
-	51, // 22: aes.compute.v1.VmSnapshot.labels:type_name -> aes.compute.v1.VmSnapshot.LabelsEntry
-	52, // 23: aes.compute.v1.VmSnapshot.annotations:type_name -> aes.compute.v1.VmSnapshot.AnnotationsEntry
-	53, // 24: aes.compute.v1.SnapshotVirtualMachineRequest.labels:type_name -> aes.compute.v1.SnapshotVirtualMachineRequest.LabelsEntry
-	54, // 25: aes.compute.v1.SnapshotVirtualMachineRequest.annotations:type_name -> aes.compute.v1.SnapshotVirtualMachineRequest.AnnotationsEntry
-	28, // 26: aes.compute.v1.SnapshotVirtualMachineResponse.snapshot:type_name -> aes.compute.v1.VmSnapshot
-	28, // 27: aes.compute.v1.GetVmSnapshotResponse.snapshot:type_name -> aes.compute.v1.VmSnapshot
-	28, // 28: aes.compute.v1.ListVmSnapshotsResponse.vm_snapshots:type_name -> aes.compute.v1.VmSnapshot
-	38, // 29: aes.compute.v1.MetricSeries.samples:type_name -> aes.compute.v1.MetricSample
-	39, // 30: aes.compute.v1.GetVMMetricsResponse.series:type_name -> aes.compute.v1.MetricSeries
-	55, // 31: aes.compute.v1.CloneVirtualMachineRequest.labels:type_name -> aes.compute.v1.CloneVirtualMachineRequest.LabelsEntry
-	56, // 32: aes.compute.v1.CloneVirtualMachineRequest.annotations:type_name -> aes.compute.v1.CloneVirtualMachineRequest.AnnotationsEntry
-	2,  // 33: aes.compute.v1.CloneVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	59, // 34: aes.compute.v1.CloneVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
-	0,  // 35: aes.compute.v1.CreateVirtualMachineFromBackupRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
-	57, // 36: aes.compute.v1.CreateVirtualMachineFromBackupRequest.labels:type_name -> aes.compute.v1.CreateVirtualMachineFromBackupRequest.LabelsEntry
-	58, // 37: aes.compute.v1.CreateVirtualMachineFromBackupRequest.annotations:type_name -> aes.compute.v1.CreateVirtualMachineFromBackupRequest.AnnotationsEntry
-	2,  // 38: aes.compute.v1.CreateVirtualMachineFromBackupResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	59, // 39: aes.compute.v1.CreateVirtualMachineFromBackupResponse.operation:type_name -> aes.ops.v1.Operation
-	3,  // 40: aes.compute.v1.ComputeService.CreateVirtualMachine:input_type -> aes.compute.v1.CreateVirtualMachineRequest
-	6,  // 41: aes.compute.v1.ComputeService.GetVirtualMachine:input_type -> aes.compute.v1.GetVirtualMachineRequest
-	8,  // 42: aes.compute.v1.ComputeService.ListVirtualMachines:input_type -> aes.compute.v1.ListVirtualMachinesRequest
-	12, // 43: aes.compute.v1.ComputeService.StartVirtualMachine:input_type -> aes.compute.v1.StartVirtualMachineRequest
-	14, // 44: aes.compute.v1.ComputeService.StopVirtualMachine:input_type -> aes.compute.v1.StopVirtualMachineRequest
-	16, // 45: aes.compute.v1.ComputeService.RestartVirtualMachine:input_type -> aes.compute.v1.RestartVirtualMachineRequest
-	18, // 46: aes.compute.v1.ComputeService.ResizeVirtualMachine:input_type -> aes.compute.v1.ResizeVirtualMachineRequest
-	20, // 47: aes.compute.v1.ComputeService.SetVMAutorenew:input_type -> aes.compute.v1.SetVMAutorenewRequest
-	22, // 48: aes.compute.v1.ComputeService.RenewVMNow:input_type -> aes.compute.v1.RenewVMNowRequest
-	24, // 49: aes.compute.v1.ComputeService.ReimageVirtualMachine:input_type -> aes.compute.v1.ReimageVirtualMachineRequest
-	26, // 50: aes.compute.v1.ComputeService.OpenConsole:input_type -> aes.compute.v1.OpenConsoleRequest
-	29, // 51: aes.compute.v1.ComputeService.SnapshotVirtualMachine:input_type -> aes.compute.v1.SnapshotVirtualMachineRequest
-	31, // 52: aes.compute.v1.ComputeService.GetVmSnapshot:input_type -> aes.compute.v1.GetVmSnapshotRequest
-	33, // 53: aes.compute.v1.ComputeService.ListVmSnapshots:input_type -> aes.compute.v1.ListVmSnapshotsRequest
-	35, // 54: aes.compute.v1.ComputeService.DeleteVmSnapshot:input_type -> aes.compute.v1.DeleteVmSnapshotRequest
-	10, // 55: aes.compute.v1.ComputeService.DeleteVirtualMachine:input_type -> aes.compute.v1.DeleteVirtualMachineRequest
-	37, // 56: aes.compute.v1.ComputeService.GetVMMetrics:input_type -> aes.compute.v1.GetVMMetricsRequest
-	41, // 57: aes.compute.v1.ComputeService.CloneVirtualMachine:input_type -> aes.compute.v1.CloneVirtualMachineRequest
-	43, // 58: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup:input_type -> aes.compute.v1.CreateVirtualMachineFromBackupRequest
-	5,  // 59: aes.compute.v1.ComputeService.CreateVirtualMachine:output_type -> aes.compute.v1.CreateVirtualMachineResponse
-	7,  // 60: aes.compute.v1.ComputeService.GetVirtualMachine:output_type -> aes.compute.v1.GetVirtualMachineResponse
-	9,  // 61: aes.compute.v1.ComputeService.ListVirtualMachines:output_type -> aes.compute.v1.ListVirtualMachinesResponse
-	13, // 62: aes.compute.v1.ComputeService.StartVirtualMachine:output_type -> aes.compute.v1.StartVirtualMachineResponse
-	15, // 63: aes.compute.v1.ComputeService.StopVirtualMachine:output_type -> aes.compute.v1.StopVirtualMachineResponse
-	17, // 64: aes.compute.v1.ComputeService.RestartVirtualMachine:output_type -> aes.compute.v1.RestartVirtualMachineResponse
-	19, // 65: aes.compute.v1.ComputeService.ResizeVirtualMachine:output_type -> aes.compute.v1.ResizeVirtualMachineResponse
-	21, // 66: aes.compute.v1.ComputeService.SetVMAutorenew:output_type -> aes.compute.v1.SetVMAutorenewResponse
-	23, // 67: aes.compute.v1.ComputeService.RenewVMNow:output_type -> aes.compute.v1.RenewVMNowResponse
-	25, // 68: aes.compute.v1.ComputeService.ReimageVirtualMachine:output_type -> aes.compute.v1.ReimageVirtualMachineResponse
-	27, // 69: aes.compute.v1.ComputeService.OpenConsole:output_type -> aes.compute.v1.OpenConsoleResponse
-	30, // 70: aes.compute.v1.ComputeService.SnapshotVirtualMachine:output_type -> aes.compute.v1.SnapshotVirtualMachineResponse
-	32, // 71: aes.compute.v1.ComputeService.GetVmSnapshot:output_type -> aes.compute.v1.GetVmSnapshotResponse
-	34, // 72: aes.compute.v1.ComputeService.ListVmSnapshots:output_type -> aes.compute.v1.ListVmSnapshotsResponse
-	36, // 73: aes.compute.v1.ComputeService.DeleteVmSnapshot:output_type -> aes.compute.v1.DeleteVmSnapshotResponse
-	11, // 74: aes.compute.v1.ComputeService.DeleteVirtualMachine:output_type -> aes.compute.v1.DeleteVirtualMachineResponse
-	40, // 75: aes.compute.v1.ComputeService.GetVMMetrics:output_type -> aes.compute.v1.GetVMMetricsResponse
-	42, // 76: aes.compute.v1.ComputeService.CloneVirtualMachine:output_type -> aes.compute.v1.CloneVirtualMachineResponse
-	44, // 77: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup:output_type -> aes.compute.v1.CreateVirtualMachineFromBackupResponse
-	59, // [59:78] is the sub-list for method output_type
-	40, // [40:59] is the sub-list for method input_type
-	40, // [40:40] is the sub-list for extension type_name
-	40, // [40:40] is the sub-list for extension extendee
-	0,  // [0:40] is the sub-list for field type_name
+	59, // 18: aes.compute.v1.ResizeVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
+	2,  // 19: aes.compute.v1.SetVMAutorenewResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	2,  // 20: aes.compute.v1.RenewVMNowResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	2,  // 21: aes.compute.v1.ReimageVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	1,  // 22: aes.compute.v1.OpenConsoleRequest.type:type_name -> aes.compute.v1.ConsoleType
+	51, // 23: aes.compute.v1.VmSnapshot.labels:type_name -> aes.compute.v1.VmSnapshot.LabelsEntry
+	52, // 24: aes.compute.v1.VmSnapshot.annotations:type_name -> aes.compute.v1.VmSnapshot.AnnotationsEntry
+	53, // 25: aes.compute.v1.SnapshotVirtualMachineRequest.labels:type_name -> aes.compute.v1.SnapshotVirtualMachineRequest.LabelsEntry
+	54, // 26: aes.compute.v1.SnapshotVirtualMachineRequest.annotations:type_name -> aes.compute.v1.SnapshotVirtualMachineRequest.AnnotationsEntry
+	28, // 27: aes.compute.v1.SnapshotVirtualMachineResponse.snapshot:type_name -> aes.compute.v1.VmSnapshot
+	28, // 28: aes.compute.v1.GetVmSnapshotResponse.snapshot:type_name -> aes.compute.v1.VmSnapshot
+	28, // 29: aes.compute.v1.ListVmSnapshotsResponse.vm_snapshots:type_name -> aes.compute.v1.VmSnapshot
+	38, // 30: aes.compute.v1.MetricSeries.samples:type_name -> aes.compute.v1.MetricSample
+	39, // 31: aes.compute.v1.GetVMMetricsResponse.series:type_name -> aes.compute.v1.MetricSeries
+	55, // 32: aes.compute.v1.CloneVirtualMachineRequest.labels:type_name -> aes.compute.v1.CloneVirtualMachineRequest.LabelsEntry
+	56, // 33: aes.compute.v1.CloneVirtualMachineRequest.annotations:type_name -> aes.compute.v1.CloneVirtualMachineRequest.AnnotationsEntry
+	2,  // 34: aes.compute.v1.CloneVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	59, // 35: aes.compute.v1.CloneVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
+	0,  // 36: aes.compute.v1.CreateVirtualMachineFromBackupRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
+	57, // 37: aes.compute.v1.CreateVirtualMachineFromBackupRequest.labels:type_name -> aes.compute.v1.CreateVirtualMachineFromBackupRequest.LabelsEntry
+	58, // 38: aes.compute.v1.CreateVirtualMachineFromBackupRequest.annotations:type_name -> aes.compute.v1.CreateVirtualMachineFromBackupRequest.AnnotationsEntry
+	2,  // 39: aes.compute.v1.CreateVirtualMachineFromBackupResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	59, // 40: aes.compute.v1.CreateVirtualMachineFromBackupResponse.operation:type_name -> aes.ops.v1.Operation
+	3,  // 41: aes.compute.v1.ComputeService.CreateVirtualMachine:input_type -> aes.compute.v1.CreateVirtualMachineRequest
+	6,  // 42: aes.compute.v1.ComputeService.GetVirtualMachine:input_type -> aes.compute.v1.GetVirtualMachineRequest
+	8,  // 43: aes.compute.v1.ComputeService.ListVirtualMachines:input_type -> aes.compute.v1.ListVirtualMachinesRequest
+	12, // 44: aes.compute.v1.ComputeService.StartVirtualMachine:input_type -> aes.compute.v1.StartVirtualMachineRequest
+	14, // 45: aes.compute.v1.ComputeService.StopVirtualMachine:input_type -> aes.compute.v1.StopVirtualMachineRequest
+	16, // 46: aes.compute.v1.ComputeService.RestartVirtualMachine:input_type -> aes.compute.v1.RestartVirtualMachineRequest
+	18, // 47: aes.compute.v1.ComputeService.ResizeVirtualMachine:input_type -> aes.compute.v1.ResizeVirtualMachineRequest
+	20, // 48: aes.compute.v1.ComputeService.SetVMAutorenew:input_type -> aes.compute.v1.SetVMAutorenewRequest
+	22, // 49: aes.compute.v1.ComputeService.RenewVMNow:input_type -> aes.compute.v1.RenewVMNowRequest
+	24, // 50: aes.compute.v1.ComputeService.ReimageVirtualMachine:input_type -> aes.compute.v1.ReimageVirtualMachineRequest
+	26, // 51: aes.compute.v1.ComputeService.OpenConsole:input_type -> aes.compute.v1.OpenConsoleRequest
+	29, // 52: aes.compute.v1.ComputeService.SnapshotVirtualMachine:input_type -> aes.compute.v1.SnapshotVirtualMachineRequest
+	31, // 53: aes.compute.v1.ComputeService.GetVmSnapshot:input_type -> aes.compute.v1.GetVmSnapshotRequest
+	33, // 54: aes.compute.v1.ComputeService.ListVmSnapshots:input_type -> aes.compute.v1.ListVmSnapshotsRequest
+	35, // 55: aes.compute.v1.ComputeService.DeleteVmSnapshot:input_type -> aes.compute.v1.DeleteVmSnapshotRequest
+	10, // 56: aes.compute.v1.ComputeService.DeleteVirtualMachine:input_type -> aes.compute.v1.DeleteVirtualMachineRequest
+	37, // 57: aes.compute.v1.ComputeService.GetVMMetrics:input_type -> aes.compute.v1.GetVMMetricsRequest
+	41, // 58: aes.compute.v1.ComputeService.CloneVirtualMachine:input_type -> aes.compute.v1.CloneVirtualMachineRequest
+	43, // 59: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup:input_type -> aes.compute.v1.CreateVirtualMachineFromBackupRequest
+	5,  // 60: aes.compute.v1.ComputeService.CreateVirtualMachine:output_type -> aes.compute.v1.CreateVirtualMachineResponse
+	7,  // 61: aes.compute.v1.ComputeService.GetVirtualMachine:output_type -> aes.compute.v1.GetVirtualMachineResponse
+	9,  // 62: aes.compute.v1.ComputeService.ListVirtualMachines:output_type -> aes.compute.v1.ListVirtualMachinesResponse
+	13, // 63: aes.compute.v1.ComputeService.StartVirtualMachine:output_type -> aes.compute.v1.StartVirtualMachineResponse
+	15, // 64: aes.compute.v1.ComputeService.StopVirtualMachine:output_type -> aes.compute.v1.StopVirtualMachineResponse
+	17, // 65: aes.compute.v1.ComputeService.RestartVirtualMachine:output_type -> aes.compute.v1.RestartVirtualMachineResponse
+	19, // 66: aes.compute.v1.ComputeService.ResizeVirtualMachine:output_type -> aes.compute.v1.ResizeVirtualMachineResponse
+	21, // 67: aes.compute.v1.ComputeService.SetVMAutorenew:output_type -> aes.compute.v1.SetVMAutorenewResponse
+	23, // 68: aes.compute.v1.ComputeService.RenewVMNow:output_type -> aes.compute.v1.RenewVMNowResponse
+	25, // 69: aes.compute.v1.ComputeService.ReimageVirtualMachine:output_type -> aes.compute.v1.ReimageVirtualMachineResponse
+	27, // 70: aes.compute.v1.ComputeService.OpenConsole:output_type -> aes.compute.v1.OpenConsoleResponse
+	30, // 71: aes.compute.v1.ComputeService.SnapshotVirtualMachine:output_type -> aes.compute.v1.SnapshotVirtualMachineResponse
+	32, // 72: aes.compute.v1.ComputeService.GetVmSnapshot:output_type -> aes.compute.v1.GetVmSnapshotResponse
+	34, // 73: aes.compute.v1.ComputeService.ListVmSnapshots:output_type -> aes.compute.v1.ListVmSnapshotsResponse
+	36, // 74: aes.compute.v1.ComputeService.DeleteVmSnapshot:output_type -> aes.compute.v1.DeleteVmSnapshotResponse
+	11, // 75: aes.compute.v1.ComputeService.DeleteVirtualMachine:output_type -> aes.compute.v1.DeleteVirtualMachineResponse
+	40, // 76: aes.compute.v1.ComputeService.GetVMMetrics:output_type -> aes.compute.v1.GetVMMetricsResponse
+	42, // 77: aes.compute.v1.ComputeService.CloneVirtualMachine:output_type -> aes.compute.v1.CloneVirtualMachineResponse
+	44, // 78: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup:output_type -> aes.compute.v1.CreateVirtualMachineFromBackupResponse
+	60, // [60:79] is the sub-list for method output_type
+	41, // [41:60] is the sub-list for method input_type
+	41, // [41:41] is the sub-list for extension type_name
+	41, // [41:41] is the sub-list for extension extendee
+	0,  // [0:41] is the sub-list for field type_name
 }
 
 func init() { file_aes_compute_v1_compute_proto_init() }

@@ -1,5 +1,15 @@
 openapi: 3.1.0
-info: {}
+info:
+  title: Metalhost API
+  version: v1
+  description: |-
+    Customer-facing HTTP API for Metalhost. Every dashboard action maps to one of the RPCs below. Authenticate with a Bearer API key on every request — mint one in the dashboard under Developers → API keys.
+
+    Every RPC is POST application/json with a Bearer header. Field names use snake_case (proto JSON).
+  contact:
+    name: Metalhost support
+    email: support@metalhost.net
+    url: https://metalhost.net/docs
 paths:
   /aes.audit.v1.AuditService/SearchEvents:
     post:
@@ -406,46 +416,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.catalog.v1.ListMaintenanceWindowsResponse'
-  /aes.catalog.v1.CatalogService/ListPricingComponents:
-    post:
-      tags:
-        - aes.catalog.v1.CatalogService
-      summary: ListPricingComponents
-      description: |-
-        ListPricingComponents returns the configurator price catalog: one row per
-         (component, class, currency). Clients cache the table on configurator load and
-         recompute prices locally as the user adjusts sliders. Time-versioned; a cached
-         table stays valid until the next operator price change (rare).
-      operationId: aes.catalog.v1.CatalogService.ListPricingComponents
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.catalog.v1.ListPricingComponentsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.catalog.v1.ListPricingComponentsResponse'
   /aes.catalog.v1.CatalogService/QuoteVirtualMachine:
     post:
       tags:
@@ -495,11 +465,13 @@ paths:
         - aes.compute.v1.ComputeService
       summary: CloneVirtualMachine
       description: |-
-        CloneVirtualMachine creates a new VM whose initial disk state is a copy of an existing
-         VM's disks at the point of clone. Implementation: takes a vm_snapshot of the source,
-         then provisions the new VM from a VirtualMachineRestore CR pointing at that snapshot.
-         The new VM gets a fresh name + project-scoped resource ID; networks/firewalls are NOT
-         copied (clone is per-VM, not per-stack).
+        CloneVirtualMachine creates a new VM whose BOOT disk is a copy of an existing VM's boot
+         disk at the point of clone. Async, disk-first: snapshots the source boot disk, clones it
+         into a fresh PVC, and provisions the new VM from it inside the vm_provision workflow;
+         returns an Operation the caller polls like a create. The new VM gets a fresh name +
+         project-scoped resource ID. Custom firewall rules ARE copied; networks are NOT (clone is
+         per-VM, not per-stack). Boot disk only — any attached DATA disks on the source are NOT
+         cloned (tracked as a follow-on, mirrors CreateVirtualMachineFromBackup).
       operationId: aes.compute.v1.ComputeService.CloneVirtualMachine
       parameters:
         - name: Connect-Protocol-Version
@@ -992,10 +964,14 @@ paths:
         - aes.compute.v1.ComputeService
       summary: ResizeVirtualMachine
       description: |-
-        ResizeVirtualMachine changes the instance_type (CPU/memory tier). KubeVirt CPU and memory
-         are immutable on a running VMI in 1.8, so this is a stop → patch VM spec → start sequence.
-         Brief downtime — seconds for cirros, longer for graceful Linux shutdown. Disks, networks,
-         and IP addresses survive.
+        ResizeVirtualMachine changes the configurator shape (vcpus / ram_gib / cpu_class).
+         KubeVirt CPU and memory are immutable on a running VMI in 1.8, so this is a stop →
+         patch VM spec → start sequence. The whole sequence runs as a vm_resize Operation
+         (Temporal + DATABASE_URL); the response carries the Operation so the client returns
+         immediately and polls. Brief downtime — seconds for cirros, longer for graceful Linux
+         shutdown. Disks, networks, and IP addresses survive. cpu_class changes are allowed
+         but require a worker host with a matching label; KubeVirt schedules the new VMI
+         against the updated nodeSelector or the start activity fails the operation.
       operationId: aes.compute.v1.ComputeService.ResizeVirtualMachine
       parameters:
         - name: Connect-Protocol-Version
@@ -2716,219 +2692,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.iam.v1.VerifyMFAEnrollmentResponse'
-  /aes.network.v1.AdminNetworkService/CreateAddressPool:
-    post:
-      tags:
-        - aes.network.v1.AdminNetworkService
-      summary: CreateAddressPool
-      operationId: aes.network.v1.AdminNetworkService.CreateAddressPool
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.network.v1.CreateAddressPoolRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.network.v1.CreateAddressPoolResponse'
-  /aes.network.v1.AdminNetworkService/DeleteAddressPool:
-    post:
-      tags:
-        - aes.network.v1.AdminNetworkService
-      summary: DeleteAddressPool
-      operationId: aes.network.v1.AdminNetworkService.DeleteAddressPool
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.network.v1.DeleteAddressPoolRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.network.v1.DeleteAddressPoolResponse'
-  /aes.network.v1.AdminNetworkService/GetAddressPool:
-    post:
-      tags:
-        - aes.network.v1.AdminNetworkService
-      summary: GetAddressPool
-      operationId: aes.network.v1.AdminNetworkService.GetAddressPool
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.network.v1.GetAddressPoolRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.network.v1.GetAddressPoolResponse'
-  /aes.network.v1.AdminNetworkService/GetIPAMUtilization:
-    post:
-      tags:
-        - aes.network.v1.AdminNetworkService
-      summary: GetIPAMUtilization
-      description: |-
-        GetIPAMUtilization returns a per-pool rollup: assigned vs free IPs, per-tenant breakdown,
-         burn rate. Operators use this to plan address purchases.
-      operationId: aes.network.v1.AdminNetworkService.GetIPAMUtilization
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.network.v1.GetIPAMUtilizationRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.network.v1.GetIPAMUtilizationResponse'
-  /aes.network.v1.AdminNetworkService/ListAddressPools:
-    post:
-      tags:
-        - aes.network.v1.AdminNetworkService
-      summary: ListAddressPools
-      operationId: aes.network.v1.AdminNetworkService.ListAddressPools
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.network.v1.ListAddressPoolsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.network.v1.ListAddressPoolsResponse'
-  /aes.network.v1.AdminNetworkService/UpdateAddressPool:
-    post:
-      tags:
-        - aes.network.v1.AdminNetworkService
-      summary: UpdateAddressPool
-      operationId: aes.network.v1.AdminNetworkService.UpdateAddressPool
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.network.v1.UpdateAddressPoolRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.network.v1.UpdateAddressPoolResponse'
   /aes.network.v1.NetworkService/CreateFirewallRule:
     post:
       tags:
@@ -5994,10 +5757,6 @@ components:
         state:
           title: state
           $ref: '#/components/schemas/aes.catalog.v1.DatacenterState'
-        siteId:
-          type: string
-          title: site_id
-          description: Optional inventory / site reference.
         kubernetesApiEndpoint:
           type: string
           title: kubernetes_api_endpoint
@@ -6149,25 +5908,6 @@ components:
           title: next_page_token
       title: ListMaintenanceWindowsResponse
       additionalProperties: false
-    aes.catalog.v1.ListPricingComponentsRequest:
-      type: object
-      properties:
-        currency:
-          type: string
-          title: currency
-          description: Default USD when empty.
-      title: ListPricingComponentsRequest
-      additionalProperties: false
-    aes.catalog.v1.ListPricingComponentsResponse:
-      type: object
-      properties:
-        components:
-          type: array
-          items:
-            $ref: '#/components/schemas/aes.catalog.v1.PricingComponent'
-          title: components
-      title: ListPricingComponentsResponse
-      additionalProperties: false
     aes.catalog.v1.MaintenanceWindow:
       type: object
       properties:
@@ -6204,56 +5944,6 @@ components:
           description: '''SCHEDULED'' | ''ACTIVE'' | ''COMPLETED'' | ''CANCELLED''.'
       title: MaintenanceWindow
       additionalProperties: false
-    aes.catalog.v1.PricingComponent:
-      type: object
-      properties:
-        component:
-          type: string
-          title: component
-          description: vcpu | ram_gib | storage_nvme_gib | public_ipv4 | egress_gib
-        class:
-          type: string
-          title: class
-          description: cascadelake | standard | ...
-        currency:
-          type: string
-          title: currency
-          description: USD
-        unitPriceMinor:
-          type:
-            - integer
-            - string
-          title: unit_price_minor
-          format: int64
-          description: |-
-            Integer minor units (cents), rounded from the underlying NUMERIC. Kept for backwards
-             compatibility with anything that scans int64; use unit_price_minor_decimal for the
-             exact stored rate (configurator rates are sub-cent).
-        displayName:
-          type: string
-          title: display_name
-        effectiveAtUnix:
-          type:
-            - integer
-            - string
-          title: effective_at_unix
-          format: int64
-          description: |-
-            When the row took effect — caches keyed on (component, class, currency, effective_at)
-             never need to invalidate prematurely.
-        unitPriceMinorDecimal:
-          type: string
-          title: unit_price_minor_decimal
-          description: |-
-            Exact rate as the server stored it, in NUMERIC text form (e.g. "0.342465"). Same scale
-             as unit_price_minor (1.0 = 1 cent) but with 6 decimals of sub-cent precision so the
-             configurator surfaces $2.50/vCPU-month (= 0.000951 cents/sec) without rounding loss.
-      title: PricingComponent
-      additionalProperties: false
-      description: |-
-        PricingComponent is one priced unit in the configurator catalog. unit_price_minor is in
-         minor currency units (cents); always quoted alongside currency since the table is
-         keyed (component, class, currency).
     aes.catalog.v1.QuoteVirtualMachineRequest:
       type: object
       properties:
@@ -6442,13 +6132,9 @@ components:
         fromImageUrl:
           type: string
           title: from_image_url
-          description: Streamable raw disk image URL (CDI http source). Mutually exclusive with from_image_name.
-        fromImageName:
-          type: string
-          title: from_image_name
           description: |-
-            Registered MachineImage (`projects/{p}/images/{id}`). Server resolves the image's source URL
-             and forwards it to CDI. Image must belong to the same project + datacenter.
+            Streamable raw disk image URL (CDI http source). Required UNLESS clone_source_disk
+             is set (clone path supplies the data by snapshotting an existing disk instead).
         labels:
           type: object
           title: labels
@@ -6461,13 +6147,21 @@ components:
           additionalProperties:
             type: string
             title: value
+        cloneSourceDisk:
+          type: string
+          title: clone_source_disk
+          description: |-
+            Clone path: when set, this boot disk is created by snapshotting the named source
+             Disk + cloning it into a fresh PVC (done in the vm_provision workflow, not the RPC),
+             rather than CDI-importing from from_image_url. Set by CloneVirtualMachine; customers
+             don't set this directly. size_gib is derived from the source snapshot's restoreSize.
       title: BootDiskSpec
       additionalProperties: false
       description: |-
         BootDiskSpec is the inline disk spec carried by CreateVirtualMachineRequest.boot_disk.
-         Exactly one of from_image_url or from_image_name must be set — empty source is rejected
-         (every boot disk needs an OS image). The resulting Disk is owned by the same project
-         as the VM and persists past DeleteVirtualMachine.
+         from_image_url is required — empty source is rejected (every boot disk needs an OS
+         image). The resulting Disk is owned by the same project as the VM and persists past
+         DeleteVirtualMachine.
     aes.compute.v1.BootDiskSpec.AnnotationsEntry:
       type: object
       properties:
@@ -6503,10 +6197,6 @@ components:
           description: |-
             Display name for the new VM. Required so the customer can distinguish the clone in
              listings — the resource name itself is server-assigned.
-        instanceType:
-          type: string
-          title: instance_type
-          description: Optional override; defaults to the source VM's instance_type.
         labels:
           type: object
           title: labels
@@ -6655,15 +6345,13 @@ components:
         hostname:
           type: string
           title: hostname
-        instanceType:
-          type: string
-          title: instance_type
-          description: Optional override; defaults to the source VM's instance_type.
         vcpus:
           type: integer
           title: vcpus
           format: int32
-          description: Configurator shape override. When unset, the server inherits the source VM's shape.
+          description: |-
+            Configurator shape override. When unset (any of the three), the server inherits the
+             source VM's shape for the unset components.
         ramGib:
           type: integer
           title: ram_gib
@@ -6756,15 +6444,6 @@ components:
         datacenterName:
           type: string
           title: datacenter_name
-        instanceType:
-          type: string
-          title: instance_type
-          description: |-
-            instance_type is now a TEMPLATE HINT in the configurator era — not the source of pricing.
-             When set (e.g. `skus/vm.cascadelake.c2m4`), the server expands it to a default
-             (vcpus, ram_gib, cpu_class) shape, but customer-supplied vcpus / ram_gib / cpu_class
-             OVERRIDE the template. When unset, the request must supply vcpus + ram_gib + cpu_class
-             explicitly. Pricing comes from pricing_components rows, not from a per-SKU rate.
         networkName:
           type: string
           title: network_name
@@ -6868,10 +6547,9 @@ components:
           title: vcpus
           format: int32
           description: |-
-            Configurator shape — customer assembles their VM from priced components. When unset the
-             server falls back to the (vcpus, ram_gib, cpu_class) implied by `instance_type`'s
-             template. When set, these OVERRIDE the template. Validated at the API edge against the
-             1–16 GiB RAM-per-vCPU ratio bounds (services/pricing.Shape.Validate).
+            Configurator shape — customer assembles their VM from priced components. All three are
+             REQUIRED; the server rejects with InvalidArgument if any is unset. Validated at the API
+             edge against the 1–16 GiB RAM-per-vCPU ratio bounds (services/pricing.Shape.Validate).
         ramGib:
           type: integer
           title: ram_gib
@@ -6881,8 +6559,15 @@ components:
           title: cpu_class
           description: |-
             CPU class — picks the pricing_components.vcpu/<class> row. Must match a class that has
-             both pricing AND scheduler placement (worker host labels). When empty the server falls
-             back to the template's class, or if no template is set, rejects with InvalidArgument.
+             both pricing AND scheduler placement (worker host labels). Required.
+        cloneSourceVmName:
+          type: string
+          title: clone_source_vm_name
+          description: |-
+            Clone bookkeeping: when this create was issued by CloneVirtualMachine, the source VM
+             resource name. Threaded into the operation so the vm_provision workflow's
+             CloneFirewallRules activity can copy the source's custom firewall rules onto the clone
+             once its public IP is allocated. Empty for normal (non-clone) creates. Not customer-set.
       title: CreateVirtualMachineRequest
       additionalProperties: false
     aes.compute.v1.CreateVirtualMachineRequest.AnnotationsEntry:
@@ -6945,6 +6630,14 @@ components:
           description: |-
             Optimistic concurrency. Empty = unconditional delete; non-empty = require match against
              current row's etag, else Aborted.
+        deleteAttachedDisks:
+          type: boolean
+          title: delete_attached_disks
+          description: |-
+            When true, also delete the disks currently attached to this VM (boot + data) instead of
+             detaching them back to AVAILABLE. Disk-first default is false — disks outlive the VM so a
+             customer can rebuild onto the same boot disk. Set true to fully tear down the VM and
+             reclaim its storage in one action. Irreversible: the disk data is destroyed.
       title: DeleteVirtualMachineRequest
       additionalProperties: false
     aes.compute.v1.DeleteVirtualMachineResponse:
@@ -7199,19 +6892,13 @@ components:
         name:
           type: string
           title: name
-        imageName:
-          type: string
-          title: image_name
-          description: |-
-            Optional: switch to a different image at reimage time. When empty, reuses the original
-             boot source. Setting this is the canonical way to upgrade the base OS (Ubuntu 24.04 →
-             26.04) without recreating the VM.
         bootImageUrl:
           type: string
           title: boot_image_url
           description: |-
-            Optional override of the raw image URL (when not using a registered MachineImage). Same
-             precedence as CreateVirtualMachineRequest: image_name wins over boot_image_url.
+            Required: streamable raw disk image URL (CDI http source). Setting this is the
+             canonical way to upgrade the base OS (Ubuntu 24.04 → 26.04) without recreating
+             the VM. Empty = reuse the original boot source.
         confirmationToken:
           type: string
           title: confirmation_token
@@ -7266,10 +6953,24 @@ components:
         name:
           type: string
           title: name
-        instanceType:
+        vcpus:
+          type: integer
+          title: vcpus
+          format: int32
+          description: |-
+            New configurator shape. All three required; the server rejects InvalidArgument if any is
+             unset (resize is not "patch one field" — it's a full re-shape so pricing + placement
+             recompute consistently). Same 1–16 GiB RAM-per-vCPU ratio bounds as Create.
+        ramGib:
+          type: integer
+          title: ram_gib
+          format: int32
+        cpuClass:
           type: string
-          title: instance_type
-          description: New instance_type SKU (e.g. `skus/vm.cascadelake.c8m16`). Must be a known SKU.
+          title: cpu_class
+          description: |-
+            CPU class. Required — changing class is allowed but the cluster must have a worker with
+             a matching `aes.metalhost/cpu-class=<class>` label or the rescheduled VM won't start.
       title: ResizeVirtualMachineRequest
       additionalProperties: false
     aes.compute.v1.ResizeVirtualMachineResponse:
@@ -7277,7 +6978,17 @@ components:
       properties:
         virtualMachine:
           title: virtual_machine
+          description: Set on the sync (in-memory / no-Temporal) path.
           $ref: '#/components/schemas/aes.compute.v1.VirtualMachine'
+        operation:
+          title: operation
+          description: |-
+            Set when the request was dispatched as a vm_resize Operation (Temporal +
+             DATABASE_URL). Client polls GetOperation until SUCCEEDED, then re-Gets the VM
+             to see the new shape. The operation runs the full stop → wait-for-VMI →
+             patch → start → DB update sequence under Temporal's retry envelope so a
+             mid-flight crash doesn't strand the VM in STOPPED with the old shape.
+          $ref: '#/components/schemas/aes.ops.v1.Operation'
       title: ResizeVirtualMachineResponse
       additionalProperties: false
     aes.compute.v1.RestartVirtualMachineRequest:
@@ -7490,10 +7201,6 @@ components:
         datacenterName:
           type: string
           title: datacenter_name
-        instanceType:
-          type: string
-          title: instance_type
-          description: Catalog reference, e.g. skus/vm.cascadelake.c4m8 (drives usage meter suffix).
         state:
           type: string
           title: state
@@ -7602,12 +7309,15 @@ components:
             Public IPv4 address allocated to this VM for the public NIC workflow. Empty when the VM
              was created without `assign_public_ipv4=true`. When set, this is the same value as the
              PublicIp resource's ip_address.
-        privateIpv6:
+        ipv6:
           type: string
-          title: private_ipv6
+          title: ipv6
           description: |-
-            Tenant-private IPv6 from the UDN's /64. Populated when the UDN was provisioned with a v6
-             subnet; pinned across stop/start by the same IPAMClaim that pins private_ipv4.
+            IPv6 address from the tenant Network's /64, on the VM's primary NIC. Pinned across
+             stop/start by the same IPAMClaim that pins private_ipv4. Note: this is NOT "private"
+             in the RFC1918 sense — when the DC's tenant prefix is a real GUA /48, this address
+             is globally routable. The OVN-K UDN provides tenant isolation at the network layer,
+             not via address scope. Lab DCs using ULA-style /48s see locally-scoped addresses here.
         bootDisk:
           type: string
           title: boot_disk
@@ -7621,9 +7331,8 @@ components:
           title: vcpus
           format: int32
           description: |-
-            Configurator shape — the actual (vcpus, ram_gib, cpu_class) the VM was created with.
-             Sourced from compute_instances columns (no longer derived from instance_type). Used by
-             the metering loop to emit per-component usage events at hourly cadence.
+            Configurator shape — the (vcpus, ram_gib, cpu_class) the VM was created with. Stored on
+             compute_instances; drives the per-component usage events the metering loop emits hourly.
         ramGib:
           type: integer
           title: ram_gib
@@ -10474,7 +10183,7 @@ components:
         kind:
           type: string
           title: kind
-          description: Workflow or API kind for audit, e.g. `noop`, `datacenter_provision`, `vm_provision`, `vm_delete`, `host_provision`.
+          description: Workflow or API kind for audit, e.g. `noop`, `datacenter_provision`, `vm_provision`, `vm_delete`, `vm_resize`, `host_provision`, `host_decommission`.
         datacenterName:
           type: string
           title: datacenter_name
@@ -10482,13 +10191,12 @@ components:
         vmProjectName:
           type: string
           title: vm_project_name
-          description: 'When kind is `vm_provision`, required: VM placement and SKU (see ComputeService.CreateVirtualMachine).'
+          description: |-
+            When kind is `vm_provision`, required: VM placement (see ComputeService.CreateVirtualMachine).
+             Pricing + shape come from vm_vcpus/vm_ram_gib/vm_cpu_class below — no per-SKU rate lookup.
         vmDatacenterName:
           type: string
           title: vm_datacenter_name
-        vmInstanceType:
-          type: string
-          title: vm_instance_type
         vmName:
           type: string
           title: vm_name
@@ -10616,8 +10324,8 @@ components:
           format: int32
           description: |-
             Configurator shape stamped onto the operation so the workflow's vm-insert activity
-             writes the same vcpus / ram_gib / cpu_class onto compute_instances. Replaces the old
-             implicit "instance_type → SKU lookup" path. See services/pricing.Shape.
+             writes the same vcpus / ram_gib / cpu_class onto compute_instances. See
+             services/pricing.Shape.
         vmRamGib:
           type: integer
           title: vm_ram_gib
@@ -10647,6 +10355,42 @@ components:
         vmBootDiskDisplayName:
           type: string
           title: vm_boot_disk_display_name
+        decommissionSkipWipe:
+          type: boolean
+          title: decommission_skip_wipe
+          description: |-
+            Decommission-specific. When kind == "host_decommission", these are passed in
+             the same request as host_name + datacenter_name so the workflow handler reads
+             them from the request directly (no post-CreateOperation metadata patch round
+             trip that could race or fail half-way).
+               decommission_skip_wipe: skip the Tinkerbell disk wipe (default false; only
+                                       set true when the disk is known to be wiped already).
+               decommission_reason: operator-supplied audit string.
+        decommissionReason:
+          type: string
+          title: decommission_reason
+        vmBootDiskCloneSource:
+          type: string
+          title: vm_boot_disk_clone_source
+          description: |-
+            Clone-specific (kind == "vm_provision" driven by CloneVirtualMachine). When
+             vm_boot_disk_clone_source is set, the workflow's HydrateInlineBootDisk activity
+             snapshots that source Disk + clones it into a fresh PVC instead of CDI-importing
+             from a URL — moving the (previously synchronous-at-API-edge) snapshot/clone/wait off
+             the HTTP call so CloneVirtualMachine returns an Operation in ~ms like create.
+               vm_boot_disk_clone_source: source Disk resource name to snapshot + clone.
+               vm_clone_source_vm_name:  source VM resource name — read by the CloneFirewallRules
+                                         activity to copy the source's custom firewall rules onto
+                                         the clone after its public IP is allocated.
+        vmCloneSourceVmName:
+          type: string
+          title: vm_clone_source_vm_name
+        vmDeleteAttachedDisks:
+          type: boolean
+          title: vm_delete_attached_disks
+          description: |-
+            Delete-specific (kind == "vm_delete"). When true the VMDeleteWorkflow deletes the VM's
+             attached disks (boot + data) instead of detaching them back to AVAILABLE.
       title: CreateOperationRequest
       additionalProperties: false
     aes.ops.v1.CreateOperationRequest.VmAnnotationsEntry:
@@ -11518,7 +11262,7 @@ components:
           title: mount_command
           description: |-
             Convenience: the full mount command for a Linux guest. e.g.
-             `mount -t nfs4 10.50.0.135:/projects/<uuid>/<uuid> /mnt/share`. Customers paste this
+             `mount -t nfs4 209.135.147.135:/projects/<uuid>/<uuid> /mnt/share`. Customers paste this
              into cloud-init or run by hand — any VM on the tenant network is allowed by the
              Ganesha export ACL.
       title: FileShare
@@ -13808,14 +13552,6 @@ tags:
        Firewall RPCs back the OVN ACL set on the public-vlan50 localnet switch — NetworkPolicy
        (the original backing) only filters east-west on the pod's primary CNI, leaving the
        public NIC unfiltered.
-  - name: aes.network.v1.AdminNetworkService
-    description: |-
-      AdminNetworkService is operator-internal IPAM management. AddressPools own the IPv4/IPv6
-       CIDR ranges PublicIp / VpnGateway draw from. Pools are per-DC because BGP / MetalLB /
-       OVN-K operate at the DC scope; cross-DC pool sharing is out of scope for v1.
-
-       Per PLATFORM_DESIGN §6.6: this is the gap that left customers / operators unable to declare
-       "this DC has these /24s assigned, charge $0.005/h per IP from the WAN pool."
   - name: aes.objectstore.v1.ObjectStoreService
     description: |-
       ObjectStoreService is Metalhost's S3-compatible object storage facade. Backed by MinIO in dev;
@@ -13885,3 +13621,6 @@ tags:
          ops.operation.completed
          billing.invoice.finalized
        Customers subscribe to specific types or use a wildcard prefix (e.g. "compute.vm.*").
+servers:
+  - url: https://api.metalhost.net
+    description: Production

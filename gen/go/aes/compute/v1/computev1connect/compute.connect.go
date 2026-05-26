@@ -105,10 +105,14 @@ type ComputeServiceClient interface {
 	StopVirtualMachine(context.Context, *connect.Request[v1.StopVirtualMachineRequest]) (*connect.Response[v1.StopVirtualMachineResponse], error)
 	// RestartVirtualMachine triggers a guest reboot via the KubeVirt restart subresource.
 	RestartVirtualMachine(context.Context, *connect.Request[v1.RestartVirtualMachineRequest]) (*connect.Response[v1.RestartVirtualMachineResponse], error)
-	// ResizeVirtualMachine changes the instance_type (CPU/memory tier). KubeVirt CPU and memory
-	// are immutable on a running VMI in 1.8, so this is a stop → patch VM spec → start sequence.
-	// Brief downtime — seconds for cirros, longer for graceful Linux shutdown. Disks, networks,
-	// and IP addresses survive.
+	// ResizeVirtualMachine changes the configurator shape (vcpus / ram_gib / cpu_class).
+	// KubeVirt CPU and memory are immutable on a running VMI in 1.8, so this is a stop →
+	// patch VM spec → start sequence. The whole sequence runs as a vm_resize Operation
+	// (Temporal + DATABASE_URL); the response carries the Operation so the client returns
+	// immediately and polls. Brief downtime — seconds for cirros, longer for graceful Linux
+	// shutdown. Disks, networks, and IP addresses survive. cpu_class changes are allowed
+	// but require a worker host with a matching label; KubeVirt schedules the new VMI
+	// against the updated nodeSelector or the start activity fails the operation.
 	ResizeVirtualMachine(context.Context, *connect.Request[v1.ResizeVirtualMachineRequest]) (*connect.Response[v1.ResizeVirtualMachineResponse], error)
 	// SetVMAutorenew flips the autorenew flag on a VM in MONTHLY_* billing mode. Returns
 	// FailedPrecondition when called on a HOURLY VM (no term to renew).
@@ -146,11 +150,13 @@ type ComputeServiceClient interface {
 	// from the cluster's Prometheus (kube-prometheus-stack), which scrapes virt-handler's
 	// exported metrics. Caller specifies the rollup window (default 1m, max 1h step).
 	GetVMMetrics(context.Context, *connect.Request[v1.GetVMMetricsRequest]) (*connect.Response[v1.GetVMMetricsResponse], error)
-	// CloneVirtualMachine creates a new VM whose initial disk state is a copy of an existing
-	// VM's disks at the point of clone. Implementation: takes a vm_snapshot of the source,
-	// then provisions the new VM from a VirtualMachineRestore CR pointing at that snapshot.
-	// The new VM gets a fresh name + project-scoped resource ID; networks/firewalls are NOT
-	// copied (clone is per-VM, not per-stack).
+	// CloneVirtualMachine creates a new VM whose BOOT disk is a copy of an existing VM's boot
+	// disk at the point of clone. Async, disk-first: snapshots the source boot disk, clones it
+	// into a fresh PVC, and provisions the new VM from it inside the vm_provision workflow;
+	// returns an Operation the caller polls like a create. The new VM gets a fresh name +
+	// project-scoped resource ID. Custom firewall rules ARE copied; networks are NOT (clone is
+	// per-VM, not per-stack). Boot disk only — any attached DATA disks on the source are NOT
+	// cloned (tracked as a follow-on, mirrors CreateVirtualMachineFromBackup).
 	CloneVirtualMachine(context.Context, *connect.Request[v1.CloneVirtualMachineRequest]) (*connect.Response[v1.CloneVirtualMachineResponse], error)
 	// CreateVirtualMachineFromBackup spins up a new VM whose boot disk is materialized from
 	// a previously-taken VmSnapshot. Same project, same DC as the source backup. Boot disk
@@ -422,10 +428,14 @@ type ComputeServiceHandler interface {
 	StopVirtualMachine(context.Context, *connect.Request[v1.StopVirtualMachineRequest]) (*connect.Response[v1.StopVirtualMachineResponse], error)
 	// RestartVirtualMachine triggers a guest reboot via the KubeVirt restart subresource.
 	RestartVirtualMachine(context.Context, *connect.Request[v1.RestartVirtualMachineRequest]) (*connect.Response[v1.RestartVirtualMachineResponse], error)
-	// ResizeVirtualMachine changes the instance_type (CPU/memory tier). KubeVirt CPU and memory
-	// are immutable on a running VMI in 1.8, so this is a stop → patch VM spec → start sequence.
-	// Brief downtime — seconds for cirros, longer for graceful Linux shutdown. Disks, networks,
-	// and IP addresses survive.
+	// ResizeVirtualMachine changes the configurator shape (vcpus / ram_gib / cpu_class).
+	// KubeVirt CPU and memory are immutable on a running VMI in 1.8, so this is a stop →
+	// patch VM spec → start sequence. The whole sequence runs as a vm_resize Operation
+	// (Temporal + DATABASE_URL); the response carries the Operation so the client returns
+	// immediately and polls. Brief downtime — seconds for cirros, longer for graceful Linux
+	// shutdown. Disks, networks, and IP addresses survive. cpu_class changes are allowed
+	// but require a worker host with a matching label; KubeVirt schedules the new VMI
+	// against the updated nodeSelector or the start activity fails the operation.
 	ResizeVirtualMachine(context.Context, *connect.Request[v1.ResizeVirtualMachineRequest]) (*connect.Response[v1.ResizeVirtualMachineResponse], error)
 	// SetVMAutorenew flips the autorenew flag on a VM in MONTHLY_* billing mode. Returns
 	// FailedPrecondition when called on a HOURLY VM (no term to renew).
@@ -463,11 +473,13 @@ type ComputeServiceHandler interface {
 	// from the cluster's Prometheus (kube-prometheus-stack), which scrapes virt-handler's
 	// exported metrics. Caller specifies the rollup window (default 1m, max 1h step).
 	GetVMMetrics(context.Context, *connect.Request[v1.GetVMMetricsRequest]) (*connect.Response[v1.GetVMMetricsResponse], error)
-	// CloneVirtualMachine creates a new VM whose initial disk state is a copy of an existing
-	// VM's disks at the point of clone. Implementation: takes a vm_snapshot of the source,
-	// then provisions the new VM from a VirtualMachineRestore CR pointing at that snapshot.
-	// The new VM gets a fresh name + project-scoped resource ID; networks/firewalls are NOT
-	// copied (clone is per-VM, not per-stack).
+	// CloneVirtualMachine creates a new VM whose BOOT disk is a copy of an existing VM's boot
+	// disk at the point of clone. Async, disk-first: snapshots the source boot disk, clones it
+	// into a fresh PVC, and provisions the new VM from it inside the vm_provision workflow;
+	// returns an Operation the caller polls like a create. The new VM gets a fresh name +
+	// project-scoped resource ID. Custom firewall rules ARE copied; networks are NOT (clone is
+	// per-VM, not per-stack). Boot disk only — any attached DATA disks on the source are NOT
+	// cloned (tracked as a follow-on, mirrors CreateVirtualMachineFromBackup).
 	CloneVirtualMachine(context.Context, *connect.Request[v1.CloneVirtualMachineRequest]) (*connect.Response[v1.CloneVirtualMachineResponse], error)
 	// CreateVirtualMachineFromBackup spins up a new VM whose boot disk is materialized from
 	// a previously-taken VmSnapshot. Same project, same DC as the source backup. Boot disk

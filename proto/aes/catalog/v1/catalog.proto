@@ -12,12 +12,6 @@ service CatalogService {
   // affected resource kinds so callers know whether their workloads are at risk.
   rpc ListMaintenanceWindows(ListMaintenanceWindowsRequest) returns (ListMaintenanceWindowsResponse);
 
-  // ListPricingComponents returns the configurator price catalog: one row per
-  // (component, class, currency). Clients cache the table on configurator load and
-  // recompute prices locally as the user adjusts sliders. Time-versioned; a cached
-  // table stays valid until the next operator price change (rare).
-  rpc ListPricingComponents(ListPricingComponentsRequest) returns (ListPricingComponentsResponse);
-
   // QuoteVirtualMachine returns the server-authoritative hourly + per-term prices for a
   // configured VM shape. Frontend uses this on Submit to confirm the price the customer
   // is committing to (defends against stale cached pricing). Returns ALL four monthly
@@ -44,8 +38,11 @@ message Datacenter {
   string name = 1;
   string display_name = 2;
   DatacenterState state = 3;
-  // Optional inventory / site reference.
-  string site_id = 4;
+  // Reserved: was `string site_id = 4` — Sites were dropped pre-launch (2026-05-16) and
+  // hosts now reference Datacenter directly. Field tag retired so a future repurpose
+  // doesn't accidentally inherit the old semantics.
+  reserved 4;
+  reserved "site_id";
   // Kubernetes API endpoint for the DC control plane (operator-visible).
   string kubernetes_api_endpoint = 5;
   map<string, string> labels = 6;
@@ -124,36 +121,6 @@ message ListMaintenanceWindowsRequest {
 message ListMaintenanceWindowsResponse {
   repeated MaintenanceWindow maintenance_windows = 1;
   string next_page_token = 2;
-}
-
-// PricingComponent is one priced unit in the configurator catalog. unit_price_minor is in
-// minor currency units (cents); always quoted alongside currency since the table is
-// keyed (component, class, currency).
-message PricingComponent {
-  string component = 1;          // vcpu | ram_gib | storage_nvme_gib | public_ipv4 | egress_gib
-  string class = 2;              // cascadelake | standard | ...
-  string currency = 3;           // USD
-  // Integer minor units (cents), rounded from the underlying NUMERIC. Kept for backwards
-  // compatibility with anything that scans int64; use unit_price_minor_decimal for the
-  // exact stored rate (configurator rates are sub-cent).
-  int64 unit_price_minor = 4;
-  string display_name = 5;
-  // When the row took effect — caches keyed on (component, class, currency, effective_at)
-  // never need to invalidate prematurely.
-  int64 effective_at_unix = 6;
-  // Exact rate as the server stored it, in NUMERIC text form (e.g. "0.342465"). Same scale
-  // as unit_price_minor (1.0 = 1 cent) but with 6 decimals of sub-cent precision so the
-  // configurator surfaces $2.50/vCPU-month (= 0.000951 cents/sec) without rounding loss.
-  string unit_price_minor_decimal = 7;
-}
-
-message ListPricingComponentsRequest {
-  // Default USD when empty.
-  string currency = 1;
-}
-
-message ListPricingComponentsResponse {
-  repeated PricingComponent components = 1;
 }
 
 message QuoteVirtualMachineRequest {

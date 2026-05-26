@@ -89,8 +89,6 @@ type Datacenter struct {
 	Name        string          `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	DisplayName string          `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	State       DatacenterState `protobuf:"varint,3,opt,name=state,proto3,enum=aes.catalog.v1.DatacenterState" json:"state,omitempty"`
-	// Optional inventory / site reference.
-	SiteId string `protobuf:"bytes,4,opt,name=site_id,json=siteId,proto3" json:"site_id,omitempty"`
 	// Kubernetes API endpoint for the DC control plane (operator-visible).
 	KubernetesApiEndpoint string            `protobuf:"bytes,5,opt,name=kubernetes_api_endpoint,json=kubernetesApiEndpoint,proto3" json:"kubernetes_api_endpoint,omitempty"`
 	Labels                map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -159,13 +157,6 @@ func (x *Datacenter) GetState() DatacenterState {
 		return x.State
 	}
 	return DatacenterState_DATACENTER_STATE_UNSPECIFIED
-}
-
-func (x *Datacenter) GetSiteId() string {
-	if x != nil {
-		return x.SiteId
-	}
-	return ""
 }
 
 func (x *Datacenter) GetKubernetesApiEndpoint() string {
@@ -754,198 +745,6 @@ func (x *ListMaintenanceWindowsResponse) GetNextPageToken() string {
 	return ""
 }
 
-// PricingComponent is one priced unit in the configurator catalog. unit_price_minor is in
-// minor currency units (cents); always quoted alongside currency since the table is
-// keyed (component, class, currency).
-type PricingComponent struct {
-	state     protoimpl.MessageState `protogen:"open.v1"`
-	Component string                 `protobuf:"bytes,1,opt,name=component,proto3" json:"component,omitempty"` // vcpu | ram_gib | storage_nvme_gib | public_ipv4 | egress_gib
-	Class     string                 `protobuf:"bytes,2,opt,name=class,proto3" json:"class,omitempty"`         // cascadelake | standard | ...
-	Currency  string                 `protobuf:"bytes,3,opt,name=currency,proto3" json:"currency,omitempty"`   // USD
-	// Integer minor units (cents), rounded from the underlying NUMERIC. Kept for backwards
-	// compatibility with anything that scans int64; use unit_price_minor_decimal for the
-	// exact stored rate (configurator rates are sub-cent).
-	UnitPriceMinor int64  `protobuf:"varint,4,opt,name=unit_price_minor,json=unitPriceMinor,proto3" json:"unit_price_minor,omitempty"`
-	DisplayName    string `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	// When the row took effect — caches keyed on (component, class, currency, effective_at)
-	// never need to invalidate prematurely.
-	EffectiveAtUnix int64 `protobuf:"varint,6,opt,name=effective_at_unix,json=effectiveAtUnix,proto3" json:"effective_at_unix,omitempty"`
-	// Exact rate as the server stored it, in NUMERIC text form (e.g. "0.342465"). Same scale
-	// as unit_price_minor (1.0 = 1 cent) but with 6 decimals of sub-cent precision so the
-	// configurator surfaces $2.50/vCPU-month (= 0.000951 cents/sec) without rounding loss.
-	UnitPriceMinorDecimal string `protobuf:"bytes,7,opt,name=unit_price_minor_decimal,json=unitPriceMinorDecimal,proto3" json:"unit_price_minor_decimal,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
-}
-
-func (x *PricingComponent) Reset() {
-	*x = PricingComponent{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PricingComponent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PricingComponent) ProtoMessage() {}
-
-func (x *PricingComponent) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PricingComponent.ProtoReflect.Descriptor instead.
-func (*PricingComponent) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *PricingComponent) GetComponent() string {
-	if x != nil {
-		return x.Component
-	}
-	return ""
-}
-
-func (x *PricingComponent) GetClass() string {
-	if x != nil {
-		return x.Class
-	}
-	return ""
-}
-
-func (x *PricingComponent) GetCurrency() string {
-	if x != nil {
-		return x.Currency
-	}
-	return ""
-}
-
-func (x *PricingComponent) GetUnitPriceMinor() int64 {
-	if x != nil {
-		return x.UnitPriceMinor
-	}
-	return 0
-}
-
-func (x *PricingComponent) GetDisplayName() string {
-	if x != nil {
-		return x.DisplayName
-	}
-	return ""
-}
-
-func (x *PricingComponent) GetEffectiveAtUnix() int64 {
-	if x != nil {
-		return x.EffectiveAtUnix
-	}
-	return 0
-}
-
-func (x *PricingComponent) GetUnitPriceMinorDecimal() string {
-	if x != nil {
-		return x.UnitPriceMinorDecimal
-	}
-	return ""
-}
-
-type ListPricingComponentsRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Default USD when empty.
-	Currency      string `protobuf:"bytes,1,opt,name=currency,proto3" json:"currency,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListPricingComponentsRequest) Reset() {
-	*x = ListPricingComponentsRequest{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListPricingComponentsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListPricingComponentsRequest) ProtoMessage() {}
-
-func (x *ListPricingComponentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListPricingComponentsRequest.ProtoReflect.Descriptor instead.
-func (*ListPricingComponentsRequest) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *ListPricingComponentsRequest) GetCurrency() string {
-	if x != nil {
-		return x.Currency
-	}
-	return ""
-}
-
-type ListPricingComponentsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Components    []*PricingComponent    `protobuf:"bytes,1,rep,name=components,proto3" json:"components,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListPricingComponentsResponse) Reset() {
-	*x = ListPricingComponentsResponse{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListPricingComponentsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListPricingComponentsResponse) ProtoMessage() {}
-
-func (x *ListPricingComponentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListPricingComponentsResponse.ProtoReflect.Descriptor instead.
-func (*ListPricingComponentsResponse) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *ListPricingComponentsResponse) GetComponents() []*PricingComponent {
-	if x != nil {
-		return x.Components
-	}
-	return nil
-}
-
 type QuoteVirtualMachineRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Same fields as CreateVirtualMachineRequest's configurator slice. Validated under the
@@ -963,7 +762,7 @@ type QuoteVirtualMachineRequest struct {
 
 func (x *QuoteVirtualMachineRequest) Reset() {
 	*x = QuoteVirtualMachineRequest{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[12]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -975,7 +774,7 @@ func (x *QuoteVirtualMachineRequest) String() string {
 func (*QuoteVirtualMachineRequest) ProtoMessage() {}
 
 func (x *QuoteVirtualMachineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[12]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -988,7 +787,7 @@ func (x *QuoteVirtualMachineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuoteVirtualMachineRequest.ProtoReflect.Descriptor instead.
 func (*QuoteVirtualMachineRequest) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{12}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *QuoteVirtualMachineRequest) GetVcpus() int32 {
@@ -1068,7 +867,7 @@ type QuoteVirtualMachineResponse struct {
 
 func (x *QuoteVirtualMachineResponse) Reset() {
 	*x = QuoteVirtualMachineResponse{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[13]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1080,7 +879,7 @@ func (x *QuoteVirtualMachineResponse) String() string {
 func (*QuoteVirtualMachineResponse) ProtoMessage() {}
 
 func (x *QuoteVirtualMachineResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[13]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1093,7 +892,7 @@ func (x *QuoteVirtualMachineResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuoteVirtualMachineResponse.ProtoReflect.Descriptor instead.
 func (*QuoteVirtualMachineResponse) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{13}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *QuoteVirtualMachineResponse) GetHourlyMinor() int64 {
@@ -1177,13 +976,12 @@ var File_aes_catalog_v1_catalog_proto protoreflect.FileDescriptor
 
 const file_aes_catalog_v1_catalog_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/catalog/v1/catalog.proto\x12\x0eaes.catalog.v1\"\xf9\x04\n" +
+	"\x1caes/catalog/v1/catalog.proto\x12\x0eaes.catalog.v1\"\xef\x04\n" +
 	"\n" +
 	"Datacenter\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x125\n" +
-	"\x05state\x18\x03 \x01(\x0e2\x1f.aes.catalog.v1.DatacenterStateR\x05state\x12\x17\n" +
-	"\asite_id\x18\x04 \x01(\tR\x06siteId\x126\n" +
+	"\x05state\x18\x03 \x01(\x0e2\x1f.aes.catalog.v1.DatacenterStateR\x05state\x126\n" +
 	"\x17kubernetes_api_endpoint\x18\x05 \x01(\tR\x15kubernetesApiEndpoint\x12>\n" +
 	"\x06labels\x18\x06 \x03(\v2&.aes.catalog.v1.Datacenter.LabelsEntryR\x06labels\x12M\n" +
 	"\vannotations\x18\a \x03(\v2+.aes.catalog.v1.Datacenter.AnnotationsEntryR\vannotations\x12-\n" +
@@ -1197,7 +995,7 @@ const file_aes_catalog_v1_catalog_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"l\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x04\x10\x05R\asite_id\"l\n" +
 	"\x16ListDatacentersRequest\x12\x1b\n" +
 	"\tpage_size\x18\x01 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
@@ -1240,21 +1038,7 @@ const file_aes_catalog_v1_catalog_proto_rawDesc = "" +
 	"page_token\x18\x04 \x01(\tR\tpageToken\"\x9c\x01\n" +
 	"\x1eListMaintenanceWindowsResponse\x12R\n" +
 	"\x13maintenance_windows\x18\x01 \x03(\v2!.aes.catalog.v1.MaintenanceWindowR\x12maintenanceWindows\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x94\x02\n" +
-	"\x10PricingComponent\x12\x1c\n" +
-	"\tcomponent\x18\x01 \x01(\tR\tcomponent\x12\x14\n" +
-	"\x05class\x18\x02 \x01(\tR\x05class\x12\x1a\n" +
-	"\bcurrency\x18\x03 \x01(\tR\bcurrency\x12(\n" +
-	"\x10unit_price_minor\x18\x04 \x01(\x03R\x0eunitPriceMinor\x12!\n" +
-	"\fdisplay_name\x18\x05 \x01(\tR\vdisplayName\x12*\n" +
-	"\x11effective_at_unix\x18\x06 \x01(\x03R\x0feffectiveAtUnix\x127\n" +
-	"\x18unit_price_minor_decimal\x18\a \x01(\tR\x15unitPriceMinorDecimal\":\n" +
-	"\x1cListPricingComponentsRequest\x12\x1a\n" +
-	"\bcurrency\x18\x01 \x01(\tR\bcurrency\"a\n" +
-	"\x1dListPricingComponentsResponse\x12@\n" +
-	"\n" +
-	"components\x18\x01 \x03(\v2 .aes.catalog.v1.PricingComponentR\n" +
-	"components\"\xfa\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xfa\x01\n" +
 	"\x1aQuoteVirtualMachineRequest\x12\x14\n" +
 	"\x05vcpus\x18\x01 \x01(\x05R\x05vcpus\x12\x17\n" +
 	"\aram_gib\x18\x02 \x01(\x05R\x06ramGib\x12\x1b\n" +
@@ -1283,12 +1067,11 @@ const file_aes_catalog_v1_catalog_proto_rawDesc = "" +
 	"\x16DATACENTER_STATE_READY\x10\x03\x12\x1d\n" +
 	"\x19DATACENTER_STATE_DEGRADED\x10\x04\x12#\n" +
 	"\x1fDATACENTER_STATE_DEPROVISIONING\x10\x05\x12\x1c\n" +
-	"\x18DATACENTER_STATE_RETIRED\x10\x062\xb7\x04\n" +
+	"\x18DATACENTER_STATE_RETIRED\x10\x062\xc1\x03\n" +
 	"\x0eCatalogService\x12b\n" +
 	"\x0fListDatacenters\x12&.aes.catalog.v1.ListDatacentersRequest\x1a'.aes.catalog.v1.ListDatacentersResponse\x12b\n" +
 	"\x0fGetRegionHealth\x12&.aes.catalog.v1.GetRegionHealthRequest\x1a'.aes.catalog.v1.GetRegionHealthResponse\x12w\n" +
-	"\x16ListMaintenanceWindows\x12-.aes.catalog.v1.ListMaintenanceWindowsRequest\x1a..aes.catalog.v1.ListMaintenanceWindowsResponse\x12t\n" +
-	"\x15ListPricingComponents\x12,.aes.catalog.v1.ListPricingComponentsRequest\x1a-.aes.catalog.v1.ListPricingComponentsResponse\x12n\n" +
+	"\x16ListMaintenanceWindows\x12-.aes.catalog.v1.ListMaintenanceWindowsRequest\x1a..aes.catalog.v1.ListMaintenanceWindowsResponse\x12n\n" +
 	"\x13QuoteVirtualMachine\x12*.aes.catalog.v1.QuoteVirtualMachineRequest\x1a+.aes.catalog.v1.QuoteVirtualMachineResponseB\xc3\x01\n" +
 	"\x12com.aes.catalog.v1B\fCatalogProtoP\x01ZEgithub.com/AES-Services/metalhost-sdk/gen/go/aes/catalog/v1;catalogv1\xa2\x02\x03ACX\xaa\x02\x0eAes.Catalog.V1\xca\x02\x0eAes\\Catalog\\V1\xe2\x02\x1aAes\\Catalog\\V1\\GPBMetadata\xea\x02\x10Aes::Catalog::V1b\x06proto3"
 
@@ -1305,7 +1088,7 @@ func file_aes_catalog_v1_catalog_proto_rawDescGZIP() []byte {
 }
 
 var file_aes_catalog_v1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_aes_catalog_v1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_aes_catalog_v1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_aes_catalog_v1_catalog_proto_goTypes = []any{
 	(DatacenterState)(0),                   // 0: aes.catalog.v1.DatacenterState
 	(*Datacenter)(nil),                     // 1: aes.catalog.v1.Datacenter
@@ -1317,37 +1100,31 @@ var file_aes_catalog_v1_catalog_proto_goTypes = []any{
 	(*MaintenanceWindow)(nil),              // 7: aes.catalog.v1.MaintenanceWindow
 	(*ListMaintenanceWindowsRequest)(nil),  // 8: aes.catalog.v1.ListMaintenanceWindowsRequest
 	(*ListMaintenanceWindowsResponse)(nil), // 9: aes.catalog.v1.ListMaintenanceWindowsResponse
-	(*PricingComponent)(nil),               // 10: aes.catalog.v1.PricingComponent
-	(*ListPricingComponentsRequest)(nil),   // 11: aes.catalog.v1.ListPricingComponentsRequest
-	(*ListPricingComponentsResponse)(nil),  // 12: aes.catalog.v1.ListPricingComponentsResponse
-	(*QuoteVirtualMachineRequest)(nil),     // 13: aes.catalog.v1.QuoteVirtualMachineRequest
-	(*QuoteVirtualMachineResponse)(nil),    // 14: aes.catalog.v1.QuoteVirtualMachineResponse
-	nil,                                    // 15: aes.catalog.v1.Datacenter.LabelsEntry
-	nil,                                    // 16: aes.catalog.v1.Datacenter.AnnotationsEntry
+	(*QuoteVirtualMachineRequest)(nil),     // 10: aes.catalog.v1.QuoteVirtualMachineRequest
+	(*QuoteVirtualMachineResponse)(nil),    // 11: aes.catalog.v1.QuoteVirtualMachineResponse
+	nil,                                    // 12: aes.catalog.v1.Datacenter.LabelsEntry
+	nil,                                    // 13: aes.catalog.v1.Datacenter.AnnotationsEntry
 }
 var file_aes_catalog_v1_catalog_proto_depIdxs = []int32{
 	0,  // 0: aes.catalog.v1.Datacenter.state:type_name -> aes.catalog.v1.DatacenterState
-	15, // 1: aes.catalog.v1.Datacenter.labels:type_name -> aes.catalog.v1.Datacenter.LabelsEntry
-	16, // 2: aes.catalog.v1.Datacenter.annotations:type_name -> aes.catalog.v1.Datacenter.AnnotationsEntry
+	12, // 1: aes.catalog.v1.Datacenter.labels:type_name -> aes.catalog.v1.Datacenter.LabelsEntry
+	13, // 2: aes.catalog.v1.Datacenter.annotations:type_name -> aes.catalog.v1.Datacenter.AnnotationsEntry
 	1,  // 3: aes.catalog.v1.ListDatacentersResponse.datacenters:type_name -> aes.catalog.v1.Datacenter
 	4,  // 4: aes.catalog.v1.GetRegionHealthResponse.health:type_name -> aes.catalog.v1.RegionHealth
 	7,  // 5: aes.catalog.v1.ListMaintenanceWindowsResponse.maintenance_windows:type_name -> aes.catalog.v1.MaintenanceWindow
-	10, // 6: aes.catalog.v1.ListPricingComponentsResponse.components:type_name -> aes.catalog.v1.PricingComponent
-	2,  // 7: aes.catalog.v1.CatalogService.ListDatacenters:input_type -> aes.catalog.v1.ListDatacentersRequest
-	5,  // 8: aes.catalog.v1.CatalogService.GetRegionHealth:input_type -> aes.catalog.v1.GetRegionHealthRequest
-	8,  // 9: aes.catalog.v1.CatalogService.ListMaintenanceWindows:input_type -> aes.catalog.v1.ListMaintenanceWindowsRequest
-	11, // 10: aes.catalog.v1.CatalogService.ListPricingComponents:input_type -> aes.catalog.v1.ListPricingComponentsRequest
-	13, // 11: aes.catalog.v1.CatalogService.QuoteVirtualMachine:input_type -> aes.catalog.v1.QuoteVirtualMachineRequest
-	3,  // 12: aes.catalog.v1.CatalogService.ListDatacenters:output_type -> aes.catalog.v1.ListDatacentersResponse
-	6,  // 13: aes.catalog.v1.CatalogService.GetRegionHealth:output_type -> aes.catalog.v1.GetRegionHealthResponse
-	9,  // 14: aes.catalog.v1.CatalogService.ListMaintenanceWindows:output_type -> aes.catalog.v1.ListMaintenanceWindowsResponse
-	12, // 15: aes.catalog.v1.CatalogService.ListPricingComponents:output_type -> aes.catalog.v1.ListPricingComponentsResponse
-	14, // 16: aes.catalog.v1.CatalogService.QuoteVirtualMachine:output_type -> aes.catalog.v1.QuoteVirtualMachineResponse
-	12, // [12:17] is the sub-list for method output_type
-	7,  // [7:12] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	2,  // 6: aes.catalog.v1.CatalogService.ListDatacenters:input_type -> aes.catalog.v1.ListDatacentersRequest
+	5,  // 7: aes.catalog.v1.CatalogService.GetRegionHealth:input_type -> aes.catalog.v1.GetRegionHealthRequest
+	8,  // 8: aes.catalog.v1.CatalogService.ListMaintenanceWindows:input_type -> aes.catalog.v1.ListMaintenanceWindowsRequest
+	10, // 9: aes.catalog.v1.CatalogService.QuoteVirtualMachine:input_type -> aes.catalog.v1.QuoteVirtualMachineRequest
+	3,  // 10: aes.catalog.v1.CatalogService.ListDatacenters:output_type -> aes.catalog.v1.ListDatacentersResponse
+	6,  // 11: aes.catalog.v1.CatalogService.GetRegionHealth:output_type -> aes.catalog.v1.GetRegionHealthResponse
+	9,  // 12: aes.catalog.v1.CatalogService.ListMaintenanceWindows:output_type -> aes.catalog.v1.ListMaintenanceWindowsResponse
+	11, // 13: aes.catalog.v1.CatalogService.QuoteVirtualMachine:output_type -> aes.catalog.v1.QuoteVirtualMachineResponse
+	10, // [10:14] is the sub-list for method output_type
+	6,  // [6:10] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_aes_catalog_v1_catalog_proto_init() }
@@ -1361,7 +1138,7 @@ func file_aes_catalog_v1_catalog_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_catalog_v1_catalog_proto_rawDesc), len(file_aes_catalog_v1_catalog_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   16,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

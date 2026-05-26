@@ -42,9 +42,6 @@ const (
 	// CatalogServiceListMaintenanceWindowsProcedure is the fully-qualified name of the CatalogService's
 	// ListMaintenanceWindows RPC.
 	CatalogServiceListMaintenanceWindowsProcedure = "/aes.catalog.v1.CatalogService/ListMaintenanceWindows"
-	// CatalogServiceListPricingComponentsProcedure is the fully-qualified name of the CatalogService's
-	// ListPricingComponents RPC.
-	CatalogServiceListPricingComponentsProcedure = "/aes.catalog.v1.CatalogService/ListPricingComponents"
 	// CatalogServiceQuoteVirtualMachineProcedure is the fully-qualified name of the CatalogService's
 	// QuoteVirtualMachine RPC.
 	CatalogServiceQuoteVirtualMachineProcedure = "/aes.catalog.v1.CatalogService/QuoteVirtualMachine"
@@ -59,11 +56,6 @@ type CatalogServiceClient interface {
 	// ListMaintenanceWindows returns scheduled or active maintenance windows across DCs. Tags
 	// affected resource kinds so callers know whether their workloads are at risk.
 	ListMaintenanceWindows(context.Context, *connect.Request[v1.ListMaintenanceWindowsRequest]) (*connect.Response[v1.ListMaintenanceWindowsResponse], error)
-	// ListPricingComponents returns the configurator price catalog: one row per
-	// (component, class, currency). Clients cache the table on configurator load and
-	// recompute prices locally as the user adjusts sliders. Time-versioned; a cached
-	// table stays valid until the next operator price change (rare).
-	ListPricingComponents(context.Context, *connect.Request[v1.ListPricingComponentsRequest]) (*connect.Response[v1.ListPricingComponentsResponse], error)
 	// QuoteVirtualMachine returns the server-authoritative hourly + per-term prices for a
 	// configured VM shape. Frontend uses this on Submit to confirm the price the customer
 	// is committing to (defends against stale cached pricing). Returns ALL four monthly
@@ -103,12 +95,6 @@ func NewCatalogServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(catalogServiceMethods.ByName("ListMaintenanceWindows")),
 			connect.WithClientOptions(opts...),
 		),
-		listPricingComponents: connect.NewClient[v1.ListPricingComponentsRequest, v1.ListPricingComponentsResponse](
-			httpClient,
-			baseURL+CatalogServiceListPricingComponentsProcedure,
-			connect.WithSchema(catalogServiceMethods.ByName("ListPricingComponents")),
-			connect.WithClientOptions(opts...),
-		),
 		quoteVirtualMachine: connect.NewClient[v1.QuoteVirtualMachineRequest, v1.QuoteVirtualMachineResponse](
 			httpClient,
 			baseURL+CatalogServiceQuoteVirtualMachineProcedure,
@@ -123,7 +109,6 @@ type catalogServiceClient struct {
 	listDatacenters        *connect.Client[v1.ListDatacentersRequest, v1.ListDatacentersResponse]
 	getRegionHealth        *connect.Client[v1.GetRegionHealthRequest, v1.GetRegionHealthResponse]
 	listMaintenanceWindows *connect.Client[v1.ListMaintenanceWindowsRequest, v1.ListMaintenanceWindowsResponse]
-	listPricingComponents  *connect.Client[v1.ListPricingComponentsRequest, v1.ListPricingComponentsResponse]
 	quoteVirtualMachine    *connect.Client[v1.QuoteVirtualMachineRequest, v1.QuoteVirtualMachineResponse]
 }
 
@@ -142,11 +127,6 @@ func (c *catalogServiceClient) ListMaintenanceWindows(ctx context.Context, req *
 	return c.listMaintenanceWindows.CallUnary(ctx, req)
 }
 
-// ListPricingComponents calls aes.catalog.v1.CatalogService.ListPricingComponents.
-func (c *catalogServiceClient) ListPricingComponents(ctx context.Context, req *connect.Request[v1.ListPricingComponentsRequest]) (*connect.Response[v1.ListPricingComponentsResponse], error) {
-	return c.listPricingComponents.CallUnary(ctx, req)
-}
-
 // QuoteVirtualMachine calls aes.catalog.v1.CatalogService.QuoteVirtualMachine.
 func (c *catalogServiceClient) QuoteVirtualMachine(ctx context.Context, req *connect.Request[v1.QuoteVirtualMachineRequest]) (*connect.Response[v1.QuoteVirtualMachineResponse], error) {
 	return c.quoteVirtualMachine.CallUnary(ctx, req)
@@ -161,11 +141,6 @@ type CatalogServiceHandler interface {
 	// ListMaintenanceWindows returns scheduled or active maintenance windows across DCs. Tags
 	// affected resource kinds so callers know whether their workloads are at risk.
 	ListMaintenanceWindows(context.Context, *connect.Request[v1.ListMaintenanceWindowsRequest]) (*connect.Response[v1.ListMaintenanceWindowsResponse], error)
-	// ListPricingComponents returns the configurator price catalog: one row per
-	// (component, class, currency). Clients cache the table on configurator load and
-	// recompute prices locally as the user adjusts sliders. Time-versioned; a cached
-	// table stays valid until the next operator price change (rare).
-	ListPricingComponents(context.Context, *connect.Request[v1.ListPricingComponentsRequest]) (*connect.Response[v1.ListPricingComponentsResponse], error)
 	// QuoteVirtualMachine returns the server-authoritative hourly + per-term prices for a
 	// configured VM shape. Frontend uses this on Submit to confirm the price the customer
 	// is committing to (defends against stale cached pricing). Returns ALL four monthly
@@ -201,12 +176,6 @@ func NewCatalogServiceHandler(svc CatalogServiceHandler, opts ...connect.Handler
 		connect.WithSchema(catalogServiceMethods.ByName("ListMaintenanceWindows")),
 		connect.WithHandlerOptions(opts...),
 	)
-	catalogServiceListPricingComponentsHandler := connect.NewUnaryHandler(
-		CatalogServiceListPricingComponentsProcedure,
-		svc.ListPricingComponents,
-		connect.WithSchema(catalogServiceMethods.ByName("ListPricingComponents")),
-		connect.WithHandlerOptions(opts...),
-	)
 	catalogServiceQuoteVirtualMachineHandler := connect.NewUnaryHandler(
 		CatalogServiceQuoteVirtualMachineProcedure,
 		svc.QuoteVirtualMachine,
@@ -221,8 +190,6 @@ func NewCatalogServiceHandler(svc CatalogServiceHandler, opts ...connect.Handler
 			catalogServiceGetRegionHealthHandler.ServeHTTP(w, r)
 		case CatalogServiceListMaintenanceWindowsProcedure:
 			catalogServiceListMaintenanceWindowsHandler.ServeHTTP(w, r)
-		case CatalogServiceListPricingComponentsProcedure:
-			catalogServiceListPricingComponentsHandler.ServeHTTP(w, r)
 		case CatalogServiceQuoteVirtualMachineProcedure:
 			catalogServiceQuoteVirtualMachineHandler.ServeHTTP(w, r)
 		default:
@@ -244,10 +211,6 @@ func (UnimplementedCatalogServiceHandler) GetRegionHealth(context.Context, *conn
 
 func (UnimplementedCatalogServiceHandler) ListMaintenanceWindows(context.Context, *connect.Request[v1.ListMaintenanceWindowsRequest]) (*connect.Response[v1.ListMaintenanceWindowsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.catalog.v1.CatalogService.ListMaintenanceWindows is not implemented"))
-}
-
-func (UnimplementedCatalogServiceHandler) ListPricingComponents(context.Context, *connect.Request[v1.ListPricingComponentsRequest]) (*connect.Response[v1.ListPricingComponentsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.catalog.v1.CatalogService.ListPricingComponents is not implemented"))
 }
 
 func (UnimplementedCatalogServiceHandler) QuoteVirtualMachine(context.Context, *connect.Request[v1.QuoteVirtualMachineRequest]) (*connect.Response[v1.QuoteVirtualMachineResponse], error) {

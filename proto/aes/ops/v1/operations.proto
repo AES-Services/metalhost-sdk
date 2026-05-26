@@ -19,14 +19,16 @@ service OperationsService {
 }
 
 message CreateOperationRequest {
-  // Workflow or API kind for audit, e.g. `noop`, `datacenter_provision`, `vm_provision`, `vm_delete`, `host_provision`.
+  // Workflow or API kind for audit, e.g. `noop`, `datacenter_provision`, `vm_provision`, `vm_delete`, `vm_resize`, `host_provision`, `host_decommission`.
   string kind = 1;
   // When kind is `datacenter_provision` or `datacenter_tier1`: datacenter resource name (`datacenters/...`).
   string datacenter_name = 2;
-  // When kind is `vm_provision`, required: VM placement and SKU (see ComputeService.CreateVirtualMachine).
+  // When kind is `vm_provision`, required: VM placement (see ComputeService.CreateVirtualMachine).
+  // Pricing + shape come from vm_vcpus/vm_ram_gib/vm_cpu_class below — no per-SKU rate lookup.
   string vm_project_name = 3;
   string vm_datacenter_name = 4;
-  string vm_instance_type = 5;
+  reserved 5;
+  reserved "vm_instance_type";
   // When kind is `vm_delete`, required: VM resource name to destroy.
   string vm_name = 6;
   // When kind is `host_provision`, required: inventory host (`hosts/...`) to join as a worker
@@ -93,8 +95,8 @@ message CreateOperationRequest {
   reserved 28;
   reserved "vm_reuse_existing_term_id";
   // Configurator shape stamped onto the operation so the workflow's vm-insert activity
-  // writes the same vcpus / ram_gib / cpu_class onto compute_instances. Replaces the old
-  // implicit "instance_type → SKU lookup" path. See services/pricing.Shape.
+  // writes the same vcpus / ram_gib / cpu_class onto compute_instances. See
+  // services/pricing.Shape.
   int32 vm_vcpus = 29;
   int32 vm_ram_gib = 30;
   string vm_cpu_class = 31;
@@ -110,6 +112,29 @@ message CreateOperationRequest {
   reserved "vm_boot_disk_from_snapshot";
   string vm_boot_disk_storage_class = 36;
   string vm_boot_disk_display_name = 37;
+  // Decommission-specific. When kind == "host_decommission", these are passed in
+  // the same request as host_name + datacenter_name so the workflow handler reads
+  // them from the request directly (no post-CreateOperation metadata patch round
+  // trip that could race or fail half-way).
+  //   decommission_skip_wipe: skip the Tinkerbell disk wipe (default false; only
+  //                           set true when the disk is known to be wiped already).
+  //   decommission_reason: operator-supplied audit string.
+  bool decommission_skip_wipe = 38;
+  string decommission_reason = 39;
+  // Clone-specific (kind == "vm_provision" driven by CloneVirtualMachine). When
+  // vm_boot_disk_clone_source is set, the workflow's HydrateInlineBootDisk activity
+  // snapshots that source Disk + clones it into a fresh PVC instead of CDI-importing
+  // from a URL — moving the (previously synchronous-at-API-edge) snapshot/clone/wait off
+  // the HTTP call so CloneVirtualMachine returns an Operation in ~ms like create.
+  //   vm_boot_disk_clone_source: source Disk resource name to snapshot + clone.
+  //   vm_clone_source_vm_name:  source VM resource name — read by the CloneFirewallRules
+  //                             activity to copy the source's custom firewall rules onto
+  //                             the clone after its public IP is allocated.
+  string vm_boot_disk_clone_source = 40;
+  string vm_clone_source_vm_name = 41;
+  // Delete-specific (kind == "vm_delete"). When true the VMDeleteWorkflow deletes the VM's
+  // attached disks (boot + data) instead of detaching them back to AVAILABLE.
+  bool vm_delete_attached_disks = 42;
 }
 
 message CreateOperationResponse {

@@ -28,10 +28,14 @@ service ComputeService {
   rpc StopVirtualMachine(StopVirtualMachineRequest) returns (StopVirtualMachineResponse);
   // RestartVirtualMachine triggers a guest reboot via the KubeVirt restart subresource.
   rpc RestartVirtualMachine(RestartVirtualMachineRequest) returns (RestartVirtualMachineResponse);
-  // ResizeVirtualMachine changes the instance_type (CPU/memory tier). KubeVirt CPU and memory
-  // are immutable on a running VMI in 1.8, so this is a stop → patch VM spec → start sequence.
-  // Brief downtime — seconds for cirros, longer for graceful Linux shutdown. Disks, networks,
-  // and IP addresses survive.
+  // ResizeVirtualMachine changes the configurator shape (vcpus / ram_gib / cpu_class).
+  // KubeVirt CPU and memory are immutable on a running VMI in 1.8, so this is a stop →
+  // patch VM spec → start sequence. The whole sequence runs as a vm_resize Operation
+  // (Temporal + DATABASE_URL); the response carries the Operation so the client returns
+  // immediately and polls. Brief downtime — seconds for cirros, longer for graceful Linux
+  // shutdown. Disks, networks, and IP addresses survive. cpu_class changes are allowed
+  // but require a worker host with a matching label; KubeVirt schedules the new VMI
+  // against the updated nodeSelector or the start activity fails the operation.
   rpc ResizeVirtualMachine(ResizeVirtualMachineRequest) returns (ResizeVirtualMachineResponse);
   // SetVMAutorenew flips the autorenew flag on a VM in MONTHLY_* billing mode. Returns
   // FailedPrecondition when called on a HOURLY VM (no term to renew).
@@ -71,11 +75,13 @@ service ComputeService {
   // exported metrics. Caller specifies the rollup window (default 1m, max 1h step).
   rpc GetVMMetrics(GetVMMetricsRequest) returns (GetVMMetricsResponse);
 
-  // CloneVirtualMachine creates a new VM whose initial disk state is a copy of an existing
-  // VM's disks at the point of clone. Implementation: takes a vm_snapshot of the source,
-  // then provisions the new VM from a VirtualMachineRestore CR pointing at that snapshot.
-  // The new VM gets a fresh name + project-scoped resource ID; networks/firewalls are NOT
-  // copied (clone is per-VM, not per-stack).
+  // CloneVirtualMachine creates a new VM whose BOOT disk is a copy of an existing VM's boot
+  // disk at the point of clone. Async, disk-first: snapshots the source boot disk, clones it
+  // into a fresh PVC, and provisions the new VM from it inside the vm_provision workflow;
+  // returns an Operation the caller polls like a create. The new VM gets a fresh name +
+  // project-scoped resource ID. Custom firewall rules ARE copied; networks are NOT (clone is
+  // per-VM, not per-stack). Boot disk only — any attached DATA disks on the source are NOT
+  // cloned (tracked as a follow-on, mirrors CreateVirtualMachineFromBackup).
   rpc CloneVirtualMachine(CloneVirtualMachineRequest) returns (CloneVirtualMachineResponse);
 
   // CreateVirtualMachineFromBackup spins up a new VM whose boot disk is materialized from
@@ -109,8 +115,8 @@ message VirtualMachine {
   string name = 1;
   string project_name = 2;
   string datacenter_name = 3;
-  // Catalog reference, e.g. skus/vm.cascadelake.c4m8 (drives usage meter suffix).
-  string instance_type = 4;
+  reserved 4;
+  reserved "instance_type";
   // Current lifecycle state — RUNNING / STOPPED / SUSPENDED / DELETING / DELETED. Reflects DB;
   // updated by Start/Stop/Restart/Suspend/Resume RPCs after the underlying KubeVirt subresource
   // call succeeds.
@@ -170,17 +176,19 @@ message VirtualMachine {
   // was created without `assign_public_ipv4=true`. When set, this is the same value as the
   // PublicIp resource's ip_address.
   string public_ipv4 = 22;
-  // Tenant-private IPv6 from the UDN's /64. Populated when the UDN was provisioned with a v6
-  // subnet; pinned across stop/start by the same IPAMClaim that pins private_ipv4.
-  string private_ipv6 = 23;
+  // IPv6 address from the tenant Network's /64, on the VM's primary NIC. Pinned across
+  // stop/start by the same IPAMClaim that pins private_ipv4. Note: this is NOT "private"
+  // in the RFC1918 sense — when the DC's tenant prefix is a real GUA /48, this address
+  // is globally routable. The OVN-K UDN provides tenant isolation at the network layer,
+  // not via address scope. Lab DCs using ULA-style /48s see locally-scoped addresses here.
+  string ipv6 = 23;
   // The Disk resource bound as the VM's boot device (`projects/{p}/disks/{id}`). Set on every
   // persistent VM (containerDisk lab/ephemeral VMs leave it empty). The disk has its own
   // lifecycle: DeleteVirtualMachine detaches it but does not delete it, so a customer can bind
   // the same boot_disk to a fresh VM and keep their data. Use GetDisk for size + source URL.
   string boot_disk = 24;
-  // Configurator shape — the actual (vcpus, ram_gib, cpu_class) the VM was created with.
-  // Sourced from compute_instances columns (no longer derived from instance_type). Used by
-  // the metering loop to emit per-component usage events at hourly cadence.
+  // Configurator shape — the (vcpus, ram_gib, cpu_class) the VM was created with. Stored on
+  // compute_instances; drives the per-component usage events the metering loop emits hourly.
   int32 vcpus = 25;
   int32 ram_gib = 26;
   string cpu_class = 27;
@@ -204,12 +212,8 @@ message VirtualMachine {
 message CreateVirtualMachineRequest {
   string project_name = 1;
   string datacenter_name = 2;
-  // instance_type is now a TEMPLATE HINT in the configurator era — not the source of pricing.
-  // When set (e.g. `skus/vm.cascadelake.c2m4`), the server expands it to a default
-  // (vcpus, ram_gib, cpu_class) shape, but customer-supplied vcpus / ram_gib / cpu_class
-  // OVERRIDE the template. When unset, the request must supply vcpus + ram_gib + cpu_class
-  // explicitly. Pricing comes from pricing_components rows, not from a per-SKU rate.
-  string instance_type = 3;
+  reserved 3;
+  reserved "instance_type";
   // Optional tenant network the VM attaches to. Resource name `projects/{p}/networks/{id}`.
   // When empty, the project's default network is used (auto-created lazily on first VM in
   // the project + DC). Single-NIC model — every VM has exactly one network.
@@ -270,37 +274,43 @@ message CreateVirtualMachineRequest {
   // without a separate CreateDisk round-trip. The created Disk shows up in ListDisks and is
   // billed independently — DeleteVM does NOT delete it. Mutually exclusive with `boot_disk_name`.
   BootDiskSpec boot_disk = 19;
-  // Configurator shape — customer assembles their VM from priced components. When unset the
-  // server falls back to the (vcpus, ram_gib, cpu_class) implied by `instance_type`'s
-  // template. When set, these OVERRIDE the template. Validated at the API edge against the
-  // 1–16 GiB RAM-per-vCPU ratio bounds (services/pricing.Shape.Validate).
+  // Configurator shape — customer assembles their VM from priced components. All three are
+  // REQUIRED; the server rejects with InvalidArgument if any is unset. Validated at the API
+  // edge against the 1–16 GiB RAM-per-vCPU ratio bounds (services/pricing.Shape.Validate).
   int32 vcpus = 20;
   int32 ram_gib = 21;
   // CPU class — picks the pricing_components.vcpu/<class> row. Must match a class that has
-  // both pricing AND scheduler placement (worker host labels). When empty the server falls
-  // back to the template's class, or if no template is set, rejects with InvalidArgument.
+  // both pricing AND scheduler placement (worker host labels). Required.
   string cpu_class = 22;
+  // Clone bookkeeping: when this create was issued by CloneVirtualMachine, the source VM
+  // resource name. Threaded into the operation so the vm_provision workflow's
+  // CloneFirewallRules activity can copy the source's custom firewall rules onto the clone
+  // once its public IP is allocated. Empty for normal (non-clone) creates. Not customer-set.
+  string clone_source_vm_name = 23;
 }
 
 // BootDiskSpec is the inline disk spec carried by CreateVirtualMachineRequest.boot_disk.
-// Exactly one of from_image_url or from_image_name must be set — empty source is rejected
-// (every boot disk needs an OS image). The resulting Disk is owned by the same project
-// as the VM and persists past DeleteVirtualMachine.
+// from_image_url is required — empty source is rejected (every boot disk needs an OS
+// image). The resulting Disk is owned by the same project as the VM and persists past
+// DeleteVirtualMachine.
 message BootDiskSpec {
   string display_name = 1;
   // 1..1024 GiB.
   int32 size_gib = 2;
   // Storage tier (`nvme`). Defaults to nvme.
   string storage_class = 3;
-  // Streamable raw disk image URL (CDI http source). Mutually exclusive with from_image_name.
+  // Streamable raw disk image URL (CDI http source). Required UNLESS clone_source_disk
+  // is set (clone path supplies the data by snapshotting an existing disk instead).
   string from_image_url = 4;
-  // Registered MachineImage (`projects/{p}/images/{id}`). Server resolves the image's source URL
-  // and forwards it to CDI. Image must belong to the same project + datacenter.
-  string from_image_name = 5;
-  reserved 6;
-  reserved "from_snapshot";
+  reserved 5, 6;
+  reserved "from_image_name", "from_snapshot";
   map<string, string> labels = 7;
   map<string, string> annotations = 8;
+  // Clone path: when set, this boot disk is created by snapshotting the named source
+  // Disk + cloning it into a fresh PVC (done in the vm_provision workflow, not the RPC),
+  // rather than CDI-importing from from_image_url. Set by CloneVirtualMachine; customers
+  // don't set this directly. size_gib is derived from the source snapshot's restoreSize.
+  string clone_source_disk = 9;
 }
 
 message CreateVirtualMachineResponse {
@@ -335,6 +345,11 @@ message DeleteVirtualMachineRequest {
   // Optimistic concurrency. Empty = unconditional delete; non-empty = require match against
   // current row's etag, else Aborted.
   string etag = 2;
+  // When true, also delete the disks currently attached to this VM (boot + data) instead of
+  // detaching them back to AVAILABLE. Disk-first default is false — disks outlive the VM so a
+  // customer can rebuild onto the same boot disk. Set true to fully tear down the VM and
+  // reclaim its storage in one action. Irreversible: the disk data is destroyed.
+  bool delete_attached_disks = 3;
 }
 
 message DeleteVirtualMachineResponse {
@@ -368,12 +383,27 @@ message RestartVirtualMachineResponse {
 
 message ResizeVirtualMachineRequest {
   string name = 1;
-  // New instance_type SKU (e.g. `skus/vm.cascadelake.c8m16`). Must be a known SKU.
-  string instance_type = 2;
+  reserved 2;
+  reserved "instance_type";
+  // New configurator shape. All three required; the server rejects InvalidArgument if any is
+  // unset (resize is not "patch one field" — it's a full re-shape so pricing + placement
+  // recompute consistently). Same 1–16 GiB RAM-per-vCPU ratio bounds as Create.
+  int32 vcpus = 3;
+  int32 ram_gib = 4;
+  // CPU class. Required — changing class is allowed but the cluster must have a worker with
+  // a matching `aes.metalhost/cpu-class=<class>` label or the rescheduled VM won't start.
+  string cpu_class = 5;
 }
 
 message ResizeVirtualMachineResponse {
+  // Set on the sync (in-memory / no-Temporal) path.
   VirtualMachine virtual_machine = 1;
+  // Set when the request was dispatched as a vm_resize Operation (Temporal +
+  // DATABASE_URL). Client polls GetOperation until SUCCEEDED, then re-Gets the VM
+  // to see the new shape. The operation runs the full stop → wait-for-VMI →
+  // patch → start → DB update sequence under Temporal's retry envelope so a
+  // mid-flight crash doesn't strand the VM in STOPPED with the old shape.
+  aes.ops.v1.Operation operation = 2;
 }
 
 message SetVMAutorenewRequest {
@@ -400,12 +430,11 @@ message RenewVMNowResponse {
 
 message ReimageVirtualMachineRequest {
   string name = 1;
-  // Optional: switch to a different image at reimage time. When empty, reuses the original
-  // boot source. Setting this is the canonical way to upgrade the base OS (Ubuntu 24.04 →
-  // 26.04) without recreating the VM.
-  string image_name = 2;
-  // Optional override of the raw image URL (when not using a registered MachineImage). Same
-  // precedence as CreateVirtualMachineRequest: image_name wins over boot_image_url.
+  reserved 2;
+  reserved "image_name";
+  // Required: streamable raw disk image URL (CDI http source). Setting this is the
+  // canonical way to upgrade the base OS (Ubuntu 24.04 → 26.04) without recreating
+  // the VM. Empty = reuse the original boot source.
   string boot_image_url = 3;
   // Required confirmation token. Server returns the expected value on a first call and the
   // client echoes it back on the second to acknowledge data loss. Wire format: must equal
@@ -553,8 +582,8 @@ message CloneVirtualMachineRequest {
   // Display name for the new VM. Required so the customer can distinguish the clone in
   // listings — the resource name itself is server-assigned.
   string target_display_name = 2;
-  // Optional override; defaults to the source VM's instance_type.
-  string instance_type = 3;
+  reserved 3;
+  reserved "instance_type";
   // Labels/annotations applied to the new VM (NOT inherited from the source — clone is for
   // disk state, not metadata).
   map<string, string> labels = 4;
@@ -578,9 +607,10 @@ message CreateVirtualMachineFromBackupRequest {
   // to a sanitised version of the display name when empty.
   string target_display_name = 2;
   string hostname = 3;
-  // Optional override; defaults to the source VM's instance_type.
-  string instance_type = 4;
-  // Configurator shape override. When unset, the server inherits the source VM's shape.
+  reserved 4;
+  reserved "instance_type";
+  // Configurator shape override. When unset (any of the three), the server inherits the
+  // source VM's shape for the unset components.
   int32 vcpus = 5;
   int32 ram_gib = 6;
   string cpu_class = 7;

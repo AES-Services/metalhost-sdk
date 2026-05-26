@@ -1058,7 +1058,7 @@ type FileShare struct {
 	// tenant network CIDR; mounts from outside that CIDR get permission denied).
 	NfsExportPath string `protobuf:"bytes,14,opt,name=nfs_export_path,json=nfsExportPath,proto3" json:"nfs_export_path,omitempty"`
 	// Convenience: the full mount command for a Linux guest. e.g.
-	// `mount -t nfs4 10.50.0.135:/projects/<uuid>/<uuid> /mnt/share`. Customers paste this
+	// `mount -t nfs4 209.135.147.135:/projects/<uuid>/<uuid> /mnt/share`. Customers paste this
 	// into cloud-init or run by hand — any VM on the tenant network is allowed by the
 	// Ganesha export ACL.
 	MountCommand  string `protobuf:"bytes,15,opt,name=mount_command,json=mountCommand,proto3" json:"mount_command,omitempty"`
