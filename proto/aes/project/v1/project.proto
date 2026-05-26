@@ -37,6 +37,11 @@ message Organization {
   // Resource name, e.g. `organizations/my-org`.
   string name = 1;
   string display_name = 2;
+  // Org-policy MFA enforcement (P0-4). When TRUE, members with at least one ACTIVE TOTP
+  // device must complete SubmitMFAChallenge after Login / CompleteOidcLogin before a session
+  // API key is minted. Defaults FALSE so per-user MFA enrollment remains opt-in until the org
+  // owner flips this flag. Flip via UpdateOrganization.
+  bool require_mfa = 3;
 }
 
 message GetOrganizationRequest {
@@ -99,6 +104,8 @@ message CreateOrganizationResponse {
 message UpdateOrganizationRequest {
   string name = 1;
   optional string display_name = 2;
+  // P0-4. Org owner toggles the MFA enforcement gate.
+  optional bool require_mfa = 3;
 }
 
 message UpdateOrganizationResponse {

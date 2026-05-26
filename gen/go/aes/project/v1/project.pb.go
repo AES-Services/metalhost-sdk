@@ -24,8 +24,13 @@ const (
 type Organization struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Resource name, e.g. `organizations/my-org`.
-	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	DisplayName   string `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Name        string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	DisplayName string `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// Org-policy MFA enforcement (P0-4). When TRUE, members with at least one ACTIVE TOTP
+	// device must complete SubmitMFAChallenge after Login / CompleteOidcLogin before a session
+	// API key is minted. Defaults FALSE so per-user MFA enrollment remains opt-in until the org
+	// owner flips this flag. Flip via UpdateOrganization.
+	RequireMfa    bool `protobuf:"varint,3,opt,name=require_mfa,json=requireMfa,proto3" json:"require_mfa,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -72,6 +77,13 @@ func (x *Organization) GetDisplayName() string {
 		return x.DisplayName
 	}
 	return ""
+}
+
+func (x *Organization) GetRequireMfa() bool {
+	if x != nil {
+		return x.RequireMfa
+	}
+	return false
 }
 
 type GetOrganizationRequest struct {
@@ -533,9 +545,11 @@ func (x *CreateOrganizationResponse) GetOrganization() *Organization {
 }
 
 type UpdateOrganizationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	DisplayName   *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Name        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	DisplayName *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
+	// P0-4. Org owner toggles the MFA enforcement gate.
+	RequireMfa    *bool `protobuf:"varint,3,opt,name=require_mfa,json=requireMfa,proto3,oneof" json:"require_mfa,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -582,6 +596,13 @@ func (x *UpdateOrganizationRequest) GetDisplayName() string {
 		return *x.DisplayName
 	}
 	return ""
+}
+
+func (x *UpdateOrganizationRequest) GetRequireMfa() bool {
+	if x != nil && x.RequireMfa != nil {
+		return *x.RequireMfa
+	}
+	return false
 }
 
 type UpdateOrganizationResponse struct {
@@ -1208,10 +1229,12 @@ var File_aes_project_v1_project_proto protoreflect.FileDescriptor
 
 const file_aes_project_v1_project_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/project/v1/project.proto\x12\x0eaes.project.v1\"E\n" +
+	"\x1caes/project/v1/project.proto\x12\x0eaes.project.v1\"f\n" +
 	"\fOrganization\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
-	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\",\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1f\n" +
+	"\vrequire_mfa\x18\x03 \x01(\bR\n" +
+	"requireMfa\",\n" +
 	"\x16GetOrganizationRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"[\n" +
 	"\x17GetOrganizationResponse\x12@\n" +
@@ -1237,11 +1260,14 @@ const file_aes_project_v1_project_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"^\n" +
 	"\x1aCreateOrganizationResponse\x12@\n" +
-	"\forganization\x18\x01 \x01(\v2\x1c.aes.project.v1.OrganizationR\forganization\"h\n" +
+	"\forganization\x18\x01 \x01(\v2\x1c.aes.project.v1.OrganizationR\forganization\"\x9e\x01\n" +
 	"\x19UpdateOrganizationRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12&\n" +
-	"\fdisplay_name\x18\x02 \x01(\tH\x00R\vdisplayName\x88\x01\x01B\x0f\n" +
-	"\r_display_name\"^\n" +
+	"\fdisplay_name\x18\x02 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12$\n" +
+	"\vrequire_mfa\x18\x03 \x01(\bH\x01R\n" +
+	"requireMfa\x88\x01\x01B\x0f\n" +
+	"\r_display_nameB\x0e\n" +
+	"\f_require_mfa\"^\n" +
 	"\x1aUpdateOrganizationResponse\x12@\n" +
 	"\forganization\x18\x01 \x01(\v2\x1c.aes.project.v1.OrganizationR\forganization\"/\n" +
 	"\x19DeleteOrganizationRequest\x12\x12\n" +

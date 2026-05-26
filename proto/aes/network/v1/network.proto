@@ -44,23 +44,9 @@ service NetworkService {
   // surfaced via metalhostd RPCs.
 }
 
-// AdminNetworkService is operator-internal IPAM management. AddressPools own the IPv4/IPv6
-// CIDR ranges PublicIp / VpnGateway draw from. Pools are per-DC because BGP / MetalLB /
-// OVN-K operate at the DC scope; cross-DC pool sharing is out of scope for v1.
-//
-// Per PLATFORM_DESIGN §6.6: this is the gap that left customers / operators unable to declare
-// "this DC has these /24s assigned, charge $0.005/h per IP from the WAN pool."
-service AdminNetworkService {
-  rpc CreateAddressPool(CreateAddressPoolRequest) returns (CreateAddressPoolResponse);
-  rpc GetAddressPool(GetAddressPoolRequest) returns (GetAddressPoolResponse);
-  rpc ListAddressPools(ListAddressPoolsRequest) returns (ListAddressPoolsResponse);
-  rpc UpdateAddressPool(UpdateAddressPoolRequest) returns (UpdateAddressPoolResponse);
-  rpc DeleteAddressPool(DeleteAddressPoolRequest) returns (DeleteAddressPoolResponse);
-
-  // GetIPAMUtilization returns a per-pool rollup: assigned vs free IPs, per-tenant breakdown,
-  // burn rate. Operators use this to plan address purchases.
-  rpc GetIPAMUtilization(GetIPAMUtilizationRequest) returns (GetIPAMUtilizationResponse);
-}
+// AdminNetworkService — moved to `aes.admin.v1` so the central admin RBAC middleware
+// (path-match on `/aes.admin.v1.Admin*Service/*`) gates it like every other admin service.
+// See proto/aes/admin/v1/admin.proto for the canonical definition.
 
 // Network is a tenant-owned L2 logical switch within a single datacenter, backed by an
 // OVN-Kubernetes UserDefinedNetwork (UDN). Resource name format:
@@ -260,111 +246,5 @@ message DeleteFirewallRuleRequest {
 
 message DeleteFirewallRuleResponse {}
 
-// -----------------------------------------------------------------------------
-// AddressPool / IPAM
-// -----------------------------------------------------------------------------
-
-message AddressPool {
-  // Resource name `addressPools/{slug}`.
-  string name = 1;
-  string display_name = 2;
-  // Datacenter the pool serves (`datacenters/{id}`).
-  string datacenter_name = 3;
-  // CIDR. v4 or v6, matching ip_version.
-  string cidr = 4;
-  // 4 | 6.
-  int32 ip_version = 5;
-  // "wan" — internet-routable, customer-facing PublicIps.
-  // "transit" — interconnect with peering partners.
-  // "loopback" — internal CP plumbing.
-  string origin = 6;
-  // BGP ASN this pool is announced from. 0 for non-routed pools.
-  int64 asn = 7;
-  // Hourly price per assigned IP, in USD cents (rounded up). 0 for free pools (default project).
-  int64 hourly_price_cents = 8;
-  // ALLOCATING / ACTIVE / DRAINING / RETIRED.
-  string state = 9;
-  int64 create_time_unix = 10;
-  int64 update_time_unix = 11;
-  map<string, string> labels = 12;
-  map<string, string> annotations = 13;
-}
-
-message CreateAddressPoolRequest {
-  string name = 1;
-  string display_name = 2;
-  string datacenter_name = 3;
-  string cidr = 4;
-  int32 ip_version = 5;
-  string origin = 6;
-  int64 asn = 7;
-  int64 hourly_price_cents = 8;
-  map<string, string> labels = 9;
-  map<string, string> annotations = 10;
-  string idempotency_key = 11;
-}
-message CreateAddressPoolResponse { AddressPool pool = 1; }
-
-message GetAddressPoolRequest { string name = 1; }
-message GetAddressPoolResponse { AddressPool pool = 1; }
-
-message ListAddressPoolsRequest {
-  // Optional filter — pools in this DC.
-  string datacenter_name = 1;
-  // Optional filter — "wan" | "transit" | "loopback".
-  string origin = 2;
-  int32 page_size = 3;
-  string page_token = 4;
-}
-message ListAddressPoolsResponse {
-  repeated AddressPool address_pools = 1;
-  string next_page_token = 2;
-}
-
-message UpdateAddressPoolRequest {
-  string name = 1;
-  optional string display_name = 2;
-  optional int64 hourly_price_cents = 3;
-  optional string state = 4;
-  map<string, string> labels = 5;
-  bool clear_labels = 6;
-  map<string, string> annotations = 7;
-  bool clear_annotations = 8;
-}
-message UpdateAddressPoolResponse { AddressPool pool = 1; }
-
-message DeleteAddressPoolRequest {
-  string name = 1;
-  string reason = 2;
-  string idempotency_key = 3;
-}
-message DeleteAddressPoolResponse {}
-
-message GetIPAMUtilizationRequest {
-  // When empty, returns rollup across all DCs.
-  string datacenter_name = 1;
-}
-
-message AddressPoolUtilization {
-  string pool_name = 1;
-  string datacenter_name = 2;
-  string cidr = 3;
-  int64 total_addresses = 4;
-  int64 assigned_addresses = 5;
-  int64 free_addresses = 6;
-  // Top tenants by IP consumption — capped at 10 entries.
-  repeated TenantPoolConsumption top_tenants = 7;
-  // Per-day burn over the last 7d (positive = net new assignments). Empty when no metric.
-  repeated int64 daily_assignment_delta = 8;
-}
-
-message TenantPoolConsumption {
-  string project_name = 1;
-  int64 assigned_addresses = 2;
-}
-
-message GetIPAMUtilizationResponse {
-  repeated AddressPoolUtilization pools = 1;
-  // Unix seconds — when this rollup was computed.
-  int64 computed_at_unix = 2;
-}
+// AddressPool / IPAM messages moved to `aes.admin.v1` alongside AdminNetworkService.
+// See proto/aes/admin/v1/admin.proto.

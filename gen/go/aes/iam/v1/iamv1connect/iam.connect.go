@@ -48,6 +48,9 @@ const (
 	IamServiceVerifyEmailProcedure = "/aes.iam.v1.IamService/VerifyEmail"
 	// IamServiceLoginProcedure is the fully-qualified name of the IamService's Login RPC.
 	IamServiceLoginProcedure = "/aes.iam.v1.IamService/Login"
+	// IamServiceSubmitMFAChallengeProcedure is the fully-qualified name of the IamService's
+	// SubmitMFAChallenge RPC.
+	IamServiceSubmitMFAChallengeProcedure = "/aes.iam.v1.IamService/SubmitMFAChallenge"
 	// IamServiceLinkOidcProviderProcedure is the fully-qualified name of the IamService's
 	// LinkOidcProvider RPC.
 	IamServiceLinkOidcProviderProcedure = "/aes.iam.v1.IamService/LinkOidcProvider"
@@ -155,8 +158,16 @@ type IamServiceClient interface {
 	VerifyEmail(context.Context, *connect.Request[v1.VerifyEmailRequest]) (*connect.Response[v1.VerifyEmailResponse], error)
 	// Login authenticates an email/password pair and returns a session API key. For OIDC users
 	// (no password set), Login fails with FailedPrecondition; the caller should use the OIDC
-	// flow instead.
+	// flow instead. When the user's org has require_mfa=TRUE AND the user has an ACTIVE TOTP
+	// device, the response contains only an mfa_challenge_token; the caller must finish via
+	// SubmitMFAChallenge (P0-4).
 	Login(context.Context, *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error)
+	// SubmitMFAChallenge completes a two-leg login by validating a TOTP code (or single-use
+	// recovery code) against the principal's enrolled MFA devices. Consumes the challenge token
+	// returned by Login or CompleteOidcLogin and mints the session API key. 5-minute TTL,
+	// single-use on success, max 5 wrong attempts before the challenge is invalidated and the
+	// caller must restart from Login (P0-4).
+	SubmitMFAChallenge(context.Context, *connect.Request[v1.SubmitMFAChallengeRequest]) (*connect.Response[v1.SubmitMFAChallengeResponse], error)
 	// LinkOidcProvider attaches an OIDC identity (Google / GitHub / etc.) to the calling user.
 	// After a successful link, that identity's CompleteOidcLogin will resolve to the same user.
 	// Returns the same authorize_url + state shape as StartOidcLogin; the linking is finalized
@@ -303,6 +314,12 @@ func NewIamServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			httpClient,
 			baseURL+IamServiceLoginProcedure,
 			connect.WithSchema(iamServiceMethods.ByName("Login")),
+			connect.WithClientOptions(opts...),
+		),
+		submitMFAChallenge: connect.NewClient[v1.SubmitMFAChallengeRequest, v1.SubmitMFAChallengeResponse](
+			httpClient,
+			baseURL+IamServiceSubmitMFAChallengeProcedure,
+			connect.WithSchema(iamServiceMethods.ByName("SubmitMFAChallenge")),
 			connect.WithClientOptions(opts...),
 		),
 		linkOidcProvider: connect.NewClient[v1.LinkOidcProviderRequest, v1.LinkOidcProviderResponse](
@@ -491,6 +508,7 @@ type iamServiceClient struct {
 	signUp                 *connect.Client[v1.SignUpRequest, v1.SignUpResponse]
 	verifyEmail            *connect.Client[v1.VerifyEmailRequest, v1.VerifyEmailResponse]
 	login                  *connect.Client[v1.LoginRequest, v1.LoginResponse]
+	submitMFAChallenge     *connect.Client[v1.SubmitMFAChallengeRequest, v1.SubmitMFAChallengeResponse]
 	linkOidcProvider       *connect.Client[v1.LinkOidcProviderRequest, v1.LinkOidcProviderResponse]
 	inviteOrgMember        *connect.Client[v1.InviteOrgMemberRequest, v1.InviteOrgMemberResponse]
 	acceptInvite           *connect.Client[v1.AcceptInviteRequest, v1.AcceptInviteResponse]
@@ -555,6 +573,11 @@ func (c *iamServiceClient) VerifyEmail(ctx context.Context, req *connect.Request
 // Login calls aes.iam.v1.IamService.Login.
 func (c *iamServiceClient) Login(ctx context.Context, req *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error) {
 	return c.login.CallUnary(ctx, req)
+}
+
+// SubmitMFAChallenge calls aes.iam.v1.IamService.SubmitMFAChallenge.
+func (c *iamServiceClient) SubmitMFAChallenge(ctx context.Context, req *connect.Request[v1.SubmitMFAChallengeRequest]) (*connect.Response[v1.SubmitMFAChallengeResponse], error) {
+	return c.submitMFAChallenge.CallUnary(ctx, req)
 }
 
 // LinkOidcProvider calls aes.iam.v1.IamService.LinkOidcProvider.
@@ -728,8 +751,16 @@ type IamServiceHandler interface {
 	VerifyEmail(context.Context, *connect.Request[v1.VerifyEmailRequest]) (*connect.Response[v1.VerifyEmailResponse], error)
 	// Login authenticates an email/password pair and returns a session API key. For OIDC users
 	// (no password set), Login fails with FailedPrecondition; the caller should use the OIDC
-	// flow instead.
+	// flow instead. When the user's org has require_mfa=TRUE AND the user has an ACTIVE TOTP
+	// device, the response contains only an mfa_challenge_token; the caller must finish via
+	// SubmitMFAChallenge (P0-4).
 	Login(context.Context, *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error)
+	// SubmitMFAChallenge completes a two-leg login by validating a TOTP code (or single-use
+	// recovery code) against the principal's enrolled MFA devices. Consumes the challenge token
+	// returned by Login or CompleteOidcLogin and mints the session API key. 5-minute TTL,
+	// single-use on success, max 5 wrong attempts before the challenge is invalidated and the
+	// caller must restart from Login (P0-4).
+	SubmitMFAChallenge(context.Context, *connect.Request[v1.SubmitMFAChallengeRequest]) (*connect.Response[v1.SubmitMFAChallengeResponse], error)
 	// LinkOidcProvider attaches an OIDC identity (Google / GitHub / etc.) to the calling user.
 	// After a successful link, that identity's CompleteOidcLogin will resolve to the same user.
 	// Returns the same authorize_url + state shape as StartOidcLogin; the linking is finalized
@@ -872,6 +903,12 @@ func NewIamServiceHandler(svc IamServiceHandler, opts ...connect.HandlerOption) 
 		IamServiceLoginProcedure,
 		svc.Login,
 		connect.WithSchema(iamServiceMethods.ByName("Login")),
+		connect.WithHandlerOptions(opts...),
+	)
+	iamServiceSubmitMFAChallengeHandler := connect.NewUnaryHandler(
+		IamServiceSubmitMFAChallengeProcedure,
+		svc.SubmitMFAChallenge,
+		connect.WithSchema(iamServiceMethods.ByName("SubmitMFAChallenge")),
 		connect.WithHandlerOptions(opts...),
 	)
 	iamServiceLinkOidcProviderHandler := connect.NewUnaryHandler(
@@ -1064,6 +1101,8 @@ func NewIamServiceHandler(svc IamServiceHandler, opts ...connect.HandlerOption) 
 			iamServiceVerifyEmailHandler.ServeHTTP(w, r)
 		case IamServiceLoginProcedure:
 			iamServiceLoginHandler.ServeHTTP(w, r)
+		case IamServiceSubmitMFAChallengeProcedure:
+			iamServiceSubmitMFAChallengeHandler.ServeHTTP(w, r)
 		case IamServiceLinkOidcProviderProcedure:
 			iamServiceLinkOidcProviderHandler.ServeHTTP(w, r)
 		case IamServiceInviteOrgMemberProcedure:
@@ -1157,6 +1196,10 @@ func (UnimplementedIamServiceHandler) VerifyEmail(context.Context, *connect.Requ
 
 func (UnimplementedIamServiceHandler) Login(context.Context, *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.iam.v1.IamService.Login is not implemented"))
+}
+
+func (UnimplementedIamServiceHandler) SubmitMFAChallenge(context.Context, *connect.Request[v1.SubmitMFAChallengeRequest]) (*connect.Response[v1.SubmitMFAChallengeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.iam.v1.IamService.SubmitMFAChallenge is not implemented"))
 }
 
 func (UnimplementedIamServiceHandler) LinkOidcProvider(context.Context, *connect.Request[v1.LinkOidcProviderRequest]) (*connect.Response[v1.LinkOidcProviderResponse], error) {

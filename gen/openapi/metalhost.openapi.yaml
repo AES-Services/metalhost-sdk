@@ -1952,7 +1952,9 @@ paths:
       description: |-
         Login authenticates an email/password pair and returns a session API key. For OIDC users
          (no password set), Login fails with FailedPrecondition; the caller should use the OIDC
-         flow instead.
+         flow instead. When the user's org has require_mfa=TRUE AND the user has an ACTIVE TOTP
+         device, the response contains only an mfa_challenge_token; the caller must finish via
+         SubmitMFAChallenge (P0-4).
       operationId: aes.iam.v1.IamService.Login
       parameters:
         - name: Connect-Protocol-Version
@@ -2545,6 +2547,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.iam.v1.StartOidcLoginResponse'
+  /aes.iam.v1.IamService/SubmitMFAChallenge:
+    post:
+      tags:
+        - aes.iam.v1.IamService
+      summary: SubmitMFAChallenge
+      description: |-
+        SubmitMFAChallenge completes a two-leg login by validating a TOTP code (or single-use
+         recovery code) against the principal's enrolled MFA devices. Consumes the challenge token
+         returned by Login or CompleteOidcLogin and mints the session API key. 5-minute TTL,
+         single-use on success, max 5 wrong attempts before the challenge is invalidated and the
+         caller must restart from Login (P0-4).
+      operationId: aes.iam.v1.IamService.SubmitMFAChallenge
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.SubmitMFAChallengeRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.SubmitMFAChallengeResponse'
   /aes.iam.v1.IamService/UpdateOrgMemberRole:
     post:
       tags:
@@ -7663,12 +7706,19 @@ components:
         principal:
           type: string
           title: principal
+          description: Set when MFA enforcement is NOT engaged for this principal — single-leg OIDC path.
         apiKey:
           title: api_key
           $ref: '#/components/schemas/aes.iam.v1.ApiKey'
         secret:
           type: string
           title: secret
+        mfaChallengeToken:
+          type: string
+          title: mfa_challenge_token
+          description: |-
+            P0-4: same semantics as LoginResponse.mfa_challenge_token — when set, api_key + secret are
+             empty and the caller must finish via SubmitMFAChallenge.
       title: CompleteOidcLoginResponse
       additionalProperties: false
     aes.iam.v1.CreateApiKeyRequest:
@@ -8125,12 +8175,21 @@ components:
         principal:
           type: string
           title: principal
+          description: Set when MFA enforcement is NOT engaged for this principal — single-leg login path.
         apiKey:
           title: api_key
           $ref: '#/components/schemas/aes.iam.v1.ApiKey'
         secret:
           type: string
           title: secret
+        mfaChallengeToken:
+          type: string
+          title: mfa_challenge_token
+          description: |-
+            P0-4: when the principal's org has require_mfa=TRUE AND the principal has at least one
+             ACTIVE mfa_credentials row, the server returns ONLY this challenge token (api_key + secret
+             empty) and the SPA/CLI must call SubmitMFAChallenge with the token + TOTP code (or
+             recovery_code) to finish the login. 5-minute TTL, single-use, max 5 wrong attempts.
       title: LoginResponse
       additionalProperties: false
     aes.iam.v1.LogoutRequest:
@@ -8678,6 +8737,48 @@ components:
           title: state
       title: StartOidcLoginResponse
       additionalProperties: false
+    aes.iam.v1.SubmitMFAChallengeRequest:
+      type: object
+      properties:
+        challengeToken:
+          type: string
+          title: challenge_token
+          description: Opaque challenge token returned by Login or CompleteOidcLogin.
+        totpCode:
+          type: string
+          title: totp_code
+          description: |-
+            6-digit TOTP code from the caller's authenticator app. One of totp_code OR recovery_code
+             must be set; if both are provided, totp_code wins.
+        recoveryCode:
+          type: string
+          title: recovery_code
+          description: |-
+            Single-use recovery code (16 chars, hex). Consumed on use. Provided when the caller has
+             lost their authenticator device.
+      title: SubmitMFAChallengeRequest
+      additionalProperties: false
+    aes.iam.v1.SubmitMFAChallengeResponse:
+      type: object
+      properties:
+        principal:
+          type: string
+          title: principal
+          description: Same shape as LoginResponse's success branch.
+        apiKey:
+          title: api_key
+          $ref: '#/components/schemas/aes.iam.v1.ApiKey'
+        secret:
+          type: string
+          title: secret
+        usedRecoveryCode:
+          type: boolean
+          title: used_recovery_code
+          description: |-
+            True when the caller used a recovery code (so the SPA can prompt them to re-enroll a
+             fresh device — recovery codes are one-shot and don't re-mint).
+      title: SubmitMFAChallengeResponse
+      additionalProperties: false
     aes.iam.v1.UpdateOrgMemberRoleRequest:
       type: object
       properties:
@@ -8880,230 +8981,6 @@ components:
              these somewhere safe; each can be used once if the authenticator is lost.
       title: VerifyMFAEnrollmentResponse
       additionalProperties: false
-    aes.network.v1.AddressPool:
-      type: object
-      properties:
-        name:
-          type: string
-          title: name
-          description: Resource name `addressPools/{slug}`.
-        displayName:
-          type: string
-          title: display_name
-        datacenterName:
-          type: string
-          title: datacenter_name
-          description: Datacenter the pool serves (`datacenters/{id}`).
-        cidr:
-          type: string
-          title: cidr
-          description: CIDR. v4 or v6, matching ip_version.
-        ipVersion:
-          type: integer
-          title: ip_version
-          format: int32
-          description: 4 | 6.
-        origin:
-          type: string
-          title: origin
-          description: |-
-            "wan" — internet-routable, customer-facing PublicIps.
-             "transit" — interconnect with peering partners.
-             "loopback" — internal CP plumbing.
-        asn:
-          type:
-            - integer
-            - string
-          title: asn
-          format: int64
-          description: BGP ASN this pool is announced from. 0 for non-routed pools.
-        hourlyPriceCents:
-          type:
-            - integer
-            - string
-          title: hourly_price_cents
-          format: int64
-          description: Hourly price per assigned IP, in USD cents (rounded up). 0 for free pools (default project).
-        state:
-          type: string
-          title: state
-          description: ALLOCATING / ACTIVE / DRAINING / RETIRED.
-        createTimeUnix:
-          type:
-            - integer
-            - string
-          title: create_time_unix
-          format: int64
-        updateTimeUnix:
-          type:
-            - integer
-            - string
-          title: update_time_unix
-          format: int64
-        labels:
-          type: object
-          title: labels
-          additionalProperties:
-            type: string
-            title: value
-        annotations:
-          type: object
-          title: annotations
-          additionalProperties:
-            type: string
-            title: value
-      title: AddressPool
-      additionalProperties: false
-    aes.network.v1.AddressPool.AnnotationsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: AnnotationsEntry
-      additionalProperties: false
-    aes.network.v1.AddressPool.LabelsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: LabelsEntry
-      additionalProperties: false
-    aes.network.v1.AddressPoolUtilization:
-      type: object
-      properties:
-        poolName:
-          type: string
-          title: pool_name
-        datacenterName:
-          type: string
-          title: datacenter_name
-        cidr:
-          type: string
-          title: cidr
-        totalAddresses:
-          type:
-            - integer
-            - string
-          title: total_addresses
-          format: int64
-        assignedAddresses:
-          type:
-            - integer
-            - string
-          title: assigned_addresses
-          format: int64
-        freeAddresses:
-          type:
-            - integer
-            - string
-          title: free_addresses
-          format: int64
-        topTenants:
-          type: array
-          items:
-            $ref: '#/components/schemas/aes.network.v1.TenantPoolConsumption'
-          title: top_tenants
-          description: Top tenants by IP consumption — capped at 10 entries.
-        dailyAssignmentDelta:
-          type: array
-          items:
-            type:
-              - integer
-              - string
-            format: int64
-          title: daily_assignment_delta
-          description: Per-day burn over the last 7d (positive = net new assignments). Empty when no metric.
-      title: AddressPoolUtilization
-      additionalProperties: false
-    aes.network.v1.CreateAddressPoolRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          title: name
-        displayName:
-          type: string
-          title: display_name
-        datacenterName:
-          type: string
-          title: datacenter_name
-        cidr:
-          type: string
-          title: cidr
-        ipVersion:
-          type: integer
-          title: ip_version
-          format: int32
-        origin:
-          type: string
-          title: origin
-        asn:
-          type:
-            - integer
-            - string
-          title: asn
-          format: int64
-        hourlyPriceCents:
-          type:
-            - integer
-            - string
-          title: hourly_price_cents
-          format: int64
-        labels:
-          type: object
-          title: labels
-          additionalProperties:
-            type: string
-            title: value
-        annotations:
-          type: object
-          title: annotations
-          additionalProperties:
-            type: string
-            title: value
-        idempotencyKey:
-          type: string
-          title: idempotency_key
-      title: CreateAddressPoolRequest
-      additionalProperties: false
-    aes.network.v1.CreateAddressPoolRequest.AnnotationsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: AnnotationsEntry
-      additionalProperties: false
-    aes.network.v1.CreateAddressPoolRequest.LabelsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: LabelsEntry
-      additionalProperties: false
-    aes.network.v1.CreateAddressPoolResponse:
-      type: object
-      properties:
-        pool:
-          title: pool
-          $ref: '#/components/schemas/aes.network.v1.AddressPool'
-      title: CreateAddressPoolResponse
-      additionalProperties: false
     aes.network.v1.CreateFirewallRuleRequest:
       type: object
       properties:
@@ -9257,24 +9134,6 @@ components:
           $ref: '#/components/schemas/aes.network.v1.Network'
       title: CreateNetworkResponse
       additionalProperties: false
-    aes.network.v1.DeleteAddressPoolRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          title: name
-        reason:
-          type: string
-          title: reason
-        idempotencyKey:
-          type: string
-          title: idempotency_key
-      title: DeleteAddressPoolRequest
-      additionalProperties: false
-    aes.network.v1.DeleteAddressPoolResponse:
-      type: object
-      title: DeleteAddressPoolResponse
-      additionalProperties: false
     aes.network.v1.DeleteFirewallRuleRequest:
       type: object
       properties:
@@ -9392,81 +9251,6 @@ components:
           type: string
           title: value
       title: LabelsEntry
-      additionalProperties: false
-    aes.network.v1.GetAddressPoolRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          title: name
-      title: GetAddressPoolRequest
-      additionalProperties: false
-    aes.network.v1.GetAddressPoolResponse:
-      type: object
-      properties:
-        pool:
-          title: pool
-          $ref: '#/components/schemas/aes.network.v1.AddressPool'
-      title: GetAddressPoolResponse
-      additionalProperties: false
-    aes.network.v1.GetIPAMUtilizationRequest:
-      type: object
-      properties:
-        datacenterName:
-          type: string
-          title: datacenter_name
-          description: When empty, returns rollup across all DCs.
-      title: GetIPAMUtilizationRequest
-      additionalProperties: false
-    aes.network.v1.GetIPAMUtilizationResponse:
-      type: object
-      properties:
-        pools:
-          type: array
-          items:
-            $ref: '#/components/schemas/aes.network.v1.AddressPoolUtilization'
-          title: pools
-        computedAtUnix:
-          type:
-            - integer
-            - string
-          title: computed_at_unix
-          format: int64
-          description: Unix seconds — when this rollup was computed.
-      title: GetIPAMUtilizationResponse
-      additionalProperties: false
-    aes.network.v1.ListAddressPoolsRequest:
-      type: object
-      properties:
-        datacenterName:
-          type: string
-          title: datacenter_name
-          description: Optional filter — pools in this DC.
-        origin:
-          type: string
-          title: origin
-          description: Optional filter — "wan" | "transit" | "loopback".
-        pageSize:
-          type: integer
-          title: page_size
-          format: int32
-        pageToken:
-          type: string
-          title: page_token
-      title: ListAddressPoolsRequest
-      additionalProperties: false
-    aes.network.v1.ListAddressPoolsResponse:
-      type: object
-      properties:
-        addressPools:
-          type: array
-          items:
-            $ref: '#/components/schemas/aes.network.v1.AddressPool'
-          title: address_pools
-        nextPageToken:
-          type: string
-          title: next_page_token
-      title: ListAddressPoolsResponse
       additionalProperties: false
     aes.network.v1.ListFirewallRulesRequest:
       type: object
@@ -9764,93 +9548,6 @@ components:
           type: string
           title: value
       title: LabelsEntry
-      additionalProperties: false
-    aes.network.v1.TenantPoolConsumption:
-      type: object
-      properties:
-        projectName:
-          type: string
-          title: project_name
-        assignedAddresses:
-          type:
-            - integer
-            - string
-          title: assigned_addresses
-          format: int64
-      title: TenantPoolConsumption
-      additionalProperties: false
-    aes.network.v1.UpdateAddressPoolRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          title: name
-        displayName:
-          type:
-            - string
-            - "null"
-          title: display_name
-        hourlyPriceCents:
-          type:
-            - integer
-            - string
-            - "null"
-          title: hourly_price_cents
-          format: int64
-        state:
-          type:
-            - string
-            - "null"
-          title: state
-        labels:
-          type: object
-          title: labels
-          additionalProperties:
-            type: string
-            title: value
-        clearLabels:
-          type: boolean
-          title: clear_labels
-        annotations:
-          type: object
-          title: annotations
-          additionalProperties:
-            type: string
-            title: value
-        clearAnnotations:
-          type: boolean
-          title: clear_annotations
-      title: UpdateAddressPoolRequest
-      additionalProperties: false
-    aes.network.v1.UpdateAddressPoolRequest.AnnotationsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: AnnotationsEntry
-      additionalProperties: false
-    aes.network.v1.UpdateAddressPoolRequest.LabelsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: LabelsEntry
-      additionalProperties: false
-    aes.network.v1.UpdateAddressPoolResponse:
-      type: object
-      properties:
-        pool:
-          title: pool
-          $ref: '#/components/schemas/aes.network.v1.AddressPool'
-      title: UpdateAddressPoolResponse
       additionalProperties: false
     aes.objectstore.v1.Bucket:
       type: object
@@ -10764,6 +10461,14 @@ components:
         displayName:
           type: string
           title: display_name
+        requireMfa:
+          type: boolean
+          title: require_mfa
+          description: |-
+            Org-policy MFA enforcement (P0-4). When TRUE, members with at least one ACTIVE TOTP
+             device must complete SubmitMFAChallenge after Login / CompleteOidcLogin before a session
+             API key is minted. Defaults FALSE so per-user MFA enrollment remains opt-in until the org
+             owner flips this flag. Flip via UpdateOrganization.
       title: Organization
       additionalProperties: false
     aes.project.v1.Project:
@@ -10802,6 +10507,12 @@ components:
             - string
             - "null"
           title: display_name
+        requireMfa:
+          type:
+            - boolean
+            - "null"
+          title: require_mfa
+          description: P0-4. Org owner toggles the MFA enforcement gate.
       title: UpdateOrganizationRequest
       additionalProperties: false
     aes.project.v1.UpdateOrganizationResponse:

@@ -42,8 +42,17 @@ service IamService {
 
   // Login authenticates an email/password pair and returns a session API key. For OIDC users
   // (no password set), Login fails with FailedPrecondition; the caller should use the OIDC
-  // flow instead.
+  // flow instead. When the user's org has require_mfa=TRUE AND the user has an ACTIVE TOTP
+  // device, the response contains only an mfa_challenge_token; the caller must finish via
+  // SubmitMFAChallenge (P0-4).
   rpc Login(LoginRequest) returns (LoginResponse);
+
+  // SubmitMFAChallenge completes a two-leg login by validating a TOTP code (or single-use
+  // recovery code) against the principal's enrolled MFA devices. Consumes the challenge token
+  // returned by Login or CompleteOidcLogin and mints the session API key. 5-minute TTL,
+  // single-use on success, max 5 wrong attempts before the challenge is invalidated and the
+  // caller must restart from Login (P0-4).
+  rpc SubmitMFAChallenge(SubmitMFAChallengeRequest) returns (SubmitMFAChallengeResponse);
 
   // LinkOidcProvider attaches an OIDC identity (Google / GitHub / etc.) to the calling user.
   // After a successful link, that identity's CompleteOidcLogin will resolve to the same user.
@@ -342,9 +351,36 @@ message LoginRequest {
 }
 
 message LoginResponse {
+  // Set when MFA enforcement is NOT engaged for this principal — single-leg login path.
   string principal = 1;
   ApiKey api_key = 2;
   string secret = 3;
+  // P0-4: when the principal's org has require_mfa=TRUE AND the principal has at least one
+  // ACTIVE mfa_credentials row, the server returns ONLY this challenge token (api_key + secret
+  // empty) and the SPA/CLI must call SubmitMFAChallenge with the token + TOTP code (or
+  // recovery_code) to finish the login. 5-minute TTL, single-use, max 5 wrong attempts.
+  string mfa_challenge_token = 4;
+}
+
+message SubmitMFAChallengeRequest {
+  // Opaque challenge token returned by Login or CompleteOidcLogin.
+  string challenge_token = 1;
+  // 6-digit TOTP code from the caller's authenticator app. One of totp_code OR recovery_code
+  // must be set; if both are provided, totp_code wins.
+  string totp_code = 2;
+  // Single-use recovery code (16 chars, hex). Consumed on use. Provided when the caller has
+  // lost their authenticator device.
+  string recovery_code = 3;
+}
+
+message SubmitMFAChallengeResponse {
+  // Same shape as LoginResponse's success branch.
+  string principal = 1;
+  ApiKey api_key = 2;
+  string secret = 3;
+  // True when the caller used a recovery code (so the SPA can prompt them to re-enroll a
+  // fresh device — recovery codes are one-shot and don't re-mint).
+  bool used_recovery_code = 4;
 }
 
 message LinkOidcProviderRequest {
@@ -520,9 +556,13 @@ message CompleteOidcLoginRequest {
 }
 
 message CompleteOidcLoginResponse {
+  // Set when MFA enforcement is NOT engaged for this principal — single-leg OIDC path.
   string principal = 1;
   ApiKey api_key = 2;
   string secret = 3;
+  // P0-4: same semantics as LoginResponse.mfa_challenge_token — when set, api_key + secret are
+  // empty and the caller must finish via SubmitMFAChallenge.
+  string mfa_challenge_token = 4;
 }
 
 // MFA / TOTP messages. The shared secret + provisioning URI are returned ONCE on enroll — the
