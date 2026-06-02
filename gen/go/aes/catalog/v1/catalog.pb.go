@@ -332,13 +332,23 @@ type RegionHealth struct {
 	DegradedComponents []string               `protobuf:"bytes,4,rep,name=degraded_components,json=degradedComponents,proto3" json:"degraded_components,omitempty"`
 	HealthSummary      string                 `protobuf:"bytes,5,opt,name=health_summary,json=healthSummary,proto3" json:"health_summary,omitempty"`
 	LastUpdatedUnix    int64                  `protobuf:"varint,6,opt,name=last_updated_unix,json=lastUpdatedUnix,proto3" json:"last_updated_unix,omitempty"`
-	// VM CPU capacity (k8s_vm pool) using the same oversubscribe ratio as compute admission.
-	VmCpuOversubscribeRatio float64 `protobuf:"fixed64,7,opt,name=vm_cpu_oversubscribe_ratio,json=vmCpuOversubscribeRatio,proto3" json:"vm_cpu_oversubscribe_ratio,omitempty"`
-	VmSellableVcpu          int64   `protobuf:"varint,8,opt,name=vm_sellable_vcpu,json=vmSellableVcpu,proto3" json:"vm_sellable_vcpu,omitempty"`
-	VmRunningVcpu           int64   `protobuf:"varint,9,opt,name=vm_running_vcpu,json=vmRunningVcpu,proto3" json:"vm_running_vcpu,omitempty"`
-	VmFreeVcpu              int64   `protobuf:"varint,10,opt,name=vm_free_vcpu,json=vmFreeVcpu,proto3" json:"vm_free_vcpu,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	// VM CPU capacity (k8s_vm pool). sellable = total vCPU a customer can buy (physical pool ×
+	// oversubscribe ratio); running = in use; free = available. Presented to customers as
+	// plain vCPU counts — the ratio is not exposed here.
+	VmSellableVcpu int64 `protobuf:"varint,8,opt,name=vm_sellable_vcpu,json=vmSellableVcpu,proto3" json:"vm_sellable_vcpu,omitempty"`
+	VmRunningVcpu  int64 `protobuf:"varint,9,opt,name=vm_running_vcpu,json=vmRunningVcpu,proto3" json:"vm_running_vcpu,omitempty"`
+	VmFreeVcpu     int64 `protobuf:"varint,10,opt,name=vm_free_vcpu,json=vmFreeVcpu,proto3" json:"vm_free_vcpu,omitempty"`
+	// VM RAM capacity (k8s_vm pool). sellable = cached pool allocatable memory × RAM
+	// oversubscribe ratio (default 1:1); running = Σ ram_gib of RUNNING VMs; free = headroom.
+	VmSellableRamGib int64 `protobuf:"varint,11,opt,name=vm_sellable_ram_gib,json=vmSellableRamGib,proto3" json:"vm_sellable_ram_gib,omitempty"`
+	VmRunningRamGib  int64 `protobuf:"varint,12,opt,name=vm_running_ram_gib,json=vmRunningRamGib,proto3" json:"vm_running_ram_gib,omitempty"`
+	VmFreeRamGib     int64 `protobuf:"varint,13,opt,name=vm_free_ram_gib,json=vmFreeRamGib,proto3" json:"vm_free_ram_gib,omitempty"`
+	// Ceph storage (post-replication usable). usable = raw total ÷ replication; free = Rook's
+	// reported usable available. Zero when the DC has no Ceph cache (not deployed / stale).
+	StorageUsableGib int64 `protobuf:"varint,14,opt,name=storage_usable_gib,json=storageUsableGib,proto3" json:"storage_usable_gib,omitempty"`
+	StorageFreeGib   int64 `protobuf:"varint,15,opt,name=storage_free_gib,json=storageFreeGib,proto3" json:"storage_free_gib,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *RegionHealth) Reset() {
@@ -413,13 +423,6 @@ func (x *RegionHealth) GetLastUpdatedUnix() int64 {
 	return 0
 }
 
-func (x *RegionHealth) GetVmCpuOversubscribeRatio() float64 {
-	if x != nil {
-		return x.VmCpuOversubscribeRatio
-	}
-	return 0
-}
-
 func (x *RegionHealth) GetVmSellableVcpu() int64 {
 	if x != nil {
 		return x.VmSellableVcpu
@@ -437,6 +440,41 @@ func (x *RegionHealth) GetVmRunningVcpu() int64 {
 func (x *RegionHealth) GetVmFreeVcpu() int64 {
 	if x != nil {
 		return x.VmFreeVcpu
+	}
+	return 0
+}
+
+func (x *RegionHealth) GetVmSellableRamGib() int64 {
+	if x != nil {
+		return x.VmSellableRamGib
+	}
+	return 0
+}
+
+func (x *RegionHealth) GetVmRunningRamGib() int64 {
+	if x != nil {
+		return x.VmRunningRamGib
+	}
+	return 0
+}
+
+func (x *RegionHealth) GetVmFreeRamGib() int64 {
+	if x != nil {
+		return x.VmFreeRamGib
+	}
+	return 0
+}
+
+func (x *RegionHealth) GetStorageUsableGib() int64 {
+	if x != nil {
+		return x.StorageUsableGib
+	}
+	return 0
+}
+
+func (x *RegionHealth) GetStorageFreeGib() int64 {
+	if x != nil {
+		return x.StorageFreeGib
 	}
 	return 0
 }
@@ -1003,20 +1041,24 @@ const file_aes_catalog_v1_catalog_proto_rawDesc = "" +
 	"\x06filter\x18\x03 \x01(\tR\x06filter\"\x7f\n" +
 	"\x17ListDatacentersResponse\x12<\n" +
 	"\vdatacenters\x18\x01 \x03(\v2\x1a.aes.catalog.v1.DatacenterR\vdatacenters\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xa7\x03\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xe7\x04\n" +
 	"\fRegionHealth\x12'\n" +
 	"\x0fdatacenter_name\x18\x01 \x01(\tR\x0edatacenterName\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12!\n" +
 	"\fcapacity_pct\x18\x03 \x01(\x05R\vcapacityPct\x12/\n" +
 	"\x13degraded_components\x18\x04 \x03(\tR\x12degradedComponents\x12%\n" +
 	"\x0ehealth_summary\x18\x05 \x01(\tR\rhealthSummary\x12*\n" +
-	"\x11last_updated_unix\x18\x06 \x01(\x03R\x0flastUpdatedUnix\x12;\n" +
-	"\x1avm_cpu_oversubscribe_ratio\x18\a \x01(\x01R\x17vmCpuOversubscribeRatio\x12(\n" +
+	"\x11last_updated_unix\x18\x06 \x01(\x03R\x0flastUpdatedUnix\x12(\n" +
 	"\x10vm_sellable_vcpu\x18\b \x01(\x03R\x0evmSellableVcpu\x12&\n" +
 	"\x0fvm_running_vcpu\x18\t \x01(\x03R\rvmRunningVcpu\x12 \n" +
 	"\fvm_free_vcpu\x18\n" +
 	" \x01(\x03R\n" +
-	"vmFreeVcpu\"A\n" +
+	"vmFreeVcpu\x12-\n" +
+	"\x13vm_sellable_ram_gib\x18\v \x01(\x03R\x10vmSellableRamGib\x12+\n" +
+	"\x12vm_running_ram_gib\x18\f \x01(\x03R\x0fvmRunningRamGib\x12%\n" +
+	"\x0fvm_free_ram_gib\x18\r \x01(\x03R\fvmFreeRamGib\x12,\n" +
+	"\x12storage_usable_gib\x18\x0e \x01(\x03R\x10storageUsableGib\x12(\n" +
+	"\x10storage_free_gib\x18\x0f \x01(\x03R\x0estorageFreeGibJ\x04\b\a\x10\bR\x1avm_cpu_oversubscribe_ratio\"A\n" +
 	"\x16GetRegionHealthRequest\x12'\n" +
 	"\x0fdatacenter_name\x18\x01 \x01(\tR\x0edatacenterName\"O\n" +
 	"\x17GetRegionHealthResponse\x124\n" +

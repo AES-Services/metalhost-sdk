@@ -231,8 +231,12 @@ type VirtualMachine struct {
 	// sitting in pending_charge_accumulator is NOT counted (it hasn't been charged yet).
 	CurrentCostPerHourMinorDecimal string `protobuf:"bytes,28,opt,name=current_cost_per_hour_minor_decimal,json=currentCostPerHourMinorDecimal,proto3" json:"current_cost_per_hour_minor_decimal,omitempty"`
 	MtdSpendMinorDecimal           string `protobuf:"bytes,29,opt,name=mtd_spend_minor_decimal,json=mtdSpendMinorDecimal,proto3" json:"mtd_spend_minor_decimal,omitempty"`
-	unknownFields                  protoimpl.UnknownFields
-	sizeCache                      protoimpl.SizeCache
+	// Linux login user cloud-init created for SSH access (`ssh <linux_username>@<public_ipv4>`).
+	// Set from CreateVirtualMachineRequest.linux_username. Empty on VMs created with a raw
+	// user_data cloud-config (the customer's YAML owns user creation) or on pre-feature rows.
+	LinuxUsername string `protobuf:"bytes,30,opt,name=linux_username,json=linuxUsername,proto3" json:"linux_username,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *VirtualMachine) Reset() {
@@ -440,6 +444,13 @@ func (x *VirtualMachine) GetMtdSpendMinorDecimal() string {
 	return ""
 }
 
+func (x *VirtualMachine) GetLinuxUsername() string {
+	if x != nil {
+		return x.LinuxUsername
+	}
+	return ""
+}
+
 type CreateVirtualMachineRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	ProjectName    string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
@@ -511,8 +522,15 @@ type CreateVirtualMachineRequest struct {
 	// CloneFirewallRules activity can copy the source's custom firewall rules onto the clone
 	// once its public IP is allocated. Empty for normal (non-clone) creates. Not customer-set.
 	CloneSourceVmName string `protobuf:"bytes,23,opt,name=clone_source_vm_name,json=cloneSourceVmName,proto3" json:"clone_source_vm_name,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// Linux login user created by cloud-init and granted the injected SSH keys (`ssh
+	// <linux_username>@<ip>`). REQUIRED — the server rejects an empty value with
+	// InvalidArgument. Must be a valid Linux username: `^[a-z_][a-z0-9_-]{0,31}$`, and not
+	// `root`. Clients should default it to the selected image's distro user (Ubuntu →
+	// `ubuntu`, Debian → `debian`, etc.). Ignored when `user_data` is supplied — the customer's
+	// raw cloud-config is the source of truth and defines its own users.
+	LinuxUsername string `protobuf:"bytes,24,opt,name=linux_username,json=linuxUsername,proto3" json:"linux_username,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateVirtualMachineRequest) Reset() {
@@ -667,6 +685,13 @@ func (x *CreateVirtualMachineRequest) GetCpuClass() string {
 func (x *CreateVirtualMachineRequest) GetCloneSourceVmName() string {
 	if x != nil {
 		return x.CloneSourceVmName
+	}
+	return ""
+}
+
+func (x *CreateVirtualMachineRequest) GetLinuxUsername() string {
+	if x != nil {
+		return x.LinuxUsername
 	}
 	return ""
 }
@@ -3114,7 +3139,7 @@ var File_aes_compute_v1_compute_proto protoreflect.FileDescriptor
 
 const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\xac\t\n" +
+	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\xd3\t\n" +
 	"\x0eVirtualMachine\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12'\n" +
@@ -3142,13 +3167,14 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\aram_gib\x18\x1a \x01(\x05R\x06ramGib\x12\x1b\n" +
 	"\tcpu_class\x18\x1b \x01(\tR\bcpuClass\x12K\n" +
 	"#current_cost_per_hour_minor_decimal\x18\x1c \x01(\tR\x1ecurrentCostPerHourMinorDecimal\x125\n" +
-	"\x17mtd_spend_minor_decimal\x18\x1d \x01(\tR\x14mtdSpendMinorDecimal\x1a9\n" +
+	"\x17mtd_spend_minor_decimal\x18\x1d \x01(\tR\x14mtdSpendMinorDecimal\x12%\n" +
+	"\x0elinux_username\x18\x1e \x01(\tR\rlinuxUsername\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x04\x10\x05J\x04\b\x0f\x10\x10J\x04\b\x11\x10\x12J\x04\b\x12\x10\x13R\rinstance_typeR\vexternal_ipR\rdisk_size_gibR\x0eboot_image_url\"\x8f\b\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x04\x10\x05J\x04\b\x0f\x10\x10J\x04\b\x11\x10\x12J\x04\b\x12\x10\x13R\rinstance_typeR\vexternal_ipR\rdisk_size_gibR\x0eboot_image_url\"\xb6\b\n" +
 	"\x1bCreateVirtualMachineRequest\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12'\n" +
 	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12!\n" +
@@ -3169,7 +3195,8 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x05vcpus\x18\x14 \x01(\x05R\x05vcpus\x12\x17\n" +
 	"\aram_gib\x18\x15 \x01(\x05R\x06ramGib\x12\x1b\n" +
 	"\tcpu_class\x18\x16 \x01(\tR\bcpuClass\x12/\n" +
-	"\x14clone_source_vm_name\x18\x17 \x01(\tR\x11cloneSourceVmName\x1a9\n" +
+	"\x14clone_source_vm_name\x18\x17 \x01(\tR\x11cloneSourceVmName\x12%\n" +
+	"\x0elinux_username\x18\x18 \x01(\tR\rlinuxUsername\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +

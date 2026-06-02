@@ -6114,17 +6114,16 @@ components:
             - string
           title: last_updated_unix
           format: int64
-        vmCpuOversubscribeRatio:
-          type: number
-          title: vm_cpu_oversubscribe_ratio
-          format: double
-          description: VM CPU capacity (k8s_vm pool) using the same oversubscribe ratio as compute admission.
         vmSellableVcpu:
           type:
             - integer
             - string
           title: vm_sellable_vcpu
           format: int64
+          description: |-
+            VM CPU capacity (k8s_vm pool). sellable = total vCPU a customer can buy (physical pool ×
+             oversubscribe ratio); running = in use; free = available. Presented to customers as
+             plain vCPU counts — the ratio is not exposed here.
         vmRunningVcpu:
           type:
             - integer
@@ -6136,6 +6135,42 @@ components:
             - integer
             - string
           title: vm_free_vcpu
+          format: int64
+        vmSellableRamGib:
+          type:
+            - integer
+            - string
+          title: vm_sellable_ram_gib
+          format: int64
+          description: |-
+            VM RAM capacity (k8s_vm pool). sellable = cached pool allocatable memory × RAM
+             oversubscribe ratio (default 1:1); running = Σ ram_gib of RUNNING VMs; free = headroom.
+        vmRunningRamGib:
+          type:
+            - integer
+            - string
+          title: vm_running_ram_gib
+          format: int64
+        vmFreeRamGib:
+          type:
+            - integer
+            - string
+          title: vm_free_ram_gib
+          format: int64
+        storageUsableGib:
+          type:
+            - integer
+            - string
+          title: storage_usable_gib
+          format: int64
+          description: |-
+            Ceph storage (post-replication usable). usable = raw total ÷ replication; free = Rook's
+             reported usable available. Zero when the DC has no Ceph cache (not deployed / stale).
+        storageFreeGib:
+          type:
+            - integer
+            - string
+          title: storage_free_gib
           format: int64
       title: RegionHealth
       additionalProperties: false
@@ -6611,6 +6646,16 @@ components:
              resource name. Threaded into the operation so the vm_provision workflow's
              CloneFirewallRules activity can copy the source's custom firewall rules onto the clone
              once its public IP is allocated. Empty for normal (non-clone) creates. Not customer-set.
+        linuxUsername:
+          type: string
+          title: linux_username
+          description: |-
+            Linux login user created by cloud-init and granted the injected SSH keys (`ssh
+             <linux_username>@<ip>`). REQUIRED — the server rejects an empty value with
+             InvalidArgument. Must be a valid Linux username: `^[a-z_][a-z0-9_-]{0,31}$`, and not
+             `root`. Clients should default it to the selected image's distro user (Ubuntu →
+             `ubuntu`, Debian → `debian`, etc.). Ignored when `user_data` is supplied — the customer's
+             raw cloud-config is the source of truth and defines its own users.
       title: CreateVirtualMachineRequest
       additionalProperties: false
     aes.compute.v1.CreateVirtualMachineRequest.AnnotationsEntry:
@@ -7403,6 +7448,13 @@ components:
         mtdSpendMinorDecimal:
           type: string
           title: mtd_spend_minor_decimal
+        linuxUsername:
+          type: string
+          title: linux_username
+          description: |-
+            Linux login user cloud-init created for SSH access (`ssh <linux_username>@<public_ipv4>`).
+             Set from CreateVirtualMachineRequest.linux_username. Empty on VMs created with a raw
+             user_data cloud-config (the customer's YAML owns user creation) or on pre-feature rows.
       title: VirtualMachine
       additionalProperties: false
     aes.compute.v1.VirtualMachine.AnnotationsEntry:
@@ -10088,6 +10140,16 @@ components:
           description: |-
             Delete-specific (kind == "vm_delete"). When true the VMDeleteWorkflow deletes the VM's
              attached disks (boot + data) instead of detaching them back to AVAILABLE.
+        vmLinuxUsername:
+          type: string
+          title: vm_linux_username
+          description: |-
+            Linux login user (kind == "vm_provision"). Threaded from
+             compute.CreateVirtualMachineRequest.linux_username so the workflow's
+             ProvisionVirtualMachine activity persists it onto compute_instances.spec.linux_username
+             (the Access-panel / `ssh <user>@<ip>` user). The user is ALSO baked into the cloud-config
+             (vm_user_data) at the API edge; this field is purely for the persisted/displayed value.
+             Empty when the VM was created with raw vm_user_data.
       title: CreateOperationRequest
       additionalProperties: false
     aes.ops.v1.CreateOperationRequest.VmAnnotationsEntry:

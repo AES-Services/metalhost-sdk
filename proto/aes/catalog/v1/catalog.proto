@@ -82,11 +82,27 @@ message RegionHealth {
   repeated string degraded_components = 4;
   string health_summary = 5;
   int64 last_updated_unix = 6;
-  // VM CPU capacity (k8s_vm pool) using the same oversubscribe ratio as compute admission.
-  double vm_cpu_oversubscribe_ratio = 7;
+  // Field 7 (vm_cpu_oversubscribe_ratio) intentionally removed: oversubscription is an
+  // internal packing detail, not a customer concept. Customers see vm_sellable_vcpu as the
+  // plain "total vCPU" (it already bakes in the ratio). The ratio stays admin-only on
+  // AdminInventoryService.GetDCUtilization.
+  reserved 7;
+  reserved "vm_cpu_oversubscribe_ratio";
+  // VM CPU capacity (k8s_vm pool). sellable = total vCPU a customer can buy (physical pool ×
+  // oversubscribe ratio); running = in use; free = available. Presented to customers as
+  // plain vCPU counts — the ratio is not exposed here.
   int64 vm_sellable_vcpu = 8;
   int64 vm_running_vcpu = 9;
   int64 vm_free_vcpu = 10;
+  // VM RAM capacity (k8s_vm pool). sellable = cached pool allocatable memory × RAM
+  // oversubscribe ratio (default 1:1); running = Σ ram_gib of RUNNING VMs; free = headroom.
+  int64 vm_sellable_ram_gib = 11;
+  int64 vm_running_ram_gib = 12;
+  int64 vm_free_ram_gib = 13;
+  // Ceph storage (post-replication usable). usable = raw total ÷ replication; free = Rook's
+  // reported usable available. Zero when the DC has no Ceph cache (not deployed / stale).
+  int64 storage_usable_gib = 14;
+  int64 storage_free_gib = 15;
 }
 
 message GetRegionHealthRequest {

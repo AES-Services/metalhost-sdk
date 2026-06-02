@@ -207,6 +207,10 @@ message VirtualMachine {
   // sitting in pending_charge_accumulator is NOT counted (it hasn't been charged yet).
   string current_cost_per_hour_minor_decimal = 28;
   string mtd_spend_minor_decimal = 29;
+  // Linux login user cloud-init created for SSH access (`ssh <linux_username>@<public_ipv4>`).
+  // Set from CreateVirtualMachineRequest.linux_username. Empty on VMs created with a raw
+  // user_data cloud-config (the customer's YAML owns user creation) or on pre-feature rows.
+  string linux_username = 30;
 }
 
 message CreateVirtualMachineRequest {
@@ -287,6 +291,13 @@ message CreateVirtualMachineRequest {
   // CloneFirewallRules activity can copy the source's custom firewall rules onto the clone
   // once its public IP is allocated. Empty for normal (non-clone) creates. Not customer-set.
   string clone_source_vm_name = 23;
+  // Linux login user created by cloud-init and granted the injected SSH keys (`ssh
+  // <linux_username>@<ip>`). REQUIRED — the server rejects an empty value with
+  // InvalidArgument. Must be a valid Linux username: `^[a-z_][a-z0-9_-]{0,31}$`, and not
+  // `root`. Clients should default it to the selected image's distro user (Ubuntu →
+  // `ubuntu`, Debian → `debian`, etc.). Ignored when `user_data` is supplied — the customer's
+  // raw cloud-config is the source of truth and defines its own users.
+  string linux_username = 24;
 }
 
 // BootDiskSpec is the inline disk spec carried by CreateVirtualMachineRequest.boot_disk.

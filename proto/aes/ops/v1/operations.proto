@@ -135,6 +135,13 @@ message CreateOperationRequest {
   // Delete-specific (kind == "vm_delete"). When true the VMDeleteWorkflow deletes the VM's
   // attached disks (boot + data) instead of detaching them back to AVAILABLE.
   bool vm_delete_attached_disks = 42;
+  // Linux login user (kind == "vm_provision"). Threaded from
+  // compute.CreateVirtualMachineRequest.linux_username so the workflow's
+  // ProvisionVirtualMachine activity persists it onto compute_instances.spec.linux_username
+  // (the Access-panel / `ssh <user>@<ip>` user). The user is ALSO baked into the cloud-config
+  // (vm_user_data) at the API edge; this field is purely for the persisted/displayed value.
+  // Empty when the VM was created with raw vm_user_data.
+  string vm_linux_username = 43;
 }
 
 message CreateOperationResponse {
