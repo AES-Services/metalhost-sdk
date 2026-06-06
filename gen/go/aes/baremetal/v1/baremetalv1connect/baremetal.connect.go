@@ -33,6 +33,12 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// BareMetalServiceListAvailableBareMetalProcedure is the fully-qualified name of the
+	// BareMetalService's ListAvailableBareMetal RPC.
+	BareMetalServiceListAvailableBareMetalProcedure = "/aes.baremetal.v1.BareMetalService/ListAvailableBareMetal"
+	// BareMetalServiceQuoteBareMetalProcedure is the fully-qualified name of the BareMetalService's
+	// QuoteBareMetal RPC.
+	BareMetalServiceQuoteBareMetalProcedure = "/aes.baremetal.v1.BareMetalService/QuoteBareMetal"
 	// BareMetalServiceCreateBareMetalInstanceProcedure is the fully-qualified name of the
 	// BareMetalService's CreateBareMetalInstance RPC.
 	BareMetalServiceCreateBareMetalInstanceProcedure = "/aes.baremetal.v1.BareMetalService/CreateBareMetalInstance"
@@ -45,6 +51,15 @@ const (
 	// BareMetalServiceReleaseBareMetalInstanceProcedure is the fully-qualified name of the
 	// BareMetalService's ReleaseBareMetalInstance RPC.
 	BareMetalServiceReleaseBareMetalInstanceProcedure = "/aes.baremetal.v1.BareMetalService/ReleaseBareMetalInstance"
+	// BareMetalServiceRenewBareMetalNowProcedure is the fully-qualified name of the BareMetalService's
+	// RenewBareMetalNow RPC.
+	BareMetalServiceRenewBareMetalNowProcedure = "/aes.baremetal.v1.BareMetalService/RenewBareMetalNow"
+	// BareMetalServiceSetBareMetalPowerProcedure is the fully-qualified name of the BareMetalService's
+	// SetBareMetalPower RPC.
+	BareMetalServiceSetBareMetalPowerProcedure = "/aes.baremetal.v1.BareMetalService/SetBareMetalPower"
+	// BareMetalServiceReinstallBareMetalProcedure is the fully-qualified name of the BareMetalService's
+	// ReinstallBareMetal RPC.
+	BareMetalServiceReinstallBareMetalProcedure = "/aes.baremetal.v1.BareMetalService/ReinstallBareMetal"
 	// BareMetalServiceGetBareMetalConsoleURLProcedure is the fully-qualified name of the
 	// BareMetalService's GetBareMetalConsoleURL RPC.
 	BareMetalServiceGetBareMetalConsoleURLProcedure = "/aes.baremetal.v1.BareMetalService/GetBareMetalConsoleURL"
@@ -54,19 +69,61 @@ const (
 	// BareMetalServiceExitBareMetalRescueModeProcedure is the fully-qualified name of the
 	// BareMetalService's ExitBareMetalRescueMode RPC.
 	BareMetalServiceExitBareMetalRescueModeProcedure = "/aes.baremetal.v1.BareMetalService/ExitBareMetalRescueMode"
+	// BareMetalServiceCreateBareMetalISOUploadURLProcedure is the fully-qualified name of the
+	// BareMetalService's CreateBareMetalISOUploadURL RPC.
+	BareMetalServiceCreateBareMetalISOUploadURLProcedure = "/aes.baremetal.v1.BareMetalService/CreateBareMetalISOUploadURL"
+	// BareMetalServiceListBareMetalISOsProcedure is the fully-qualified name of the BareMetalService's
+	// ListBareMetalISOs RPC.
+	BareMetalServiceListBareMetalISOsProcedure = "/aes.baremetal.v1.BareMetalService/ListBareMetalISOs"
+	// BareMetalServiceCreateBareMetalISOFromURLProcedure is the fully-qualified name of the
+	// BareMetalService's CreateBareMetalISOFromURL RPC.
+	BareMetalServiceCreateBareMetalISOFromURLProcedure = "/aes.baremetal.v1.BareMetalService/CreateBareMetalISOFromURL"
+	// BareMetalServiceDeleteBareMetalISOProcedure is the fully-qualified name of the BareMetalService's
+	// DeleteBareMetalISO RPC.
+	BareMetalServiceDeleteBareMetalISOProcedure = "/aes.baremetal.v1.BareMetalService/DeleteBareMetalISO"
+	// BareMetalServiceAttachBareMetalISOProcedure is the fully-qualified name of the BareMetalService's
+	// AttachBareMetalISO RPC.
+	BareMetalServiceAttachBareMetalISOProcedure = "/aes.baremetal.v1.BareMetalService/AttachBareMetalISO"
+	// BareMetalServiceGetBareMetalVirtualMediaProcedure is the fully-qualified name of the
+	// BareMetalService's GetBareMetalVirtualMedia RPC.
+	BareMetalServiceGetBareMetalVirtualMediaProcedure = "/aes.baremetal.v1.BareMetalService/GetBareMetalVirtualMedia"
+	// BareMetalServiceDetachBareMetalISOProcedure is the fully-qualified name of the BareMetalService's
+	// DetachBareMetalISO RPC.
+	BareMetalServiceDetachBareMetalISOProcedure = "/aes.baremetal.v1.BareMetalService/DetachBareMetalISO"
+	// BareMetalServiceSetBareMetalBootDeviceProcedure is the fully-qualified name of the
+	// BareMetalService's SetBareMetalBootDevice RPC.
+	BareMetalServiceSetBareMetalBootDeviceProcedure = "/aes.baremetal.v1.BareMetalService/SetBareMetalBootDevice"
 )
 
 // BareMetalServiceClient is a client for the aes.baremetal.v1.BareMetalService service.
 type BareMetalServiceClient interface {
+	// ListAvailableBareMetal returns published, unleased, priced hosts the caller can lease, with
+	// discovered specs + monthly price. No BMC/serial identifiers are exposed.
+	ListAvailableBareMetal(context.Context, *connect.Request[v1.ListAvailableBareMetalRequest]) (*connect.Response[v1.ListAvailableBareMetalResponse], error)
+	// QuoteBareMetal previews the cost of leasing a host under a billing mode (hourly rate, and the
+	// prepay due now for a MONTHLY_* term at its discount). Mirrors ComputeService.QuoteVirtualMachine.
+	QuoteBareMetal(context.Context, *connect.Request[v1.QuoteBareMetalRequest]) (*connect.Response[v1.QuoteBareMetalResponse], error)
 	CreateBareMetalInstance(context.Context, *connect.Request[v1.CreateBareMetalInstanceRequest]) (*connect.Response[v1.CreateBareMetalInstanceResponse], error)
 	GetBareMetalInstance(context.Context, *connect.Request[v1.GetBareMetalInstanceRequest]) (*connect.Response[v1.GetBareMetalInstanceResponse], error)
 	ListBareMetalInstances(context.Context, *connect.Request[v1.ListBareMetalInstancesRequest]) (*connect.Response[v1.ListBareMetalInstancesResponse], error)
-	// ReleaseBareMetalInstance ends the lease; the host's role returns to 'baremetal_pool'. The
+	// ReleaseBareMetalInstance ends the lease; the host's role returns to 'baremetal_pool'. Refused
+	// while a MONTHLY_* term is still active (hard non-cancel, same as DeleteVirtualMachine). The
 	// customer's data on local disks is not wiped by Metalhost — operator policy decides whether
 	// the host is reformatted before re-leasing.
 	ReleaseBareMetalInstance(context.Context, *connect.Request[v1.ReleaseBareMetalInstanceRequest]) (*connect.Response[v1.ReleaseBareMetalInstanceResponse], error)
-	// GetBareMetalConsoleURL returns a short-lived URL for serial-over-LAN access via the BMC.
-	// Backed by Redfish SerialConsole; expires after 1h.
+	// RenewBareMetalNow charges the next prepaid term immediately for a MONTHLY_* lease (mirror of
+	// ComputeService.RenewVMNow). Useful before a term lapses or to extend ahead of the worker.
+	RenewBareMetalNow(context.Context, *connect.Request[v1.RenewBareMetalNowRequest]) (*connect.Response[v1.RenewBareMetalNowResponse], error)
+	// SetBareMetalPower performs a BMC power action (on / off / reboot) via Redfish. Billing is
+	// unaffected — a leased host bills whether it's powered on or off.
+	SetBareMetalPower(context.Context, *connect.Request[v1.SetBareMetalPowerRequest]) (*connect.Response[v1.SetBareMetalPowerResponse], error)
+	// ReinstallBareMetal re-runs the OS install (Tinkerbell) + cloud-init seed on a leased host,
+	// wiping the OS disk. Keeps the same lease + IPv4 block. Use to switch image or get a clean slate.
+	ReinstallBareMetal(context.Context, *connect.Request[v1.ReinstallBareMetalRequest]) (*connect.Response[v1.ReinstallBareMetalResponse], error)
+	// GetBareMetalConsoleURL returns a short-lived websocket URL for the host's graphical KVM
+	// console, bridged to the BMC's VNC server (iDRAC). The server enables VNC on the BMC with a
+	// fresh per-session password (returned in vnc_password) and disables it again when the session
+	// ends — VNC is off at rest. Token expires after 60s; connect promptly.
 	GetBareMetalConsoleURL(context.Context, *connect.Request[v1.GetBareMetalConsoleURLRequest]) (*connect.Response[v1.GetBareMetalConsoleURLResponse], error)
 	// EnterRescueMode boots the host into a rescue image via Redfish one-time boot override
 	// followed by a power cycle. The rescue image URL is the operator's responsibility (set
@@ -76,6 +133,31 @@ type BareMetalServiceClient interface {
 	// power-cycles back to the normal disk boot order.
 	EnterBareMetalRescueMode(context.Context, *connect.Request[v1.EnterBareMetalRescueModeRequest]) (*connect.Response[v1.EnterBareMetalRescueModeResponse], error)
 	ExitBareMetalRescueMode(context.Context, *connect.Request[v1.ExitBareMetalRescueModeRequest]) (*connect.Response[v1.ExitBareMetalRescueModeResponse], error)
+	// --- Bring-your-own-OS virtual media + ISO library (docs/specs/BARE_METAL_BYO_OS.md) ---
+	// The ISO library is per-ORG (shared across the org's projects), quota-limited. Upload once,
+	// re-use across leases. CreateBareMetalISOUploadURL returns a short-lived presigned PUT URL the
+	// customer uploads their install ISO to (directly to object storage), plus the object key.
+	CreateBareMetalISOUploadURL(context.Context, *connect.Request[v1.CreateBareMetalISOUploadURLRequest]) (*connect.Response[v1.CreateBareMetalISOUploadURLResponse], error)
+	// ListBareMetalISOs lists the org's uploaded install ISOs (the library shown on the mgmt page
+	// and the console's ISO picker).
+	ListBareMetalISOs(context.Context, *connect.Request[v1.ListBareMetalISOsRequest]) (*connect.Response[v1.ListBareMetalISOsResponse], error)
+	// CreateBareMetalISOFromURL imports an ISO into the org library by URL — metalhostd fetches it
+	// server-side (datacenter bandwidth) into object storage, so no slow browser upload. Returns
+	// immediately; the ISO appears in ListBareMetalISOs once the fetch completes.
+	CreateBareMetalISOFromURL(context.Context, *connect.Request[v1.CreateBareMetalISOFromURLRequest]) (*connect.Response[v1.CreateBareMetalISOFromURLResponse], error)
+	// DeleteBareMetalISO removes an ISO from the org library + object storage.
+	DeleteBareMetalISO(context.Context, *connect.Request[v1.DeleteBareMetalISORequest]) (*connect.Response[v1.DeleteBareMetalISOResponse], error)
+	// AttachBareMetalISO mounts a library ISO (by object key) as the host's BMC virtual CD: the BMC
+	// fetches it from metalhostd's ISO proxy (/v1/bm-iso/<token>.iso) which streams from the bucket.
+	AttachBareMetalISO(context.Context, *connect.Request[v1.AttachBareMetalISORequest]) (*connect.Response[v1.AttachBareMetalISOResponse], error)
+	// GetBareMetalVirtualMedia reports the BMC's current virtual-CD mount state (so the UI shows the
+	// real attach/detach state after a refresh, not just optimistic client state).
+	GetBareMetalVirtualMedia(context.Context, *connect.Request[v1.GetBareMetalVirtualMediaRequest]) (*connect.Response[v1.GetBareMetalVirtualMediaResponse], error)
+	// DetachBareMetalISO ejects any mounted virtual media (the library copy is kept).
+	DetachBareMetalISO(context.Context, *connect.Request[v1.DetachBareMetalISORequest]) (*connect.Response[v1.DetachBareMetalISOResponse], error)
+	// SetBareMetalBootDevice sets the one-time boot device (disk / cdrom / pxe) and power-cycles.
+	// Use cdrom after AttachBareMetalISO to boot the installer; the next reboot falls back to disk.
+	SetBareMetalBootDevice(context.Context, *connect.Request[v1.SetBareMetalBootDeviceRequest]) (*connect.Response[v1.SetBareMetalBootDeviceResponse], error)
 }
 
 // NewBareMetalServiceClient constructs a client for the aes.baremetal.v1.BareMetalService service.
@@ -89,6 +171,18 @@ func NewBareMetalServiceClient(httpClient connect.HTTPClient, baseURL string, op
 	baseURL = strings.TrimRight(baseURL, "/")
 	bareMetalServiceMethods := v1.File_aes_baremetal_v1_baremetal_proto.Services().ByName("BareMetalService").Methods()
 	return &bareMetalServiceClient{
+		listAvailableBareMetal: connect.NewClient[v1.ListAvailableBareMetalRequest, v1.ListAvailableBareMetalResponse](
+			httpClient,
+			baseURL+BareMetalServiceListAvailableBareMetalProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("ListAvailableBareMetal")),
+			connect.WithClientOptions(opts...),
+		),
+		quoteBareMetal: connect.NewClient[v1.QuoteBareMetalRequest, v1.QuoteBareMetalResponse](
+			httpClient,
+			baseURL+BareMetalServiceQuoteBareMetalProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("QuoteBareMetal")),
+			connect.WithClientOptions(opts...),
+		),
 		createBareMetalInstance: connect.NewClient[v1.CreateBareMetalInstanceRequest, v1.CreateBareMetalInstanceResponse](
 			httpClient,
 			baseURL+BareMetalServiceCreateBareMetalInstanceProcedure,
@@ -113,6 +207,24 @@ func NewBareMetalServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			connect.WithSchema(bareMetalServiceMethods.ByName("ReleaseBareMetalInstance")),
 			connect.WithClientOptions(opts...),
 		),
+		renewBareMetalNow: connect.NewClient[v1.RenewBareMetalNowRequest, v1.RenewBareMetalNowResponse](
+			httpClient,
+			baseURL+BareMetalServiceRenewBareMetalNowProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("RenewBareMetalNow")),
+			connect.WithClientOptions(opts...),
+		),
+		setBareMetalPower: connect.NewClient[v1.SetBareMetalPowerRequest, v1.SetBareMetalPowerResponse](
+			httpClient,
+			baseURL+BareMetalServiceSetBareMetalPowerProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("SetBareMetalPower")),
+			connect.WithClientOptions(opts...),
+		),
+		reinstallBareMetal: connect.NewClient[v1.ReinstallBareMetalRequest, v1.ReinstallBareMetalResponse](
+			httpClient,
+			baseURL+BareMetalServiceReinstallBareMetalProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("ReinstallBareMetal")),
+			connect.WithClientOptions(opts...),
+		),
 		getBareMetalConsoleURL: connect.NewClient[v1.GetBareMetalConsoleURLRequest, v1.GetBareMetalConsoleURLResponse](
 			httpClient,
 			baseURL+BareMetalServiceGetBareMetalConsoleURLProcedure,
@@ -131,18 +243,89 @@ func NewBareMetalServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			connect.WithSchema(bareMetalServiceMethods.ByName("ExitBareMetalRescueMode")),
 			connect.WithClientOptions(opts...),
 		),
+		createBareMetalISOUploadURL: connect.NewClient[v1.CreateBareMetalISOUploadURLRequest, v1.CreateBareMetalISOUploadURLResponse](
+			httpClient,
+			baseURL+BareMetalServiceCreateBareMetalISOUploadURLProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("CreateBareMetalISOUploadURL")),
+			connect.WithClientOptions(opts...),
+		),
+		listBareMetalISOs: connect.NewClient[v1.ListBareMetalISOsRequest, v1.ListBareMetalISOsResponse](
+			httpClient,
+			baseURL+BareMetalServiceListBareMetalISOsProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("ListBareMetalISOs")),
+			connect.WithClientOptions(opts...),
+		),
+		createBareMetalISOFromURL: connect.NewClient[v1.CreateBareMetalISOFromURLRequest, v1.CreateBareMetalISOFromURLResponse](
+			httpClient,
+			baseURL+BareMetalServiceCreateBareMetalISOFromURLProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("CreateBareMetalISOFromURL")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteBareMetalISO: connect.NewClient[v1.DeleteBareMetalISORequest, v1.DeleteBareMetalISOResponse](
+			httpClient,
+			baseURL+BareMetalServiceDeleteBareMetalISOProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("DeleteBareMetalISO")),
+			connect.WithClientOptions(opts...),
+		),
+		attachBareMetalISO: connect.NewClient[v1.AttachBareMetalISORequest, v1.AttachBareMetalISOResponse](
+			httpClient,
+			baseURL+BareMetalServiceAttachBareMetalISOProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("AttachBareMetalISO")),
+			connect.WithClientOptions(opts...),
+		),
+		getBareMetalVirtualMedia: connect.NewClient[v1.GetBareMetalVirtualMediaRequest, v1.GetBareMetalVirtualMediaResponse](
+			httpClient,
+			baseURL+BareMetalServiceGetBareMetalVirtualMediaProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("GetBareMetalVirtualMedia")),
+			connect.WithClientOptions(opts...),
+		),
+		detachBareMetalISO: connect.NewClient[v1.DetachBareMetalISORequest, v1.DetachBareMetalISOResponse](
+			httpClient,
+			baseURL+BareMetalServiceDetachBareMetalISOProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("DetachBareMetalISO")),
+			connect.WithClientOptions(opts...),
+		),
+		setBareMetalBootDevice: connect.NewClient[v1.SetBareMetalBootDeviceRequest, v1.SetBareMetalBootDeviceResponse](
+			httpClient,
+			baseURL+BareMetalServiceSetBareMetalBootDeviceProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("SetBareMetalBootDevice")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // bareMetalServiceClient implements BareMetalServiceClient.
 type bareMetalServiceClient struct {
-	createBareMetalInstance  *connect.Client[v1.CreateBareMetalInstanceRequest, v1.CreateBareMetalInstanceResponse]
-	getBareMetalInstance     *connect.Client[v1.GetBareMetalInstanceRequest, v1.GetBareMetalInstanceResponse]
-	listBareMetalInstances   *connect.Client[v1.ListBareMetalInstancesRequest, v1.ListBareMetalInstancesResponse]
-	releaseBareMetalInstance *connect.Client[v1.ReleaseBareMetalInstanceRequest, v1.ReleaseBareMetalInstanceResponse]
-	getBareMetalConsoleURL   *connect.Client[v1.GetBareMetalConsoleURLRequest, v1.GetBareMetalConsoleURLResponse]
-	enterBareMetalRescueMode *connect.Client[v1.EnterBareMetalRescueModeRequest, v1.EnterBareMetalRescueModeResponse]
-	exitBareMetalRescueMode  *connect.Client[v1.ExitBareMetalRescueModeRequest, v1.ExitBareMetalRescueModeResponse]
+	listAvailableBareMetal      *connect.Client[v1.ListAvailableBareMetalRequest, v1.ListAvailableBareMetalResponse]
+	quoteBareMetal              *connect.Client[v1.QuoteBareMetalRequest, v1.QuoteBareMetalResponse]
+	createBareMetalInstance     *connect.Client[v1.CreateBareMetalInstanceRequest, v1.CreateBareMetalInstanceResponse]
+	getBareMetalInstance        *connect.Client[v1.GetBareMetalInstanceRequest, v1.GetBareMetalInstanceResponse]
+	listBareMetalInstances      *connect.Client[v1.ListBareMetalInstancesRequest, v1.ListBareMetalInstancesResponse]
+	releaseBareMetalInstance    *connect.Client[v1.ReleaseBareMetalInstanceRequest, v1.ReleaseBareMetalInstanceResponse]
+	renewBareMetalNow           *connect.Client[v1.RenewBareMetalNowRequest, v1.RenewBareMetalNowResponse]
+	setBareMetalPower           *connect.Client[v1.SetBareMetalPowerRequest, v1.SetBareMetalPowerResponse]
+	reinstallBareMetal          *connect.Client[v1.ReinstallBareMetalRequest, v1.ReinstallBareMetalResponse]
+	getBareMetalConsoleURL      *connect.Client[v1.GetBareMetalConsoleURLRequest, v1.GetBareMetalConsoleURLResponse]
+	enterBareMetalRescueMode    *connect.Client[v1.EnterBareMetalRescueModeRequest, v1.EnterBareMetalRescueModeResponse]
+	exitBareMetalRescueMode     *connect.Client[v1.ExitBareMetalRescueModeRequest, v1.ExitBareMetalRescueModeResponse]
+	createBareMetalISOUploadURL *connect.Client[v1.CreateBareMetalISOUploadURLRequest, v1.CreateBareMetalISOUploadURLResponse]
+	listBareMetalISOs           *connect.Client[v1.ListBareMetalISOsRequest, v1.ListBareMetalISOsResponse]
+	createBareMetalISOFromURL   *connect.Client[v1.CreateBareMetalISOFromURLRequest, v1.CreateBareMetalISOFromURLResponse]
+	deleteBareMetalISO          *connect.Client[v1.DeleteBareMetalISORequest, v1.DeleteBareMetalISOResponse]
+	attachBareMetalISO          *connect.Client[v1.AttachBareMetalISORequest, v1.AttachBareMetalISOResponse]
+	getBareMetalVirtualMedia    *connect.Client[v1.GetBareMetalVirtualMediaRequest, v1.GetBareMetalVirtualMediaResponse]
+	detachBareMetalISO          *connect.Client[v1.DetachBareMetalISORequest, v1.DetachBareMetalISOResponse]
+	setBareMetalBootDevice      *connect.Client[v1.SetBareMetalBootDeviceRequest, v1.SetBareMetalBootDeviceResponse]
+}
+
+// ListAvailableBareMetal calls aes.baremetal.v1.BareMetalService.ListAvailableBareMetal.
+func (c *bareMetalServiceClient) ListAvailableBareMetal(ctx context.Context, req *connect.Request[v1.ListAvailableBareMetalRequest]) (*connect.Response[v1.ListAvailableBareMetalResponse], error) {
+	return c.listAvailableBareMetal.CallUnary(ctx, req)
+}
+
+// QuoteBareMetal calls aes.baremetal.v1.BareMetalService.QuoteBareMetal.
+func (c *bareMetalServiceClient) QuoteBareMetal(ctx context.Context, req *connect.Request[v1.QuoteBareMetalRequest]) (*connect.Response[v1.QuoteBareMetalResponse], error) {
+	return c.quoteBareMetal.CallUnary(ctx, req)
 }
 
 // CreateBareMetalInstance calls aes.baremetal.v1.BareMetalService.CreateBareMetalInstance.
@@ -165,6 +348,21 @@ func (c *bareMetalServiceClient) ReleaseBareMetalInstance(ctx context.Context, r
 	return c.releaseBareMetalInstance.CallUnary(ctx, req)
 }
 
+// RenewBareMetalNow calls aes.baremetal.v1.BareMetalService.RenewBareMetalNow.
+func (c *bareMetalServiceClient) RenewBareMetalNow(ctx context.Context, req *connect.Request[v1.RenewBareMetalNowRequest]) (*connect.Response[v1.RenewBareMetalNowResponse], error) {
+	return c.renewBareMetalNow.CallUnary(ctx, req)
+}
+
+// SetBareMetalPower calls aes.baremetal.v1.BareMetalService.SetBareMetalPower.
+func (c *bareMetalServiceClient) SetBareMetalPower(ctx context.Context, req *connect.Request[v1.SetBareMetalPowerRequest]) (*connect.Response[v1.SetBareMetalPowerResponse], error) {
+	return c.setBareMetalPower.CallUnary(ctx, req)
+}
+
+// ReinstallBareMetal calls aes.baremetal.v1.BareMetalService.ReinstallBareMetal.
+func (c *bareMetalServiceClient) ReinstallBareMetal(ctx context.Context, req *connect.Request[v1.ReinstallBareMetalRequest]) (*connect.Response[v1.ReinstallBareMetalResponse], error) {
+	return c.reinstallBareMetal.CallUnary(ctx, req)
+}
+
 // GetBareMetalConsoleURL calls aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL.
 func (c *bareMetalServiceClient) GetBareMetalConsoleURL(ctx context.Context, req *connect.Request[v1.GetBareMetalConsoleURLRequest]) (*connect.Response[v1.GetBareMetalConsoleURLResponse], error) {
 	return c.getBareMetalConsoleURL.CallUnary(ctx, req)
@@ -180,17 +378,75 @@ func (c *bareMetalServiceClient) ExitBareMetalRescueMode(ctx context.Context, re
 	return c.exitBareMetalRescueMode.CallUnary(ctx, req)
 }
 
+// CreateBareMetalISOUploadURL calls aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL.
+func (c *bareMetalServiceClient) CreateBareMetalISOUploadURL(ctx context.Context, req *connect.Request[v1.CreateBareMetalISOUploadURLRequest]) (*connect.Response[v1.CreateBareMetalISOUploadURLResponse], error) {
+	return c.createBareMetalISOUploadURL.CallUnary(ctx, req)
+}
+
+// ListBareMetalISOs calls aes.baremetal.v1.BareMetalService.ListBareMetalISOs.
+func (c *bareMetalServiceClient) ListBareMetalISOs(ctx context.Context, req *connect.Request[v1.ListBareMetalISOsRequest]) (*connect.Response[v1.ListBareMetalISOsResponse], error) {
+	return c.listBareMetalISOs.CallUnary(ctx, req)
+}
+
+// CreateBareMetalISOFromURL calls aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL.
+func (c *bareMetalServiceClient) CreateBareMetalISOFromURL(ctx context.Context, req *connect.Request[v1.CreateBareMetalISOFromURLRequest]) (*connect.Response[v1.CreateBareMetalISOFromURLResponse], error) {
+	return c.createBareMetalISOFromURL.CallUnary(ctx, req)
+}
+
+// DeleteBareMetalISO calls aes.baremetal.v1.BareMetalService.DeleteBareMetalISO.
+func (c *bareMetalServiceClient) DeleteBareMetalISO(ctx context.Context, req *connect.Request[v1.DeleteBareMetalISORequest]) (*connect.Response[v1.DeleteBareMetalISOResponse], error) {
+	return c.deleteBareMetalISO.CallUnary(ctx, req)
+}
+
+// AttachBareMetalISO calls aes.baremetal.v1.BareMetalService.AttachBareMetalISO.
+func (c *bareMetalServiceClient) AttachBareMetalISO(ctx context.Context, req *connect.Request[v1.AttachBareMetalISORequest]) (*connect.Response[v1.AttachBareMetalISOResponse], error) {
+	return c.attachBareMetalISO.CallUnary(ctx, req)
+}
+
+// GetBareMetalVirtualMedia calls aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia.
+func (c *bareMetalServiceClient) GetBareMetalVirtualMedia(ctx context.Context, req *connect.Request[v1.GetBareMetalVirtualMediaRequest]) (*connect.Response[v1.GetBareMetalVirtualMediaResponse], error) {
+	return c.getBareMetalVirtualMedia.CallUnary(ctx, req)
+}
+
+// DetachBareMetalISO calls aes.baremetal.v1.BareMetalService.DetachBareMetalISO.
+func (c *bareMetalServiceClient) DetachBareMetalISO(ctx context.Context, req *connect.Request[v1.DetachBareMetalISORequest]) (*connect.Response[v1.DetachBareMetalISOResponse], error) {
+	return c.detachBareMetalISO.CallUnary(ctx, req)
+}
+
+// SetBareMetalBootDevice calls aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice.
+func (c *bareMetalServiceClient) SetBareMetalBootDevice(ctx context.Context, req *connect.Request[v1.SetBareMetalBootDeviceRequest]) (*connect.Response[v1.SetBareMetalBootDeviceResponse], error) {
+	return c.setBareMetalBootDevice.CallUnary(ctx, req)
+}
+
 // BareMetalServiceHandler is an implementation of the aes.baremetal.v1.BareMetalService service.
 type BareMetalServiceHandler interface {
+	// ListAvailableBareMetal returns published, unleased, priced hosts the caller can lease, with
+	// discovered specs + monthly price. No BMC/serial identifiers are exposed.
+	ListAvailableBareMetal(context.Context, *connect.Request[v1.ListAvailableBareMetalRequest]) (*connect.Response[v1.ListAvailableBareMetalResponse], error)
+	// QuoteBareMetal previews the cost of leasing a host under a billing mode (hourly rate, and the
+	// prepay due now for a MONTHLY_* term at its discount). Mirrors ComputeService.QuoteVirtualMachine.
+	QuoteBareMetal(context.Context, *connect.Request[v1.QuoteBareMetalRequest]) (*connect.Response[v1.QuoteBareMetalResponse], error)
 	CreateBareMetalInstance(context.Context, *connect.Request[v1.CreateBareMetalInstanceRequest]) (*connect.Response[v1.CreateBareMetalInstanceResponse], error)
 	GetBareMetalInstance(context.Context, *connect.Request[v1.GetBareMetalInstanceRequest]) (*connect.Response[v1.GetBareMetalInstanceResponse], error)
 	ListBareMetalInstances(context.Context, *connect.Request[v1.ListBareMetalInstancesRequest]) (*connect.Response[v1.ListBareMetalInstancesResponse], error)
-	// ReleaseBareMetalInstance ends the lease; the host's role returns to 'baremetal_pool'. The
+	// ReleaseBareMetalInstance ends the lease; the host's role returns to 'baremetal_pool'. Refused
+	// while a MONTHLY_* term is still active (hard non-cancel, same as DeleteVirtualMachine). The
 	// customer's data on local disks is not wiped by Metalhost — operator policy decides whether
 	// the host is reformatted before re-leasing.
 	ReleaseBareMetalInstance(context.Context, *connect.Request[v1.ReleaseBareMetalInstanceRequest]) (*connect.Response[v1.ReleaseBareMetalInstanceResponse], error)
-	// GetBareMetalConsoleURL returns a short-lived URL for serial-over-LAN access via the BMC.
-	// Backed by Redfish SerialConsole; expires after 1h.
+	// RenewBareMetalNow charges the next prepaid term immediately for a MONTHLY_* lease (mirror of
+	// ComputeService.RenewVMNow). Useful before a term lapses or to extend ahead of the worker.
+	RenewBareMetalNow(context.Context, *connect.Request[v1.RenewBareMetalNowRequest]) (*connect.Response[v1.RenewBareMetalNowResponse], error)
+	// SetBareMetalPower performs a BMC power action (on / off / reboot) via Redfish. Billing is
+	// unaffected — a leased host bills whether it's powered on or off.
+	SetBareMetalPower(context.Context, *connect.Request[v1.SetBareMetalPowerRequest]) (*connect.Response[v1.SetBareMetalPowerResponse], error)
+	// ReinstallBareMetal re-runs the OS install (Tinkerbell) + cloud-init seed on a leased host,
+	// wiping the OS disk. Keeps the same lease + IPv4 block. Use to switch image or get a clean slate.
+	ReinstallBareMetal(context.Context, *connect.Request[v1.ReinstallBareMetalRequest]) (*connect.Response[v1.ReinstallBareMetalResponse], error)
+	// GetBareMetalConsoleURL returns a short-lived websocket URL for the host's graphical KVM
+	// console, bridged to the BMC's VNC server (iDRAC). The server enables VNC on the BMC with a
+	// fresh per-session password (returned in vnc_password) and disables it again when the session
+	// ends — VNC is off at rest. Token expires after 60s; connect promptly.
 	GetBareMetalConsoleURL(context.Context, *connect.Request[v1.GetBareMetalConsoleURLRequest]) (*connect.Response[v1.GetBareMetalConsoleURLResponse], error)
 	// EnterRescueMode boots the host into a rescue image via Redfish one-time boot override
 	// followed by a power cycle. The rescue image URL is the operator's responsibility (set
@@ -200,6 +456,31 @@ type BareMetalServiceHandler interface {
 	// power-cycles back to the normal disk boot order.
 	EnterBareMetalRescueMode(context.Context, *connect.Request[v1.EnterBareMetalRescueModeRequest]) (*connect.Response[v1.EnterBareMetalRescueModeResponse], error)
 	ExitBareMetalRescueMode(context.Context, *connect.Request[v1.ExitBareMetalRescueModeRequest]) (*connect.Response[v1.ExitBareMetalRescueModeResponse], error)
+	// --- Bring-your-own-OS virtual media + ISO library (docs/specs/BARE_METAL_BYO_OS.md) ---
+	// The ISO library is per-ORG (shared across the org's projects), quota-limited. Upload once,
+	// re-use across leases. CreateBareMetalISOUploadURL returns a short-lived presigned PUT URL the
+	// customer uploads their install ISO to (directly to object storage), plus the object key.
+	CreateBareMetalISOUploadURL(context.Context, *connect.Request[v1.CreateBareMetalISOUploadURLRequest]) (*connect.Response[v1.CreateBareMetalISOUploadURLResponse], error)
+	// ListBareMetalISOs lists the org's uploaded install ISOs (the library shown on the mgmt page
+	// and the console's ISO picker).
+	ListBareMetalISOs(context.Context, *connect.Request[v1.ListBareMetalISOsRequest]) (*connect.Response[v1.ListBareMetalISOsResponse], error)
+	// CreateBareMetalISOFromURL imports an ISO into the org library by URL — metalhostd fetches it
+	// server-side (datacenter bandwidth) into object storage, so no slow browser upload. Returns
+	// immediately; the ISO appears in ListBareMetalISOs once the fetch completes.
+	CreateBareMetalISOFromURL(context.Context, *connect.Request[v1.CreateBareMetalISOFromURLRequest]) (*connect.Response[v1.CreateBareMetalISOFromURLResponse], error)
+	// DeleteBareMetalISO removes an ISO from the org library + object storage.
+	DeleteBareMetalISO(context.Context, *connect.Request[v1.DeleteBareMetalISORequest]) (*connect.Response[v1.DeleteBareMetalISOResponse], error)
+	// AttachBareMetalISO mounts a library ISO (by object key) as the host's BMC virtual CD: the BMC
+	// fetches it from metalhostd's ISO proxy (/v1/bm-iso/<token>.iso) which streams from the bucket.
+	AttachBareMetalISO(context.Context, *connect.Request[v1.AttachBareMetalISORequest]) (*connect.Response[v1.AttachBareMetalISOResponse], error)
+	// GetBareMetalVirtualMedia reports the BMC's current virtual-CD mount state (so the UI shows the
+	// real attach/detach state after a refresh, not just optimistic client state).
+	GetBareMetalVirtualMedia(context.Context, *connect.Request[v1.GetBareMetalVirtualMediaRequest]) (*connect.Response[v1.GetBareMetalVirtualMediaResponse], error)
+	// DetachBareMetalISO ejects any mounted virtual media (the library copy is kept).
+	DetachBareMetalISO(context.Context, *connect.Request[v1.DetachBareMetalISORequest]) (*connect.Response[v1.DetachBareMetalISOResponse], error)
+	// SetBareMetalBootDevice sets the one-time boot device (disk / cdrom / pxe) and power-cycles.
+	// Use cdrom after AttachBareMetalISO to boot the installer; the next reboot falls back to disk.
+	SetBareMetalBootDevice(context.Context, *connect.Request[v1.SetBareMetalBootDeviceRequest]) (*connect.Response[v1.SetBareMetalBootDeviceResponse], error)
 }
 
 // NewBareMetalServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -209,6 +490,18 @@ type BareMetalServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewBareMetalServiceHandler(svc BareMetalServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	bareMetalServiceMethods := v1.File_aes_baremetal_v1_baremetal_proto.Services().ByName("BareMetalService").Methods()
+	bareMetalServiceListAvailableBareMetalHandler := connect.NewUnaryHandler(
+		BareMetalServiceListAvailableBareMetalProcedure,
+		svc.ListAvailableBareMetal,
+		connect.WithSchema(bareMetalServiceMethods.ByName("ListAvailableBareMetal")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bareMetalServiceQuoteBareMetalHandler := connect.NewUnaryHandler(
+		BareMetalServiceQuoteBareMetalProcedure,
+		svc.QuoteBareMetal,
+		connect.WithSchema(bareMetalServiceMethods.ByName("QuoteBareMetal")),
+		connect.WithHandlerOptions(opts...),
+	)
 	bareMetalServiceCreateBareMetalInstanceHandler := connect.NewUnaryHandler(
 		BareMetalServiceCreateBareMetalInstanceProcedure,
 		svc.CreateBareMetalInstance,
@@ -233,6 +526,24 @@ func NewBareMetalServiceHandler(svc BareMetalServiceHandler, opts ...connect.Han
 		connect.WithSchema(bareMetalServiceMethods.ByName("ReleaseBareMetalInstance")),
 		connect.WithHandlerOptions(opts...),
 	)
+	bareMetalServiceRenewBareMetalNowHandler := connect.NewUnaryHandler(
+		BareMetalServiceRenewBareMetalNowProcedure,
+		svc.RenewBareMetalNow,
+		connect.WithSchema(bareMetalServiceMethods.ByName("RenewBareMetalNow")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bareMetalServiceSetBareMetalPowerHandler := connect.NewUnaryHandler(
+		BareMetalServiceSetBareMetalPowerProcedure,
+		svc.SetBareMetalPower,
+		connect.WithSchema(bareMetalServiceMethods.ByName("SetBareMetalPower")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bareMetalServiceReinstallBareMetalHandler := connect.NewUnaryHandler(
+		BareMetalServiceReinstallBareMetalProcedure,
+		svc.ReinstallBareMetal,
+		connect.WithSchema(bareMetalServiceMethods.ByName("ReinstallBareMetal")),
+		connect.WithHandlerOptions(opts...),
+	)
 	bareMetalServiceGetBareMetalConsoleURLHandler := connect.NewUnaryHandler(
 		BareMetalServiceGetBareMetalConsoleURLProcedure,
 		svc.GetBareMetalConsoleURL,
@@ -251,8 +562,60 @@ func NewBareMetalServiceHandler(svc BareMetalServiceHandler, opts ...connect.Han
 		connect.WithSchema(bareMetalServiceMethods.ByName("ExitBareMetalRescueMode")),
 		connect.WithHandlerOptions(opts...),
 	)
+	bareMetalServiceCreateBareMetalISOUploadURLHandler := connect.NewUnaryHandler(
+		BareMetalServiceCreateBareMetalISOUploadURLProcedure,
+		svc.CreateBareMetalISOUploadURL,
+		connect.WithSchema(bareMetalServiceMethods.ByName("CreateBareMetalISOUploadURL")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bareMetalServiceListBareMetalISOsHandler := connect.NewUnaryHandler(
+		BareMetalServiceListBareMetalISOsProcedure,
+		svc.ListBareMetalISOs,
+		connect.WithSchema(bareMetalServiceMethods.ByName("ListBareMetalISOs")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bareMetalServiceCreateBareMetalISOFromURLHandler := connect.NewUnaryHandler(
+		BareMetalServiceCreateBareMetalISOFromURLProcedure,
+		svc.CreateBareMetalISOFromURL,
+		connect.WithSchema(bareMetalServiceMethods.ByName("CreateBareMetalISOFromURL")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bareMetalServiceDeleteBareMetalISOHandler := connect.NewUnaryHandler(
+		BareMetalServiceDeleteBareMetalISOProcedure,
+		svc.DeleteBareMetalISO,
+		connect.WithSchema(bareMetalServiceMethods.ByName("DeleteBareMetalISO")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bareMetalServiceAttachBareMetalISOHandler := connect.NewUnaryHandler(
+		BareMetalServiceAttachBareMetalISOProcedure,
+		svc.AttachBareMetalISO,
+		connect.WithSchema(bareMetalServiceMethods.ByName("AttachBareMetalISO")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bareMetalServiceGetBareMetalVirtualMediaHandler := connect.NewUnaryHandler(
+		BareMetalServiceGetBareMetalVirtualMediaProcedure,
+		svc.GetBareMetalVirtualMedia,
+		connect.WithSchema(bareMetalServiceMethods.ByName("GetBareMetalVirtualMedia")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bareMetalServiceDetachBareMetalISOHandler := connect.NewUnaryHandler(
+		BareMetalServiceDetachBareMetalISOProcedure,
+		svc.DetachBareMetalISO,
+		connect.WithSchema(bareMetalServiceMethods.ByName("DetachBareMetalISO")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bareMetalServiceSetBareMetalBootDeviceHandler := connect.NewUnaryHandler(
+		BareMetalServiceSetBareMetalBootDeviceProcedure,
+		svc.SetBareMetalBootDevice,
+		connect.WithSchema(bareMetalServiceMethods.ByName("SetBareMetalBootDevice")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/aes.baremetal.v1.BareMetalService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case BareMetalServiceListAvailableBareMetalProcedure:
+			bareMetalServiceListAvailableBareMetalHandler.ServeHTTP(w, r)
+		case BareMetalServiceQuoteBareMetalProcedure:
+			bareMetalServiceQuoteBareMetalHandler.ServeHTTP(w, r)
 		case BareMetalServiceCreateBareMetalInstanceProcedure:
 			bareMetalServiceCreateBareMetalInstanceHandler.ServeHTTP(w, r)
 		case BareMetalServiceGetBareMetalInstanceProcedure:
@@ -261,12 +624,34 @@ func NewBareMetalServiceHandler(svc BareMetalServiceHandler, opts ...connect.Han
 			bareMetalServiceListBareMetalInstancesHandler.ServeHTTP(w, r)
 		case BareMetalServiceReleaseBareMetalInstanceProcedure:
 			bareMetalServiceReleaseBareMetalInstanceHandler.ServeHTTP(w, r)
+		case BareMetalServiceRenewBareMetalNowProcedure:
+			bareMetalServiceRenewBareMetalNowHandler.ServeHTTP(w, r)
+		case BareMetalServiceSetBareMetalPowerProcedure:
+			bareMetalServiceSetBareMetalPowerHandler.ServeHTTP(w, r)
+		case BareMetalServiceReinstallBareMetalProcedure:
+			bareMetalServiceReinstallBareMetalHandler.ServeHTTP(w, r)
 		case BareMetalServiceGetBareMetalConsoleURLProcedure:
 			bareMetalServiceGetBareMetalConsoleURLHandler.ServeHTTP(w, r)
 		case BareMetalServiceEnterBareMetalRescueModeProcedure:
 			bareMetalServiceEnterBareMetalRescueModeHandler.ServeHTTP(w, r)
 		case BareMetalServiceExitBareMetalRescueModeProcedure:
 			bareMetalServiceExitBareMetalRescueModeHandler.ServeHTTP(w, r)
+		case BareMetalServiceCreateBareMetalISOUploadURLProcedure:
+			bareMetalServiceCreateBareMetalISOUploadURLHandler.ServeHTTP(w, r)
+		case BareMetalServiceListBareMetalISOsProcedure:
+			bareMetalServiceListBareMetalISOsHandler.ServeHTTP(w, r)
+		case BareMetalServiceCreateBareMetalISOFromURLProcedure:
+			bareMetalServiceCreateBareMetalISOFromURLHandler.ServeHTTP(w, r)
+		case BareMetalServiceDeleteBareMetalISOProcedure:
+			bareMetalServiceDeleteBareMetalISOHandler.ServeHTTP(w, r)
+		case BareMetalServiceAttachBareMetalISOProcedure:
+			bareMetalServiceAttachBareMetalISOHandler.ServeHTTP(w, r)
+		case BareMetalServiceGetBareMetalVirtualMediaProcedure:
+			bareMetalServiceGetBareMetalVirtualMediaHandler.ServeHTTP(w, r)
+		case BareMetalServiceDetachBareMetalISOProcedure:
+			bareMetalServiceDetachBareMetalISOHandler.ServeHTTP(w, r)
+		case BareMetalServiceSetBareMetalBootDeviceProcedure:
+			bareMetalServiceSetBareMetalBootDeviceHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -275,6 +660,14 @@ func NewBareMetalServiceHandler(svc BareMetalServiceHandler, opts ...connect.Han
 
 // UnimplementedBareMetalServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedBareMetalServiceHandler struct{}
+
+func (UnimplementedBareMetalServiceHandler) ListAvailableBareMetal(context.Context, *connect.Request[v1.ListAvailableBareMetalRequest]) (*connect.Response[v1.ListAvailableBareMetalResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.ListAvailableBareMetal is not implemented"))
+}
+
+func (UnimplementedBareMetalServiceHandler) QuoteBareMetal(context.Context, *connect.Request[v1.QuoteBareMetalRequest]) (*connect.Response[v1.QuoteBareMetalResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.QuoteBareMetal is not implemented"))
+}
 
 func (UnimplementedBareMetalServiceHandler) CreateBareMetalInstance(context.Context, *connect.Request[v1.CreateBareMetalInstanceRequest]) (*connect.Response[v1.CreateBareMetalInstanceResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.CreateBareMetalInstance is not implemented"))
@@ -292,6 +685,18 @@ func (UnimplementedBareMetalServiceHandler) ReleaseBareMetalInstance(context.Con
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance is not implemented"))
 }
 
+func (UnimplementedBareMetalServiceHandler) RenewBareMetalNow(context.Context, *connect.Request[v1.RenewBareMetalNowRequest]) (*connect.Response[v1.RenewBareMetalNowResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.RenewBareMetalNow is not implemented"))
+}
+
+func (UnimplementedBareMetalServiceHandler) SetBareMetalPower(context.Context, *connect.Request[v1.SetBareMetalPowerRequest]) (*connect.Response[v1.SetBareMetalPowerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.SetBareMetalPower is not implemented"))
+}
+
+func (UnimplementedBareMetalServiceHandler) ReinstallBareMetal(context.Context, *connect.Request[v1.ReinstallBareMetalRequest]) (*connect.Response[v1.ReinstallBareMetalResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.ReinstallBareMetal is not implemented"))
+}
+
 func (UnimplementedBareMetalServiceHandler) GetBareMetalConsoleURL(context.Context, *connect.Request[v1.GetBareMetalConsoleURLRequest]) (*connect.Response[v1.GetBareMetalConsoleURLResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL is not implemented"))
 }
@@ -302,4 +707,36 @@ func (UnimplementedBareMetalServiceHandler) EnterBareMetalRescueMode(context.Con
 
 func (UnimplementedBareMetalServiceHandler) ExitBareMetalRescueMode(context.Context, *connect.Request[v1.ExitBareMetalRescueModeRequest]) (*connect.Response[v1.ExitBareMetalRescueModeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode is not implemented"))
+}
+
+func (UnimplementedBareMetalServiceHandler) CreateBareMetalISOUploadURL(context.Context, *connect.Request[v1.CreateBareMetalISOUploadURLRequest]) (*connect.Response[v1.CreateBareMetalISOUploadURLResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL is not implemented"))
+}
+
+func (UnimplementedBareMetalServiceHandler) ListBareMetalISOs(context.Context, *connect.Request[v1.ListBareMetalISOsRequest]) (*connect.Response[v1.ListBareMetalISOsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.ListBareMetalISOs is not implemented"))
+}
+
+func (UnimplementedBareMetalServiceHandler) CreateBareMetalISOFromURL(context.Context, *connect.Request[v1.CreateBareMetalISOFromURLRequest]) (*connect.Response[v1.CreateBareMetalISOFromURLResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL is not implemented"))
+}
+
+func (UnimplementedBareMetalServiceHandler) DeleteBareMetalISO(context.Context, *connect.Request[v1.DeleteBareMetalISORequest]) (*connect.Response[v1.DeleteBareMetalISOResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.DeleteBareMetalISO is not implemented"))
+}
+
+func (UnimplementedBareMetalServiceHandler) AttachBareMetalISO(context.Context, *connect.Request[v1.AttachBareMetalISORequest]) (*connect.Response[v1.AttachBareMetalISOResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.AttachBareMetalISO is not implemented"))
+}
+
+func (UnimplementedBareMetalServiceHandler) GetBareMetalVirtualMedia(context.Context, *connect.Request[v1.GetBareMetalVirtualMediaRequest]) (*connect.Response[v1.GetBareMetalVirtualMediaResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia is not implemented"))
+}
+
+func (UnimplementedBareMetalServiceHandler) DetachBareMetalISO(context.Context, *connect.Request[v1.DetachBareMetalISORequest]) (*connect.Response[v1.DetachBareMetalISOResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.DetachBareMetalISO is not implemented"))
+}
+
+func (UnimplementedBareMetalServiceHandler) SetBareMetalBootDevice(context.Context, *connect.Request[v1.SetBareMetalBootDeviceRequest]) (*connect.Response[v1.SetBareMetalBootDeviceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice is not implemented"))
 }

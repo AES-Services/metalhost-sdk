@@ -590,6 +590,10 @@ message UsageRow {
 message QueryUsageResponse {
   repeated UsageRow rows = 1;
   string next_page_token = 2;
+  // Per-project monthly egress free-tier allowance in GiB (server policy, env-configurable via
+  // METALHOST_PROJECT_EGRESS_FREE_GIB). Surfaced here so the transfer/usage UI doesn't hardcode
+  // it. 0 = no free tier (every byte bills).
+  int64 egress_free_gib = 3;
 }
 
 message ExportUsageRequest {
