@@ -84,6 +84,9 @@ const (
 	// IamServiceCompleteOidcLoginProcedure is the fully-qualified name of the IamService's
 	// CompleteOidcLogin RPC.
 	IamServiceCompleteOidcLoginProcedure = "/aes.iam.v1.IamService/CompleteOidcLogin"
+	// IamServiceCreateWorkspaceProcedure is the fully-qualified name of the IamService's
+	// CreateWorkspace RPC.
+	IamServiceCreateWorkspaceProcedure = "/aes.iam.v1.IamService/CreateWorkspace"
 	// IamServiceEnrollMFAProcedure is the fully-qualified name of the IamService's EnrollMFA RPC.
 	IamServiceEnrollMFAProcedure = "/aes.iam.v1.IamService/EnrollMFA"
 	// IamServiceVerifyMFAEnrollmentProcedure is the fully-qualified name of the IamService's
@@ -204,6 +207,14 @@ type IamServiceClient interface {
 	// API key for the session.
 	StartOidcLogin(context.Context, *connect.Request[v1.StartOidcLoginRequest]) (*connect.Response[v1.StartOidcLoginResponse], error)
 	CompleteOidcLogin(context.Context, *connect.Request[v1.CompleteOidcLoginRequest]) (*connect.Response[v1.CompleteOidcLoginResponse], error)
+	// CreateWorkspace is the self-serve org bootstrap the onboarding wizard calls for an
+	// authenticated-but-org-less user (the state an SSO/OIDC first-login lands in — the identity
+	// is created at login, but the user names their workspace here). It creates the org chain
+	// (organization + quota defaults + billing account + USD wallet + organization.admin binding
+	// for the caller) under the caller's chosen slug, in one transaction. Idempotent-safe: a slug
+	// already taken by a different account is refused (the takeover gate). The chosen slug is
+	// validated against the same DNS-1035 + reserved rules CheckSlugAvailable reports on.
+	CreateWorkspace(context.Context, *connect.Request[v1.CreateWorkspaceRequest]) (*connect.Response[v1.CreateWorkspaceResponse], error)
 	// MFA / TOTP. EnrollMFA returns a fresh shared secret + provisioning URI (otpauth://) the
 	// caller's authenticator app reads as a QR code; the credential starts in PENDING state and
 	// does nothing until VerifyMFAEnrollment confirms a valid TOTP code. ListMFADevices reports
@@ -394,6 +405,12 @@ func NewIamServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(iamServiceMethods.ByName("CompleteOidcLogin")),
 			connect.WithClientOptions(opts...),
 		),
+		createWorkspace: connect.NewClient[v1.CreateWorkspaceRequest, v1.CreateWorkspaceResponse](
+			httpClient,
+			baseURL+IamServiceCreateWorkspaceProcedure,
+			connect.WithSchema(iamServiceMethods.ByName("CreateWorkspace")),
+			connect.WithClientOptions(opts...),
+		),
 		enrollMFA: connect.NewClient[v1.EnrollMFARequest, v1.EnrollMFAResponse](
 			httpClient,
 			baseURL+IamServiceEnrollMFAProcedure,
@@ -521,6 +538,7 @@ type iamServiceClient struct {
 	rotateApiKey           *connect.Client[v1.RotateApiKeyRequest, v1.RotateApiKeyResponse]
 	startOidcLogin         *connect.Client[v1.StartOidcLoginRequest, v1.StartOidcLoginResponse]
 	completeOidcLogin      *connect.Client[v1.CompleteOidcLoginRequest, v1.CompleteOidcLoginResponse]
+	createWorkspace        *connect.Client[v1.CreateWorkspaceRequest, v1.CreateWorkspaceResponse]
 	enrollMFA              *connect.Client[v1.EnrollMFARequest, v1.EnrollMFAResponse]
 	verifyMFAEnrollment    *connect.Client[v1.VerifyMFAEnrollmentRequest, v1.VerifyMFAEnrollmentResponse]
 	listMFADevices         *connect.Client[v1.ListMFADevicesRequest, v1.ListMFADevicesResponse]
@@ -638,6 +656,11 @@ func (c *iamServiceClient) StartOidcLogin(ctx context.Context, req *connect.Requ
 // CompleteOidcLogin calls aes.iam.v1.IamService.CompleteOidcLogin.
 func (c *iamServiceClient) CompleteOidcLogin(ctx context.Context, req *connect.Request[v1.CompleteOidcLoginRequest]) (*connect.Response[v1.CompleteOidcLoginResponse], error) {
 	return c.completeOidcLogin.CallUnary(ctx, req)
+}
+
+// CreateWorkspace calls aes.iam.v1.IamService.CreateWorkspace.
+func (c *iamServiceClient) CreateWorkspace(ctx context.Context, req *connect.Request[v1.CreateWorkspaceRequest]) (*connect.Response[v1.CreateWorkspaceResponse], error) {
+	return c.createWorkspace.CallUnary(ctx, req)
 }
 
 // EnrollMFA calls aes.iam.v1.IamService.EnrollMFA.
@@ -797,6 +820,14 @@ type IamServiceHandler interface {
 	// API key for the session.
 	StartOidcLogin(context.Context, *connect.Request[v1.StartOidcLoginRequest]) (*connect.Response[v1.StartOidcLoginResponse], error)
 	CompleteOidcLogin(context.Context, *connect.Request[v1.CompleteOidcLoginRequest]) (*connect.Response[v1.CompleteOidcLoginResponse], error)
+	// CreateWorkspace is the self-serve org bootstrap the onboarding wizard calls for an
+	// authenticated-but-org-less user (the state an SSO/OIDC first-login lands in — the identity
+	// is created at login, but the user names their workspace here). It creates the org chain
+	// (organization + quota defaults + billing account + USD wallet + organization.admin binding
+	// for the caller) under the caller's chosen slug, in one transaction. Idempotent-safe: a slug
+	// already taken by a different account is refused (the takeover gate). The chosen slug is
+	// validated against the same DNS-1035 + reserved rules CheckSlugAvailable reports on.
+	CreateWorkspace(context.Context, *connect.Request[v1.CreateWorkspaceRequest]) (*connect.Response[v1.CreateWorkspaceResponse], error)
 	// MFA / TOTP. EnrollMFA returns a fresh shared secret + provisioning URI (otpauth://) the
 	// caller's authenticator app reads as a QR code; the credential starts in PENDING state and
 	// does nothing until VerifyMFAEnrollment confirms a valid TOTP code. ListMFADevices reports
@@ -983,6 +1014,12 @@ func NewIamServiceHandler(svc IamServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(iamServiceMethods.ByName("CompleteOidcLogin")),
 		connect.WithHandlerOptions(opts...),
 	)
+	iamServiceCreateWorkspaceHandler := connect.NewUnaryHandler(
+		IamServiceCreateWorkspaceProcedure,
+		svc.CreateWorkspace,
+		connect.WithSchema(iamServiceMethods.ByName("CreateWorkspace")),
+		connect.WithHandlerOptions(opts...),
+	)
 	iamServiceEnrollMFAHandler := connect.NewUnaryHandler(
 		IamServiceEnrollMFAProcedure,
 		svc.EnrollMFA,
@@ -1127,6 +1164,8 @@ func NewIamServiceHandler(svc IamServiceHandler, opts ...connect.HandlerOption) 
 			iamServiceStartOidcLoginHandler.ServeHTTP(w, r)
 		case IamServiceCompleteOidcLoginProcedure:
 			iamServiceCompleteOidcLoginHandler.ServeHTTP(w, r)
+		case IamServiceCreateWorkspaceProcedure:
+			iamServiceCreateWorkspaceHandler.ServeHTTP(w, r)
 		case IamServiceEnrollMFAProcedure:
 			iamServiceEnrollMFAHandler.ServeHTTP(w, r)
 		case IamServiceVerifyMFAEnrollmentProcedure:
@@ -1248,6 +1287,10 @@ func (UnimplementedIamServiceHandler) StartOidcLogin(context.Context, *connect.R
 
 func (UnimplementedIamServiceHandler) CompleteOidcLogin(context.Context, *connect.Request[v1.CompleteOidcLoginRequest]) (*connect.Response[v1.CompleteOidcLoginResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.iam.v1.IamService.CompleteOidcLogin is not implemented"))
+}
+
+func (UnimplementedIamServiceHandler) CreateWorkspace(context.Context, *connect.Request[v1.CreateWorkspaceRequest]) (*connect.Response[v1.CreateWorkspaceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.iam.v1.IamService.CreateWorkspace is not implemented"))
 }
 
 func (UnimplementedIamServiceHandler) EnrollMFA(context.Context, *connect.Request[v1.EnrollMFARequest]) (*connect.Response[v1.EnrollMFAResponse], error) {

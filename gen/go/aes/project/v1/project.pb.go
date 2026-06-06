@@ -21,6 +21,58 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// SlugKind selects the namespace a slug is checked against.
+type SlugKind int32
+
+const (
+	SlugKind_SLUG_KIND_UNSPECIFIED SlugKind = 0
+	// Workspace / organization slug (also gates the user slug). Checked globally.
+	SlugKind_SLUG_KIND_ORG SlugKind = 1
+	// Project slug. Checked within `parent` (the owning org).
+	SlugKind_SLUG_KIND_PROJECT SlugKind = 2
+)
+
+// Enum value maps for SlugKind.
+var (
+	SlugKind_name = map[int32]string{
+		0: "SLUG_KIND_UNSPECIFIED",
+		1: "SLUG_KIND_ORG",
+		2: "SLUG_KIND_PROJECT",
+	}
+	SlugKind_value = map[string]int32{
+		"SLUG_KIND_UNSPECIFIED": 0,
+		"SLUG_KIND_ORG":         1,
+		"SLUG_KIND_PROJECT":     2,
+	}
+)
+
+func (x SlugKind) Enum() *SlugKind {
+	p := new(SlugKind)
+	*p = x
+	return p
+}
+
+func (x SlugKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SlugKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_aes_project_v1_project_proto_enumTypes[0].Descriptor()
+}
+
+func (SlugKind) Type() protoreflect.EnumType {
+	return &file_aes_project_v1_project_proto_enumTypes[0]
+}
+
+func (x SlugKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SlugKind.Descriptor instead.
+func (SlugKind) EnumDescriptor() ([]byte, []int) {
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{0}
+}
+
 type Organization struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Resource name, e.g. `organizations/my-org`.
@@ -1123,6 +1175,130 @@ func (x *ListOrgActivityResponse) GetNextPageToken() string {
 	return ""
 }
 
+type CheckSlugAvailableRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Kind  SlugKind               `protobuf:"varint,1,opt,name=kind,proto3,enum=aes.project.v1.SlugKind" json:"kind,omitempty"`
+	// The bare slug the user typed (server normalizes: lowercase + trim).
+	Slug string `protobuf:"bytes,2,opt,name=slug,proto3" json:"slug,omitempty"`
+	// Owning org resource name `organizations/{org}`. Required when kind = SLUG_KIND_PROJECT.
+	Parent        string `protobuf:"bytes,3,opt,name=parent,proto3" json:"parent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckSlugAvailableRequest) Reset() {
+	*x = CheckSlugAvailableRequest{}
+	mi := &file_aes_project_v1_project_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckSlugAvailableRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckSlugAvailableRequest) ProtoMessage() {}
+
+func (x *CheckSlugAvailableRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_project_v1_project_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckSlugAvailableRequest.ProtoReflect.Descriptor instead.
+func (*CheckSlugAvailableRequest) Descriptor() ([]byte, []int) {
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *CheckSlugAvailableRequest) GetKind() SlugKind {
+	if x != nil {
+		return x.Kind
+	}
+	return SlugKind_SLUG_KIND_UNSPECIFIED
+}
+
+func (x *CheckSlugAvailableRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *CheckSlugAvailableRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+type CheckSlugAvailableResponse struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Available bool                   `protobuf:"varint,1,opt,name=available,proto3" json:"available,omitempty"`
+	// Human-readable, never API jargon: "taken", "invalid: <why>", or "" when available.
+	Reason string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	// Server-normalized slug (lowercased, trimmed) — the value that would actually be claimed.
+	Normalized    string `protobuf:"bytes,3,opt,name=normalized,proto3" json:"normalized,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckSlugAvailableResponse) Reset() {
+	*x = CheckSlugAvailableResponse{}
+	mi := &file_aes_project_v1_project_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckSlugAvailableResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckSlugAvailableResponse) ProtoMessage() {}
+
+func (x *CheckSlugAvailableResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_project_v1_project_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckSlugAvailableResponse.ProtoReflect.Descriptor instead.
+func (*CheckSlugAvailableResponse) Descriptor() ([]byte, []int) {
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CheckSlugAvailableResponse) GetAvailable() bool {
+	if x != nil {
+		return x.Available
+	}
+	return false
+}
+
+func (x *CheckSlugAvailableResponse) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *CheckSlugAvailableResponse) GetNormalized() string {
+	if x != nil {
+		return x.Normalized
+	}
+	return ""
+}
+
 type ActivityEvent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1148,7 +1324,7 @@ type ActivityEvent struct {
 
 func (x *ActivityEvent) Reset() {
 	*x = ActivityEvent{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[22]
+	mi := &file_aes_project_v1_project_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1160,7 +1336,7 @@ func (x *ActivityEvent) String() string {
 func (*ActivityEvent) ProtoMessage() {}
 
 func (x *ActivityEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[22]
+	mi := &file_aes_project_v1_project_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1173,7 +1349,7 @@ func (x *ActivityEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActivityEvent.ProtoReflect.Descriptor instead.
 func (*ActivityEvent) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{22}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ActivityEvent) GetId() string {
@@ -1295,7 +1471,17 @@ const file_aes_project_v1_project_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\"x\n" +
 	"\x17ListOrgActivityResponse\x125\n" +
 	"\x06events\x18\x01 \x03(\v2\x1d.aes.project.v1.ActivityEventR\x06events\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xd9\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"u\n" +
+	"\x19CheckSlugAvailableRequest\x12,\n" +
+	"\x04kind\x18\x01 \x01(\x0e2\x18.aes.project.v1.SlugKindR\x04kind\x12\x12\n" +
+	"\x04slug\x18\x02 \x01(\tR\x04slug\x12\x16\n" +
+	"\x06parent\x18\x03 \x01(\tR\x06parent\"r\n" +
+	"\x1aCheckSlugAvailableResponse\x12\x1c\n" +
+	"\tavailable\x18\x01 \x01(\bR\tavailable\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x1e\n" +
+	"\n" +
+	"normalized\x18\x03 \x01(\tR\n" +
+	"normalized\"\xd9\x01\n" +
 	"\rActivityEvent\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
 	"\x0etimestamp_unix\x18\x02 \x01(\x03R\rtimestampUnix\x12\x14\n" +
@@ -1303,7 +1489,11 @@ const file_aes_project_v1_project_proto_rawDesc = "" +
 	"\asummary\x18\x04 \x01(\tR\asummary\x12#\n" +
 	"\rresource_name\x18\x05 \x01(\tR\fresourceName\x12\x18\n" +
 	"\aoutcome\x18\x06 \x01(\tR\aoutcome\x12\"\n" +
-	"\rnotify_in_app\x18\a \x01(\bR\vnotifyInApp2\xe9\a\n" +
+	"\rnotify_in_app\x18\a \x01(\bR\vnotifyInApp*O\n" +
+	"\bSlugKind\x12\x19\n" +
+	"\x15SLUG_KIND_UNSPECIFIED\x10\x00\x12\x11\n" +
+	"\rSLUG_KIND_ORG\x10\x01\x12\x15\n" +
+	"\x11SLUG_KIND_PROJECT\x10\x022\xd6\b\n" +
 	"\x0eProjectService\x12b\n" +
 	"\x0fGetOrganization\x12&.aes.project.v1.GetOrganizationRequest\x1a'.aes.project.v1.GetOrganizationResponse\x12k\n" +
 	"\x12CreateOrganization\x12).aes.project.v1.CreateOrganizationRequest\x1a*.aes.project.v1.CreateOrganizationResponse\x12k\n" +
@@ -1315,7 +1505,8 @@ const file_aes_project_v1_project_proto_rawDesc = "" +
 	"\rCreateProject\x12$.aes.project.v1.CreateProjectRequest\x1a%.aes.project.v1.CreateProjectResponse\x12\\\n" +
 	"\rUpdateProject\x12$.aes.project.v1.UpdateProjectRequest\x1a%.aes.project.v1.UpdateProjectResponse\x12\\\n" +
 	"\rDeleteProject\x12$.aes.project.v1.DeleteProjectRequest\x1a%.aes.project.v1.DeleteProjectResponse\x12b\n" +
-	"\x0fListOrgActivity\x12&.aes.project.v1.ListOrgActivityRequest\x1a'.aes.project.v1.ListOrgActivityResponseB\xc3\x01\n" +
+	"\x0fListOrgActivity\x12&.aes.project.v1.ListOrgActivityRequest\x1a'.aes.project.v1.ListOrgActivityResponse\x12k\n" +
+	"\x12CheckSlugAvailable\x12).aes.project.v1.CheckSlugAvailableRequest\x1a*.aes.project.v1.CheckSlugAvailableResponseB\xc3\x01\n" +
 	"\x12com.aes.project.v1B\fProjectProtoP\x01ZEgithub.com/AES-Services/metalhost-sdk/gen/go/aes/project/v1;projectv1\xa2\x02\x03APX\xaa\x02\x0eAes.Project.V1\xca\x02\x0eAes\\Project\\V1\xe2\x02\x1aAes\\Project\\V1\\GPBMetadata\xea\x02\x10Aes::Project::V1b\x06proto3"
 
 var (
@@ -1330,66 +1521,73 @@ func file_aes_project_v1_project_proto_rawDescGZIP() []byte {
 	return file_aes_project_v1_project_proto_rawDescData
 }
 
-var file_aes_project_v1_project_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_aes_project_v1_project_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_aes_project_v1_project_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_aes_project_v1_project_proto_goTypes = []any{
-	(*Organization)(nil),               // 0: aes.project.v1.Organization
-	(*GetOrganizationRequest)(nil),     // 1: aes.project.v1.GetOrganizationRequest
-	(*GetOrganizationResponse)(nil),    // 2: aes.project.v1.GetOrganizationResponse
-	(*Project)(nil),                    // 3: aes.project.v1.Project
-	(*ListProjectsRequest)(nil),        // 4: aes.project.v1.ListProjectsRequest
-	(*ListProjectsResponse)(nil),       // 5: aes.project.v1.ListProjectsResponse
-	(*GetProjectRequest)(nil),          // 6: aes.project.v1.GetProjectRequest
-	(*GetProjectResponse)(nil),         // 7: aes.project.v1.GetProjectResponse
-	(*CreateOrganizationRequest)(nil),  // 8: aes.project.v1.CreateOrganizationRequest
-	(*CreateOrganizationResponse)(nil), // 9: aes.project.v1.CreateOrganizationResponse
-	(*UpdateOrganizationRequest)(nil),  // 10: aes.project.v1.UpdateOrganizationRequest
-	(*UpdateOrganizationResponse)(nil), // 11: aes.project.v1.UpdateOrganizationResponse
-	(*DeleteOrganizationRequest)(nil),  // 12: aes.project.v1.DeleteOrganizationRequest
-	(*DeleteOrganizationResponse)(nil), // 13: aes.project.v1.DeleteOrganizationResponse
-	(*CreateProjectRequest)(nil),       // 14: aes.project.v1.CreateProjectRequest
-	(*CreateProjectResponse)(nil),      // 15: aes.project.v1.CreateProjectResponse
-	(*UpdateProjectRequest)(nil),       // 16: aes.project.v1.UpdateProjectRequest
-	(*UpdateProjectResponse)(nil),      // 17: aes.project.v1.UpdateProjectResponse
-	(*DeleteProjectRequest)(nil),       // 18: aes.project.v1.DeleteProjectRequest
-	(*DeleteProjectResponse)(nil),      // 19: aes.project.v1.DeleteProjectResponse
-	(*ListOrgActivityRequest)(nil),     // 20: aes.project.v1.ListOrgActivityRequest
-	(*ListOrgActivityResponse)(nil),    // 21: aes.project.v1.ListOrgActivityResponse
-	(*ActivityEvent)(nil),              // 22: aes.project.v1.ActivityEvent
+	(SlugKind)(0),                      // 0: aes.project.v1.SlugKind
+	(*Organization)(nil),               // 1: aes.project.v1.Organization
+	(*GetOrganizationRequest)(nil),     // 2: aes.project.v1.GetOrganizationRequest
+	(*GetOrganizationResponse)(nil),    // 3: aes.project.v1.GetOrganizationResponse
+	(*Project)(nil),                    // 4: aes.project.v1.Project
+	(*ListProjectsRequest)(nil),        // 5: aes.project.v1.ListProjectsRequest
+	(*ListProjectsResponse)(nil),       // 6: aes.project.v1.ListProjectsResponse
+	(*GetProjectRequest)(nil),          // 7: aes.project.v1.GetProjectRequest
+	(*GetProjectResponse)(nil),         // 8: aes.project.v1.GetProjectResponse
+	(*CreateOrganizationRequest)(nil),  // 9: aes.project.v1.CreateOrganizationRequest
+	(*CreateOrganizationResponse)(nil), // 10: aes.project.v1.CreateOrganizationResponse
+	(*UpdateOrganizationRequest)(nil),  // 11: aes.project.v1.UpdateOrganizationRequest
+	(*UpdateOrganizationResponse)(nil), // 12: aes.project.v1.UpdateOrganizationResponse
+	(*DeleteOrganizationRequest)(nil),  // 13: aes.project.v1.DeleteOrganizationRequest
+	(*DeleteOrganizationResponse)(nil), // 14: aes.project.v1.DeleteOrganizationResponse
+	(*CreateProjectRequest)(nil),       // 15: aes.project.v1.CreateProjectRequest
+	(*CreateProjectResponse)(nil),      // 16: aes.project.v1.CreateProjectResponse
+	(*UpdateProjectRequest)(nil),       // 17: aes.project.v1.UpdateProjectRequest
+	(*UpdateProjectResponse)(nil),      // 18: aes.project.v1.UpdateProjectResponse
+	(*DeleteProjectRequest)(nil),       // 19: aes.project.v1.DeleteProjectRequest
+	(*DeleteProjectResponse)(nil),      // 20: aes.project.v1.DeleteProjectResponse
+	(*ListOrgActivityRequest)(nil),     // 21: aes.project.v1.ListOrgActivityRequest
+	(*ListOrgActivityResponse)(nil),    // 22: aes.project.v1.ListOrgActivityResponse
+	(*CheckSlugAvailableRequest)(nil),  // 23: aes.project.v1.CheckSlugAvailableRequest
+	(*CheckSlugAvailableResponse)(nil), // 24: aes.project.v1.CheckSlugAvailableResponse
+	(*ActivityEvent)(nil),              // 25: aes.project.v1.ActivityEvent
 }
 var file_aes_project_v1_project_proto_depIdxs = []int32{
-	0,  // 0: aes.project.v1.GetOrganizationResponse.organization:type_name -> aes.project.v1.Organization
-	3,  // 1: aes.project.v1.ListProjectsResponse.projects:type_name -> aes.project.v1.Project
-	3,  // 2: aes.project.v1.GetProjectResponse.project:type_name -> aes.project.v1.Project
-	0,  // 3: aes.project.v1.CreateOrganizationResponse.organization:type_name -> aes.project.v1.Organization
-	0,  // 4: aes.project.v1.UpdateOrganizationResponse.organization:type_name -> aes.project.v1.Organization
-	3,  // 5: aes.project.v1.CreateProjectResponse.project:type_name -> aes.project.v1.Project
-	3,  // 6: aes.project.v1.UpdateProjectResponse.project:type_name -> aes.project.v1.Project
-	22, // 7: aes.project.v1.ListOrgActivityResponse.events:type_name -> aes.project.v1.ActivityEvent
-	1,  // 8: aes.project.v1.ProjectService.GetOrganization:input_type -> aes.project.v1.GetOrganizationRequest
-	8,  // 9: aes.project.v1.ProjectService.CreateOrganization:input_type -> aes.project.v1.CreateOrganizationRequest
-	10, // 10: aes.project.v1.ProjectService.UpdateOrganization:input_type -> aes.project.v1.UpdateOrganizationRequest
-	12, // 11: aes.project.v1.ProjectService.DeleteOrganization:input_type -> aes.project.v1.DeleteOrganizationRequest
-	4,  // 12: aes.project.v1.ProjectService.ListProjects:input_type -> aes.project.v1.ListProjectsRequest
-	6,  // 13: aes.project.v1.ProjectService.GetProject:input_type -> aes.project.v1.GetProjectRequest
-	14, // 14: aes.project.v1.ProjectService.CreateProject:input_type -> aes.project.v1.CreateProjectRequest
-	16, // 15: aes.project.v1.ProjectService.UpdateProject:input_type -> aes.project.v1.UpdateProjectRequest
-	18, // 16: aes.project.v1.ProjectService.DeleteProject:input_type -> aes.project.v1.DeleteProjectRequest
-	20, // 17: aes.project.v1.ProjectService.ListOrgActivity:input_type -> aes.project.v1.ListOrgActivityRequest
-	2,  // 18: aes.project.v1.ProjectService.GetOrganization:output_type -> aes.project.v1.GetOrganizationResponse
-	9,  // 19: aes.project.v1.ProjectService.CreateOrganization:output_type -> aes.project.v1.CreateOrganizationResponse
-	11, // 20: aes.project.v1.ProjectService.UpdateOrganization:output_type -> aes.project.v1.UpdateOrganizationResponse
-	13, // 21: aes.project.v1.ProjectService.DeleteOrganization:output_type -> aes.project.v1.DeleteOrganizationResponse
-	5,  // 22: aes.project.v1.ProjectService.ListProjects:output_type -> aes.project.v1.ListProjectsResponse
-	7,  // 23: aes.project.v1.ProjectService.GetProject:output_type -> aes.project.v1.GetProjectResponse
-	15, // 24: aes.project.v1.ProjectService.CreateProject:output_type -> aes.project.v1.CreateProjectResponse
-	17, // 25: aes.project.v1.ProjectService.UpdateProject:output_type -> aes.project.v1.UpdateProjectResponse
-	19, // 26: aes.project.v1.ProjectService.DeleteProject:output_type -> aes.project.v1.DeleteProjectResponse
-	21, // 27: aes.project.v1.ProjectService.ListOrgActivity:output_type -> aes.project.v1.ListOrgActivityResponse
-	18, // [18:28] is the sub-list for method output_type
-	8,  // [8:18] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	1,  // 0: aes.project.v1.GetOrganizationResponse.organization:type_name -> aes.project.v1.Organization
+	4,  // 1: aes.project.v1.ListProjectsResponse.projects:type_name -> aes.project.v1.Project
+	4,  // 2: aes.project.v1.GetProjectResponse.project:type_name -> aes.project.v1.Project
+	1,  // 3: aes.project.v1.CreateOrganizationResponse.organization:type_name -> aes.project.v1.Organization
+	1,  // 4: aes.project.v1.UpdateOrganizationResponse.organization:type_name -> aes.project.v1.Organization
+	4,  // 5: aes.project.v1.CreateProjectResponse.project:type_name -> aes.project.v1.Project
+	4,  // 6: aes.project.v1.UpdateProjectResponse.project:type_name -> aes.project.v1.Project
+	25, // 7: aes.project.v1.ListOrgActivityResponse.events:type_name -> aes.project.v1.ActivityEvent
+	0,  // 8: aes.project.v1.CheckSlugAvailableRequest.kind:type_name -> aes.project.v1.SlugKind
+	2,  // 9: aes.project.v1.ProjectService.GetOrganization:input_type -> aes.project.v1.GetOrganizationRequest
+	9,  // 10: aes.project.v1.ProjectService.CreateOrganization:input_type -> aes.project.v1.CreateOrganizationRequest
+	11, // 11: aes.project.v1.ProjectService.UpdateOrganization:input_type -> aes.project.v1.UpdateOrganizationRequest
+	13, // 12: aes.project.v1.ProjectService.DeleteOrganization:input_type -> aes.project.v1.DeleteOrganizationRequest
+	5,  // 13: aes.project.v1.ProjectService.ListProjects:input_type -> aes.project.v1.ListProjectsRequest
+	7,  // 14: aes.project.v1.ProjectService.GetProject:input_type -> aes.project.v1.GetProjectRequest
+	15, // 15: aes.project.v1.ProjectService.CreateProject:input_type -> aes.project.v1.CreateProjectRequest
+	17, // 16: aes.project.v1.ProjectService.UpdateProject:input_type -> aes.project.v1.UpdateProjectRequest
+	19, // 17: aes.project.v1.ProjectService.DeleteProject:input_type -> aes.project.v1.DeleteProjectRequest
+	21, // 18: aes.project.v1.ProjectService.ListOrgActivity:input_type -> aes.project.v1.ListOrgActivityRequest
+	23, // 19: aes.project.v1.ProjectService.CheckSlugAvailable:input_type -> aes.project.v1.CheckSlugAvailableRequest
+	3,  // 20: aes.project.v1.ProjectService.GetOrganization:output_type -> aes.project.v1.GetOrganizationResponse
+	10, // 21: aes.project.v1.ProjectService.CreateOrganization:output_type -> aes.project.v1.CreateOrganizationResponse
+	12, // 22: aes.project.v1.ProjectService.UpdateOrganization:output_type -> aes.project.v1.UpdateOrganizationResponse
+	14, // 23: aes.project.v1.ProjectService.DeleteOrganization:output_type -> aes.project.v1.DeleteOrganizationResponse
+	6,  // 24: aes.project.v1.ProjectService.ListProjects:output_type -> aes.project.v1.ListProjectsResponse
+	8,  // 25: aes.project.v1.ProjectService.GetProject:output_type -> aes.project.v1.GetProjectResponse
+	16, // 26: aes.project.v1.ProjectService.CreateProject:output_type -> aes.project.v1.CreateProjectResponse
+	18, // 27: aes.project.v1.ProjectService.UpdateProject:output_type -> aes.project.v1.UpdateProjectResponse
+	20, // 28: aes.project.v1.ProjectService.DeleteProject:output_type -> aes.project.v1.DeleteProjectResponse
+	22, // 29: aes.project.v1.ProjectService.ListOrgActivity:output_type -> aes.project.v1.ListOrgActivityResponse
+	24, // 30: aes.project.v1.ProjectService.CheckSlugAvailable:output_type -> aes.project.v1.CheckSlugAvailableResponse
+	20, // [20:31] is the sub-list for method output_type
+	9,  // [9:20] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_aes_project_v1_project_proto_init() }
@@ -1404,13 +1602,14 @@ func file_aes_project_v1_project_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_project_v1_project_proto_rawDesc), len(file_aes_project_v1_project_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   23,
+			NumEnums:      1,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_aes_project_v1_project_proto_goTypes,
 		DependencyIndexes: file_aes_project_v1_project_proto_depIdxs,
+		EnumInfos:         file_aes_project_v1_project_proto_enumTypes,
 		MessageInfos:      file_aes_project_v1_project_proto_msgTypes,
 	}.Build()
 	File_aes_project_v1_project_proto = out.File

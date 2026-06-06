@@ -31,6 +31,13 @@ service ProjectService {
   // filtered + reshaped for end-user consumption (raw audit log lives at admin's
   // ListAuditEvents). Sorted newest-first.
   rpc ListOrgActivity(ListOrgActivityRequest) returns (ListOrgActivityResponse);
+
+  // CheckSlugAvailable reports whether a workspace (org) or project slug can be claimed, for the
+  // onboarding wizard's live availability check. ORG/user slugs are global; PROJECT slugs are
+  // scoped to `parent` (an org resource name). The response carries the server-normalized slug
+  // and a human reason ("taken" / "invalid" / "") — never API jargon. Authed; no resource is
+  // created. Validation mirrors the create paths (DNS-1035, 3–30 chars, reserved-word blocklist).
+  rpc CheckSlugAvailable(CheckSlugAvailableRequest) returns (CheckSlugAvailableResponse);
 }
 
 message Organization {
@@ -156,6 +163,31 @@ message ListOrgActivityRequest {
 message ListOrgActivityResponse {
   repeated ActivityEvent events = 1;
   string next_page_token = 2;
+}
+
+// SlugKind selects the namespace a slug is checked against.
+enum SlugKind {
+  SLUG_KIND_UNSPECIFIED = 0;
+  // Workspace / organization slug (also gates the user slug). Checked globally.
+  SLUG_KIND_ORG = 1;
+  // Project slug. Checked within `parent` (the owning org).
+  SLUG_KIND_PROJECT = 2;
+}
+
+message CheckSlugAvailableRequest {
+  SlugKind kind = 1;
+  // The bare slug the user typed (server normalizes: lowercase + trim).
+  string slug = 2;
+  // Owning org resource name `organizations/{org}`. Required when kind = SLUG_KIND_PROJECT.
+  string parent = 3;
+}
+
+message CheckSlugAvailableResponse {
+  bool available = 1;
+  // Human-readable, never API jargon: "taken", "invalid: <why>", or "" when available.
+  string reason = 2;
+  // Server-normalized slug (lowercased, trimmed) — the value that would actually be claimed.
+  string normalized = 3;
 }
 
 message ActivityEvent {

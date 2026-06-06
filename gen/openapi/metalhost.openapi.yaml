@@ -46,6 +46,123 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.audit.v1.SearchEventsResponse'
+  /aes.baremetal.v1.BareMetalService/AttachBareMetalISO:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: AttachBareMetalISO
+      description: |-
+        AttachBareMetalISO mounts a library ISO (by object key) as the host's BMC virtual CD: the BMC
+         fetches it from metalhostd's ISO proxy (/v1/bm-iso/<token>.iso) which streams from the bucket.
+      operationId: aes.baremetal.v1.BareMetalService.AttachBareMetalISO
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.AttachBareMetalISORequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.AttachBareMetalISOResponse'
+  /aes.baremetal.v1.BareMetalService/CreateBareMetalISOFromURL:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: CreateBareMetalISOFromURL
+      description: |-
+        CreateBareMetalISOFromURL imports an ISO into the org library by URL — metalhostd fetches it
+         server-side (datacenter bandwidth) into object storage, so no slow browser upload. Returns
+         immediately; the ISO appears in ListBareMetalISOs once the fetch completes.
+      operationId: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.CreateBareMetalISOFromURLRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.CreateBareMetalISOFromURLResponse'
+  /aes.baremetal.v1.BareMetalService/CreateBareMetalISOUploadURL:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: CreateBareMetalISOUploadURL
+      description: |-
+        --- Bring-your-own-OS virtual media + ISO library (docs/specs/BARE_METAL_BYO_OS.md) ---
+         The ISO library is per-ORG (shared across the org's projects), quota-limited. Upload once,
+         re-use across leases. CreateBareMetalISOUploadURL returns a short-lived presigned PUT URL the
+         customer uploads their install ISO to (directly to object storage), plus the object key.
+      operationId: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.CreateBareMetalISOUploadURLRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.CreateBareMetalISOUploadURLResponse'
   /aes.baremetal.v1.BareMetalService/CreateBareMetalInstance:
     post:
       tags:
@@ -81,6 +198,78 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.baremetal.v1.CreateBareMetalInstanceResponse'
+  /aes.baremetal.v1.BareMetalService/DeleteBareMetalISO:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: DeleteBareMetalISO
+      description: DeleteBareMetalISO removes an ISO from the org library + object storage.
+      operationId: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.DeleteBareMetalISORequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.DeleteBareMetalISOResponse'
+  /aes.baremetal.v1.BareMetalService/DetachBareMetalISO:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: DetachBareMetalISO
+      description: DetachBareMetalISO ejects any mounted virtual media (the library copy is kept).
+      operationId: aes.baremetal.v1.BareMetalService.DetachBareMetalISO
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.DetachBareMetalISORequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.DetachBareMetalISOResponse'
   /aes.baremetal.v1.BareMetalService/EnterBareMetalRescueMode:
     post:
       tags:
@@ -164,8 +353,10 @@ paths:
         - aes.baremetal.v1.BareMetalService
       summary: GetBareMetalConsoleURL
       description: |-
-        GetBareMetalConsoleURL returns a short-lived URL for serial-over-LAN access via the BMC.
-         Backed by Redfish SerialConsole; expires after 1h.
+        GetBareMetalConsoleURL returns a short-lived websocket URL for the host's graphical KVM
+         console, bridged to the BMC's VNC server (iDRAC). The server enables VNC on the BMC with a
+         fresh per-session password (returned in vnc_password) and disables it again when the session
+         ends — VNC is off at rest. Token expires after 60s; connect promptly.
       operationId: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL
       parameters:
         - name: Connect-Protocol-Version
@@ -231,6 +422,120 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.baremetal.v1.GetBareMetalInstanceResponse'
+  /aes.baremetal.v1.BareMetalService/GetBareMetalVirtualMedia:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: GetBareMetalVirtualMedia
+      description: |-
+        GetBareMetalVirtualMedia reports the BMC's current virtual-CD mount state (so the UI shows the
+         real attach/detach state after a refresh, not just optimistic client state).
+      operationId: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.GetBareMetalVirtualMediaRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.GetBareMetalVirtualMediaResponse'
+  /aes.baremetal.v1.BareMetalService/ListAvailableBareMetal:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: ListAvailableBareMetal
+      description: |-
+        ListAvailableBareMetal returns published, unleased, priced hosts the caller can lease, with
+         discovered specs + monthly price. No BMC/serial identifiers are exposed.
+      operationId: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.ListAvailableBareMetalRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.ListAvailableBareMetalResponse'
+  /aes.baremetal.v1.BareMetalService/ListBareMetalISOs:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: ListBareMetalISOs
+      description: |-
+        ListBareMetalISOs lists the org's uploaded install ISOs (the library shown on the mgmt page
+         and the console's ISO picker).
+      operationId: aes.baremetal.v1.BareMetalService.ListBareMetalISOs
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.ListBareMetalISOsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.ListBareMetalISOsResponse'
   /aes.baremetal.v1.BareMetalService/ListBareMetalInstances:
     post:
       tags:
@@ -266,13 +571,90 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.baremetal.v1.ListBareMetalInstancesResponse'
+  /aes.baremetal.v1.BareMetalService/QuoteBareMetal:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: QuoteBareMetal
+      description: |-
+        QuoteBareMetal previews the cost of leasing a host under a billing mode (hourly rate, and the
+         prepay due now for a MONTHLY_* term at its discount). Mirrors ComputeService.QuoteVirtualMachine.
+      operationId: aes.baremetal.v1.BareMetalService.QuoteBareMetal
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.QuoteBareMetalRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.QuoteBareMetalResponse'
+  /aes.baremetal.v1.BareMetalService/ReinstallBareMetal:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: ReinstallBareMetal
+      description: |-
+        ReinstallBareMetal re-runs the OS install (Tinkerbell) + cloud-init seed on a leased host,
+         wiping the OS disk. Keeps the same lease + IPv4 block. Use to switch image or get a clean slate.
+      operationId: aes.baremetal.v1.BareMetalService.ReinstallBareMetal
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.ReinstallBareMetalRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.ReinstallBareMetalResponse'
   /aes.baremetal.v1.BareMetalService/ReleaseBareMetalInstance:
     post:
       tags:
         - aes.baremetal.v1.BareMetalService
       summary: ReleaseBareMetalInstance
       description: |-
-        ReleaseBareMetalInstance ends the lease; the host's role returns to 'baremetal_pool'. The
+        ReleaseBareMetalInstance ends the lease; the host's role returns to 'baremetal_pool'. Refused
+         while a MONTHLY_* term is still active (hard non-cancel, same as DeleteVirtualMachine). The
          customer's data on local disks is not wiped by Metalhost — operator policy decides whether
          the host is reformatted before re-leasing.
       operationId: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance
@@ -305,6 +687,120 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.baremetal.v1.ReleaseBareMetalInstanceResponse'
+  /aes.baremetal.v1.BareMetalService/RenewBareMetalNow:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: RenewBareMetalNow
+      description: |-
+        RenewBareMetalNow charges the next prepaid term immediately for a MONTHLY_* lease (mirror of
+         ComputeService.RenewVMNow). Useful before a term lapses or to extend ahead of the worker.
+      operationId: aes.baremetal.v1.BareMetalService.RenewBareMetalNow
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.RenewBareMetalNowRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.RenewBareMetalNowResponse'
+  /aes.baremetal.v1.BareMetalService/SetBareMetalBootDevice:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: SetBareMetalBootDevice
+      description: |-
+        SetBareMetalBootDevice sets the one-time boot device (disk / cdrom / pxe) and power-cycles.
+         Use cdrom after AttachBareMetalISO to boot the installer; the next reboot falls back to disk.
+      operationId: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.SetBareMetalBootDeviceRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.SetBareMetalBootDeviceResponse'
+  /aes.baremetal.v1.BareMetalService/SetBareMetalPower:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: SetBareMetalPower
+      description: |-
+        SetBareMetalPower performs a BMC power action (on / off / reboot) via Redfish. Billing is
+         unaffected — a leased host bills whether it's powered on or off.
+      operationId: aes.baremetal.v1.BareMetalService.SetBareMetalPower
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.SetBareMetalPowerRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.SetBareMetalPowerResponse'
   /aes.catalog.v1.CatalogService/GetRegionHealth:
     post:
       tags:
@@ -1471,6 +1967,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.iam.v1.CreateApiKeyResponse'
+  /aes.iam.v1.IamService/CreateWorkspace:
+    post:
+      tags:
+        - aes.iam.v1.IamService
+      summary: CreateWorkspace
+      description: |-
+        CreateWorkspace is the self-serve org bootstrap the onboarding wizard calls for an
+         authenticated-but-org-less user (the state an SSO/OIDC first-login lands in — the identity
+         is created at login, but the user names their workspace here). It creates the org chain
+         (organization + quota defaults + billing account + USD wallet + organization.admin binding
+         for the caller) under the caller's chosen slug, in one transaction. Idempotent-safe: a slug
+         already taken by a different account is refused (the takeover gate). The chosen slug is
+         validated against the same DNS-1035 + reserved rules CheckSlugAvailable reports on.
+      operationId: aes.iam.v1.IamService.CreateWorkspace
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.CreateWorkspaceRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.CreateWorkspaceResponse'
   /aes.iam.v1.IamService/EnrollMFA:
     post:
       tags:
@@ -3271,6 +3810,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.ops.v1.ListOperationsResponse'
+  /aes.project.v1.ProjectService/CheckSlugAvailable:
+    post:
+      tags:
+        - aes.project.v1.ProjectService
+      summary: CheckSlugAvailable
+      description: |-
+        CheckSlugAvailable reports whether a workspace (org) or project slug can be claimed, for the
+         onboarding wizard's live availability check. ORG/user slugs are global; PROJECT slugs are
+         scoped to `parent` (an org resource name). The response carries the server-normalized slug
+         and a human reason ("taken" / "invalid" / "") — never API jargon. Authed; no resource is
+         created. Validation mirrors the create paths (DNS-1035, 3–30 chars, reserved-word blocklist).
+      operationId: aes.project.v1.ProjectService.CheckSlugAvailable
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.project.v1.CheckSlugAvailableRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.project.v1.CheckSlugAvailableResponse'
   /aes.project.v1.ProjectService/CreateOrganization:
     post:
       tags:
@@ -5524,6 +6104,79 @@ components:
           title: next_page_token
       title: SearchEventsResponse
       additionalProperties: false
+    aes.baremetal.v1.AttachBareMetalISORequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        objectKey:
+          type: string
+          title: object_key
+          description: Object key returned by CreateBareMetalISOUploadURL (a prior upload).
+      title: AttachBareMetalISORequest
+      additionalProperties: false
+    aes.baremetal.v1.AttachBareMetalISOResponse:
+      type: object
+      properties:
+        instance:
+          title: instance
+          $ref: '#/components/schemas/aes.baremetal.v1.BareMetalInstance'
+      title: AttachBareMetalISOResponse
+      additionalProperties: false
+    aes.baremetal.v1.AvailableBareMetal:
+      type: object
+      properties:
+        hostName:
+          type: string
+          title: host_name
+          description: Host resource name to lease (`hosts/{slug}`).
+        datacenterName:
+          type: string
+          title: datacenter_name
+        specLabel:
+          type: string
+          title: spec_label
+          description: Derived display label, e.g. "cascadelake · 48c · 384GiB".
+        cpuModel:
+          type: string
+          title: cpu_model
+        cpuGeneration:
+          type: string
+          title: cpu_generation
+        totalCores:
+          type: integer
+          title: total_cores
+          format: int32
+        ramGib:
+          type: integer
+          title: ram_gib
+          format: int32
+        storageGib:
+          type: integer
+          title: storage_gib
+          format: int32
+        monthlyPriceMinor:
+          type:
+            - integer
+            - string
+          title: monthly_price_minor
+          format: int64
+          description: Per-server price the operator set; the hourly rate is monthly_price_minor/730.
+        currency:
+          type: string
+          title: currency
+      title: AvailableBareMetal
+      additionalProperties: false
+    aes.baremetal.v1.BareMetalBootDevice:
+      type: string
+      title: BareMetalBootDevice
+      enum:
+        - BARE_METAL_BOOT_DEVICE_UNSPECIFIED
+        - BARE_METAL_BOOT_DEVICE_DISK
+        - BARE_METAL_BOOT_DEVICE_CDROM
+        - BARE_METAL_BOOT_DEVICE_PXE
+      description: BareMetalBootDevice selects the one-time boot source for SetBareMetalBootDevice.
     aes.baremetal.v1.BareMetalInstance:
       type: object
       properties:
@@ -5540,7 +6193,7 @@ components:
         instanceType:
           type: string
           title: instance_type
-          description: SKU class (e.g. skus/bm.dell-r640.dual-6248r-384gib). Drives billing.
+          description: Derived hardware label (e.g. "cascadelake · 48c · 384GiB"). Display/audit only.
         hostName:
           type: string
           title: host_name
@@ -5579,6 +6232,70 @@ components:
           additionalProperties:
             type: string
             title: value
+        billingMode:
+          title: billing_mode
+          description: |-
+            Billing (mirrors VM semantics). billing_mode HOURLY or MONTHLY_*; commitment_end_at_unix +
+             autorenew are set for MONTHLY_*. monthly_price_minor is the per-server price snapshotted at
+             lease time (the hourly rate billed is monthly_price_minor/730).
+          $ref: '#/components/schemas/aes.compute.v1.BillingMode'
+        commitmentEndAtUnix:
+          type:
+            - integer
+            - string
+          title: commitment_end_at_unix
+          format: int64
+        autorenew:
+          type: boolean
+          title: autorenew
+        monthlyPriceMinor:
+          type:
+            - integer
+            - string
+          title: monthly_price_minor
+          format: int64
+        currency:
+          type: string
+          title: currency
+        osImage:
+          type: string
+          title: os_image
+          description: |-
+            Provisioning / cloud-init. os_image is the catalog id (or custom_image_url when set);
+             hostname + linux_username drive the SSH command shown in the UI.
+        customImageUrl:
+          type: string
+          title: custom_image_url
+        hostname:
+          type: string
+          title: hostname
+        linuxUsername:
+          type: string
+          title: linux_username
+        publicIpv4Cidr:
+          type: string
+          title: public_ipv4_cidr
+          description: |-
+            Public IPv4 block assigned to the host's NIC(s). primary_ipv4 is the first address (the
+             cloud-init / management IP). For a /32, cidr is `<primary>/32`.
+        primaryIpv4:
+          type: string
+          title: primary_ipv4
+        powerState:
+          type: string
+          title: power_state
+          description: 'Current BMC power state: "On" / "Off" / "" (unknown). Billing is unaffected by power.'
+        publicGateway:
+          type: string
+          title: public_gateway
+          description: |-
+            Public network details for the host's NIC, from the DC pool. Surfaced so a bring-your-own-OS
+             customer can hand-configure their network: gateway + the SUBNET prefix length the IPs sit in
+             (e.g. /24). The managed-install netplan uses these too. Empty/0 when the DC has none set.
+        publicPrefixLen:
+          type: integer
+          title: public_prefix_len
+          format: int32
       title: BareMetalInstance
       additionalProperties: false
     aes.baremetal.v1.BareMetalInstance.AnnotationsEntry:
@@ -5603,6 +6320,76 @@ components:
           title: value
       title: LabelsEntry
       additionalProperties: false
+    aes.baremetal.v1.BareMetalPowerAction:
+      type: string
+      title: BareMetalPowerAction
+      enum:
+        - BARE_METAL_POWER_ACTION_UNSPECIFIED
+        - BARE_METAL_POWER_ACTION_ON
+        - BARE_METAL_POWER_ACTION_OFF
+        - BARE_METAL_POWER_ACTION_REBOOT
+      description: BareMetalPowerAction selects the BMC power operation.
+    aes.baremetal.v1.CreateBareMetalISOFromURLRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        url:
+          type: string
+          title: url
+          description: Public HTTPS URL to the ISO (e.g. a distro mirror). Fetched server-side into the org library.
+        filename:
+          type: string
+          title: filename
+          description: Optional filename override; defaults to the URL's basename.
+      title: CreateBareMetalISOFromURLRequest
+      additionalProperties: false
+    aes.baremetal.v1.CreateBareMetalISOFromURLResponse:
+      type: object
+      properties:
+        objectKey:
+          type: string
+          title: object_key
+          description: The object key the import is streaming into; poll ListBareMetalISOs until it appears.
+      title: CreateBareMetalISOFromURLResponse
+      additionalProperties: false
+    aes.baremetal.v1.CreateBareMetalISOUploadURLRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+          description: |-
+            Project whose ORG owns the library. The ISO is stored org-scoped (shared across the org's
+             projects); the caller must have access to this project.
+        filename:
+          type: string
+          title: filename
+          description: |-
+            Customer's ISO filename (e.g. "proxmox-ve-8.iso"); forms the object key + display name.
+             Sanitized server-side.
+      title: CreateBareMetalISOUploadURLRequest
+      additionalProperties: false
+    aes.baremetal.v1.CreateBareMetalISOUploadURLResponse:
+      type: object
+      properties:
+        uploadUrl:
+          type: string
+          title: upload_url
+          description: Presigned PUT URL — the client uploads the ISO bytes directly here (HTTP PUT). Short-lived.
+        objectKey:
+          type: string
+          title: object_key
+          description: Opaque object key to pass back to AttachBareMetalISO once the upload completes.
+        expiresAtUnix:
+          type:
+            - integer
+            - string
+          title: expires_at_unix
+          format: int64
+      title: CreateBareMetalISOUploadURLResponse
+      additionalProperties: false
     aes.baremetal.v1.CreateBareMetalInstanceRequest:
       type: object
       properties:
@@ -5613,12 +6400,10 @@ components:
         projectName:
           type: string
           title: project_name
-        datacenterName:
+        hostName:
           type: string
-          title: datacenter_name
-        instanceType:
-          type: string
-          title: instance_type
+          title: host_name
+          description: The specific available host to lease (`hosts/{slug}`), from ListAvailableBareMetal.
         labels:
           type: object
           title: labels
@@ -5634,6 +6419,46 @@ components:
         idempotencyKey:
           type: string
           title: idempotency_key
+        billingMode:
+          title: billing_mode
+          description: |-
+            Billing mode. Default HOURLY. MONTHLY_* charges the wallet upfront for the term at the
+             tier's discount; the prepayment must succeed or Create fails. (Field 7 was `instance_type`.)
+          $ref: '#/components/schemas/aes.compute.v1.BillingMode'
+        autorenew:
+          type: boolean
+          title: autorenew
+          description: 'For MONTHLY_*: enable auto-renewal at term end. Ignored when HOURLY.'
+        osImage:
+          type: string
+          title: os_image
+          description: |-
+            OS + cloud-init. os_image is a catalog id (e.g. "ubuntu-2404"); custom_image_url overrides it
+             with a direct image URL. hostname + linux_username + ssh_key_names + user_data seed cloud-init.
+        customImageUrl:
+          type: string
+          title: custom_image_url
+        hostname:
+          type: string
+          title: hostname
+        linuxUsername:
+          type: string
+          title: linux_username
+        sshKeyNames:
+          type: array
+          items:
+            type: string
+          title: ssh_key_names
+        userData:
+          type: string
+          title: user_data
+        publicIpv4PrefixLen:
+          type: integer
+          title: public_ipv4_prefix_len
+          format: int32
+          description: |-
+            Public IPv4 block size as a prefix length: 32 (1 IP) / 31 / 30 / 29 / 28 (16 IPs). Default 32.
+             The block is reserved from the DC public pool at lease time; the first address is primary.
       title: CreateBareMetalInstanceRequest
       additionalProperties: false
     aes.baremetal.v1.CreateBareMetalInstanceRequest.AnnotationsEntry:
@@ -5665,6 +6490,37 @@ components:
           title: instance
           $ref: '#/components/schemas/aes.baremetal.v1.BareMetalInstance'
       title: CreateBareMetalInstanceResponse
+      additionalProperties: false
+    aes.baremetal.v1.DeleteBareMetalISORequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        objectKey:
+          type: string
+          title: object_key
+      title: DeleteBareMetalISORequest
+      additionalProperties: false
+    aes.baremetal.v1.DeleteBareMetalISOResponse:
+      type: object
+      title: DeleteBareMetalISOResponse
+      additionalProperties: false
+    aes.baremetal.v1.DetachBareMetalISORequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: DetachBareMetalISORequest
+      additionalProperties: false
+    aes.baremetal.v1.DetachBareMetalISOResponse:
+      type: object
+      properties:
+        instance:
+          title: instance
+          $ref: '#/components/schemas/aes.baremetal.v1.BareMetalInstance'
+      title: DetachBareMetalISOResponse
       additionalProperties: false
     aes.baremetal.v1.EnterBareMetalRescueModeRequest:
       type: object
@@ -5718,13 +6574,22 @@ components:
         consoleUrl:
           type: string
           title: console_url
-          description: Short-lived URL (expires after 1h). Token-bearer; no further auth required to connect.
+          description: |-
+            Short-lived websocket path (expires after 60s). Single-use; a current browser session
+             (cookie) or Authorization: Bearer is also required to connect (defense-in-depth).
         expiresAtUnix:
           type:
             - integer
             - string
           title: expires_at_unix
           format: int64
+        vncPassword:
+          type: string
+          title: vnc_password
+          description: |-
+            Per-session VNC password the noVNC client authenticates with (≤8 chars — RFB limit). The
+             BMC's VNC server is only reachable from metalhostd on the OOB management network, so this is
+             defense-in-depth behind the token+cookie gate, not the primary control.
       title: GetBareMetalConsoleURLResponse
       additionalProperties: false
     aes.baremetal.v1.GetBareMetalInstanceRequest:
@@ -5742,6 +6607,109 @@ components:
           title: instance
           $ref: '#/components/schemas/aes.baremetal.v1.BareMetalInstance'
       title: GetBareMetalInstanceResponse
+      additionalProperties: false
+    aes.baremetal.v1.GetBareMetalVirtualMediaRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: GetBareMetalVirtualMediaRequest
+      additionalProperties: false
+    aes.baremetal.v1.GetBareMetalVirtualMediaResponse:
+      type: object
+      properties:
+        inserted:
+          type: boolean
+          title: inserted
+        isoFilename:
+          type: string
+          title: iso_filename
+          description: |-
+            Friendly filename + library object key when the mounted image is a metalhost library ISO
+             (empty for inserted media we can't resolve, e.g. an external URL).
+        objectKey:
+          type: string
+          title: object_key
+      title: GetBareMetalVirtualMediaResponse
+      additionalProperties: false
+    aes.baremetal.v1.ISOFile:
+      type: object
+      properties:
+        objectKey:
+          type: string
+          title: object_key
+          description: opaque key passed to Attach/Delete
+        filename:
+          type: string
+          title: filename
+          description: display name (basename)
+        sizeBytes:
+          type:
+            - integer
+            - string
+          title: size_bytes
+          format: int64
+        uploadedAtUnix:
+          type:
+            - integer
+            - string
+          title: uploaded_at_unix
+          format: int64
+      title: ISOFile
+      additionalProperties: false
+      description: ISOFile is one entry in the org's install-ISO library.
+    aes.baremetal.v1.ListAvailableBareMetalRequest:
+      type: object
+      properties:
+        datacenterName:
+          type: string
+          title: datacenter_name
+          description: Optional filter to one datacenter.
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListAvailableBareMetalRequest
+      additionalProperties: false
+    aes.baremetal.v1.ListAvailableBareMetalResponse:
+      type: object
+      properties:
+        hosts:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.baremetal.v1.AvailableBareMetal'
+          title: hosts
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListAvailableBareMetalResponse
+      additionalProperties: false
+    aes.baremetal.v1.ListBareMetalISOsRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+      title: ListBareMetalISOsRequest
+      additionalProperties: false
+    aes.baremetal.v1.ListBareMetalISOsResponse:
+      type: object
+      properties:
+        isos:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.baremetal.v1.ISOFile'
+          title: isos
+        maxIsos:
+          type: integer
+          title: max_isos
+          format: int32
+          description: Per-org quota + current usage, so the UI can show "3 / 5" and disable upload at the cap.
+      title: ListBareMetalISOsResponse
       additionalProperties: false
     aes.baremetal.v1.ListBareMetalInstancesRequest:
       type: object
@@ -5772,6 +6740,107 @@ components:
           title: next_page_token
       title: ListBareMetalInstancesResponse
       additionalProperties: false
+    aes.baremetal.v1.QuoteBareMetalRequest:
+      type: object
+      properties:
+        hostName:
+          type: string
+          title: host_name
+          description: Host to quote (must be available/priced).
+        billingMode:
+          title: billing_mode
+          $ref: '#/components/schemas/aes.compute.v1.BillingMode'
+        currency:
+          type: string
+          title: currency
+        publicIpv4PrefixLen:
+          type: integer
+          title: public_ipv4_prefix_len
+          format: int32
+          description: Public IPv4 block size (32/31/30/29/28). Default 32. Folds the per-IP cost into the quote.
+      title: QuoteBareMetalRequest
+      additionalProperties: false
+    aes.baremetal.v1.QuoteBareMetalResponse:
+      type: object
+      properties:
+        monthlyPriceMinor:
+          type:
+            - integer
+            - string
+          title: monthly_price_minor
+          format: int64
+          description: Host monthly price + derived hourly rate (monthly/730), host only.
+        hourlyRateMinor:
+          type:
+            - integer
+            - string
+          title: hourly_rate_minor
+          format: int64
+        discountPct:
+          type: integer
+          title: discount_pct
+          format: int32
+          description: 'For MONTHLY_*: discount applied + total due now for the term (host + IP block). 0 for HOURLY.'
+        prepayDueMinor:
+          type:
+            - integer
+            - string
+          title: prepay_due_minor
+          format: int64
+        currency:
+          type: string
+          title: currency
+        ipv4Count:
+          type: integer
+          title: ipv4_count
+          format: int32
+          description: 'Public-IP breakdown: count of addresses + monthly cost per IP (so the UI can itemize host + IPs).'
+        ipv4MonthlyMinor:
+          type:
+            - integer
+            - string
+          title: ipv4_monthly_minor
+          format: int64
+      title: QuoteBareMetalResponse
+      additionalProperties: false
+    aes.baremetal.v1.ReinstallBareMetalRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        osImage:
+          type: string
+          title: os_image
+          description: New OS for the reinstall (catalog id or custom URL). Empty = keep the current image.
+        customImageUrl:
+          type: string
+          title: custom_image_url
+        hostname:
+          type: string
+          title: hostname
+          description: cloud-init overrides for the reinstall. Empty fields keep the lease's current values.
+        linuxUsername:
+          type: string
+          title: linux_username
+        sshKeyNames:
+          type: array
+          items:
+            type: string
+          title: ssh_key_names
+        userData:
+          type: string
+          title: user_data
+      title: ReinstallBareMetalRequest
+      additionalProperties: false
+    aes.baremetal.v1.ReinstallBareMetalResponse:
+      type: object
+      properties:
+        instance:
+          title: instance
+          $ref: '#/components/schemas/aes.baremetal.v1.BareMetalInstance'
+      title: ReinstallBareMetalResponse
+      additionalProperties: false
     aes.baremetal.v1.ReleaseBareMetalInstanceRequest:
       type: object
       properties:
@@ -5786,6 +6855,74 @@ components:
     aes.baremetal.v1.ReleaseBareMetalInstanceResponse:
       type: object
       title: ReleaseBareMetalInstanceResponse
+      additionalProperties: false
+    aes.baremetal.v1.RenewBareMetalNowRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: RenewBareMetalNowRequest
+      additionalProperties: false
+    aes.baremetal.v1.RenewBareMetalNowResponse:
+      type: object
+      properties:
+        instance:
+          title: instance
+          $ref: '#/components/schemas/aes.baremetal.v1.BareMetalInstance'
+        newTermId:
+          type: string
+          title: new_term_id
+          description: The new baremetal_reservations row id, for traceability.
+        journalEntryId:
+          type: string
+          title: journal_entry_id
+          description: The wallet journal entry that recorded the prepayment.
+        chargedAmountMinor:
+          type:
+            - integer
+            - string
+          title: charged_amount_minor
+          format: int64
+      title: RenewBareMetalNowResponse
+      additionalProperties: false
+    aes.baremetal.v1.SetBareMetalBootDeviceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        device:
+          title: device
+          $ref: '#/components/schemas/aes.baremetal.v1.BareMetalBootDevice'
+      title: SetBareMetalBootDeviceRequest
+      additionalProperties: false
+    aes.baremetal.v1.SetBareMetalBootDeviceResponse:
+      type: object
+      properties:
+        instance:
+          title: instance
+          $ref: '#/components/schemas/aes.baremetal.v1.BareMetalInstance'
+      title: SetBareMetalBootDeviceResponse
+      additionalProperties: false
+    aes.baremetal.v1.SetBareMetalPowerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        action:
+          title: action
+          $ref: '#/components/schemas/aes.baremetal.v1.BareMetalPowerAction'
+      title: SetBareMetalPowerRequest
+      additionalProperties: false
+    aes.baremetal.v1.SetBareMetalPowerResponse:
+      type: object
+      properties:
+        instance:
+          title: instance
+          $ref: '#/components/schemas/aes.baremetal.v1.BareMetalInstance'
+      title: SetBareMetalPowerResponse
       additionalProperties: false
     aes.catalog.v1.Datacenter:
       type: object
@@ -7811,6 +8948,32 @@ components:
             The plaintext secret. Returned ONCE — store it immediately. Subsequent ListApiKeys calls
              expose only metadata.
       title: CreateApiKeyResponse
+      additionalProperties: false
+    aes.iam.v1.CreateWorkspaceRequest:
+      type: object
+      properties:
+        slug:
+          type: string
+          title: slug
+          description: |-
+            Bare workspace slug the user typed (server normalizes: lowercase + trim). Becomes the org
+             resource name `organizations/<slug>`. Validated against DNS-1035 + reserved rules.
+        displayName:
+          type: string
+          title: display_name
+          description: |-
+            Human-facing workspace name shown in the UI (org display_name). Falls back to the slug
+             when empty.
+      title: CreateWorkspaceRequest
+      additionalProperties: false
+    aes.iam.v1.CreateWorkspaceResponse:
+      type: object
+      properties:
+        organizationName:
+          type: string
+          title: organization_name
+          description: The org resource name `organizations/<slug>` that was created.
+      title: CreateWorkspaceResponse
       additionalProperties: false
     aes.iam.v1.EnrollMFARequest:
       type: object
@@ -10356,6 +11519,38 @@ components:
              the policy can evolve without a frontend redeploy.
       title: ActivityEvent
       additionalProperties: false
+    aes.project.v1.CheckSlugAvailableRequest:
+      type: object
+      properties:
+        kind:
+          title: kind
+          $ref: '#/components/schemas/aes.project.v1.SlugKind'
+        slug:
+          type: string
+          title: slug
+          description: 'The bare slug the user typed (server normalizes: lowercase + trim).'
+        parent:
+          type: string
+          title: parent
+          description: Owning org resource name `organizations/{org}`. Required when kind = SLUG_KIND_PROJECT.
+      title: CheckSlugAvailableRequest
+      additionalProperties: false
+    aes.project.v1.CheckSlugAvailableResponse:
+      type: object
+      properties:
+        available:
+          type: boolean
+          title: available
+        reason:
+          type: string
+          title: reason
+          description: 'Human-readable, never API jargon: "taken", "invalid: <why>", or "" when available.'
+        normalized:
+          type: string
+          title: normalized
+          description: Server-normalized slug (lowercased, trimmed) — the value that would actually be claimed.
+      title: CheckSlugAvailableResponse
+      additionalProperties: false
     aes.project.v1.CreateOrganizationRequest:
       type: object
       properties:
@@ -10558,6 +11753,14 @@ components:
              pre-dating this field — fresh creates always populate it.
       title: Project
       additionalProperties: false
+    aes.project.v1.SlugKind:
+      type: string
+      title: SlugKind
+      enum:
+        - SLUG_KIND_UNSPECIFIED
+        - SLUG_KIND_ORG
+        - SLUG_KIND_PROJECT
+      description: SlugKind selects the namespace a slug is checked against.
     aes.project.v1.UpdateOrganizationRequest:
       type: object
       properties:
@@ -12507,6 +13710,16 @@ components:
         nextPageToken:
           type: string
           title: next_page_token
+        egressFreeGib:
+          type:
+            - integer
+            - string
+          title: egress_free_gib
+          format: int64
+          description: |-
+            Per-project monthly egress free-tier allowance in GiB (server policy, env-configurable via
+             METALHOST_PROJECT_EGRESS_FREE_GIB). Surfaced here so the transfer/usage UI doesn't hardcode
+             it. 0 = no free tier (every byte bills).
       title: QueryUsageResponse
       additionalProperties: false
     aes.wallet.v1.RecordJournalEntryRequest:
@@ -13234,20 +14447,6 @@ tags:
        pkg/auditdb helper of the same name) called by backend services that write audit
        entries on the customer's behalf. Exposing the write side would let any caller
        inject fake audit entries against any principal/resource — a real auditability hole.
-  - name: aes.baremetal.v1.BareMetalService
-    description: |-
-      BareMetalService is the customer-facing API for whole-host leases. Distinct from
-       ComputeService (which serves KubeVirt VMs) because the lifecycle is different: no live
-       migration, no resize, the customer typically PXE-installs their own OS, and the lease is
-       pinned to a specific physical host until released.
-
-       Flow: customer calls CreateBareMetalInstance(sku, datacenter); Metalhost picks a host with
-       matching aes.metalhost/bm-sku-class label whose role='baremetal_pool', flips its role to
-       'baremetal_leased', and returns access info (Redfish endpoint for OS install). Customer
-       installs their OS via Tinkerbell or directly via the BMC. ReleaseBareMetalInstance flips
-       the host back to 'baremetal_pool'.
-  - name: aes.catalog.v1.CatalogService
-    description: CatalogService exposes datacenters and SKUs per PLATFORM_DESIGN.md §4.
   - name: aes.ops.v1.OperationsService
     description: |-
       Long-running async work unit (GCP Long-Operation style). Mutations return
@@ -13274,6 +14473,24 @@ tags:
          - PrepareImageUpload / FinalizeImageUpload: deprecated stubs, removed.
          - GuestExec: moved to AdminComputeService — privileged backdoor that bypasses guest auth
            belongs on the operator surface, not the customer one.
+  - name: aes.baremetal.v1.BareMetalService
+    description: |-
+      BareMetalService is the customer-facing API for whole-host leases. Distinct from
+       ComputeService (which serves KubeVirt VMs) because the lifecycle is different: no live
+       migration, no resize, the customer typically PXE-installs their own OS, and the lease is
+       pinned to a specific physical host until released.
+
+       Pricing is per-server: an operator sets each host's monthly price (SetHostPrice, admin API)
+       before publishing it to the bare-metal pool. Billing is identical to VMs — HOURLY meters at
+       the host's monthly/730 hourly rate through the usage_events pipeline; MONTHLY_{1,3,6,12}
+       prepays the term at the same tiered discounts, hard non-cancel, optional autorenew.
+
+       Flow: customer calls ListAvailableBareMetal to browse published hosts (discovered specs +
+       monthly price), then CreateBareMetalInstance(host_name, billing_mode) to lease a specific
+       machine. Metalhost flips the host's role to 'baremetal_leased' and returns access info
+       (Redfish endpoint for OS install). ReleaseBareMetalInstance flips it back to 'baremetal_pool'.
+  - name: aes.catalog.v1.CatalogService
+    description: CatalogService exposes datacenters and SKUs per PLATFORM_DESIGN.md §4.
   - name: aes.compute.v1.SSHKeysService
     description: |-
       SSHKeysService manages reusable SSH keys at the project level. Keys registered here can be

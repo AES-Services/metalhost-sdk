@@ -2,26 +2,53 @@ syntax = "proto3";
 
 package aes.baremetal.v1;
 
+import "aes/compute/v1/compute.proto";
+
 // BareMetalService is the customer-facing API for whole-host leases. Distinct from
 // ComputeService (which serves KubeVirt VMs) because the lifecycle is different: no live
 // migration, no resize, the customer typically PXE-installs their own OS, and the lease is
 // pinned to a specific physical host until released.
 //
-// Flow: customer calls CreateBareMetalInstance(sku, datacenter); Metalhost picks a host with
-// matching aes.metalhost/bm-sku-class label whose role='baremetal_pool', flips its role to
-// 'baremetal_leased', and returns access info (Redfish endpoint for OS install). Customer
-// installs their OS via Tinkerbell or directly via the BMC. ReleaseBareMetalInstance flips
-// the host back to 'baremetal_pool'.
+// Pricing is per-server: an operator sets each host's monthly price (SetHostPrice, admin API)
+// before publishing it to the bare-metal pool. Billing is identical to VMs — HOURLY meters at
+// the host's monthly/730 hourly rate through the usage_events pipeline; MONTHLY_{1,3,6,12}
+// prepays the term at the same tiered discounts, hard non-cancel, optional autorenew.
+//
+// Flow: customer calls ListAvailableBareMetal to browse published hosts (discovered specs +
+// monthly price), then CreateBareMetalInstance(host_name, billing_mode) to lease a specific
+// machine. Metalhost flips the host's role to 'baremetal_leased' and returns access info
+// (Redfish endpoint for OS install). ReleaseBareMetalInstance flips it back to 'baremetal_pool'.
 service BareMetalService {
+  // ListAvailableBareMetal returns published, unleased, priced hosts the caller can lease, with
+  // discovered specs + monthly price. No BMC/serial identifiers are exposed.
+  rpc ListAvailableBareMetal(ListAvailableBareMetalRequest) returns (ListAvailableBareMetalResponse);
+  // QuoteBareMetal previews the cost of leasing a host under a billing mode (hourly rate, and the
+  // prepay due now for a MONTHLY_* term at its discount). Mirrors ComputeService.QuoteVirtualMachine.
+  rpc QuoteBareMetal(QuoteBareMetalRequest) returns (QuoteBareMetalResponse);
+
   rpc CreateBareMetalInstance(CreateBareMetalInstanceRequest) returns (CreateBareMetalInstanceResponse);
   rpc GetBareMetalInstance(GetBareMetalInstanceRequest) returns (GetBareMetalInstanceResponse);
   rpc ListBareMetalInstances(ListBareMetalInstancesRequest) returns (ListBareMetalInstancesResponse);
-  // ReleaseBareMetalInstance ends the lease; the host's role returns to 'baremetal_pool'. The
+  // ReleaseBareMetalInstance ends the lease; the host's role returns to 'baremetal_pool'. Refused
+  // while a MONTHLY_* term is still active (hard non-cancel, same as DeleteVirtualMachine). The
   // customer's data on local disks is not wiped by Metalhost — operator policy decides whether
   // the host is reformatted before re-leasing.
   rpc ReleaseBareMetalInstance(ReleaseBareMetalInstanceRequest) returns (ReleaseBareMetalInstanceResponse);
-  // GetBareMetalConsoleURL returns a short-lived URL for serial-over-LAN access via the BMC.
-  // Backed by Redfish SerialConsole; expires after 1h.
+  // RenewBareMetalNow charges the next prepaid term immediately for a MONTHLY_* lease (mirror of
+  // ComputeService.RenewVMNow). Useful before a term lapses or to extend ahead of the worker.
+  rpc RenewBareMetalNow(RenewBareMetalNowRequest) returns (RenewBareMetalNowResponse);
+
+  // SetBareMetalPower performs a BMC power action (on / off / reboot) via Redfish. Billing is
+  // unaffected — a leased host bills whether it's powered on or off.
+  rpc SetBareMetalPower(SetBareMetalPowerRequest) returns (SetBareMetalPowerResponse);
+  // ReinstallBareMetal re-runs the OS install (Tinkerbell) + cloud-init seed on a leased host,
+  // wiping the OS disk. Keeps the same lease + IPv4 block. Use to switch image or get a clean slate.
+  rpc ReinstallBareMetal(ReinstallBareMetalRequest) returns (ReinstallBareMetalResponse);
+
+  // GetBareMetalConsoleURL returns a short-lived websocket URL for the host's graphical KVM
+  // console, bridged to the BMC's VNC server (iDRAC). The server enables VNC on the BMC with a
+  // fresh per-session password (returned in vnc_password) and disables it again when the session
+  // ends — VNC is off at rest. Token expires after 60s; connect promptly.
   rpc GetBareMetalConsoleURL(GetBareMetalConsoleURLRequest) returns (GetBareMetalConsoleURLResponse);
 
   // EnterRescueMode boots the host into a rescue image via Redfish one-time boot override
@@ -32,6 +59,32 @@ service BareMetalService {
   // power-cycles back to the normal disk boot order.
   rpc EnterBareMetalRescueMode(EnterBareMetalRescueModeRequest) returns (EnterBareMetalRescueModeResponse);
   rpc ExitBareMetalRescueMode(ExitBareMetalRescueModeRequest) returns (ExitBareMetalRescueModeResponse);
+
+  // --- Bring-your-own-OS virtual media + ISO library (docs/specs/BARE_METAL_BYO_OS.md) ---
+  // The ISO library is per-ORG (shared across the org's projects), quota-limited. Upload once,
+  // re-use across leases. CreateBareMetalISOUploadURL returns a short-lived presigned PUT URL the
+  // customer uploads their install ISO to (directly to object storage), plus the object key.
+  rpc CreateBareMetalISOUploadURL(CreateBareMetalISOUploadURLRequest) returns (CreateBareMetalISOUploadURLResponse);
+  // ListBareMetalISOs lists the org's uploaded install ISOs (the library shown on the mgmt page
+  // and the console's ISO picker).
+  rpc ListBareMetalISOs(ListBareMetalISOsRequest) returns (ListBareMetalISOsResponse);
+  // CreateBareMetalISOFromURL imports an ISO into the org library by URL — metalhostd fetches it
+  // server-side (datacenter bandwidth) into object storage, so no slow browser upload. Returns
+  // immediately; the ISO appears in ListBareMetalISOs once the fetch completes.
+  rpc CreateBareMetalISOFromURL(CreateBareMetalISOFromURLRequest) returns (CreateBareMetalISOFromURLResponse);
+  // DeleteBareMetalISO removes an ISO from the org library + object storage.
+  rpc DeleteBareMetalISO(DeleteBareMetalISORequest) returns (DeleteBareMetalISOResponse);
+  // AttachBareMetalISO mounts a library ISO (by object key) as the host's BMC virtual CD: the BMC
+  // fetches it from metalhostd's ISO proxy (/v1/bm-iso/<token>.iso) which streams from the bucket.
+  rpc AttachBareMetalISO(AttachBareMetalISORequest) returns (AttachBareMetalISOResponse);
+  // GetBareMetalVirtualMedia reports the BMC's current virtual-CD mount state (so the UI shows the
+  // real attach/detach state after a refresh, not just optimistic client state).
+  rpc GetBareMetalVirtualMedia(GetBareMetalVirtualMediaRequest) returns (GetBareMetalVirtualMediaResponse);
+  // DetachBareMetalISO ejects any mounted virtual media (the library copy is kept).
+  rpc DetachBareMetalISO(DetachBareMetalISORequest) returns (DetachBareMetalISOResponse);
+  // SetBareMetalBootDevice sets the one-time boot device (disk / cdrom / pxe) and power-cycles.
+  // Use cdrom after AttachBareMetalISO to boot the installer; the next reboot falls back to disk.
+  rpc SetBareMetalBootDevice(SetBareMetalBootDeviceRequest) returns (SetBareMetalBootDeviceResponse);
 }
 
 message BareMetalInstance {
@@ -39,7 +92,7 @@ message BareMetalInstance {
   string name = 1;
   string project_name = 2;
   string datacenter_name = 3;
-  // SKU class (e.g. skus/bm.dell-r640.dual-6248r-384gib). Drives billing.
+  // Derived hardware label (e.g. "cascadelake · 48c · 384GiB"). Display/audit only.
   string instance_type = 4;
   // Host bound to this lease (`hosts/{slug}`). Set when state=ACTIVE; empty when CREATING.
   string host_name = 5;
@@ -52,17 +105,116 @@ message BareMetalInstance {
   int64 update_time_unix = 9;
   map<string, string> labels = 10;
   map<string, string> annotations = 11;
+  // Billing (mirrors VM semantics). billing_mode HOURLY or MONTHLY_*; commitment_end_at_unix +
+  // autorenew are set for MONTHLY_*. monthly_price_minor is the per-server price snapshotted at
+  // lease time (the hourly rate billed is monthly_price_minor/730).
+  aes.compute.v1.BillingMode billing_mode = 12;
+  int64 commitment_end_at_unix = 13;
+  bool autorenew = 14;
+  int64 monthly_price_minor = 15;
+  string currency = 16;
+  // Provisioning / cloud-init. os_image is the catalog id (or custom_image_url when set);
+  // hostname + linux_username drive the SSH command shown in the UI.
+  string os_image = 17;
+  string custom_image_url = 18;
+  string hostname = 19;
+  string linux_username = 20;
+  // Public IPv4 block assigned to the host's NIC(s). primary_ipv4 is the first address (the
+  // cloud-init / management IP). For a /32, cidr is `<primary>/32`.
+  string public_ipv4_cidr = 21;
+  string primary_ipv4 = 22;
+  // Current BMC power state: "On" / "Off" / "" (unknown). Billing is unaffected by power.
+  string power_state = 23;
+  // Public network details for the host's NIC, from the DC pool. Surfaced so a bring-your-own-OS
+  // customer can hand-configure their network: gateway + the SUBNET prefix length the IPs sit in
+  // (e.g. /24). The managed-install netplan uses these too. Empty/0 when the DC has none set.
+  string public_gateway = 24;
+  int32 public_prefix_len = 25;
+}
+
+// BareMetalPowerAction selects the BMC power operation.
+enum BareMetalPowerAction {
+  BARE_METAL_POWER_ACTION_UNSPECIFIED = 0;
+  BARE_METAL_POWER_ACTION_ON = 1;
+  BARE_METAL_POWER_ACTION_OFF = 2;     // graceful shutdown, force-off fallback
+  BARE_METAL_POWER_ACTION_REBOOT = 3;
+}
+
+message AvailableBareMetal {
+  // Host resource name to lease (`hosts/{slug}`).
+  string host_name = 1;
+  string datacenter_name = 2;
+  // Derived display label, e.g. "cascadelake · 48c · 384GiB".
+  string spec_label = 3;
+  string cpu_model = 4;
+  string cpu_generation = 5;
+  int32 total_cores = 6;
+  int32 ram_gib = 7;
+  int32 storage_gib = 8;
+  // Per-server price the operator set; the hourly rate is monthly_price_minor/730.
+  int64 monthly_price_minor = 9;
+  string currency = 10;
+}
+
+message ListAvailableBareMetalRequest {
+  // Optional filter to one datacenter.
+  string datacenter_name = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListAvailableBareMetalResponse {
+  repeated AvailableBareMetal hosts = 1;
+  string next_page_token = 2;
+}
+
+message QuoteBareMetalRequest {
+  // Host to quote (must be available/priced).
+  string host_name = 1;
+  aes.compute.v1.BillingMode billing_mode = 2;
+  string currency = 3;
+  // Public IPv4 block size (32/31/30/29/28). Default 32. Folds the per-IP cost into the quote.
+  int32 public_ipv4_prefix_len = 4;
+}
+
+message QuoteBareMetalResponse {
+  // Host monthly price + derived hourly rate (monthly/730), host only.
+  int64 monthly_price_minor = 1;
+  int64 hourly_rate_minor = 2;
+  // For MONTHLY_*: discount applied + total due now for the term (host + IP block). 0 for HOURLY.
+  int32 discount_pct = 3;
+  int64 prepay_due_minor = 4;
+  string currency = 5;
+  // Public-IP breakdown: count of addresses + monthly cost per IP (so the UI can itemize host + IPs).
+  int32 ipv4_count = 6;
+  int64 ipv4_monthly_minor = 7;
 }
 
 message CreateBareMetalInstanceRequest {
   // Resource name `bare-metal-instances/{slug}`. Slug must be DNS-safe.
   string name = 1;
   string project_name = 2;
-  string datacenter_name = 3;
-  string instance_type = 4;
-  map<string, string> labels = 5;
-  map<string, string> annotations = 6;
-  string idempotency_key = 7;
+  // The specific available host to lease (`hosts/{slug}`), from ListAvailableBareMetal.
+  string host_name = 3;
+  map<string, string> labels = 4;
+  map<string, string> annotations = 5;
+  string idempotency_key = 6;
+  // Billing mode. Default HOURLY. MONTHLY_* charges the wallet upfront for the term at the
+  // tier's discount; the prepayment must succeed or Create fails. (Field 7 was `instance_type`.)
+  aes.compute.v1.BillingMode billing_mode = 7;
+  // For MONTHLY_*: enable auto-renewal at term end. Ignored when HOURLY.
+  bool autorenew = 8;
+  // OS + cloud-init. os_image is a catalog id (e.g. "ubuntu-2404"); custom_image_url overrides it
+  // with a direct image URL. hostname + linux_username + ssh_key_names + user_data seed cloud-init.
+  string os_image = 9;
+  string custom_image_url = 10;
+  string hostname = 11;
+  string linux_username = 12;
+  repeated string ssh_key_names = 13;
+  string user_data = 14;
+  // Public IPv4 block size as a prefix length: 32 (1 IP) / 31 / 30 / 29 / 28 (16 IPs). Default 32.
+  // The block is reserved from the DC public pool at lease time; the first address is primary.
+  int32 public_ipv4_prefix_len = 15;
 }
 
 message CreateBareMetalInstanceResponse {
@@ -96,14 +248,57 @@ message ReleaseBareMetalInstanceRequest {
 
 message ReleaseBareMetalInstanceResponse {}
 
+message RenewBareMetalNowRequest {
+  string name = 1;
+}
+
+message RenewBareMetalNowResponse {
+  BareMetalInstance instance = 1;
+  // The new baremetal_reservations row id, for traceability.
+  string new_term_id = 2;
+  // The wallet journal entry that recorded the prepayment.
+  string journal_entry_id = 3;
+  int64 charged_amount_minor = 4;
+}
+
+message SetBareMetalPowerRequest {
+  string name = 1;
+  BareMetalPowerAction action = 2;
+}
+
+message SetBareMetalPowerResponse {
+  BareMetalInstance instance = 1;
+}
+
+message ReinstallBareMetalRequest {
+  string name = 1;
+  // New OS for the reinstall (catalog id or custom URL). Empty = keep the current image.
+  string os_image = 2;
+  string custom_image_url = 3;
+  // cloud-init overrides for the reinstall. Empty fields keep the lease's current values.
+  string hostname = 4;
+  string linux_username = 5;
+  repeated string ssh_key_names = 6;
+  string user_data = 7;
+}
+
+message ReinstallBareMetalResponse {
+  BareMetalInstance instance = 1;
+}
+
 message GetBareMetalConsoleURLRequest {
   string name = 1;
 }
 
 message GetBareMetalConsoleURLResponse {
-  // Short-lived URL (expires after 1h). Token-bearer; no further auth required to connect.
+  // Short-lived websocket path (expires after 60s). Single-use; a current browser session
+  // (cookie) or Authorization: Bearer is also required to connect (defense-in-depth).
   string console_url = 1;
   int64 expires_at_unix = 2;
+  // Per-session VNC password the noVNC client authenticates with (≤8 chars — RFB limit). The
+  // BMC's VNC server is only reachable from metalhostd on the OOB management network, so this is
+  // defense-in-depth behind the token+cookie gate, not the primary control.
+  string vnc_password = 3;
 }
 
 message EnterBareMetalRescueModeRequest {
@@ -122,5 +317,109 @@ message ExitBareMetalRescueModeRequest {
 }
 
 message ExitBareMetalRescueModeResponse {
+  BareMetalInstance instance = 1;
+}
+
+// --- Bring-your-own-OS virtual media ---
+
+message CreateBareMetalISOUploadURLRequest {
+  // Project whose ORG owns the library. The ISO is stored org-scoped (shared across the org's
+  // projects); the caller must have access to this project.
+  string project_name = 1;
+  // Customer's ISO filename (e.g. "proxmox-ve-8.iso"); forms the object key + display name.
+  // Sanitized server-side.
+  string filename = 2;
+}
+
+message CreateBareMetalISOUploadURLResponse {
+  // Presigned PUT URL — the client uploads the ISO bytes directly here (HTTP PUT). Short-lived.
+  string upload_url = 1;
+  // Opaque object key to pass back to AttachBareMetalISO once the upload completes.
+  string object_key = 2;
+  int64 expires_at_unix = 3;
+}
+
+// ISOFile is one entry in the org's install-ISO library.
+message ISOFile {
+  string object_key = 1;     // opaque key passed to Attach/Delete
+  string filename = 2;       // display name (basename)
+  int64 size_bytes = 3;
+  int64 uploaded_at_unix = 4;
+}
+
+message ListBareMetalISOsRequest {
+  string project_name = 1;
+}
+
+message CreateBareMetalISOFromURLRequest {
+  string project_name = 1;
+  // Public HTTPS URL to the ISO (e.g. a distro mirror). Fetched server-side into the org library.
+  string url = 2;
+  // Optional filename override; defaults to the URL's basename.
+  string filename = 3;
+}
+
+message CreateBareMetalISOFromURLResponse {
+  // The object key the import is streaming into; poll ListBareMetalISOs until it appears.
+  string object_key = 1;
+}
+
+message ListBareMetalISOsResponse {
+  repeated ISOFile isos = 1;
+  // Per-org quota + current usage, so the UI can show "3 / 5" and disable upload at the cap.
+  int32 max_isos = 2;
+}
+
+message DeleteBareMetalISORequest {
+  string project_name = 1;
+  string object_key = 2;
+}
+
+message DeleteBareMetalISOResponse {}
+
+message GetBareMetalVirtualMediaRequest {
+  string name = 1;
+}
+
+message GetBareMetalVirtualMediaResponse {
+  bool inserted = 1;
+  // Friendly filename + library object key when the mounted image is a metalhost library ISO
+  // (empty for inserted media we can't resolve, e.g. an external URL).
+  string iso_filename = 2;
+  string object_key = 3;
+}
+
+message AttachBareMetalISORequest {
+  string name = 1;
+  // Object key returned by CreateBareMetalISOUploadURL (a prior upload).
+  string object_key = 2;
+}
+
+message AttachBareMetalISOResponse {
+  BareMetalInstance instance = 1;
+}
+
+message DetachBareMetalISORequest {
+  string name = 1;
+}
+
+message DetachBareMetalISOResponse {
+  BareMetalInstance instance = 1;
+}
+
+// BareMetalBootDevice selects the one-time boot source for SetBareMetalBootDevice.
+enum BareMetalBootDevice {
+  BARE_METAL_BOOT_DEVICE_UNSPECIFIED = 0;
+  BARE_METAL_BOOT_DEVICE_DISK = 1;        // normal disk boot (clears any override)
+  BARE_METAL_BOOT_DEVICE_CDROM = 2;       // one-time boot from mounted virtual CD (the ISO)
+  BARE_METAL_BOOT_DEVICE_PXE = 3;         // one-time PXE
+}
+
+message SetBareMetalBootDeviceRequest {
+  string name = 1;
+  BareMetalBootDevice device = 2;
+}
+
+message SetBareMetalBootDeviceResponse {
   BareMetalInstance instance = 1;
 }

@@ -4187,6 +4187,10 @@ type QueryUsageResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Rows          []*UsageRow            `protobuf:"bytes,1,rep,name=rows,proto3" json:"rows,omitempty"`
 	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	// Per-project monthly egress free-tier allowance in GiB (server policy, env-configurable via
+	// METALHOST_PROJECT_EGRESS_FREE_GIB). Surfaced here so the transfer/usage UI doesn't hardcode
+	// it. 0 = no free tier (every byte bills).
+	EgressFreeGib int64 `protobuf:"varint,3,opt,name=egress_free_gib,json=egressFreeGib,proto3" json:"egress_free_gib,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4233,6 +4237,13 @@ func (x *QueryUsageResponse) GetNextPageToken() string {
 		return x.NextPageToken
 	}
 	return ""
+}
+
+func (x *QueryUsageResponse) GetEgressFreeGib() int64 {
+	if x != nil {
+		return x.EgressFreeGib
+	}
+	return 0
 }
 
 type ExportUsageRequest struct {
@@ -4703,10 +4714,11 @@ const file_aes_wallet_v1_wallet_proto_rawDesc = "" +
 	"\x04unit\x18\a \x01(\tR\x04unit\x12\x1d\n" +
 	"\n" +
 	"cost_minor\x18\b \x01(\x03R\tcostMinor\x12\x1a\n" +
-	"\bcurrency\x18\t \x01(\tR\bcurrency\"i\n" +
+	"\bcurrency\x18\t \x01(\tR\bcurrency\"\x91\x01\n" +
 	"\x12QueryUsageResponse\x12+\n" +
 	"\x04rows\x18\x01 \x03(\v2\x17.aes.wallet.v1.UsageRowR\x04rows\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x86\x02\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12&\n" +
+	"\x0fegress_free_gib\x18\x03 \x01(\x03R\regressFreeGib\"\x86\x02\n" +
 	"\x12ExportUsageRequest\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12+\n" +
 	"\x11organization_name\x18\x02 \x01(\tR\x10organizationName\x12!\n" +

@@ -63,6 +63,9 @@ const (
 	// ProjectServiceListOrgActivityProcedure is the fully-qualified name of the ProjectService's
 	// ListOrgActivity RPC.
 	ProjectServiceListOrgActivityProcedure = "/aes.project.v1.ProjectService/ListOrgActivity"
+	// ProjectServiceCheckSlugAvailableProcedure is the fully-qualified name of the ProjectService's
+	// CheckSlugAvailable RPC.
+	ProjectServiceCheckSlugAvailableProcedure = "/aes.project.v1.ProjectService/CheckSlugAvailable"
 )
 
 // ProjectServiceClient is a client for the aes.project.v1.ProjectService service.
@@ -86,6 +89,12 @@ type ProjectServiceClient interface {
 	// filtered + reshaped for end-user consumption (raw audit log lives at admin's
 	// ListAuditEvents). Sorted newest-first.
 	ListOrgActivity(context.Context, *connect.Request[v1.ListOrgActivityRequest]) (*connect.Response[v1.ListOrgActivityResponse], error)
+	// CheckSlugAvailable reports whether a workspace (org) or project slug can be claimed, for the
+	// onboarding wizard's live availability check. ORG/user slugs are global; PROJECT slugs are
+	// scoped to `parent` (an org resource name). The response carries the server-normalized slug
+	// and a human reason ("taken" / "invalid" / "") — never API jargon. Authed; no resource is
+	// created. Validation mirrors the create paths (DNS-1035, 3–30 chars, reserved-word blocklist).
+	CheckSlugAvailable(context.Context, *connect.Request[v1.CheckSlugAvailableRequest]) (*connect.Response[v1.CheckSlugAvailableResponse], error)
 }
 
 // NewProjectServiceClient constructs a client for the aes.project.v1.ProjectService service. By
@@ -159,6 +168,12 @@ func NewProjectServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(projectServiceMethods.ByName("ListOrgActivity")),
 			connect.WithClientOptions(opts...),
 		),
+		checkSlugAvailable: connect.NewClient[v1.CheckSlugAvailableRequest, v1.CheckSlugAvailableResponse](
+			httpClient,
+			baseURL+ProjectServiceCheckSlugAvailableProcedure,
+			connect.WithSchema(projectServiceMethods.ByName("CheckSlugAvailable")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -174,6 +189,7 @@ type projectServiceClient struct {
 	updateProject      *connect.Client[v1.UpdateProjectRequest, v1.UpdateProjectResponse]
 	deleteProject      *connect.Client[v1.DeleteProjectRequest, v1.DeleteProjectResponse]
 	listOrgActivity    *connect.Client[v1.ListOrgActivityRequest, v1.ListOrgActivityResponse]
+	checkSlugAvailable *connect.Client[v1.CheckSlugAvailableRequest, v1.CheckSlugAvailableResponse]
 }
 
 // GetOrganization calls aes.project.v1.ProjectService.GetOrganization.
@@ -226,6 +242,11 @@ func (c *projectServiceClient) ListOrgActivity(ctx context.Context, req *connect
 	return c.listOrgActivity.CallUnary(ctx, req)
 }
 
+// CheckSlugAvailable calls aes.project.v1.ProjectService.CheckSlugAvailable.
+func (c *projectServiceClient) CheckSlugAvailable(ctx context.Context, req *connect.Request[v1.CheckSlugAvailableRequest]) (*connect.Response[v1.CheckSlugAvailableResponse], error) {
+	return c.checkSlugAvailable.CallUnary(ctx, req)
+}
+
 // ProjectServiceHandler is an implementation of the aes.project.v1.ProjectService service.
 type ProjectServiceHandler interface {
 	GetOrganization(context.Context, *connect.Request[v1.GetOrganizationRequest]) (*connect.Response[v1.GetOrganizationResponse], error)
@@ -247,6 +268,12 @@ type ProjectServiceHandler interface {
 	// filtered + reshaped for end-user consumption (raw audit log lives at admin's
 	// ListAuditEvents). Sorted newest-first.
 	ListOrgActivity(context.Context, *connect.Request[v1.ListOrgActivityRequest]) (*connect.Response[v1.ListOrgActivityResponse], error)
+	// CheckSlugAvailable reports whether a workspace (org) or project slug can be claimed, for the
+	// onboarding wizard's live availability check. ORG/user slugs are global; PROJECT slugs are
+	// scoped to `parent` (an org resource name). The response carries the server-normalized slug
+	// and a human reason ("taken" / "invalid" / "") — never API jargon. Authed; no resource is
+	// created. Validation mirrors the create paths (DNS-1035, 3–30 chars, reserved-word blocklist).
+	CheckSlugAvailable(context.Context, *connect.Request[v1.CheckSlugAvailableRequest]) (*connect.Response[v1.CheckSlugAvailableResponse], error)
 }
 
 // NewProjectServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -316,6 +343,12 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect.Handler
 		connect.WithSchema(projectServiceMethods.ByName("ListOrgActivity")),
 		connect.WithHandlerOptions(opts...),
 	)
+	projectServiceCheckSlugAvailableHandler := connect.NewUnaryHandler(
+		ProjectServiceCheckSlugAvailableProcedure,
+		svc.CheckSlugAvailable,
+		connect.WithSchema(projectServiceMethods.ByName("CheckSlugAvailable")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/aes.project.v1.ProjectService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ProjectServiceGetOrganizationProcedure:
@@ -338,6 +371,8 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect.Handler
 			projectServiceDeleteProjectHandler.ServeHTTP(w, r)
 		case ProjectServiceListOrgActivityProcedure:
 			projectServiceListOrgActivityHandler.ServeHTTP(w, r)
+		case ProjectServiceCheckSlugAvailableProcedure:
+			projectServiceCheckSlugAvailableHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -385,4 +420,8 @@ func (UnimplementedProjectServiceHandler) DeleteProject(context.Context, *connec
 
 func (UnimplementedProjectServiceHandler) ListOrgActivity(context.Context, *connect.Request[v1.ListOrgActivityRequest]) (*connect.Response[v1.ListOrgActivityResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.project.v1.ProjectService.ListOrgActivity is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) CheckSlugAvailable(context.Context, *connect.Request[v1.CheckSlugAvailableRequest]) (*connect.Response[v1.CheckSlugAvailableResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.project.v1.ProjectService.CheckSlugAvailable is not implemented"))
 }
