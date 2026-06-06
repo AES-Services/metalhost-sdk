@@ -89,9 +89,9 @@ const (
 	// WalletServiceCreateCardSetupIntentProcedure is the fully-qualified name of the WalletService's
 	// CreateCardSetupIntent RPC.
 	WalletServiceCreateCardSetupIntentProcedure = "/aes.wallet.v1.WalletService/CreateCardSetupIntent"
-	// WalletServiceCreateX402TopUpChallengeProcedure is the fully-qualified name of the WalletService's
-	// CreateX402TopUpChallenge RPC.
-	WalletServiceCreateX402TopUpChallengeProcedure = "/aes.wallet.v1.WalletService/CreateX402TopUpChallenge"
+	// WalletServiceCreateCoinbaseTopUpCheckoutProcedure is the fully-qualified name of the
+	// WalletService's CreateCoinbaseTopUpCheckout RPC.
+	WalletServiceCreateCoinbaseTopUpCheckoutProcedure = "/aes.wallet.v1.WalletService/CreateCoinbaseTopUpCheckout"
 	// WalletServiceListTopUpsProcedure is the fully-qualified name of the WalletService's ListTopUps
 	// RPC.
 	WalletServiceListTopUpsProcedure = "/aes.wallet.v1.WalletService/ListTopUps"
@@ -153,15 +153,17 @@ type WalletServiceClient interface {
 	// Customer-initiated top-ups (PLATFORM_DESIGN §6.11). Two flavors:
 	//   - Stripe payment intent: customer's browser confirms a card charge; on success
 	//     Metalhost's Stripe webhook posts a TOPUP_CLEARING / CUSTOMER_PREPAY_LIABILITY journal.
-	//   - x402 challenge: returns the HTTP 402 challenge document the customer's wallet (HTTP
-	//     402 Payment Required spec) signs and POSTs back. Useful for crypto-native customers.
+	//   - Coinbase checkout: returns a hosted Coinbase URL the customer pays USDC on (any chain
+	//     Coinbase supports); the Coinbase webhook posts the same journal on payment success.
 	CreateStripeTopUpIntent(context.Context, *connect.Request[v1.CreateStripeTopUpIntentRequest]) (*connect.Response[v1.CreateStripeTopUpIntentResponse], error)
 	// CreateCardSetupIntent: Stripe SetupIntent in card mode. Returns the client_secret the
 	// browser's <PaymentElement> needs to render + collect card details without charging.
 	// After Stripe confirms, the frontend calls AttachPaymentMethod with the resulting
 	// payment_method_id to persist + add to the customer. Used by onboarding + add-card UI.
 	CreateCardSetupIntent(context.Context, *connect.Request[v1.CreateCardSetupIntentRequest]) (*connect.Response[v1.CreateCardSetupIntentResponse], error)
-	CreateX402TopUpChallenge(context.Context, *connect.Request[v1.CreateX402TopUpChallengeRequest]) (*connect.Response[v1.CreateX402TopUpChallengeResponse], error)
+	// CreateCoinbaseTopUpCheckout: hosted USDC checkout for a wallet top-up. Returns a Coinbase
+	// checkout URL the customer pays on; the /v1/public/coinbase/webhook handler credits the wallet.
+	CreateCoinbaseTopUpCheckout(context.Context, *connect.Request[v1.CreateCoinbaseTopUpCheckoutRequest]) (*connect.Response[v1.CreateCoinbaseTopUpCheckoutResponse], error)
 	ListTopUps(context.Context, *connect.Request[v1.ListTopUpsRequest]) (*connect.Response[v1.ListTopUpsResponse], error)
 	GetTopUp(context.Context, *connect.Request[v1.GetTopUpRequest]) (*connect.Response[v1.GetTopUpResponse], error)
 	// Usage query / export. QueryUsage aggregates usage_events by meter / project / time-bucket
@@ -296,10 +298,10 @@ func NewWalletServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(walletServiceMethods.ByName("CreateCardSetupIntent")),
 			connect.WithClientOptions(opts...),
 		),
-		createX402TopUpChallenge: connect.NewClient[v1.CreateX402TopUpChallengeRequest, v1.CreateX402TopUpChallengeResponse](
+		createCoinbaseTopUpCheckout: connect.NewClient[v1.CreateCoinbaseTopUpCheckoutRequest, v1.CreateCoinbaseTopUpCheckoutResponse](
 			httpClient,
-			baseURL+WalletServiceCreateX402TopUpChallengeProcedure,
-			connect.WithSchema(walletServiceMethods.ByName("CreateX402TopUpChallenge")),
+			baseURL+WalletServiceCreateCoinbaseTopUpCheckoutProcedure,
+			connect.WithSchema(walletServiceMethods.ByName("CreateCoinbaseTopUpCheckout")),
 			connect.WithClientOptions(opts...),
 		),
 		listTopUps: connect.NewClient[v1.ListTopUpsRequest, v1.ListTopUpsResponse](
@@ -331,30 +333,30 @@ func NewWalletServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 
 // walletServiceClient implements WalletServiceClient.
 type walletServiceClient struct {
-	listBillingAccounts      *connect.Client[v1.ListBillingAccountsRequest, v1.ListBillingAccountsResponse]
-	getBillingAccount        *connect.Client[v1.GetBillingAccountRequest, v1.GetBillingAccountResponse]
-	getWallet                *connect.Client[v1.GetWalletRequest, v1.GetWalletResponse]
-	getWalletBalance         *connect.Client[v1.GetWalletBalanceRequest, v1.GetWalletBalanceResponse]
-	listPublicMeterRates     *connect.Client[v1.ListPublicMeterRatesRequest, v1.ListPublicMeterRatesResponse]
-	attachPaymentMethod      *connect.Client[v1.AttachPaymentMethodRequest, v1.AttachPaymentMethodResponse]
-	listPaymentMethods       *connect.Client[v1.ListPaymentMethodsRequest, v1.ListPaymentMethodsResponse]
-	detachPaymentMethod      *connect.Client[v1.DetachPaymentMethodRequest, v1.DetachPaymentMethodResponse]
-	setDefaultPaymentMethod  *connect.Client[v1.SetDefaultPaymentMethodRequest, v1.SetDefaultPaymentMethodResponse]
-	listInvoices             *connect.Client[v1.ListInvoicesRequest, v1.ListInvoicesResponse]
-	getInvoice               *connect.Client[v1.GetInvoiceRequest, v1.GetInvoiceResponse]
-	downloadInvoicePDF       *connect.Client[v1.DownloadInvoicePDFRequest, v1.DownloadInvoicePDFResponse]
-	configureAutoRecharge    *connect.Client[v1.ConfigureAutoRechargeRequest, v1.ConfigureAutoRechargeResponse]
-	getAutoRechargeConfig    *connect.Client[v1.GetAutoRechargeConfigRequest, v1.GetAutoRechargeConfigResponse]
-	getCostForecast          *connect.Client[v1.GetCostForecastRequest, v1.GetCostForecastResponse]
-	configureWalletAlerts    *connect.Client[v1.ConfigureWalletAlertsRequest, v1.ConfigureWalletAlertsResponse]
-	getWalletAlerts          *connect.Client[v1.GetWalletAlertsRequest, v1.GetWalletAlertsResponse]
-	createStripeTopUpIntent  *connect.Client[v1.CreateStripeTopUpIntentRequest, v1.CreateStripeTopUpIntentResponse]
-	createCardSetupIntent    *connect.Client[v1.CreateCardSetupIntentRequest, v1.CreateCardSetupIntentResponse]
-	createX402TopUpChallenge *connect.Client[v1.CreateX402TopUpChallengeRequest, v1.CreateX402TopUpChallengeResponse]
-	listTopUps               *connect.Client[v1.ListTopUpsRequest, v1.ListTopUpsResponse]
-	getTopUp                 *connect.Client[v1.GetTopUpRequest, v1.GetTopUpResponse]
-	queryUsage               *connect.Client[v1.QueryUsageRequest, v1.QueryUsageResponse]
-	exportUsage              *connect.Client[v1.ExportUsageRequest, v1.ExportUsageResponse]
+	listBillingAccounts         *connect.Client[v1.ListBillingAccountsRequest, v1.ListBillingAccountsResponse]
+	getBillingAccount           *connect.Client[v1.GetBillingAccountRequest, v1.GetBillingAccountResponse]
+	getWallet                   *connect.Client[v1.GetWalletRequest, v1.GetWalletResponse]
+	getWalletBalance            *connect.Client[v1.GetWalletBalanceRequest, v1.GetWalletBalanceResponse]
+	listPublicMeterRates        *connect.Client[v1.ListPublicMeterRatesRequest, v1.ListPublicMeterRatesResponse]
+	attachPaymentMethod         *connect.Client[v1.AttachPaymentMethodRequest, v1.AttachPaymentMethodResponse]
+	listPaymentMethods          *connect.Client[v1.ListPaymentMethodsRequest, v1.ListPaymentMethodsResponse]
+	detachPaymentMethod         *connect.Client[v1.DetachPaymentMethodRequest, v1.DetachPaymentMethodResponse]
+	setDefaultPaymentMethod     *connect.Client[v1.SetDefaultPaymentMethodRequest, v1.SetDefaultPaymentMethodResponse]
+	listInvoices                *connect.Client[v1.ListInvoicesRequest, v1.ListInvoicesResponse]
+	getInvoice                  *connect.Client[v1.GetInvoiceRequest, v1.GetInvoiceResponse]
+	downloadInvoicePDF          *connect.Client[v1.DownloadInvoicePDFRequest, v1.DownloadInvoicePDFResponse]
+	configureAutoRecharge       *connect.Client[v1.ConfigureAutoRechargeRequest, v1.ConfigureAutoRechargeResponse]
+	getAutoRechargeConfig       *connect.Client[v1.GetAutoRechargeConfigRequest, v1.GetAutoRechargeConfigResponse]
+	getCostForecast             *connect.Client[v1.GetCostForecastRequest, v1.GetCostForecastResponse]
+	configureWalletAlerts       *connect.Client[v1.ConfigureWalletAlertsRequest, v1.ConfigureWalletAlertsResponse]
+	getWalletAlerts             *connect.Client[v1.GetWalletAlertsRequest, v1.GetWalletAlertsResponse]
+	createStripeTopUpIntent     *connect.Client[v1.CreateStripeTopUpIntentRequest, v1.CreateStripeTopUpIntentResponse]
+	createCardSetupIntent       *connect.Client[v1.CreateCardSetupIntentRequest, v1.CreateCardSetupIntentResponse]
+	createCoinbaseTopUpCheckout *connect.Client[v1.CreateCoinbaseTopUpCheckoutRequest, v1.CreateCoinbaseTopUpCheckoutResponse]
+	listTopUps                  *connect.Client[v1.ListTopUpsRequest, v1.ListTopUpsResponse]
+	getTopUp                    *connect.Client[v1.GetTopUpRequest, v1.GetTopUpResponse]
+	queryUsage                  *connect.Client[v1.QueryUsageRequest, v1.QueryUsageResponse]
+	exportUsage                 *connect.Client[v1.ExportUsageRequest, v1.ExportUsageResponse]
 }
 
 // ListBillingAccounts calls aes.wallet.v1.WalletService.ListBillingAccounts.
@@ -452,9 +454,9 @@ func (c *walletServiceClient) CreateCardSetupIntent(ctx context.Context, req *co
 	return c.createCardSetupIntent.CallUnary(ctx, req)
 }
 
-// CreateX402TopUpChallenge calls aes.wallet.v1.WalletService.CreateX402TopUpChallenge.
-func (c *walletServiceClient) CreateX402TopUpChallenge(ctx context.Context, req *connect.Request[v1.CreateX402TopUpChallengeRequest]) (*connect.Response[v1.CreateX402TopUpChallengeResponse], error) {
-	return c.createX402TopUpChallenge.CallUnary(ctx, req)
+// CreateCoinbaseTopUpCheckout calls aes.wallet.v1.WalletService.CreateCoinbaseTopUpCheckout.
+func (c *walletServiceClient) CreateCoinbaseTopUpCheckout(ctx context.Context, req *connect.Request[v1.CreateCoinbaseTopUpCheckoutRequest]) (*connect.Response[v1.CreateCoinbaseTopUpCheckoutResponse], error) {
+	return c.createCoinbaseTopUpCheckout.CallUnary(ctx, req)
 }
 
 // ListTopUps calls aes.wallet.v1.WalletService.ListTopUps.
@@ -525,15 +527,17 @@ type WalletServiceHandler interface {
 	// Customer-initiated top-ups (PLATFORM_DESIGN §6.11). Two flavors:
 	//   - Stripe payment intent: customer's browser confirms a card charge; on success
 	//     Metalhost's Stripe webhook posts a TOPUP_CLEARING / CUSTOMER_PREPAY_LIABILITY journal.
-	//   - x402 challenge: returns the HTTP 402 challenge document the customer's wallet (HTTP
-	//     402 Payment Required spec) signs and POSTs back. Useful for crypto-native customers.
+	//   - Coinbase checkout: returns a hosted Coinbase URL the customer pays USDC on (any chain
+	//     Coinbase supports); the Coinbase webhook posts the same journal on payment success.
 	CreateStripeTopUpIntent(context.Context, *connect.Request[v1.CreateStripeTopUpIntentRequest]) (*connect.Response[v1.CreateStripeTopUpIntentResponse], error)
 	// CreateCardSetupIntent: Stripe SetupIntent in card mode. Returns the client_secret the
 	// browser's <PaymentElement> needs to render + collect card details without charging.
 	// After Stripe confirms, the frontend calls AttachPaymentMethod with the resulting
 	// payment_method_id to persist + add to the customer. Used by onboarding + add-card UI.
 	CreateCardSetupIntent(context.Context, *connect.Request[v1.CreateCardSetupIntentRequest]) (*connect.Response[v1.CreateCardSetupIntentResponse], error)
-	CreateX402TopUpChallenge(context.Context, *connect.Request[v1.CreateX402TopUpChallengeRequest]) (*connect.Response[v1.CreateX402TopUpChallengeResponse], error)
+	// CreateCoinbaseTopUpCheckout: hosted USDC checkout for a wallet top-up. Returns a Coinbase
+	// checkout URL the customer pays on; the /v1/public/coinbase/webhook handler credits the wallet.
+	CreateCoinbaseTopUpCheckout(context.Context, *connect.Request[v1.CreateCoinbaseTopUpCheckoutRequest]) (*connect.Response[v1.CreateCoinbaseTopUpCheckoutResponse], error)
 	ListTopUps(context.Context, *connect.Request[v1.ListTopUpsRequest]) (*connect.Response[v1.ListTopUpsResponse], error)
 	GetTopUp(context.Context, *connect.Request[v1.GetTopUpRequest]) (*connect.Response[v1.GetTopUpResponse], error)
 	// Usage query / export. QueryUsage aggregates usage_events by meter / project / time-bucket
@@ -664,10 +668,10 @@ func NewWalletServiceHandler(svc WalletServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(walletServiceMethods.ByName("CreateCardSetupIntent")),
 		connect.WithHandlerOptions(opts...),
 	)
-	walletServiceCreateX402TopUpChallengeHandler := connect.NewUnaryHandler(
-		WalletServiceCreateX402TopUpChallengeProcedure,
-		svc.CreateX402TopUpChallenge,
-		connect.WithSchema(walletServiceMethods.ByName("CreateX402TopUpChallenge")),
+	walletServiceCreateCoinbaseTopUpCheckoutHandler := connect.NewUnaryHandler(
+		WalletServiceCreateCoinbaseTopUpCheckoutProcedure,
+		svc.CreateCoinbaseTopUpCheckout,
+		connect.WithSchema(walletServiceMethods.ByName("CreateCoinbaseTopUpCheckout")),
 		connect.WithHandlerOptions(opts...),
 	)
 	walletServiceListTopUpsHandler := connect.NewUnaryHandler(
@@ -734,8 +738,8 @@ func NewWalletServiceHandler(svc WalletServiceHandler, opts ...connect.HandlerOp
 			walletServiceCreateStripeTopUpIntentHandler.ServeHTTP(w, r)
 		case WalletServiceCreateCardSetupIntentProcedure:
 			walletServiceCreateCardSetupIntentHandler.ServeHTTP(w, r)
-		case WalletServiceCreateX402TopUpChallengeProcedure:
-			walletServiceCreateX402TopUpChallengeHandler.ServeHTTP(w, r)
+		case WalletServiceCreateCoinbaseTopUpCheckoutProcedure:
+			walletServiceCreateCoinbaseTopUpCheckoutHandler.ServeHTTP(w, r)
 		case WalletServiceListTopUpsProcedure:
 			walletServiceListTopUpsHandler.ServeHTTP(w, r)
 		case WalletServiceGetTopUpProcedure:
@@ -829,8 +833,8 @@ func (UnimplementedWalletServiceHandler) CreateCardSetupIntent(context.Context, 
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.wallet.v1.WalletService.CreateCardSetupIntent is not implemented"))
 }
 
-func (UnimplementedWalletServiceHandler) CreateX402TopUpChallenge(context.Context, *connect.Request[v1.CreateX402TopUpChallengeRequest]) (*connect.Response[v1.CreateX402TopUpChallengeResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.wallet.v1.WalletService.CreateX402TopUpChallenge is not implemented"))
+func (UnimplementedWalletServiceHandler) CreateCoinbaseTopUpCheckout(context.Context, *connect.Request[v1.CreateCoinbaseTopUpCheckoutRequest]) (*connect.Response[v1.CreateCoinbaseTopUpCheckoutResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.wallet.v1.WalletService.CreateCoinbaseTopUpCheckout is not implemented"))
 }
 
 func (UnimplementedWalletServiceHandler) ListTopUps(context.Context, *connect.Request[v1.ListTopUpsRequest]) (*connect.Response[v1.ListTopUpsResponse], error) {

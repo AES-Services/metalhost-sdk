@@ -3256,13 +3256,13 @@ type TopUp struct {
 	// Resource name `topUps/{slug}`.
 	Name       string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	WalletName string `protobuf:"bytes,2,opt,name=wallet_name,json=walletName,proto3" json:"wallet_name,omitempty"`
-	// "stripe-card" | "stripe-ach" | "x402".
+	// "stripe-card" | "stripe-ach" | "coinbase".
 	Method      string `protobuf:"bytes,3,opt,name=method,proto3" json:"method,omitempty"`
 	AmountMinor int64  `protobuf:"varint,4,opt,name=amount_minor,json=amountMinor,proto3" json:"amount_minor,omitempty"`
 	Currency    string `protobuf:"bytes,5,opt,name=currency,proto3" json:"currency,omitempty"`
 	// PENDING / SUCCEEDED / FAILED / CANCELED.
 	State string `protobuf:"bytes,6,opt,name=state,proto3" json:"state,omitempty"`
-	// Provider correlator — Stripe PaymentIntent id, x402 challenge id, etc.
+	// Provider correlator — Stripe PaymentIntent id, Coinbase checkout id, etc.
 	ExternalId string `protobuf:"bytes,7,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
 	// Journal entry posted when state=SUCCEEDED. Empty in PENDING/FAILED.
 	JournalEntryId string `protobuf:"bytes,8,opt,name=journal_entry_id,json=journalEntryId,proto3" json:"journal_entry_id,omitempty"`
@@ -3609,32 +3609,30 @@ func (x *CreateCardSetupIntentResponse) GetClientSecret() string {
 	return ""
 }
 
-type CreateX402TopUpChallengeRequest struct {
-	state       protoimpl.MessageState `protogen:"open.v1"`
-	WalletName  string                 `protobuf:"bytes,1,opt,name=wallet_name,json=walletName,proto3" json:"wallet_name,omitempty"`
-	AmountMinor int64                  `protobuf:"varint,2,opt,name=amount_minor,json=amountMinor,proto3" json:"amount_minor,omitempty"`
-	Currency    string                 `protobuf:"bytes,3,opt,name=currency,proto3" json:"currency,omitempty"`
-	// Settlement chain — "ethereum" | "base" | "polygon". Determines the facilitator endpoint.
-	Chain          string `protobuf:"bytes,4,opt,name=chain,proto3" json:"chain,omitempty"`
-	IdempotencyKey string `protobuf:"bytes,5,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+type CreateCoinbaseTopUpCheckoutRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	WalletName     string                 `protobuf:"bytes,1,opt,name=wallet_name,json=walletName,proto3" json:"wallet_name,omitempty"`
+	AmountMinor    int64                  `protobuf:"varint,2,opt,name=amount_minor,json=amountMinor,proto3" json:"amount_minor,omitempty"` // cents; min 500
+	Currency       string                 `protobuf:"bytes,3,opt,name=currency,proto3" json:"currency,omitempty"`                           // "usd"; settled 1:1 in USDC
+	IdempotencyKey string                 `protobuf:"bytes,4,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *CreateX402TopUpChallengeRequest) Reset() {
-	*x = CreateX402TopUpChallengeRequest{}
+func (x *CreateCoinbaseTopUpCheckoutRequest) Reset() {
+	*x = CreateCoinbaseTopUpCheckoutRequest{}
 	mi := &file_aes_wallet_v1_wallet_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateX402TopUpChallengeRequest) String() string {
+func (x *CreateCoinbaseTopUpCheckoutRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateX402TopUpChallengeRequest) ProtoMessage() {}
+func (*CreateCoinbaseTopUpCheckoutRequest) ProtoMessage() {}
 
-func (x *CreateX402TopUpChallengeRequest) ProtoReflect() protoreflect.Message {
+func (x *CreateCoinbaseTopUpCheckoutRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_aes_wallet_v1_wallet_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3646,73 +3644,62 @@ func (x *CreateX402TopUpChallengeRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateX402TopUpChallengeRequest.ProtoReflect.Descriptor instead.
-func (*CreateX402TopUpChallengeRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateCoinbaseTopUpCheckoutRequest.ProtoReflect.Descriptor instead.
+func (*CreateCoinbaseTopUpCheckoutRequest) Descriptor() ([]byte, []int) {
 	return file_aes_wallet_v1_wallet_proto_rawDescGZIP(), []int{58}
 }
 
-func (x *CreateX402TopUpChallengeRequest) GetWalletName() string {
+func (x *CreateCoinbaseTopUpCheckoutRequest) GetWalletName() string {
 	if x != nil {
 		return x.WalletName
 	}
 	return ""
 }
 
-func (x *CreateX402TopUpChallengeRequest) GetAmountMinor() int64 {
+func (x *CreateCoinbaseTopUpCheckoutRequest) GetAmountMinor() int64 {
 	if x != nil {
 		return x.AmountMinor
 	}
 	return 0
 }
 
-func (x *CreateX402TopUpChallengeRequest) GetCurrency() string {
+func (x *CreateCoinbaseTopUpCheckoutRequest) GetCurrency() string {
 	if x != nil {
 		return x.Currency
 	}
 	return ""
 }
 
-func (x *CreateX402TopUpChallengeRequest) GetChain() string {
-	if x != nil {
-		return x.Chain
-	}
-	return ""
-}
-
-func (x *CreateX402TopUpChallengeRequest) GetIdempotencyKey() string {
+func (x *CreateCoinbaseTopUpCheckoutRequest) GetIdempotencyKey() string {
 	if x != nil {
 		return x.IdempotencyKey
 	}
 	return ""
 }
 
-type CreateX402TopUpChallengeResponse struct {
+type CreateCoinbaseTopUpCheckoutResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	TopUp *TopUp                 `protobuf:"bytes,1,opt,name=top_up,json=topUp,proto3" json:"top_up,omitempty"`
-	// Raw HTTP 402 challenge document (JSON) the customer's wallet signs. Includes the recipient
-	// address, amount, nonce, and facilitator URL. Customer POSTs the signed payload to
-	// /v1/public/x402/facilitator (mounted publicly, not via Connect).
-	ChallengeDocument string `protobuf:"bytes,2,opt,name=challenge_document,json=challengeDocument,proto3" json:"challenge_document,omitempty"`
-	// Facilitator URL the wallet posts the signed payload to.
-	FacilitatorUrl string `protobuf:"bytes,3,opt,name=facilitator_url,json=facilitatorUrl,proto3" json:"facilitator_url,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Coinbase-hosted checkout URL the customer opens to pay USDC (any chain Coinbase supports).
+	HostedUrl     string `protobuf:"bytes,2,opt,name=hosted_url,json=hostedUrl,proto3" json:"hosted_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateX402TopUpChallengeResponse) Reset() {
-	*x = CreateX402TopUpChallengeResponse{}
+func (x *CreateCoinbaseTopUpCheckoutResponse) Reset() {
+	*x = CreateCoinbaseTopUpCheckoutResponse{}
 	mi := &file_aes_wallet_v1_wallet_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateX402TopUpChallengeResponse) String() string {
+func (x *CreateCoinbaseTopUpCheckoutResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateX402TopUpChallengeResponse) ProtoMessage() {}
+func (*CreateCoinbaseTopUpCheckoutResponse) ProtoMessage() {}
 
-func (x *CreateX402TopUpChallengeResponse) ProtoReflect() protoreflect.Message {
+func (x *CreateCoinbaseTopUpCheckoutResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_aes_wallet_v1_wallet_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3724,28 +3711,21 @@ func (x *CreateX402TopUpChallengeResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateX402TopUpChallengeResponse.ProtoReflect.Descriptor instead.
-func (*CreateX402TopUpChallengeResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateCoinbaseTopUpCheckoutResponse.ProtoReflect.Descriptor instead.
+func (*CreateCoinbaseTopUpCheckoutResponse) Descriptor() ([]byte, []int) {
 	return file_aes_wallet_v1_wallet_proto_rawDescGZIP(), []int{59}
 }
 
-func (x *CreateX402TopUpChallengeResponse) GetTopUp() *TopUp {
+func (x *CreateCoinbaseTopUpCheckoutResponse) GetTopUp() *TopUp {
 	if x != nil {
 		return x.TopUp
 	}
 	return nil
 }
 
-func (x *CreateX402TopUpChallengeResponse) GetChallengeDocument() string {
+func (x *CreateCoinbaseTopUpCheckoutResponse) GetHostedUrl() string {
 	if x != nil {
-		return x.ChallengeDocument
-	}
-	return ""
-}
-
-func (x *CreateX402TopUpChallengeResponse) GetFacilitatorUrl() string {
-	if x != nil {
-		return x.FacilitatorUrl
+		return x.HostedUrl
 	}
 	return ""
 }
@@ -4667,18 +4647,17 @@ const file_aes_wallet_v1_wallet_proto_rawDesc = "" +
 	"\x14billing_account_name\x18\x01 \x01(\tR\x12billingAccountName\x12'\n" +
 	"\x0fidempotency_key\x18\x02 \x01(\tR\x0eidempotencyKey\"D\n" +
 	"\x1dCreateCardSetupIntentResponse\x12#\n" +
-	"\rclient_secret\x18\x01 \x01(\tR\fclientSecret\"\xc0\x01\n" +
-	"\x1fCreateX402TopUpChallengeRequest\x12\x1f\n" +
+	"\rclient_secret\x18\x01 \x01(\tR\fclientSecret\"\xad\x01\n" +
+	"\"CreateCoinbaseTopUpCheckoutRequest\x12\x1f\n" +
 	"\vwallet_name\x18\x01 \x01(\tR\n" +
 	"walletName\x12!\n" +
 	"\famount_minor\x18\x02 \x01(\x03R\vamountMinor\x12\x1a\n" +
-	"\bcurrency\x18\x03 \x01(\tR\bcurrency\x12\x14\n" +
-	"\x05chain\x18\x04 \x01(\tR\x05chain\x12'\n" +
-	"\x0fidempotency_key\x18\x05 \x01(\tR\x0eidempotencyKey\"\xa7\x01\n" +
-	" CreateX402TopUpChallengeResponse\x12+\n" +
-	"\x06top_up\x18\x01 \x01(\v2\x14.aes.wallet.v1.TopUpR\x05topUp\x12-\n" +
-	"\x12challenge_document\x18\x02 \x01(\tR\x11challengeDocument\x12'\n" +
-	"\x0ffacilitator_url\x18\x03 \x01(\tR\x0efacilitatorUrl\"\x86\x01\n" +
+	"\bcurrency\x18\x03 \x01(\tR\bcurrency\x12'\n" +
+	"\x0fidempotency_key\x18\x04 \x01(\tR\x0eidempotencyKey\"q\n" +
+	"#CreateCoinbaseTopUpCheckoutResponse\x12+\n" +
+	"\x06top_up\x18\x01 \x01(\v2\x14.aes.wallet.v1.TopUpR\x05topUp\x12\x1d\n" +
+	"\n" +
+	"hosted_url\x18\x02 \x01(\tR\thostedUrl\"\x86\x01\n" +
 	"\x11ListTopUpsRequest\x12\x1f\n" +
 	"\vwallet_name\x18\x01 \x01(\tR\n" +
 	"walletName\x12\x14\n" +
@@ -4736,7 +4715,7 @@ const file_aes_wallet_v1_wallet_proto_rawDesc = "" +
 	"\x10PostingDirection\x12!\n" +
 	"\x1dPOSTING_DIRECTION_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17POSTING_DIRECTION_DEBIT\x10\x01\x12\x1c\n" +
-	"\x18POSTING_DIRECTION_CREDIT\x10\x022\xb7\x13\n" +
+	"\x18POSTING_DIRECTION_CREDIT\x10\x022\xc1\x13\n" +
 	"\rWalletService\x12l\n" +
 	"\x13ListBillingAccounts\x12).aes.wallet.v1.ListBillingAccountsRequest\x1a*.aes.wallet.v1.ListBillingAccountsResponse\x12f\n" +
 	"\x11GetBillingAccount\x12'.aes.wallet.v1.GetBillingAccountRequest\x1a(.aes.wallet.v1.GetBillingAccountResponse\x12N\n" +
@@ -4757,8 +4736,8 @@ const file_aes_wallet_v1_wallet_proto_rawDesc = "" +
 	"\x15ConfigureWalletAlerts\x12+.aes.wallet.v1.ConfigureWalletAlertsRequest\x1a,.aes.wallet.v1.ConfigureWalletAlertsResponse\x12`\n" +
 	"\x0fGetWalletAlerts\x12%.aes.wallet.v1.GetWalletAlertsRequest\x1a&.aes.wallet.v1.GetWalletAlertsResponse\x12x\n" +
 	"\x17CreateStripeTopUpIntent\x12-.aes.wallet.v1.CreateStripeTopUpIntentRequest\x1a..aes.wallet.v1.CreateStripeTopUpIntentResponse\x12r\n" +
-	"\x15CreateCardSetupIntent\x12+.aes.wallet.v1.CreateCardSetupIntentRequest\x1a,.aes.wallet.v1.CreateCardSetupIntentResponse\x12{\n" +
-	"\x18CreateX402TopUpChallenge\x12..aes.wallet.v1.CreateX402TopUpChallengeRequest\x1a/.aes.wallet.v1.CreateX402TopUpChallengeResponse\x12Q\n" +
+	"\x15CreateCardSetupIntent\x12+.aes.wallet.v1.CreateCardSetupIntentRequest\x1a,.aes.wallet.v1.CreateCardSetupIntentResponse\x12\x84\x01\n" +
+	"\x1bCreateCoinbaseTopUpCheckout\x121.aes.wallet.v1.CreateCoinbaseTopUpCheckoutRequest\x1a2.aes.wallet.v1.CreateCoinbaseTopUpCheckoutResponse\x12Q\n" +
 	"\n" +
 	"ListTopUps\x12 .aes.wallet.v1.ListTopUpsRequest\x1a!.aes.wallet.v1.ListTopUpsResponse\x12K\n" +
 	"\bGetTopUp\x12\x1e.aes.wallet.v1.GetTopUpRequest\x1a\x1f.aes.wallet.v1.GetTopUpResponse\x12Q\n" +
@@ -4782,77 +4761,77 @@ func file_aes_wallet_v1_wallet_proto_rawDescGZIP() []byte {
 var file_aes_wallet_v1_wallet_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_aes_wallet_v1_wallet_proto_msgTypes = make([]protoimpl.MessageInfo, 70)
 var file_aes_wallet_v1_wallet_proto_goTypes = []any{
-	(PostingDirection)(0),                    // 0: aes.wallet.v1.PostingDirection
-	(*PaymentMethod)(nil),                    // 1: aes.wallet.v1.PaymentMethod
-	(*AttachPaymentMethodRequest)(nil),       // 2: aes.wallet.v1.AttachPaymentMethodRequest
-	(*AttachPaymentMethodResponse)(nil),      // 3: aes.wallet.v1.AttachPaymentMethodResponse
-	(*ListPaymentMethodsRequest)(nil),        // 4: aes.wallet.v1.ListPaymentMethodsRequest
-	(*ListPaymentMethodsResponse)(nil),       // 5: aes.wallet.v1.ListPaymentMethodsResponse
-	(*DetachPaymentMethodRequest)(nil),       // 6: aes.wallet.v1.DetachPaymentMethodRequest
-	(*DetachPaymentMethodResponse)(nil),      // 7: aes.wallet.v1.DetachPaymentMethodResponse
-	(*SetDefaultPaymentMethodRequest)(nil),   // 8: aes.wallet.v1.SetDefaultPaymentMethodRequest
-	(*SetDefaultPaymentMethodResponse)(nil),  // 9: aes.wallet.v1.SetDefaultPaymentMethodResponse
-	(*Invoice)(nil),                          // 10: aes.wallet.v1.Invoice
-	(*InvoiceLineItem)(nil),                  // 11: aes.wallet.v1.InvoiceLineItem
-	(*ListInvoicesRequest)(nil),              // 12: aes.wallet.v1.ListInvoicesRequest
-	(*ListInvoicesResponse)(nil),             // 13: aes.wallet.v1.ListInvoicesResponse
-	(*GetInvoiceRequest)(nil),                // 14: aes.wallet.v1.GetInvoiceRequest
-	(*GetInvoiceResponse)(nil),               // 15: aes.wallet.v1.GetInvoiceResponse
-	(*DownloadInvoicePDFRequest)(nil),        // 16: aes.wallet.v1.DownloadInvoicePDFRequest
-	(*DownloadInvoicePDFResponse)(nil),       // 17: aes.wallet.v1.DownloadInvoicePDFResponse
-	(*WalletAlertConfig)(nil),                // 18: aes.wallet.v1.WalletAlertConfig
-	(*ConfigureWalletAlertsRequest)(nil),     // 19: aes.wallet.v1.ConfigureWalletAlertsRequest
-	(*ConfigureWalletAlertsResponse)(nil),    // 20: aes.wallet.v1.ConfigureWalletAlertsResponse
-	(*GetWalletAlertsRequest)(nil),           // 21: aes.wallet.v1.GetWalletAlertsRequest
-	(*GetWalletAlertsResponse)(nil),          // 22: aes.wallet.v1.GetWalletAlertsResponse
-	(*AutoRechargeConfig)(nil),               // 23: aes.wallet.v1.AutoRechargeConfig
-	(*ConfigureAutoRechargeRequest)(nil),     // 24: aes.wallet.v1.ConfigureAutoRechargeRequest
-	(*ConfigureAutoRechargeResponse)(nil),    // 25: aes.wallet.v1.ConfigureAutoRechargeResponse
-	(*GetAutoRechargeConfigRequest)(nil),     // 26: aes.wallet.v1.GetAutoRechargeConfigRequest
-	(*GetAutoRechargeConfigResponse)(nil),    // 27: aes.wallet.v1.GetAutoRechargeConfigResponse
-	(*PublicMeterRate)(nil),                  // 28: aes.wallet.v1.PublicMeterRate
-	(*ListPublicMeterRatesRequest)(nil),      // 29: aes.wallet.v1.ListPublicMeterRatesRequest
-	(*ListPublicMeterRatesResponse)(nil),     // 30: aes.wallet.v1.ListPublicMeterRatesResponse
-	(*BillingAccount)(nil),                   // 31: aes.wallet.v1.BillingAccount
-	(*Wallet)(nil),                           // 32: aes.wallet.v1.Wallet
-	(*LedgerPosting)(nil),                    // 33: aes.wallet.v1.LedgerPosting
-	(*ListBillingAccountsRequest)(nil),       // 34: aes.wallet.v1.ListBillingAccountsRequest
-	(*ListBillingAccountsResponse)(nil),      // 35: aes.wallet.v1.ListBillingAccountsResponse
-	(*GetBillingAccountRequest)(nil),         // 36: aes.wallet.v1.GetBillingAccountRequest
-	(*GetBillingAccountResponse)(nil),        // 37: aes.wallet.v1.GetBillingAccountResponse
-	(*GetWalletRequest)(nil),                 // 38: aes.wallet.v1.GetWalletRequest
-	(*GetWalletResponse)(nil),                // 39: aes.wallet.v1.GetWalletResponse
-	(*GetWalletBalanceRequest)(nil),          // 40: aes.wallet.v1.GetWalletBalanceRequest
-	(*GetWalletBalanceResponse)(nil),         // 41: aes.wallet.v1.GetWalletBalanceResponse
-	(*RecordJournalEntryRequest)(nil),        // 42: aes.wallet.v1.RecordJournalEntryRequest
-	(*RecordJournalEntryResponse)(nil),       // 43: aes.wallet.v1.RecordJournalEntryResponse
-	(*RecordUsageEventRequest)(nil),          // 44: aes.wallet.v1.RecordUsageEventRequest
-	(*RecordUsageEventResponse)(nil),         // 45: aes.wallet.v1.RecordUsageEventResponse
-	(*SettleUsageToLedgerRequest)(nil),       // 46: aes.wallet.v1.SettleUsageToLedgerRequest
-	(*SettleUsageToLedgerResponse)(nil),      // 47: aes.wallet.v1.SettleUsageToLedgerResponse
-	(*CreateWalletRequest)(nil),              // 48: aes.wallet.v1.CreateWalletRequest
-	(*CreateWalletResponse)(nil),             // 49: aes.wallet.v1.CreateWalletResponse
-	(*DeleteWalletRequest)(nil),              // 50: aes.wallet.v1.DeleteWalletRequest
-	(*DeleteWalletResponse)(nil),             // 51: aes.wallet.v1.DeleteWalletResponse
-	(*GetCostForecastRequest)(nil),           // 52: aes.wallet.v1.GetCostForecastRequest
-	(*GetCostForecastResponse)(nil),          // 53: aes.wallet.v1.GetCostForecastResponse
-	(*TopUp)(nil),                            // 54: aes.wallet.v1.TopUp
-	(*CreateStripeTopUpIntentRequest)(nil),   // 55: aes.wallet.v1.CreateStripeTopUpIntentRequest
-	(*CreateStripeTopUpIntentResponse)(nil),  // 56: aes.wallet.v1.CreateStripeTopUpIntentResponse
-	(*CreateCardSetupIntentRequest)(nil),     // 57: aes.wallet.v1.CreateCardSetupIntentRequest
-	(*CreateCardSetupIntentResponse)(nil),    // 58: aes.wallet.v1.CreateCardSetupIntentResponse
-	(*CreateX402TopUpChallengeRequest)(nil),  // 59: aes.wallet.v1.CreateX402TopUpChallengeRequest
-	(*CreateX402TopUpChallengeResponse)(nil), // 60: aes.wallet.v1.CreateX402TopUpChallengeResponse
-	(*ListTopUpsRequest)(nil),                // 61: aes.wallet.v1.ListTopUpsRequest
-	(*ListTopUpsResponse)(nil),               // 62: aes.wallet.v1.ListTopUpsResponse
-	(*GetTopUpRequest)(nil),                  // 63: aes.wallet.v1.GetTopUpRequest
-	(*GetTopUpResponse)(nil),                 // 64: aes.wallet.v1.GetTopUpResponse
-	(*QueryUsageRequest)(nil),                // 65: aes.wallet.v1.QueryUsageRequest
-	(*UsageRow)(nil),                         // 66: aes.wallet.v1.UsageRow
-	(*QueryUsageResponse)(nil),               // 67: aes.wallet.v1.QueryUsageResponse
-	(*ExportUsageRequest)(nil),               // 68: aes.wallet.v1.ExportUsageRequest
-	(*ExportUsageResponse)(nil),              // 69: aes.wallet.v1.ExportUsageResponse
-	nil,                                      // 70: aes.wallet.v1.RecordUsageEventRequest.MetadataEntry
+	(PostingDirection)(0),                       // 0: aes.wallet.v1.PostingDirection
+	(*PaymentMethod)(nil),                       // 1: aes.wallet.v1.PaymentMethod
+	(*AttachPaymentMethodRequest)(nil),          // 2: aes.wallet.v1.AttachPaymentMethodRequest
+	(*AttachPaymentMethodResponse)(nil),         // 3: aes.wallet.v1.AttachPaymentMethodResponse
+	(*ListPaymentMethodsRequest)(nil),           // 4: aes.wallet.v1.ListPaymentMethodsRequest
+	(*ListPaymentMethodsResponse)(nil),          // 5: aes.wallet.v1.ListPaymentMethodsResponse
+	(*DetachPaymentMethodRequest)(nil),          // 6: aes.wallet.v1.DetachPaymentMethodRequest
+	(*DetachPaymentMethodResponse)(nil),         // 7: aes.wallet.v1.DetachPaymentMethodResponse
+	(*SetDefaultPaymentMethodRequest)(nil),      // 8: aes.wallet.v1.SetDefaultPaymentMethodRequest
+	(*SetDefaultPaymentMethodResponse)(nil),     // 9: aes.wallet.v1.SetDefaultPaymentMethodResponse
+	(*Invoice)(nil),                             // 10: aes.wallet.v1.Invoice
+	(*InvoiceLineItem)(nil),                     // 11: aes.wallet.v1.InvoiceLineItem
+	(*ListInvoicesRequest)(nil),                 // 12: aes.wallet.v1.ListInvoicesRequest
+	(*ListInvoicesResponse)(nil),                // 13: aes.wallet.v1.ListInvoicesResponse
+	(*GetInvoiceRequest)(nil),                   // 14: aes.wallet.v1.GetInvoiceRequest
+	(*GetInvoiceResponse)(nil),                  // 15: aes.wallet.v1.GetInvoiceResponse
+	(*DownloadInvoicePDFRequest)(nil),           // 16: aes.wallet.v1.DownloadInvoicePDFRequest
+	(*DownloadInvoicePDFResponse)(nil),          // 17: aes.wallet.v1.DownloadInvoicePDFResponse
+	(*WalletAlertConfig)(nil),                   // 18: aes.wallet.v1.WalletAlertConfig
+	(*ConfigureWalletAlertsRequest)(nil),        // 19: aes.wallet.v1.ConfigureWalletAlertsRequest
+	(*ConfigureWalletAlertsResponse)(nil),       // 20: aes.wallet.v1.ConfigureWalletAlertsResponse
+	(*GetWalletAlertsRequest)(nil),              // 21: aes.wallet.v1.GetWalletAlertsRequest
+	(*GetWalletAlertsResponse)(nil),             // 22: aes.wallet.v1.GetWalletAlertsResponse
+	(*AutoRechargeConfig)(nil),                  // 23: aes.wallet.v1.AutoRechargeConfig
+	(*ConfigureAutoRechargeRequest)(nil),        // 24: aes.wallet.v1.ConfigureAutoRechargeRequest
+	(*ConfigureAutoRechargeResponse)(nil),       // 25: aes.wallet.v1.ConfigureAutoRechargeResponse
+	(*GetAutoRechargeConfigRequest)(nil),        // 26: aes.wallet.v1.GetAutoRechargeConfigRequest
+	(*GetAutoRechargeConfigResponse)(nil),       // 27: aes.wallet.v1.GetAutoRechargeConfigResponse
+	(*PublicMeterRate)(nil),                     // 28: aes.wallet.v1.PublicMeterRate
+	(*ListPublicMeterRatesRequest)(nil),         // 29: aes.wallet.v1.ListPublicMeterRatesRequest
+	(*ListPublicMeterRatesResponse)(nil),        // 30: aes.wallet.v1.ListPublicMeterRatesResponse
+	(*BillingAccount)(nil),                      // 31: aes.wallet.v1.BillingAccount
+	(*Wallet)(nil),                              // 32: aes.wallet.v1.Wallet
+	(*LedgerPosting)(nil),                       // 33: aes.wallet.v1.LedgerPosting
+	(*ListBillingAccountsRequest)(nil),          // 34: aes.wallet.v1.ListBillingAccountsRequest
+	(*ListBillingAccountsResponse)(nil),         // 35: aes.wallet.v1.ListBillingAccountsResponse
+	(*GetBillingAccountRequest)(nil),            // 36: aes.wallet.v1.GetBillingAccountRequest
+	(*GetBillingAccountResponse)(nil),           // 37: aes.wallet.v1.GetBillingAccountResponse
+	(*GetWalletRequest)(nil),                    // 38: aes.wallet.v1.GetWalletRequest
+	(*GetWalletResponse)(nil),                   // 39: aes.wallet.v1.GetWalletResponse
+	(*GetWalletBalanceRequest)(nil),             // 40: aes.wallet.v1.GetWalletBalanceRequest
+	(*GetWalletBalanceResponse)(nil),            // 41: aes.wallet.v1.GetWalletBalanceResponse
+	(*RecordJournalEntryRequest)(nil),           // 42: aes.wallet.v1.RecordJournalEntryRequest
+	(*RecordJournalEntryResponse)(nil),          // 43: aes.wallet.v1.RecordJournalEntryResponse
+	(*RecordUsageEventRequest)(nil),             // 44: aes.wallet.v1.RecordUsageEventRequest
+	(*RecordUsageEventResponse)(nil),            // 45: aes.wallet.v1.RecordUsageEventResponse
+	(*SettleUsageToLedgerRequest)(nil),          // 46: aes.wallet.v1.SettleUsageToLedgerRequest
+	(*SettleUsageToLedgerResponse)(nil),         // 47: aes.wallet.v1.SettleUsageToLedgerResponse
+	(*CreateWalletRequest)(nil),                 // 48: aes.wallet.v1.CreateWalletRequest
+	(*CreateWalletResponse)(nil),                // 49: aes.wallet.v1.CreateWalletResponse
+	(*DeleteWalletRequest)(nil),                 // 50: aes.wallet.v1.DeleteWalletRequest
+	(*DeleteWalletResponse)(nil),                // 51: aes.wallet.v1.DeleteWalletResponse
+	(*GetCostForecastRequest)(nil),              // 52: aes.wallet.v1.GetCostForecastRequest
+	(*GetCostForecastResponse)(nil),             // 53: aes.wallet.v1.GetCostForecastResponse
+	(*TopUp)(nil),                               // 54: aes.wallet.v1.TopUp
+	(*CreateStripeTopUpIntentRequest)(nil),      // 55: aes.wallet.v1.CreateStripeTopUpIntentRequest
+	(*CreateStripeTopUpIntentResponse)(nil),     // 56: aes.wallet.v1.CreateStripeTopUpIntentResponse
+	(*CreateCardSetupIntentRequest)(nil),        // 57: aes.wallet.v1.CreateCardSetupIntentRequest
+	(*CreateCardSetupIntentResponse)(nil),       // 58: aes.wallet.v1.CreateCardSetupIntentResponse
+	(*CreateCoinbaseTopUpCheckoutRequest)(nil),  // 59: aes.wallet.v1.CreateCoinbaseTopUpCheckoutRequest
+	(*CreateCoinbaseTopUpCheckoutResponse)(nil), // 60: aes.wallet.v1.CreateCoinbaseTopUpCheckoutResponse
+	(*ListTopUpsRequest)(nil),                   // 61: aes.wallet.v1.ListTopUpsRequest
+	(*ListTopUpsResponse)(nil),                  // 62: aes.wallet.v1.ListTopUpsResponse
+	(*GetTopUpRequest)(nil),                     // 63: aes.wallet.v1.GetTopUpRequest
+	(*GetTopUpResponse)(nil),                    // 64: aes.wallet.v1.GetTopUpResponse
+	(*QueryUsageRequest)(nil),                   // 65: aes.wallet.v1.QueryUsageRequest
+	(*UsageRow)(nil),                            // 66: aes.wallet.v1.UsageRow
+	(*QueryUsageResponse)(nil),                  // 67: aes.wallet.v1.QueryUsageResponse
+	(*ExportUsageRequest)(nil),                  // 68: aes.wallet.v1.ExportUsageRequest
+	(*ExportUsageResponse)(nil),                 // 69: aes.wallet.v1.ExportUsageResponse
+	nil,                                         // 70: aes.wallet.v1.RecordUsageEventRequest.MetadataEntry
 }
 var file_aes_wallet_v1_wallet_proto_depIdxs = []int32{
 	1,  // 0: aes.wallet.v1.AttachPaymentMethodResponse.payment_method:type_name -> aes.wallet.v1.PaymentMethod
@@ -4874,7 +4853,7 @@ var file_aes_wallet_v1_wallet_proto_depIdxs = []int32{
 	70, // 16: aes.wallet.v1.RecordUsageEventRequest.metadata:type_name -> aes.wallet.v1.RecordUsageEventRequest.MetadataEntry
 	32, // 17: aes.wallet.v1.CreateWalletResponse.wallet:type_name -> aes.wallet.v1.Wallet
 	54, // 18: aes.wallet.v1.CreateStripeTopUpIntentResponse.top_up:type_name -> aes.wallet.v1.TopUp
-	54, // 19: aes.wallet.v1.CreateX402TopUpChallengeResponse.top_up:type_name -> aes.wallet.v1.TopUp
+	54, // 19: aes.wallet.v1.CreateCoinbaseTopUpCheckoutResponse.top_up:type_name -> aes.wallet.v1.TopUp
 	54, // 20: aes.wallet.v1.ListTopUpsResponse.top_ups:type_name -> aes.wallet.v1.TopUp
 	54, // 21: aes.wallet.v1.GetTopUpResponse.top_up:type_name -> aes.wallet.v1.TopUp
 	66, // 22: aes.wallet.v1.QueryUsageResponse.rows:type_name -> aes.wallet.v1.UsageRow
@@ -4897,7 +4876,7 @@ var file_aes_wallet_v1_wallet_proto_depIdxs = []int32{
 	21, // 39: aes.wallet.v1.WalletService.GetWalletAlerts:input_type -> aes.wallet.v1.GetWalletAlertsRequest
 	55, // 40: aes.wallet.v1.WalletService.CreateStripeTopUpIntent:input_type -> aes.wallet.v1.CreateStripeTopUpIntentRequest
 	57, // 41: aes.wallet.v1.WalletService.CreateCardSetupIntent:input_type -> aes.wallet.v1.CreateCardSetupIntentRequest
-	59, // 42: aes.wallet.v1.WalletService.CreateX402TopUpChallenge:input_type -> aes.wallet.v1.CreateX402TopUpChallengeRequest
+	59, // 42: aes.wallet.v1.WalletService.CreateCoinbaseTopUpCheckout:input_type -> aes.wallet.v1.CreateCoinbaseTopUpCheckoutRequest
 	61, // 43: aes.wallet.v1.WalletService.ListTopUps:input_type -> aes.wallet.v1.ListTopUpsRequest
 	63, // 44: aes.wallet.v1.WalletService.GetTopUp:input_type -> aes.wallet.v1.GetTopUpRequest
 	65, // 45: aes.wallet.v1.WalletService.QueryUsage:input_type -> aes.wallet.v1.QueryUsageRequest
@@ -4921,7 +4900,7 @@ var file_aes_wallet_v1_wallet_proto_depIdxs = []int32{
 	22, // 63: aes.wallet.v1.WalletService.GetWalletAlerts:output_type -> aes.wallet.v1.GetWalletAlertsResponse
 	56, // 64: aes.wallet.v1.WalletService.CreateStripeTopUpIntent:output_type -> aes.wallet.v1.CreateStripeTopUpIntentResponse
 	58, // 65: aes.wallet.v1.WalletService.CreateCardSetupIntent:output_type -> aes.wallet.v1.CreateCardSetupIntentResponse
-	60, // 66: aes.wallet.v1.WalletService.CreateX402TopUpChallenge:output_type -> aes.wallet.v1.CreateX402TopUpChallengeResponse
+	60, // 66: aes.wallet.v1.WalletService.CreateCoinbaseTopUpCheckout:output_type -> aes.wallet.v1.CreateCoinbaseTopUpCheckoutResponse
 	62, // 67: aes.wallet.v1.WalletService.ListTopUps:output_type -> aes.wallet.v1.ListTopUpsResponse
 	64, // 68: aes.wallet.v1.WalletService.GetTopUp:output_type -> aes.wallet.v1.GetTopUpResponse
 	67, // 69: aes.wallet.v1.WalletService.QueryUsage:output_type -> aes.wallet.v1.QueryUsageResponse

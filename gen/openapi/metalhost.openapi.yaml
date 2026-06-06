@@ -4998,6 +4998,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.wallet.v1.CreateCardSetupIntentResponse'
+  /aes.wallet.v1.WalletService/CreateCoinbaseTopUpCheckout:
+    post:
+      tags:
+        - aes.wallet.v1.WalletService
+      summary: CreateCoinbaseTopUpCheckout
+      description: |-
+        CreateCoinbaseTopUpCheckout: hosted USDC checkout for a wallet top-up. Returns a Coinbase
+         checkout URL the customer pays on; the /v1/public/coinbase/webhook handler credits the wallet.
+      operationId: aes.wallet.v1.WalletService.CreateCoinbaseTopUpCheckout
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.wallet.v1.CreateCoinbaseTopUpCheckoutRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.wallet.v1.CreateCoinbaseTopUpCheckoutResponse'
   /aes.wallet.v1.WalletService/CreateStripeTopUpIntent:
     post:
       tags:
@@ -5007,8 +5045,8 @@ paths:
         Customer-initiated top-ups (PLATFORM_DESIGN §6.11). Two flavors:
            - Stripe payment intent: customer's browser confirms a card charge; on success
              Metalhost's Stripe webhook posts a TOPUP_CLEARING / CUSTOMER_PREPAY_LIABILITY journal.
-           - x402 challenge: returns the HTTP 402 challenge document the customer's wallet (HTTP
-             402 Payment Required spec) signs and POSTs back. Useful for crypto-native customers.
+           - Coinbase checkout: returns a hosted Coinbase URL the customer pays USDC on (any chain
+             Coinbase supports); the Coinbase webhook posts the same journal on payment success.
       operationId: aes.wallet.v1.WalletService.CreateStripeTopUpIntent
       parameters:
         - name: Connect-Protocol-Version
@@ -5039,41 +5077,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.wallet.v1.CreateStripeTopUpIntentResponse'
-  /aes.wallet.v1.WalletService/CreateX402TopUpChallenge:
-    post:
-      tags:
-        - aes.wallet.v1.WalletService
-      summary: CreateX402TopUpChallenge
-      operationId: aes.wallet.v1.WalletService.CreateX402TopUpChallenge
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.wallet.v1.CreateX402TopUpChallengeRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.wallet.v1.CreateX402TopUpChallengeResponse'
   /aes.wallet.v1.WalletService/DetachPaymentMethod:
     post:
       tags:
@@ -12908,6 +12911,40 @@ components:
           description: 'Stripe SetupIntent client_secret — pass to stripe.elements({ clientSecret: … }).'
       title: CreateCardSetupIntentResponse
       additionalProperties: false
+    aes.wallet.v1.CreateCoinbaseTopUpCheckoutRequest:
+      type: object
+      properties:
+        walletName:
+          type: string
+          title: wallet_name
+        amountMinor:
+          type:
+            - integer
+            - string
+          title: amount_minor
+          format: int64
+          description: cents; min 500
+        currency:
+          type: string
+          title: currency
+          description: '"usd"; settled 1:1 in USDC'
+        idempotencyKey:
+          type: string
+          title: idempotency_key
+      title: CreateCoinbaseTopUpCheckoutRequest
+      additionalProperties: false
+    aes.wallet.v1.CreateCoinbaseTopUpCheckoutResponse:
+      type: object
+      properties:
+        topUp:
+          title: top_up
+          $ref: '#/components/schemas/aes.wallet.v1.TopUp'
+        hostedUrl:
+          type: string
+          title: hosted_url
+          description: Coinbase-hosted checkout URL the customer opens to pay USDC (any chain Coinbase supports).
+      title: CreateCoinbaseTopUpCheckoutResponse
+      additionalProperties: false
     aes.wallet.v1.CreateStripeTopUpIntentRequest:
       type: object
       properties:
@@ -12975,49 +13012,6 @@ components:
           title: wallet
           $ref: '#/components/schemas/aes.wallet.v1.Wallet'
       title: CreateWalletResponse
-      additionalProperties: false
-    aes.wallet.v1.CreateX402TopUpChallengeRequest:
-      type: object
-      properties:
-        walletName:
-          type: string
-          title: wallet_name
-        amountMinor:
-          type:
-            - integer
-            - string
-          title: amount_minor
-          format: int64
-        currency:
-          type: string
-          title: currency
-        chain:
-          type: string
-          title: chain
-          description: Settlement chain — "ethereum" | "base" | "polygon". Determines the facilitator endpoint.
-        idempotencyKey:
-          type: string
-          title: idempotency_key
-      title: CreateX402TopUpChallengeRequest
-      additionalProperties: false
-    aes.wallet.v1.CreateX402TopUpChallengeResponse:
-      type: object
-      properties:
-        topUp:
-          title: top_up
-          $ref: '#/components/schemas/aes.wallet.v1.TopUp'
-        challengeDocument:
-          type: string
-          title: challenge_document
-          description: |-
-            Raw HTTP 402 challenge document (JSON) the customer's wallet signs. Includes the recipient
-             address, amount, nonce, and facilitator URL. Customer POSTs the signed payload to
-             /v1/public/x402/facilitator (mounted publicly, not via Connect).
-        facilitatorUrl:
-          type: string
-          title: facilitator_url
-          description: Facilitator URL the wallet posts the signed payload to.
-      title: CreateX402TopUpChallengeResponse
       additionalProperties: false
     aes.wallet.v1.DeleteWalletRequest:
       type: object
@@ -13886,7 +13880,7 @@ components:
         method:
           type: string
           title: method
-          description: '"stripe-card" | "stripe-ach" | "x402".'
+          description: '"stripe-card" | "stripe-ach" | "coinbase".'
         amountMinor:
           type:
             - integer
@@ -13903,7 +13897,7 @@ components:
         externalId:
           type: string
           title: external_id
-          description: Provider correlator — Stripe PaymentIntent id, x402 challenge id, etc.
+          description: Provider correlator — Stripe PaymentIntent id, Coinbase checkout id, etc.
         journalEntryId:
           type: string
           title: journal_entry_id
