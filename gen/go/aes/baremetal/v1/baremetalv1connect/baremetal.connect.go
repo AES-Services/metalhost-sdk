@@ -36,6 +36,9 @@ const (
 	// BareMetalServiceListAvailableBareMetalProcedure is the fully-qualified name of the
 	// BareMetalService's ListAvailableBareMetal RPC.
 	BareMetalServiceListAvailableBareMetalProcedure = "/aes.baremetal.v1.BareMetalService/ListAvailableBareMetal"
+	// BareMetalServiceListBareMetalInventoryProcedure is the fully-qualified name of the
+	// BareMetalService's ListBareMetalInventory RPC.
+	BareMetalServiceListBareMetalInventoryProcedure = "/aes.baremetal.v1.BareMetalService/ListBareMetalInventory"
 	// BareMetalServiceQuoteBareMetalProcedure is the fully-qualified name of the BareMetalService's
 	// QuoteBareMetal RPC.
 	BareMetalServiceQuoteBareMetalProcedure = "/aes.baremetal.v1.BareMetalService/QuoteBareMetal"
@@ -100,6 +103,11 @@ type BareMetalServiceClient interface {
 	// ListAvailableBareMetal returns published, unleased, priced hosts the caller can lease, with
 	// discovered specs + monthly price. No BMC/serial identifiers are exposed.
 	ListAvailableBareMetal(context.Context, *connect.Request[v1.ListAvailableBareMetalRequest]) (*connect.Response[v1.ListAvailableBareMetalResponse], error)
+	// ListBareMetalInventory returns EVERY published bare-metal host on the platform — available
+	// AND leased — each tagged with its availability, so a browser can show the full fleet (leased
+	// nodes greyed out). PUBLIC + unauthenticated (see publicMetalhostProcedures): exposes only
+	// model/specs/price/DC/status — never the lessee, BMC, or serials.
+	ListBareMetalInventory(context.Context, *connect.Request[v1.ListBareMetalInventoryRequest]) (*connect.Response[v1.ListBareMetalInventoryResponse], error)
 	// QuoteBareMetal previews the cost of leasing a host under a billing mode (hourly rate, and the
 	// prepay due now for a MONTHLY_* term at its discount). Mirrors ComputeService.QuoteVirtualMachine.
 	QuoteBareMetal(context.Context, *connect.Request[v1.QuoteBareMetalRequest]) (*connect.Response[v1.QuoteBareMetalResponse], error)
@@ -175,6 +183,12 @@ func NewBareMetalServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			httpClient,
 			baseURL+BareMetalServiceListAvailableBareMetalProcedure,
 			connect.WithSchema(bareMetalServiceMethods.ByName("ListAvailableBareMetal")),
+			connect.WithClientOptions(opts...),
+		),
+		listBareMetalInventory: connect.NewClient[v1.ListBareMetalInventoryRequest, v1.ListBareMetalInventoryResponse](
+			httpClient,
+			baseURL+BareMetalServiceListBareMetalInventoryProcedure,
+			connect.WithSchema(bareMetalServiceMethods.ByName("ListBareMetalInventory")),
 			connect.WithClientOptions(opts...),
 		),
 		quoteBareMetal: connect.NewClient[v1.QuoteBareMetalRequest, v1.QuoteBareMetalResponse](
@@ -297,6 +311,7 @@ func NewBareMetalServiceClient(httpClient connect.HTTPClient, baseURL string, op
 // bareMetalServiceClient implements BareMetalServiceClient.
 type bareMetalServiceClient struct {
 	listAvailableBareMetal      *connect.Client[v1.ListAvailableBareMetalRequest, v1.ListAvailableBareMetalResponse]
+	listBareMetalInventory      *connect.Client[v1.ListBareMetalInventoryRequest, v1.ListBareMetalInventoryResponse]
 	quoteBareMetal              *connect.Client[v1.QuoteBareMetalRequest, v1.QuoteBareMetalResponse]
 	createBareMetalInstance     *connect.Client[v1.CreateBareMetalInstanceRequest, v1.CreateBareMetalInstanceResponse]
 	getBareMetalInstance        *connect.Client[v1.GetBareMetalInstanceRequest, v1.GetBareMetalInstanceResponse]
@@ -321,6 +336,11 @@ type bareMetalServiceClient struct {
 // ListAvailableBareMetal calls aes.baremetal.v1.BareMetalService.ListAvailableBareMetal.
 func (c *bareMetalServiceClient) ListAvailableBareMetal(ctx context.Context, req *connect.Request[v1.ListAvailableBareMetalRequest]) (*connect.Response[v1.ListAvailableBareMetalResponse], error) {
 	return c.listAvailableBareMetal.CallUnary(ctx, req)
+}
+
+// ListBareMetalInventory calls aes.baremetal.v1.BareMetalService.ListBareMetalInventory.
+func (c *bareMetalServiceClient) ListBareMetalInventory(ctx context.Context, req *connect.Request[v1.ListBareMetalInventoryRequest]) (*connect.Response[v1.ListBareMetalInventoryResponse], error) {
+	return c.listBareMetalInventory.CallUnary(ctx, req)
 }
 
 // QuoteBareMetal calls aes.baremetal.v1.BareMetalService.QuoteBareMetal.
@@ -423,6 +443,11 @@ type BareMetalServiceHandler interface {
 	// ListAvailableBareMetal returns published, unleased, priced hosts the caller can lease, with
 	// discovered specs + monthly price. No BMC/serial identifiers are exposed.
 	ListAvailableBareMetal(context.Context, *connect.Request[v1.ListAvailableBareMetalRequest]) (*connect.Response[v1.ListAvailableBareMetalResponse], error)
+	// ListBareMetalInventory returns EVERY published bare-metal host on the platform — available
+	// AND leased — each tagged with its availability, so a browser can show the full fleet (leased
+	// nodes greyed out). PUBLIC + unauthenticated (see publicMetalhostProcedures): exposes only
+	// model/specs/price/DC/status — never the lessee, BMC, or serials.
+	ListBareMetalInventory(context.Context, *connect.Request[v1.ListBareMetalInventoryRequest]) (*connect.Response[v1.ListBareMetalInventoryResponse], error)
 	// QuoteBareMetal previews the cost of leasing a host under a billing mode (hourly rate, and the
 	// prepay due now for a MONTHLY_* term at its discount). Mirrors ComputeService.QuoteVirtualMachine.
 	QuoteBareMetal(context.Context, *connect.Request[v1.QuoteBareMetalRequest]) (*connect.Response[v1.QuoteBareMetalResponse], error)
@@ -494,6 +519,12 @@ func NewBareMetalServiceHandler(svc BareMetalServiceHandler, opts ...connect.Han
 		BareMetalServiceListAvailableBareMetalProcedure,
 		svc.ListAvailableBareMetal,
 		connect.WithSchema(bareMetalServiceMethods.ByName("ListAvailableBareMetal")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bareMetalServiceListBareMetalInventoryHandler := connect.NewUnaryHandler(
+		BareMetalServiceListBareMetalInventoryProcedure,
+		svc.ListBareMetalInventory,
+		connect.WithSchema(bareMetalServiceMethods.ByName("ListBareMetalInventory")),
 		connect.WithHandlerOptions(opts...),
 	)
 	bareMetalServiceQuoteBareMetalHandler := connect.NewUnaryHandler(
@@ -614,6 +645,8 @@ func NewBareMetalServiceHandler(svc BareMetalServiceHandler, opts ...connect.Han
 		switch r.URL.Path {
 		case BareMetalServiceListAvailableBareMetalProcedure:
 			bareMetalServiceListAvailableBareMetalHandler.ServeHTTP(w, r)
+		case BareMetalServiceListBareMetalInventoryProcedure:
+			bareMetalServiceListBareMetalInventoryHandler.ServeHTTP(w, r)
 		case BareMetalServiceQuoteBareMetalProcedure:
 			bareMetalServiceQuoteBareMetalHandler.ServeHTTP(w, r)
 		case BareMetalServiceCreateBareMetalInstanceProcedure:
@@ -663,6 +696,10 @@ type UnimplementedBareMetalServiceHandler struct{}
 
 func (UnimplementedBareMetalServiceHandler) ListAvailableBareMetal(context.Context, *connect.Request[v1.ListAvailableBareMetalRequest]) (*connect.Response[v1.ListAvailableBareMetalResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.ListAvailableBareMetal is not implemented"))
+}
+
+func (UnimplementedBareMetalServiceHandler) ListBareMetalInventory(context.Context, *connect.Request[v1.ListBareMetalInventoryRequest]) (*connect.Response[v1.ListBareMetalInventoryResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.baremetal.v1.BareMetalService.ListBareMetalInventory is not implemented"))
 }
 
 func (UnimplementedBareMetalServiceHandler) QuoteBareMetal(context.Context, *connect.Request[v1.QuoteBareMetalRequest]) (*connect.Response[v1.QuoteBareMetalResponse], error) {

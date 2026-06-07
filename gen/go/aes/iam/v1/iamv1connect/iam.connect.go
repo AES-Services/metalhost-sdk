@@ -76,6 +76,18 @@ const (
 	IamServiceListPendingInvitesProcedure = "/aes.iam.v1.IamService/ListPendingInvites"
 	// IamServiceRevokeInviteProcedure is the fully-qualified name of the IamService's RevokeInvite RPC.
 	IamServiceRevokeInviteProcedure = "/aes.iam.v1.IamService/RevokeInvite"
+	// IamServiceListMyOrganizationsProcedure is the fully-qualified name of the IamService's
+	// ListMyOrganizations RPC.
+	IamServiceListMyOrganizationsProcedure = "/aes.iam.v1.IamService/ListMyOrganizations"
+	// IamServiceListMyInvitesProcedure is the fully-qualified name of the IamService's ListMyInvites
+	// RPC.
+	IamServiceListMyInvitesProcedure = "/aes.iam.v1.IamService/ListMyInvites"
+	// IamServiceAcceptMyInviteProcedure is the fully-qualified name of the IamService's AcceptMyInvite
+	// RPC.
+	IamServiceAcceptMyInviteProcedure = "/aes.iam.v1.IamService/AcceptMyInvite"
+	// IamServiceDeclineMyInviteProcedure is the fully-qualified name of the IamService's
+	// DeclineMyInvite RPC.
+	IamServiceDeclineMyInviteProcedure = "/aes.iam.v1.IamService/DeclineMyInvite"
 	// IamServiceRotateApiKeyProcedure is the fully-qualified name of the IamService's RotateApiKey RPC.
 	IamServiceRotateApiKeyProcedure = "/aes.iam.v1.IamService/RotateApiKey"
 	// IamServiceStartOidcLoginProcedure is the fully-qualified name of the IamService's StartOidcLogin
@@ -197,6 +209,19 @@ type IamServiceClient interface {
 	// RevokeInvite marks a pending invite REVOKED so the token can't be accepted later.
 	// Idempotent on already-revoked rows. Caller must hold admin.organization.
 	RevokeInvite(context.Context, *connect.Request[v1.RevokeInviteRequest]) (*connect.Response[v1.RevokeInviteResponse], error)
+	// ── Self-service multi-org (the org switcher + in-app invites) ────────────────────────────
+	// ListMyOrganizations returns every org the caller is a member of, with the caller's role +
+	// the org's state. Backs the org switcher (and the account page's memberships list).
+	ListMyOrganizations(context.Context, *connect.Request[v1.ListMyOrganizationsRequest]) (*connect.Response[v1.ListMyOrganizationsResponse], error)
+	// ListMyInvites returns PENDING, unexpired org invites addressed to the caller's email — the
+	// in-app invitations inbox (no email round-trip needed to find/accept them).
+	ListMyInvites(context.Context, *connect.Request[v1.ListMyInvitesRequest]) (*connect.Response[v1.ListMyInvitesResponse], error)
+	// AcceptMyInvite accepts a pending invite by id while authenticated. The invite's email must
+	// resolve to the caller's principal; on success it adds the org role binding. No token needed
+	// (the session is the proof) — distinct from the public token-bearer AcceptInvite.
+	AcceptMyInvite(context.Context, *connect.Request[v1.AcceptMyInviteRequest]) (*connect.Response[v1.AcceptMyInviteResponse], error)
+	// DeclineMyInvite marks one of the caller's pending invites DECLINED.
+	DeclineMyInvite(context.Context, *connect.Request[v1.DeclineMyInviteRequest]) (*connect.Response[v1.DeclineMyInviteResponse], error)
 	// RotateApiKey atomically issues a new key + revokes the old one in a single call. Use
 	// instead of revoke-then-create to avoid the window where neither key is valid.
 	RotateApiKey(context.Context, *connect.Request[v1.RotateApiKeyRequest]) (*connect.Response[v1.RotateApiKeyResponse], error)
@@ -387,6 +412,30 @@ func NewIamServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(iamServiceMethods.ByName("RevokeInvite")),
 			connect.WithClientOptions(opts...),
 		),
+		listMyOrganizations: connect.NewClient[v1.ListMyOrganizationsRequest, v1.ListMyOrganizationsResponse](
+			httpClient,
+			baseURL+IamServiceListMyOrganizationsProcedure,
+			connect.WithSchema(iamServiceMethods.ByName("ListMyOrganizations")),
+			connect.WithClientOptions(opts...),
+		),
+		listMyInvites: connect.NewClient[v1.ListMyInvitesRequest, v1.ListMyInvitesResponse](
+			httpClient,
+			baseURL+IamServiceListMyInvitesProcedure,
+			connect.WithSchema(iamServiceMethods.ByName("ListMyInvites")),
+			connect.WithClientOptions(opts...),
+		),
+		acceptMyInvite: connect.NewClient[v1.AcceptMyInviteRequest, v1.AcceptMyInviteResponse](
+			httpClient,
+			baseURL+IamServiceAcceptMyInviteProcedure,
+			connect.WithSchema(iamServiceMethods.ByName("AcceptMyInvite")),
+			connect.WithClientOptions(opts...),
+		),
+		declineMyInvite: connect.NewClient[v1.DeclineMyInviteRequest, v1.DeclineMyInviteResponse](
+			httpClient,
+			baseURL+IamServiceDeclineMyInviteProcedure,
+			connect.WithSchema(iamServiceMethods.ByName("DeclineMyInvite")),
+			connect.WithClientOptions(opts...),
+		),
 		rotateApiKey: connect.NewClient[v1.RotateApiKeyRequest, v1.RotateApiKeyResponse](
 			httpClient,
 			baseURL+IamServiceRotateApiKeyProcedure,
@@ -535,6 +584,10 @@ type iamServiceClient struct {
 	updateOrgMemberRole    *connect.Client[v1.UpdateOrgMemberRoleRequest, v1.UpdateOrgMemberRoleResponse]
 	listPendingInvites     *connect.Client[v1.ListPendingInvitesRequest, v1.ListPendingInvitesResponse]
 	revokeInvite           *connect.Client[v1.RevokeInviteRequest, v1.RevokeInviteResponse]
+	listMyOrganizations    *connect.Client[v1.ListMyOrganizationsRequest, v1.ListMyOrganizationsResponse]
+	listMyInvites          *connect.Client[v1.ListMyInvitesRequest, v1.ListMyInvitesResponse]
+	acceptMyInvite         *connect.Client[v1.AcceptMyInviteRequest, v1.AcceptMyInviteResponse]
+	declineMyInvite        *connect.Client[v1.DeclineMyInviteRequest, v1.DeclineMyInviteResponse]
 	rotateApiKey           *connect.Client[v1.RotateApiKeyRequest, v1.RotateApiKeyResponse]
 	startOidcLogin         *connect.Client[v1.StartOidcLoginRequest, v1.StartOidcLoginResponse]
 	completeOidcLogin      *connect.Client[v1.CompleteOidcLoginRequest, v1.CompleteOidcLoginResponse]
@@ -641,6 +694,26 @@ func (c *iamServiceClient) ListPendingInvites(ctx context.Context, req *connect.
 // RevokeInvite calls aes.iam.v1.IamService.RevokeInvite.
 func (c *iamServiceClient) RevokeInvite(ctx context.Context, req *connect.Request[v1.RevokeInviteRequest]) (*connect.Response[v1.RevokeInviteResponse], error) {
 	return c.revokeInvite.CallUnary(ctx, req)
+}
+
+// ListMyOrganizations calls aes.iam.v1.IamService.ListMyOrganizations.
+func (c *iamServiceClient) ListMyOrganizations(ctx context.Context, req *connect.Request[v1.ListMyOrganizationsRequest]) (*connect.Response[v1.ListMyOrganizationsResponse], error) {
+	return c.listMyOrganizations.CallUnary(ctx, req)
+}
+
+// ListMyInvites calls aes.iam.v1.IamService.ListMyInvites.
+func (c *iamServiceClient) ListMyInvites(ctx context.Context, req *connect.Request[v1.ListMyInvitesRequest]) (*connect.Response[v1.ListMyInvitesResponse], error) {
+	return c.listMyInvites.CallUnary(ctx, req)
+}
+
+// AcceptMyInvite calls aes.iam.v1.IamService.AcceptMyInvite.
+func (c *iamServiceClient) AcceptMyInvite(ctx context.Context, req *connect.Request[v1.AcceptMyInviteRequest]) (*connect.Response[v1.AcceptMyInviteResponse], error) {
+	return c.acceptMyInvite.CallUnary(ctx, req)
+}
+
+// DeclineMyInvite calls aes.iam.v1.IamService.DeclineMyInvite.
+func (c *iamServiceClient) DeclineMyInvite(ctx context.Context, req *connect.Request[v1.DeclineMyInviteRequest]) (*connect.Response[v1.DeclineMyInviteResponse], error) {
+	return c.declineMyInvite.CallUnary(ctx, req)
 }
 
 // RotateApiKey calls aes.iam.v1.IamService.RotateApiKey.
@@ -810,6 +883,19 @@ type IamServiceHandler interface {
 	// RevokeInvite marks a pending invite REVOKED so the token can't be accepted later.
 	// Idempotent on already-revoked rows. Caller must hold admin.organization.
 	RevokeInvite(context.Context, *connect.Request[v1.RevokeInviteRequest]) (*connect.Response[v1.RevokeInviteResponse], error)
+	// ── Self-service multi-org (the org switcher + in-app invites) ────────────────────────────
+	// ListMyOrganizations returns every org the caller is a member of, with the caller's role +
+	// the org's state. Backs the org switcher (and the account page's memberships list).
+	ListMyOrganizations(context.Context, *connect.Request[v1.ListMyOrganizationsRequest]) (*connect.Response[v1.ListMyOrganizationsResponse], error)
+	// ListMyInvites returns PENDING, unexpired org invites addressed to the caller's email — the
+	// in-app invitations inbox (no email round-trip needed to find/accept them).
+	ListMyInvites(context.Context, *connect.Request[v1.ListMyInvitesRequest]) (*connect.Response[v1.ListMyInvitesResponse], error)
+	// AcceptMyInvite accepts a pending invite by id while authenticated. The invite's email must
+	// resolve to the caller's principal; on success it adds the org role binding. No token needed
+	// (the session is the proof) — distinct from the public token-bearer AcceptInvite.
+	AcceptMyInvite(context.Context, *connect.Request[v1.AcceptMyInviteRequest]) (*connect.Response[v1.AcceptMyInviteResponse], error)
+	// DeclineMyInvite marks one of the caller's pending invites DECLINED.
+	DeclineMyInvite(context.Context, *connect.Request[v1.DeclineMyInviteRequest]) (*connect.Response[v1.DeclineMyInviteResponse], error)
 	// RotateApiKey atomically issues a new key + revokes the old one in a single call. Use
 	// instead of revoke-then-create to avoid the window where neither key is valid.
 	RotateApiKey(context.Context, *connect.Request[v1.RotateApiKeyRequest]) (*connect.Response[v1.RotateApiKeyResponse], error)
@@ -996,6 +1082,30 @@ func NewIamServiceHandler(svc IamServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(iamServiceMethods.ByName("RevokeInvite")),
 		connect.WithHandlerOptions(opts...),
 	)
+	iamServiceListMyOrganizationsHandler := connect.NewUnaryHandler(
+		IamServiceListMyOrganizationsProcedure,
+		svc.ListMyOrganizations,
+		connect.WithSchema(iamServiceMethods.ByName("ListMyOrganizations")),
+		connect.WithHandlerOptions(opts...),
+	)
+	iamServiceListMyInvitesHandler := connect.NewUnaryHandler(
+		IamServiceListMyInvitesProcedure,
+		svc.ListMyInvites,
+		connect.WithSchema(iamServiceMethods.ByName("ListMyInvites")),
+		connect.WithHandlerOptions(opts...),
+	)
+	iamServiceAcceptMyInviteHandler := connect.NewUnaryHandler(
+		IamServiceAcceptMyInviteProcedure,
+		svc.AcceptMyInvite,
+		connect.WithSchema(iamServiceMethods.ByName("AcceptMyInvite")),
+		connect.WithHandlerOptions(opts...),
+	)
+	iamServiceDeclineMyInviteHandler := connect.NewUnaryHandler(
+		IamServiceDeclineMyInviteProcedure,
+		svc.DeclineMyInvite,
+		connect.WithSchema(iamServiceMethods.ByName("DeclineMyInvite")),
+		connect.WithHandlerOptions(opts...),
+	)
 	iamServiceRotateApiKeyHandler := connect.NewUnaryHandler(
 		IamServiceRotateApiKeyProcedure,
 		svc.RotateApiKey,
@@ -1158,6 +1268,14 @@ func NewIamServiceHandler(svc IamServiceHandler, opts ...connect.HandlerOption) 
 			iamServiceListPendingInvitesHandler.ServeHTTP(w, r)
 		case IamServiceRevokeInviteProcedure:
 			iamServiceRevokeInviteHandler.ServeHTTP(w, r)
+		case IamServiceListMyOrganizationsProcedure:
+			iamServiceListMyOrganizationsHandler.ServeHTTP(w, r)
+		case IamServiceListMyInvitesProcedure:
+			iamServiceListMyInvitesHandler.ServeHTTP(w, r)
+		case IamServiceAcceptMyInviteProcedure:
+			iamServiceAcceptMyInviteHandler.ServeHTTP(w, r)
+		case IamServiceDeclineMyInviteProcedure:
+			iamServiceDeclineMyInviteHandler.ServeHTTP(w, r)
 		case IamServiceRotateApiKeyProcedure:
 			iamServiceRotateApiKeyHandler.ServeHTTP(w, r)
 		case IamServiceStartOidcLoginProcedure:
@@ -1275,6 +1393,22 @@ func (UnimplementedIamServiceHandler) ListPendingInvites(context.Context, *conne
 
 func (UnimplementedIamServiceHandler) RevokeInvite(context.Context, *connect.Request[v1.RevokeInviteRequest]) (*connect.Response[v1.RevokeInviteResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.iam.v1.IamService.RevokeInvite is not implemented"))
+}
+
+func (UnimplementedIamServiceHandler) ListMyOrganizations(context.Context, *connect.Request[v1.ListMyOrganizationsRequest]) (*connect.Response[v1.ListMyOrganizationsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.iam.v1.IamService.ListMyOrganizations is not implemented"))
+}
+
+func (UnimplementedIamServiceHandler) ListMyInvites(context.Context, *connect.Request[v1.ListMyInvitesRequest]) (*connect.Response[v1.ListMyInvitesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.iam.v1.IamService.ListMyInvites is not implemented"))
+}
+
+func (UnimplementedIamServiceHandler) AcceptMyInvite(context.Context, *connect.Request[v1.AcceptMyInviteRequest]) (*connect.Response[v1.AcceptMyInviteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.iam.v1.IamService.AcceptMyInvite is not implemented"))
+}
+
+func (UnimplementedIamServiceHandler) DeclineMyInvite(context.Context, *connect.Request[v1.DeclineMyInviteRequest]) (*connect.Response[v1.DeclineMyInviteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.iam.v1.IamService.DeclineMyInvite is not implemented"))
 }
 
 func (UnimplementedIamServiceHandler) RotateApiKey(context.Context, *connect.Request[v1.RotateApiKeyRequest]) (*connect.Response[v1.RotateApiKeyResponse], error) {

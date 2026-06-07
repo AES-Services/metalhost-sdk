@@ -571,6 +571,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.baremetal.v1.ListBareMetalInstancesResponse'
+  /aes.baremetal.v1.BareMetalService/ListBareMetalInventory:
+    post:
+      tags:
+        - aes.baremetal.v1.BareMetalService
+      summary: ListBareMetalInventory
+      description: |-
+        ListBareMetalInventory returns EVERY published bare-metal host on the platform — available
+         AND leased — each tagged with its availability, so a browser can show the full fleet (leased
+         nodes greyed out). PUBLIC + unauthenticated (see publicMetalhostProcedures): exposes only
+         model/specs/price/DC/status — never the lessee, BMC, or serials.
+      operationId: aes.baremetal.v1.BareMetalService.ListBareMetalInventory
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.baremetal.v1.ListBareMetalInventoryRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.baremetal.v1.ListBareMetalInventoryResponse'
   /aes.baremetal.v1.BareMetalService/QuoteBareMetal:
     post:
       tags:
@@ -839,6 +879,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.catalog.v1.GetRegionHealthResponse'
+  /aes.catalog.v1.CatalogService/GetVMCapacity:
+    post:
+      tags:
+        - aes.catalog.v1.CatalogService
+      summary: GetVMCapacity
+      description: |-
+        GetVMCapacity returns per-datacenter VM capacity in sellable units, broken down by CPU class
+         (pool) and GPU model. PUBLIC + unauthenticated (see publicMetalhostProcedures) — capacity is
+         non-sensitive catalog data (same posture as GetRegionHealth). See docs/specs/GPU_POOLED_CAPACITY.md.
+      operationId: aes.catalog.v1.CatalogService.GetVMCapacity
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.catalog.v1.GetVMCapacityRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.catalog.v1.GetVMCapacityResponse'
   /aes.catalog.v1.CatalogService/ListDatacenters:
     post:
       tags:
@@ -1858,6 +1937,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.iam.v1.AcceptInviteResponse'
+  /aes.iam.v1.IamService/AcceptMyInvite:
+    post:
+      tags:
+        - aes.iam.v1.IamService
+      summary: AcceptMyInvite
+      description: |-
+        AcceptMyInvite accepts a pending invite by id while authenticated. The invite's email must
+         resolve to the caller's principal; on success it adds the org role binding. No token needed
+         (the session is the proof) — distinct from the public token-bearer AcceptInvite.
+      operationId: aes.iam.v1.IamService.AcceptMyInvite
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.AcceptMyInviteRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.AcceptMyInviteResponse'
   /aes.iam.v1.IamService/ChangePassword:
     post:
       tags:
@@ -2010,6 +2128,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.iam.v1.CreateWorkspaceResponse'
+  /aes.iam.v1.IamService/DeclineMyInvite:
+    post:
+      tags:
+        - aes.iam.v1.IamService
+      summary: DeclineMyInvite
+      description: DeclineMyInvite marks one of the caller's pending invites DECLINED.
+      operationId: aes.iam.v1.IamService.DeclineMyInvite
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.DeclineMyInviteRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.DeclineMyInviteResponse'
   /aes.iam.v1.IamService/EnrollMFA:
     post:
       tags:
@@ -2326,6 +2480,83 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.iam.v1.ListMFADevicesResponse'
+  /aes.iam.v1.IamService/ListMyInvites:
+    post:
+      tags:
+        - aes.iam.v1.IamService
+      summary: ListMyInvites
+      description: |-
+        ListMyInvites returns PENDING, unexpired org invites addressed to the caller's email — the
+         in-app invitations inbox (no email round-trip needed to find/accept them).
+      operationId: aes.iam.v1.IamService.ListMyInvites
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.ListMyInvitesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.ListMyInvitesResponse'
+  /aes.iam.v1.IamService/ListMyOrganizations:
+    post:
+      tags:
+        - aes.iam.v1.IamService
+      summary: ListMyOrganizations
+      description: |-
+        ── Self-service multi-org (the org switcher + in-app invites) ────────────────────────────
+         ListMyOrganizations returns every org the caller is a member of, with the caller's role +
+         the org's state. Backs the org switcher (and the account page's memberships list).
+      operationId: aes.iam.v1.IamService.ListMyOrganizations
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.ListMyOrganizationsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.ListMyOrganizationsResponse'
   /aes.iam.v1.IamService/ListNotifications:
     post:
       tags:
@@ -6171,6 +6402,14 @@ components:
           title: currency
       title: AvailableBareMetal
       additionalProperties: false
+    aes.baremetal.v1.BareMetalAvailability:
+      type: string
+      title: BareMetalAvailability
+      enum:
+        - BARE_METAL_AVAILABILITY_UNSPECIFIED
+        - BARE_METAL_AVAILABILITY_AVAILABLE
+        - BARE_METAL_AVAILABILITY_LEASED
+      description: Availability of a published bare-metal host in the public inventory.
     aes.baremetal.v1.BareMetalBootDevice:
       type: string
       title: BareMetalBootDevice
@@ -6323,6 +6562,66 @@ components:
           title: value
       title: LabelsEntry
       additionalProperties: false
+    aes.baremetal.v1.BareMetalNode:
+      type: object
+      properties:
+        hostName:
+          type: string
+          title: host_name
+          description: hosts/{slug}
+        datacenterName:
+          type: string
+          title: datacenter_name
+        specLabel:
+          type: string
+          title: spec_label
+        cpuModel:
+          type: string
+          title: cpu_model
+        cpuGeneration:
+          type: string
+          title: cpu_generation
+        totalCores:
+          type: integer
+          title: total_cores
+          format: int32
+        ramGib:
+          type: integer
+          title: ram_gib
+          format: int32
+        storageGib:
+          type: integer
+          title: storage_gib
+          format: int32
+        monthlyPriceMinor:
+          type:
+            - integer
+            - string
+          title: monthly_price_minor
+          format: int64
+          description: Listed monthly price (hourly = monthly/730). 0 when the host is unpriced.
+        currency:
+          type: string
+          title: currency
+        availability:
+          title: availability
+          $ref: '#/components/schemas/aes.baremetal.v1.BareMetalAvailability'
+        gpuModel:
+          type: string
+          title: gpu_model
+          description: |-
+            GPU model + count when this is a GPU node (empty/0 otherwise). cpu_generation already carries
+             the CPU class, so heterogeneous fleets (incl. AMD-CPU GPU boxes) are described per-node.
+        gpuCount:
+          type: integer
+          title: gpu_count
+          format: int32
+      title: BareMetalNode
+      additionalProperties: false
+      description: |-
+        BareMetalNode is one published host in the public inventory: the same spec fields as
+         AvailableBareMetal plus an availability tag and (when present) GPU model/count. No lessee, BMC,
+         or serial is ever projected.
     aes.baremetal.v1.BareMetalPowerAction:
       type: string
       title: BareMetalPowerAction
@@ -6743,6 +7042,48 @@ components:
           title: next_page_token
       title: ListBareMetalInstancesResponse
       additionalProperties: false
+    aes.baremetal.v1.ListBareMetalInventoryRequest:
+      type: object
+      properties:
+        datacenterName:
+          type: string
+          title: datacenter_name
+          description: Optional filter to one datacenter.
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListBareMetalInventoryRequest
+      additionalProperties: false
+    aes.baremetal.v1.ListBareMetalInventoryResponse:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.baremetal.v1.BareMetalNode'
+          title: nodes
+        nextPageToken:
+          type: string
+          title: next_page_token
+        total:
+          type: integer
+          title: total
+          format: int32
+          description: Fleet totals for the current filter (whole fleet, not just this page).
+        available:
+          type: integer
+          title: available
+          format: int32
+        leased:
+          type: integer
+          title: leased
+          format: int32
+      title: ListBareMetalInventoryResponse
+      additionalProperties: false
     aes.baremetal.v1.QuoteBareMetalRequest:
       type: object
       properties:
@@ -7013,6 +7354,61 @@ components:
         - DATACENTER_STATE_DEPROVISIONING
         - DATACENTER_STATE_RETIRED
       description: Datacenter lifecycle.
+    aes.catalog.v1.DatacenterVMCapacity:
+      type: object
+      properties:
+        datacenterName:
+          type: string
+          title: datacenter_name
+        status:
+          type: string
+          title: status
+          description: READY / DEGRADED
+        capacityPct:
+          type: integer
+          title: capacity_pct
+          format: int32
+          description: max across classes
+        sellableVcpu:
+          type:
+            - integer
+            - string
+          title: sellable_vcpu
+          format: int64
+        freeVcpu:
+          type:
+            - integer
+            - string
+          title: free_vcpu
+          format: int64
+        sellableRamGib:
+          type:
+            - integer
+            - string
+          title: sellable_ram_gib
+          format: int64
+        freeRamGib:
+          type:
+            - integer
+            - string
+          title: free_ram_gib
+          format: int64
+        storageFreeGib:
+          type:
+            - integer
+            - string
+          title: storage_free_gib
+          format: int64
+        byCpuClass:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.catalog.v1.VMClassCapacity'
+          title: by_cpu_class
+      title: DatacenterVMCapacity
+      additionalProperties: false
+      description: |-
+        DatacenterVMCapacity rolls the pool breakdown up to the datacenter. The rollup fields (4-8) are
+         the sum across by_cpu_class; simple consumers can read those and ignore the breakdown.
     aes.catalog.v1.GetRegionHealthRequest:
       type: object
       properties:
@@ -7029,6 +7425,83 @@ components:
           $ref: '#/components/schemas/aes.catalog.v1.RegionHealth'
       title: GetRegionHealthResponse
       additionalProperties: false
+    aes.catalog.v1.GetVMCapacityRequest:
+      type: object
+      properties:
+        datacenterName:
+          type: string
+          title: datacenter_name
+          description: Optional filter to one datacenter. Empty = all READY/DEGRADED DCs.
+      title: GetVMCapacityRequest
+      additionalProperties: false
+    aes.catalog.v1.GetVMCapacityResponse:
+      type: object
+      properties:
+        datacenters:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.catalog.v1.DatacenterVMCapacity'
+          title: datacenters
+      title: GetVMCapacityResponse
+      additionalProperties: false
+    aes.catalog.v1.GpuModelCapacity:
+      type: object
+      properties:
+        gpuModel:
+          type: string
+          title: gpu_model
+          description: e.g. "h100"
+        total:
+          type: integer
+          title: total
+          format: int32
+          description: allocatable GPUs of this model in the pool
+        free:
+          type: integer
+          title: free
+          format: int32
+          description: currently unleased
+        reserveVcpu:
+          type:
+            - integer
+            - string
+          title: reserve_vcpu
+          format: int64
+          description: Operator-set per-GPU reservation kept free for an unsold GPU (physical units). Informational.
+        reserveRamGib:
+          type:
+            - integer
+            - string
+          title: reserve_ram_gib
+          format: int64
+        maxNodeFreeVcpu:
+          type:
+            - integer
+            - string
+          title: max_node_free_vcpu
+          format: int64
+          description: |-
+            Largest single VM (vCPU / RAM, oversubscribe-adjusted) that can schedule on the most-free node
+             currently holding a free GPU of this model — RAW node free, BEFORE the reservation kept for the
+             node's other unsold GPUs. A GPU VM lands on ONE node, so this — not the pool sum — bounds how
+             big a GPU VM can be. 0 when the live probe is unavailable.
+        maxNodeFreeRamGib:
+          type:
+            - integer
+            - string
+          title: max_node_free_ram_gib
+          format: int64
+        maxNodeFreeGpus:
+          type: integer
+          title: max_node_free_gpus
+          format: int32
+          description: |-
+            Free GPUs of this model on that same representative node. The configurator subtracts
+             reserve_* × (max_node_free_gpus − requested_count) from the raw node free above, so renting MORE
+             GPUs frees the reservation held for the node's remaining GPUs (more CPU/RAM for the VM).
+      title: GpuModelCapacity
+      additionalProperties: false
+      description: GpuModelCapacity is the whole-GPU availability for one GPU model within a pool.
     aes.catalog.v1.ListDatacentersRequest:
       type: object
       properties:
@@ -7160,6 +7633,16 @@ components:
           type: string
           title: currency
           description: default USD
+        gpuModel:
+          type: string
+          title: gpu_model
+          description: |-
+            Whole-GPU passthrough. gpu_model is the SKU variant (e.g. "rtx4090"), gpu_count the number of
+             cards; priced via compute.gpu.<model>.runtime_hours. Empty/0 = CPU-only quote.
+        gpuCount:
+          type: integer
+          title: gpu_count
+          format: int32
       title: QuoteVirtualMachineRequest
       additionalProperties: false
     aes.catalog.v1.QuoteVirtualMachineResponse:
@@ -7318,6 +7801,70 @@ components:
         RegionHealth is the customer-visible summary of a DC's current state. capacity_pct is the
          % of compute hosts currently allocated (0..100); status is the DC's `state` mapped to a
          human-friendly summary; degraded_components lists subsystems with non-OK status.
+    aes.catalog.v1.VMClassCapacity:
+      type: object
+      properties:
+        cpuClass:
+          type: string
+          title: cpu_class
+          description: e.g. "cascadelake", "genoa"
+        sellableVcpu:
+          type:
+            - integer
+            - string
+          title: sellable_vcpu
+          format: int64
+        freeVcpu:
+          type:
+            - integer
+            - string
+          title: free_vcpu
+          format: int64
+        sellableRamGib:
+          type:
+            - integer
+            - string
+          title: sellable_ram_gib
+          format: int64
+        freeRamGib:
+          type:
+            - integer
+            - string
+          title: free_ram_gib
+          format: int64
+        capacityPct:
+          type: integer
+          title: capacity_pct
+          format: int32
+          description: |-
+            Most-utilized dimension (cpu/ram/gpu) as 0..100 — a pool is "full" when this hits 100 even if
+             another dimension has headroom (binding-resource rule).
+        gpus:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.catalog.v1.GpuModelCapacity'
+          title: gpus
+          description: GPU availability per model in this pool (empty for non-GPU pools).
+        maxNodeFreeVcpu:
+          type:
+            - integer
+            - string
+          title: max_node_free_vcpu
+          format: int64
+          description: |-
+            Largest single CPU VM (vCPU / RAM, oversubscribe-adjusted) that can schedule on this class's
+             most-free node. A VM lands on ONE node, so this bounds the configurator sliders — the pool
+             sum (free_vcpu/free_ram_gib) can be admitted but then stay Pending if no single node fits.
+             0 when the live probe is unavailable.
+        maxNodeFreeRamGib:
+          type:
+            - integer
+            - string
+          title: max_node_free_ram_gib
+          format: int64
+      title: VMClassCapacity
+      additionalProperties: false
+      description: VMClassCapacity is the sellable capacity of one pool = (datacenter, cpu_class).
     aes.compute.v1.BillingMode:
       type: string
       title: BillingMode
@@ -7656,170 +8203,15 @@ components:
     aes.compute.v1.CreateVirtualMachineRequest:
       type: object
       properties:
-        projectName:
-          type: string
-          title: project_name
-        datacenterName:
-          type: string
-          title: datacenter_name
-        networkName:
-          type: string
-          title: network_name
-          description: |-
-            Optional tenant network the VM attaches to. Resource name `projects/{p}/networks/{id}`.
-             When empty, the project's default network is used (auto-created lazily on first VM in
-             the project + DC). Single-NIC model — every VM has exactly one network.
-        sshPubkey:
-          type: string
-          title: ssh_pubkey
-          description: |-
-            Optional SSH public key to inject into the default cloud-image user (`ubuntu` for Ubuntu
-             images) via cloud-init. When set, KubeVirt attaches a cloudInitNoCloud seed disk; the
-             first boot enables SSH for that key. Without this AND `user_data`, the VM has no inbound
-             SSH and tenants must use console access.
-        userData:
-          type: string
-          title: user_data
-          description: |-
-            Optional raw cloud-config userdata. When set, replaces Metalhost's auto-generated cloud-init
-             entirely — `ssh_pubkey` is ignored and the operator's user_data is the source of truth.
-             Must be valid `#cloud-config` YAML; cloud-init silently ignores files without that header.
-        sshKeyNames:
-          type: array
-          items:
-            type: string
-          title: ssh_key_names
-          description: |-
-            Optional references to registered SSHKey resources (`projects/{p}/ssh-keys/{id}`). When
-             set, the keys' public_key values are merged into the cloud-init `ssh_authorized_keys`
-             block alongside `ssh_pubkey`. Use this to manage VMs against a rotating team key set
-             without re-pasting on every Create.
-        billingMode:
-          title: billing_mode
-          description: |-
-            Billing mode. Default HOURLY. MONTHLY_* charges the customer's wallet upfront for the
-             entire term at the tier's discount; the prepayment must succeed or Create fails.
-          $ref: '#/components/schemas/aes.compute.v1.BillingMode'
-        autorenew:
-          type: boolean
-          title: autorenew
-          description: |-
-            For MONTHLY_*: enable auto-renewal at term end. Defaults to false (customer renews
-             explicitly or VM falls back to HOURLY). Ignored when billing_mode is HOURLY.
-        hostname:
-          type: string
-          title: hostname
-          description: |-
-            User-facing hostname (DNS-1123 label, ≤63 chars). Used as the VM's k8s object name and
-             injected via cloud-init `set_hostname`. When empty, the server defaults to the VM's
-             resource id (UUIDv7 slug). Must be unique within the target Network's namespace.
-        assignPublicIpv4:
-          type: boolean
-          title: assign_public_ipv4
-          description: |-
-            Allocate a public IPv4 from the DC's `aes.metalhost/public-ipv4-pool` for the VM's
-             public NIC workflow. Default false — VMs are reachable via IPv6 (always allocated from
-             the network's /64) without burning a public v4.
-        labels:
-          type: object
-          title: labels
-          additionalProperties:
-            type: string
-            title: value
-          description: |-
-            User-facing labels stamped at create time. Same shape + merge semantics as
-             UpdateVirtualMachineRequest.labels (later mutations merge unless clear_labels=true).
-             Indexed for filterable list queries. Keys under the `aes.metalhost/*` namespace are
-             reserved — customer-set values there are accepted but may be overwritten by server
-             reconcilers without notice (use a non-aes prefix for keys you want to control).
-        annotations:
-          type: object
-          title: annotations
-          additionalProperties:
-            type: string
-            title: value
-          description: |-
-            Operator notes / non-indexed metadata. Same merge-by-default semantics as labels.
-             Same `aes.metalhost/*` reservation applies — server reconcilers may overwrite values
-             there without notice.
-        bootDiskName:
-          type: string
-          title: boot_disk_name
-          description: |-
-            Bind the VM to a pre-existing Disk as its boot device (`projects/{p}/disks/{id}`). Disk
-             must be AVAILABLE, in the same project + datacenter as the VM, and not already attached
-             to another VM. Lets customers preserve a boot disk across VM rebuilds — DeleteVM detaches
-             but never deletes the disk, so a fresh CreateVM with the same boot_disk_name boots the
-             same data. Mutually exclusive with `boot_disk` (inline create).
-        bootDisk:
-          title: boot_disk
-          description: |-
-            Inline boot disk creation. Server creates the Disk first (waits for hydration when
-             from_image_url is set), then provisions the VM bound to it. Convenience
-             for the common case where a customer wants "give me a VM with a 50GiB Ubuntu boot disk"
-             without a separate CreateDisk round-trip. The created Disk shows up in ListDisks and is
-             billed independently — DeleteVM does NOT delete it. Mutually exclusive with `boot_disk_name`.
-          $ref: '#/components/schemas/aes.compute.v1.BootDiskSpec'
-        vcpus:
-          type: integer
-          title: vcpus
-          format: int32
-          description: |-
-            Configurator shape — customer assembles their VM from priced components. All three are
-             REQUIRED; the server rejects with InvalidArgument if any is unset. Validated at the API
-             edge against the 1–16 GiB RAM-per-vCPU ratio bounds (services/pricing.Shape.Validate).
-        ramGib:
-          type: integer
-          title: ram_gib
-          format: int32
-        cpuClass:
-          type: string
-          title: cpu_class
-          description: |-
-            CPU class — picks the pricing_components.vcpu/<class> row. Must match a class that has
-             both pricing AND scheduler placement (worker host labels). Required.
-        cloneSourceVmName:
-          type: string
-          title: clone_source_vm_name
-          description: |-
-            Clone bookkeeping: when this create was issued by CloneVirtualMachine, the source VM
-             resource name. Threaded into the operation so the vm_provision workflow's
-             CloneFirewallRules activity can copy the source's custom firewall rules onto the clone
-             once its public IP is allocated. Empty for normal (non-clone) creates. Not customer-set.
-        linuxUsername:
-          type: string
-          title: linux_username
-          description: |-
-            Linux login user created by cloud-init and granted the injected SSH keys (`ssh
-             <linux_username>@<ip>`). REQUIRED — the server rejects an empty value with
-             InvalidArgument. Must be a valid Linux username: `^[a-z_][a-z0-9_-]{0,31}$`, and not
-             `root`. Clients should default it to the selected image's distro user (Ubuntu →
-             `ubuntu`, Debian → `debian`, etc.). Ignored when `user_data` is supplied — the customer's
-             raw cloud-config is the source of truth and defines its own users.
+        manifest:
+          title: manifest
+          $ref: '#/components/schemas/aes.compute.v1.VirtualMachineManifest'
       title: CreateVirtualMachineRequest
       additionalProperties: false
-    aes.compute.v1.CreateVirtualMachineRequest.AnnotationsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: AnnotationsEntry
-      additionalProperties: false
-    aes.compute.v1.CreateVirtualMachineRequest.LabelsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: LabelsEntry
-      additionalProperties: false
+      description: |-
+        CreateVirtualMachineRequest wraps the declarative manifest — the manifest IS the request body.
+         Internal control fields (clone source) never appear here: CloneVirtualMachine builds the create
+         input in-process rather than through this message.
     aes.compute.v1.CreateVirtualMachineResponse:
       type: object
       properties:
@@ -7888,6 +8280,20 @@ components:
     aes.compute.v1.DeleteVmSnapshotResponse:
       type: object
       title: DeleteVmSnapshotResponse
+      additionalProperties: false
+    aes.compute.v1.GPUSpec:
+      type: object
+      properties:
+        model:
+          type: string
+          title: model
+          description: GPU model published in the chosen DC (e.g. "rtx4090")
+        count:
+          type: integer
+          title: count
+          format: int32
+          description: whole GPUs to attach (≥1)
+      title: GPUSpec
       additionalProperties: false
     aes.compute.v1.GetVMMetricsRequest:
       type: object
@@ -8417,6 +8823,121 @@ components:
           $ref: '#/components/schemas/aes.compute.v1.VirtualMachine'
       title: StopVirtualMachineResponse
       additionalProperties: false
+    aes.compute.v1.UserSpec:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          description: Login name. `^[a-z_][a-z0-9_-]{0,31}$`, and not `root`. Required.
+        password:
+          type: string
+          title: password
+          description: |-
+            Optional plaintext password. Sent over TLS, hashed server-side ($6$ SHA-512 crypt) into the
+             cloud-init seed. NEVER persisted plaintext and never echoed back on Get/List. When any user
+             has a password, cloud-init `ssh_pwauth` is enabled; otherwise it stays disabled.
+        sudo:
+          type: boolean
+          title: sudo
+          description: Grant passwordless sudo (ALL=(ALL) NOPASSWD:ALL).
+        sshKeys:
+          type: array
+          items:
+            type: string
+          title: ssh_keys
+          description: |-
+            Registered SSHKey resource refs (`projects/{p}/ssh-keys/{id}`), merged into this user's
+             ssh_authorized_keys.
+        sshPubkey:
+          type: string
+          title: ssh_pubkey
+          description: Inline OpenSSH public key(s), newline-separated. Merged after ssh_keys.
+      title: UserSpec
+      additionalProperties: false
+    aes.compute.v1.VMBillingSpec:
+      type: object
+      properties:
+        mode:
+          title: mode
+          description: HOURLY (default) = per-hour usage. MONTHLY_* prepays the full term upfront at the tier discount.
+          $ref: '#/components/schemas/aes.compute.v1.BillingMode'
+        autorenew:
+          type: boolean
+          title: autorenew
+          description: 'For MONTHLY_*: auto-renew at term end. Ignored when HOURLY.'
+      title: VMBillingSpec
+      additionalProperties: false
+    aes.compute.v1.VMBootSpec:
+      type: object
+      properties:
+        image:
+          type: string
+          title: image
+          description: |-
+            Curated catalog image id (e.g. "ubuntu-24-04") — resolved server-side (pkg/osimage.Catalog)
+             to an image URL + the distro's default login user. Mutually exclusive with image_url/disk_name.
+        imageUrl:
+          type: string
+          title: image_url
+          description: |-
+            Raw streamable image URL (CDI http source) — escape hatch for non-catalog images. Mutually
+             exclusive with image/disk_name.
+        diskGib:
+          type: integer
+          title: disk_gib
+          format: int32
+          description: Boot disk size GiB (1..1024). Required when image/image_url is set.
+        diskName:
+          type: string
+          title: disk_name
+          description: |-
+            Bind a pre-existing Disk as boot instead of importing an image (`projects/{p}/disks/{id}`).
+             The disk must be AVAILABLE, same project+DC, unattached. Mutually exclusive with image/image_url.
+      title: VMBootSpec
+      additionalProperties: false
+    aes.compute.v1.VMComputeSpec:
+      type: object
+      properties:
+        cpuClass:
+          type: string
+          title: cpu_class
+          description: |-
+            CPU class — picks the pricing_components.vcpu/<class> row; must have pricing AND scheduler
+             placement. Required.
+        vcpus:
+          type: integer
+          title: vcpus
+          format: int32
+          description: required, validated against the RAM-per-vCPU ratio bounds
+        ramGib:
+          type: integer
+          title: ram_gib
+          format: int32
+          description: required
+        gpu:
+          title: gpu
+          description: Optional whole-GPU passthrough. Omit for a CPU-only VM.
+          $ref: '#/components/schemas/aes.compute.v1.GPUSpec'
+      title: VMComputeSpec
+      additionalProperties: false
+    aes.compute.v1.VMNetworkSpec:
+      type: object
+      properties:
+        network:
+          type: string
+          title: network
+          description: |-
+            Tenant network `projects/{p}/networks/{id}`. Empty → the project's default network
+             (auto-created lazily on first VM in the project + DC).
+        publicIpv4:
+          type: boolean
+          title: public_ipv4
+          description: |-
+            Allocate a public IPv4 from the DC pool for the VM's public NIC. Default false — VMs are
+             reachable over IPv6 (always allocated from the network's /64) without burning a public v4.
+      title: VMNetworkSpec
+      additionalProperties: false
     aes.compute.v1.VirtualMachine:
       type: object
       properties:
@@ -8568,6 +9089,17 @@ components:
         cpuClass:
           type: string
           title: cpu_class
+        gpuModel:
+          type: string
+          title: gpu_model
+          description: |-
+            Whole-GPU passthrough attached to the VM. gpu_model is the SKU variant (e.g. "rtx4090");
+             gpu_count is how many physical cards. Empty / 0 for a CPU-only VM. Stored on
+             compute_instances; drives the compute.gpu.<model>.runtime_hours meter.
+        gpuCount:
+          type: integer
+          title: gpu_count
+          format: int32
         currentCostPerHourMinorDecimal:
           type: string
           title: current_cost_per_hour_minor_decimal
@@ -8618,6 +9150,120 @@ components:
           type: string
           title: value
       title: LabelsEntry
+      additionalProperties: false
+    aes.compute.v1.VirtualMachineManifest:
+      type: object
+      properties:
+        apiVersion:
+          type: string
+          title: api_version
+          description: '"compute.metalhost.io/v1" (optional; validated when set)'
+        kind:
+          type: string
+          title: kind
+          description: '"VirtualMachine" (optional; validated when set)'
+        metadata:
+          title: metadata
+          $ref: '#/components/schemas/aes.compute.v1.VirtualMachineMetadata'
+        spec:
+          title: spec
+          $ref: '#/components/schemas/aes.compute.v1.VirtualMachineSpec'
+      title: VirtualMachineManifest
+      additionalProperties: false
+      description: |-
+        ───────────────────────────── Declarative VM manifest ─────────────────────────────
+         The customer-facing, CLI-and-web-shared create document (docs/specs/VM_DECLARATIVE_MANIFEST_AND_USERS.md).
+         CreateVirtualMachine takes this directly; the web configures it and sends it, and (planned)
+         `metalhost vm apply -f vm.yaml` deserializes YAML into the same message — one schema, the YAML
+         is just its serialization. api_version/kind round-trip the YAML form; the server validates them
+         when present but they carry no behavior (the RPC method already implies kind=VirtualMachine).
+    aes.compute.v1.VirtualMachineMetadata:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          description: Hostname (DNS-1123 label, ≤63 chars). Empty → server defaults to the VM's resource id slug.
+        project:
+          type: string
+          title: project
+          description: Owning project `projects/{slug}`. Empty → the principal's default project.
+        labels:
+          type: object
+          title: labels
+          additionalProperties:
+            type: string
+            title: value
+          description: User-facing labels stamped at create time (filterable). `aes.metalhost/*` keys are reserved.
+        annotations:
+          type: object
+          title: annotations
+          additionalProperties:
+            type: string
+            title: value
+          description: Operator notes / non-indexed metadata. Same `aes.metalhost/*` reservation.
+      title: VirtualMachineMetadata
+      additionalProperties: false
+    aes.compute.v1.VirtualMachineMetadata.AnnotationsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: AnnotationsEntry
+      additionalProperties: false
+    aes.compute.v1.VirtualMachineMetadata.LabelsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: LabelsEntry
+      additionalProperties: false
+    aes.compute.v1.VirtualMachineSpec:
+      type: object
+      properties:
+        region:
+          type: string
+          title: region
+          description: Target datacenter `datacenters/{slug}`. Required.
+        compute:
+          title: compute
+          description: Configurator shape. Required.
+          $ref: '#/components/schemas/aes.compute.v1.VMComputeSpec'
+        boot:
+          title: boot
+          description: Boot source. Required (one of image / image_url / disk_name).
+          $ref: '#/components/schemas/aes.compute.v1.VMBootSpec'
+        network:
+          title: network
+          description: Network attachment + public IP choice.
+          $ref: '#/components/schemas/aes.compute.v1.VMNetworkSpec'
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.compute.v1.UserSpec'
+          title: users
+          description: |-
+            Login users created via cloud-init. Empty AND cloud_init empty → no inbound login (console
+             only). When cloud_init is set it OWNS user creation and users is ignored.
+        cloudInit:
+          type: string
+          title: cloud_init
+          description: |-
+            Raw #cloud-config userdata. When set, replaces all generated cloud-init (users included).
+             Must be valid `#cloud-config` YAML.
+        billing:
+          title: billing
+          description: Billing term. Defaults to HOURLY.
+          $ref: '#/components/schemas/aes.compute.v1.VMBillingSpec'
+      title: VirtualMachineSpec
       additionalProperties: false
     aes.compute.v1.VmSnapshot:
       type: object
@@ -8771,6 +9417,22 @@ components:
              forces a credential-setup step (SetInitialPassword or LinkOidcProvider) before sending
              the user to the dashboard. Existing users get false here.
       title: AcceptInviteResponse
+      additionalProperties: false
+    aes.iam.v1.AcceptMyInviteRequest:
+      type: object
+      properties:
+        inviteId:
+          type: string
+          title: invite_id
+      title: AcceptMyInviteRequest
+      additionalProperties: false
+    aes.iam.v1.AcceptMyInviteResponse:
+      type: object
+      properties:
+        organizationName:
+          type: string
+          title: organization_name
+      title: AcceptMyInviteResponse
       additionalProperties: false
     aes.iam.v1.ApiKey:
       type: object
@@ -8977,6 +9639,18 @@ components:
           title: organization_name
           description: The org resource name `organizations/<slug>` that was created.
       title: CreateWorkspaceResponse
+      additionalProperties: false
+    aes.iam.v1.DeclineMyInviteRequest:
+      type: object
+      properties:
+        inviteId:
+          type: string
+          title: invite_id
+      title: DeclineMyInviteRequest
+      additionalProperties: false
+    aes.iam.v1.DeclineMyInviteResponse:
+      type: object
+      title: DeclineMyInviteResponse
       additionalProperties: false
     aes.iam.v1.EnrollMFARequest:
       type: object
@@ -9262,6 +9936,35 @@ components:
           title: mfa_devices
       title: ListMFADevicesResponse
       additionalProperties: false
+    aes.iam.v1.ListMyInvitesRequest:
+      type: object
+      title: ListMyInvitesRequest
+      additionalProperties: false
+    aes.iam.v1.ListMyInvitesResponse:
+      type: object
+      properties:
+        invites:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.iam.v1.MyInvite'
+          title: invites
+      title: ListMyInvitesResponse
+      additionalProperties: false
+    aes.iam.v1.ListMyOrganizationsRequest:
+      type: object
+      title: ListMyOrganizationsRequest
+      additionalProperties: false
+      description: ── Self-service multi-org messages ────────────────────────────────────────────────────────
+    aes.iam.v1.ListMyOrganizationsResponse:
+      type: object
+      properties:
+        organizations:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.iam.v1.OrgMembership'
+          title: organizations
+      title: ListMyOrganizationsResponse
+      additionalProperties: false
     aes.iam.v1.ListNotificationsRequest:
       type: object
       properties:
@@ -9486,6 +10189,32 @@ components:
           format: int32
       title: MarkNotificationsReadResponse
       additionalProperties: false
+    aes.iam.v1.MyInvite:
+      type: object
+      properties:
+        inviteId:
+          type: string
+          title: invite_id
+        organizationName:
+          type: string
+          title: organization_name
+        organizationDisplayName:
+          type: string
+          title: organization_display_name
+        role:
+          type: string
+          title: role
+        inviterPrincipal:
+          type: string
+          title: inviter_principal
+        expiresAtUnix:
+          type:
+            - integer
+            - string
+          title: expires_at_unix
+          format: int64
+      title: MyInvite
+      additionalProperties: false
     aes.iam.v1.Notification:
       type: object
       properties:
@@ -9564,6 +10293,26 @@ components:
             Most recent auth_sessions.last_used_at across this user's sessions, or 0 when none.
              Surfaced by GetOrgMember; unset on ListOrgMembers for the same reason as mfa_enrolled.
       title: OrgMember
+      additionalProperties: false
+    aes.iam.v1.OrgMembership:
+      type: object
+      properties:
+        organizationName:
+          type: string
+          title: organization_name
+          description: organizations/<slug>
+        organizationDisplayName:
+          type: string
+          title: organization_display_name
+        role:
+          type: string
+          title: role
+          description: caller's role in this org (org.admin wins if multiple)
+        state:
+          type: string
+          title: state
+          description: ACTIVE | SUSPENDED
+      title: OrgMembership
       additionalProperties: false
     aes.iam.v1.PendingInvite:
       type: object
@@ -11316,6 +12065,16 @@ components:
              (the Access-panel / `ssh <user>@<ip>` user). The user is ALSO baked into the cloud-config
              (vm_user_data) at the API edge; this field is purely for the persisted/displayed value.
              Empty when the VM was created with raw vm_user_data.
+        vmGpuModel:
+          type: string
+          title: vm_gpu_model
+          description: |-
+            GPU passthrough for vm_provision (docs/specs/GPU_POOLED_CAPACITY.md). vm_gpu_model selects a GPU
+             model; vm_gpu_count is the number of whole GPUs. Empty/0 = CPU-only VM.
+        vmGpuCount:
+          type: integer
+          title: vm_gpu_count
+          format: int32
       title: CreateOperationRequest
       additionalProperties: false
     aes.ops.v1.CreateOperationRequest.VmAnnotationsEntry:

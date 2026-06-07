@@ -22,6 +22,11 @@ service BareMetalService {
   // ListAvailableBareMetal returns published, unleased, priced hosts the caller can lease, with
   // discovered specs + monthly price. No BMC/serial identifiers are exposed.
   rpc ListAvailableBareMetal(ListAvailableBareMetalRequest) returns (ListAvailableBareMetalResponse);
+  // ListBareMetalInventory returns EVERY published bare-metal host on the platform — available
+  // AND leased — each tagged with its availability, so a browser can show the full fleet (leased
+  // nodes greyed out). PUBLIC + unauthenticated (see publicMetalhostProcedures): exposes only
+  // model/specs/price/DC/status — never the lessee, BMC, or serials.
+  rpc ListBareMetalInventory(ListBareMetalInventoryRequest) returns (ListBareMetalInventoryResponse);
   // QuoteBareMetal previews the cost of leasing a host under a billing mode (hourly rate, and the
   // prepay due now for a MONTHLY_* term at its discount). Mirrors ComputeService.QuoteVirtualMachine.
   rpc QuoteBareMetal(QuoteBareMetalRequest) returns (QuoteBareMetalResponse);
@@ -166,6 +171,51 @@ message ListAvailableBareMetalRequest {
 message ListAvailableBareMetalResponse {
   repeated AvailableBareMetal hosts = 1;
   string next_page_token = 2;
+}
+
+// Availability of a published bare-metal host in the public inventory.
+enum BareMetalAvailability {
+  BARE_METAL_AVAILABILITY_UNSPECIFIED = 0;
+  BARE_METAL_AVAILABILITY_AVAILABLE = 1;  // in the bookable pool (leasable now)
+  BARE_METAL_AVAILABILITY_LEASED = 2;     // currently leased to a customer
+}
+
+// BareMetalNode is one published host in the public inventory: the same spec fields as
+// AvailableBareMetal plus an availability tag and (when present) GPU model/count. No lessee, BMC,
+// or serial is ever projected.
+message BareMetalNode {
+  string host_name = 1;  // hosts/{slug}
+  string datacenter_name = 2;
+  string spec_label = 3;
+  string cpu_model = 4;
+  string cpu_generation = 5;
+  int32 total_cores = 6;
+  int32 ram_gib = 7;
+  int32 storage_gib = 8;
+  // Listed monthly price (hourly = monthly/730). 0 when the host is unpriced.
+  int64 monthly_price_minor = 9;
+  string currency = 10;
+  BareMetalAvailability availability = 11;
+  // GPU model + count when this is a GPU node (empty/0 otherwise). cpu_generation already carries
+  // the CPU class, so heterogeneous fleets (incl. AMD-CPU GPU boxes) are described per-node.
+  string gpu_model = 12;
+  int32 gpu_count = 13;
+}
+
+message ListBareMetalInventoryRequest {
+  // Optional filter to one datacenter.
+  string datacenter_name = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListBareMetalInventoryResponse {
+  repeated BareMetalNode nodes = 1;
+  string next_page_token = 2;
+  // Fleet totals for the current filter (whole fleet, not just this page).
+  int32 total = 3;
+  int32 available = 4;
+  int32 leased = 5;
 }
 
 message QuoteBareMetalRequest {

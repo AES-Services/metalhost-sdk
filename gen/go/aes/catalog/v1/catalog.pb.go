@@ -83,6 +83,430 @@ func (DatacenterState) EnumDescriptor() ([]byte, []int) {
 	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{0}
 }
 
+type GetVMCapacityRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Optional filter to one datacenter. Empty = all READY/DEGRADED DCs.
+	DatacenterName string `protobuf:"bytes,1,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetVMCapacityRequest) Reset() {
+	*x = GetVMCapacityRequest{}
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVMCapacityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVMCapacityRequest) ProtoMessage() {}
+
+func (x *GetVMCapacityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVMCapacityRequest.ProtoReflect.Descriptor instead.
+func (*GetVMCapacityRequest) Descriptor() ([]byte, []int) {
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *GetVMCapacityRequest) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+// GpuModelCapacity is the whole-GPU availability for one GPU model within a pool.
+type GpuModelCapacity struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	GpuModel string                 `protobuf:"bytes,1,opt,name=gpu_model,json=gpuModel,proto3" json:"gpu_model,omitempty"` // e.g. "h100"
+	Total    int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`                      // allocatable GPUs of this model in the pool
+	Free     int32                  `protobuf:"varint,3,opt,name=free,proto3" json:"free,omitempty"`                        // currently unleased
+	// Operator-set per-GPU reservation kept free for an unsold GPU (physical units). Informational.
+	ReserveVcpu   int64 `protobuf:"varint,4,opt,name=reserve_vcpu,json=reserveVcpu,proto3" json:"reserve_vcpu,omitempty"`
+	ReserveRamGib int64 `protobuf:"varint,5,opt,name=reserve_ram_gib,json=reserveRamGib,proto3" json:"reserve_ram_gib,omitempty"`
+	// Largest single VM (vCPU / RAM, oversubscribe-adjusted) that can schedule on the most-free node
+	// currently holding a free GPU of this model — RAW node free, BEFORE the reservation kept for the
+	// node's other unsold GPUs. A GPU VM lands on ONE node, so this — not the pool sum — bounds how
+	// big a GPU VM can be. 0 when the live probe is unavailable.
+	MaxNodeFreeVcpu   int64 `protobuf:"varint,6,opt,name=max_node_free_vcpu,json=maxNodeFreeVcpu,proto3" json:"max_node_free_vcpu,omitempty"`
+	MaxNodeFreeRamGib int64 `protobuf:"varint,7,opt,name=max_node_free_ram_gib,json=maxNodeFreeRamGib,proto3" json:"max_node_free_ram_gib,omitempty"`
+	// Free GPUs of this model on that same representative node. The configurator subtracts
+	// reserve_* × (max_node_free_gpus − requested_count) from the raw node free above, so renting MORE
+	// GPUs frees the reservation held for the node's remaining GPUs (more CPU/RAM for the VM).
+	MaxNodeFreeGpus int32 `protobuf:"varint,8,opt,name=max_node_free_gpus,json=maxNodeFreeGpus,proto3" json:"max_node_free_gpus,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *GpuModelCapacity) Reset() {
+	*x = GpuModelCapacity{}
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GpuModelCapacity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GpuModelCapacity) ProtoMessage() {}
+
+func (x *GpuModelCapacity) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GpuModelCapacity.ProtoReflect.Descriptor instead.
+func (*GpuModelCapacity) Descriptor() ([]byte, []int) {
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GpuModelCapacity) GetGpuModel() string {
+	if x != nil {
+		return x.GpuModel
+	}
+	return ""
+}
+
+func (x *GpuModelCapacity) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *GpuModelCapacity) GetFree() int32 {
+	if x != nil {
+		return x.Free
+	}
+	return 0
+}
+
+func (x *GpuModelCapacity) GetReserveVcpu() int64 {
+	if x != nil {
+		return x.ReserveVcpu
+	}
+	return 0
+}
+
+func (x *GpuModelCapacity) GetReserveRamGib() int64 {
+	if x != nil {
+		return x.ReserveRamGib
+	}
+	return 0
+}
+
+func (x *GpuModelCapacity) GetMaxNodeFreeVcpu() int64 {
+	if x != nil {
+		return x.MaxNodeFreeVcpu
+	}
+	return 0
+}
+
+func (x *GpuModelCapacity) GetMaxNodeFreeRamGib() int64 {
+	if x != nil {
+		return x.MaxNodeFreeRamGib
+	}
+	return 0
+}
+
+func (x *GpuModelCapacity) GetMaxNodeFreeGpus() int32 {
+	if x != nil {
+		return x.MaxNodeFreeGpus
+	}
+	return 0
+}
+
+// VMClassCapacity is the sellable capacity of one pool = (datacenter, cpu_class).
+type VMClassCapacity struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	CpuClass       string                 `protobuf:"bytes,1,opt,name=cpu_class,json=cpuClass,proto3" json:"cpu_class,omitempty"` // e.g. "cascadelake", "genoa"
+	SellableVcpu   int64                  `protobuf:"varint,2,opt,name=sellable_vcpu,json=sellableVcpu,proto3" json:"sellable_vcpu,omitempty"`
+	FreeVcpu       int64                  `protobuf:"varint,3,opt,name=free_vcpu,json=freeVcpu,proto3" json:"free_vcpu,omitempty"`
+	SellableRamGib int64                  `protobuf:"varint,4,opt,name=sellable_ram_gib,json=sellableRamGib,proto3" json:"sellable_ram_gib,omitempty"`
+	FreeRamGib     int64                  `protobuf:"varint,5,opt,name=free_ram_gib,json=freeRamGib,proto3" json:"free_ram_gib,omitempty"`
+	// Most-utilized dimension (cpu/ram/gpu) as 0..100 — a pool is "full" when this hits 100 even if
+	// another dimension has headroom (binding-resource rule).
+	CapacityPct int32 `protobuf:"varint,6,opt,name=capacity_pct,json=capacityPct,proto3" json:"capacity_pct,omitempty"`
+	// GPU availability per model in this pool (empty for non-GPU pools).
+	Gpus []*GpuModelCapacity `protobuf:"bytes,7,rep,name=gpus,proto3" json:"gpus,omitempty"`
+	// Largest single CPU VM (vCPU / RAM, oversubscribe-adjusted) that can schedule on this class's
+	// most-free node. A VM lands on ONE node, so this bounds the configurator sliders — the pool
+	// sum (free_vcpu/free_ram_gib) can be admitted but then stay Pending if no single node fits.
+	// 0 when the live probe is unavailable.
+	MaxNodeFreeVcpu   int64 `protobuf:"varint,8,opt,name=max_node_free_vcpu,json=maxNodeFreeVcpu,proto3" json:"max_node_free_vcpu,omitempty"`
+	MaxNodeFreeRamGib int64 `protobuf:"varint,9,opt,name=max_node_free_ram_gib,json=maxNodeFreeRamGib,proto3" json:"max_node_free_ram_gib,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *VMClassCapacity) Reset() {
+	*x = VMClassCapacity{}
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VMClassCapacity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VMClassCapacity) ProtoMessage() {}
+
+func (x *VMClassCapacity) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VMClassCapacity.ProtoReflect.Descriptor instead.
+func (*VMClassCapacity) Descriptor() ([]byte, []int) {
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *VMClassCapacity) GetCpuClass() string {
+	if x != nil {
+		return x.CpuClass
+	}
+	return ""
+}
+
+func (x *VMClassCapacity) GetSellableVcpu() int64 {
+	if x != nil {
+		return x.SellableVcpu
+	}
+	return 0
+}
+
+func (x *VMClassCapacity) GetFreeVcpu() int64 {
+	if x != nil {
+		return x.FreeVcpu
+	}
+	return 0
+}
+
+func (x *VMClassCapacity) GetSellableRamGib() int64 {
+	if x != nil {
+		return x.SellableRamGib
+	}
+	return 0
+}
+
+func (x *VMClassCapacity) GetFreeRamGib() int64 {
+	if x != nil {
+		return x.FreeRamGib
+	}
+	return 0
+}
+
+func (x *VMClassCapacity) GetCapacityPct() int32 {
+	if x != nil {
+		return x.CapacityPct
+	}
+	return 0
+}
+
+func (x *VMClassCapacity) GetGpus() []*GpuModelCapacity {
+	if x != nil {
+		return x.Gpus
+	}
+	return nil
+}
+
+func (x *VMClassCapacity) GetMaxNodeFreeVcpu() int64 {
+	if x != nil {
+		return x.MaxNodeFreeVcpu
+	}
+	return 0
+}
+
+func (x *VMClassCapacity) GetMaxNodeFreeRamGib() int64 {
+	if x != nil {
+		return x.MaxNodeFreeRamGib
+	}
+	return 0
+}
+
+// DatacenterVMCapacity rolls the pool breakdown up to the datacenter. The rollup fields (4-8) are
+// the sum across by_cpu_class; simple consumers can read those and ignore the breakdown.
+type DatacenterVMCapacity struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	DatacenterName string                 `protobuf:"bytes,1,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	Status         string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`                               // READY / DEGRADED
+	CapacityPct    int32                  `protobuf:"varint,3,opt,name=capacity_pct,json=capacityPct,proto3" json:"capacity_pct,omitempty"` // max across classes
+	SellableVcpu   int64                  `protobuf:"varint,4,opt,name=sellable_vcpu,json=sellableVcpu,proto3" json:"sellable_vcpu,omitempty"`
+	FreeVcpu       int64                  `protobuf:"varint,5,opt,name=free_vcpu,json=freeVcpu,proto3" json:"free_vcpu,omitempty"`
+	SellableRamGib int64                  `protobuf:"varint,6,opt,name=sellable_ram_gib,json=sellableRamGib,proto3" json:"sellable_ram_gib,omitempty"`
+	FreeRamGib     int64                  `protobuf:"varint,7,opt,name=free_ram_gib,json=freeRamGib,proto3" json:"free_ram_gib,omitempty"`
+	StorageFreeGib int64                  `protobuf:"varint,8,opt,name=storage_free_gib,json=storageFreeGib,proto3" json:"storage_free_gib,omitempty"`
+	ByCpuClass     []*VMClassCapacity     `protobuf:"bytes,9,rep,name=by_cpu_class,json=byCpuClass,proto3" json:"by_cpu_class,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *DatacenterVMCapacity) Reset() {
+	*x = DatacenterVMCapacity{}
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DatacenterVMCapacity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DatacenterVMCapacity) ProtoMessage() {}
+
+func (x *DatacenterVMCapacity) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DatacenterVMCapacity.ProtoReflect.Descriptor instead.
+func (*DatacenterVMCapacity) Descriptor() ([]byte, []int) {
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *DatacenterVMCapacity) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *DatacenterVMCapacity) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *DatacenterVMCapacity) GetCapacityPct() int32 {
+	if x != nil {
+		return x.CapacityPct
+	}
+	return 0
+}
+
+func (x *DatacenterVMCapacity) GetSellableVcpu() int64 {
+	if x != nil {
+		return x.SellableVcpu
+	}
+	return 0
+}
+
+func (x *DatacenterVMCapacity) GetFreeVcpu() int64 {
+	if x != nil {
+		return x.FreeVcpu
+	}
+	return 0
+}
+
+func (x *DatacenterVMCapacity) GetSellableRamGib() int64 {
+	if x != nil {
+		return x.SellableRamGib
+	}
+	return 0
+}
+
+func (x *DatacenterVMCapacity) GetFreeRamGib() int64 {
+	if x != nil {
+		return x.FreeRamGib
+	}
+	return 0
+}
+
+func (x *DatacenterVMCapacity) GetStorageFreeGib() int64 {
+	if x != nil {
+		return x.StorageFreeGib
+	}
+	return 0
+}
+
+func (x *DatacenterVMCapacity) GetByCpuClass() []*VMClassCapacity {
+	if x != nil {
+		return x.ByCpuClass
+	}
+	return nil
+}
+
+type GetVMCapacityResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Datacenters   []*DatacenterVMCapacity `protobuf:"bytes,1,rep,name=datacenters,proto3" json:"datacenters,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVMCapacityResponse) Reset() {
+	*x = GetVMCapacityResponse{}
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVMCapacityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVMCapacityResponse) ProtoMessage() {}
+
+func (x *GetVMCapacityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVMCapacityResponse.ProtoReflect.Descriptor instead.
+func (*GetVMCapacityResponse) Descriptor() ([]byte, []int) {
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetVMCapacityResponse) GetDatacenters() []*DatacenterVMCapacity {
+	if x != nil {
+		return x.Datacenters
+	}
+	return nil
+}
+
 type Datacenter struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Resource name, e.g. `datacenters/us-dal-1`.
@@ -110,7 +534,7 @@ type Datacenter struct {
 
 func (x *Datacenter) Reset() {
 	*x = Datacenter{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[0]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -122,7 +546,7 @@ func (x *Datacenter) String() string {
 func (*Datacenter) ProtoMessage() {}
 
 func (x *Datacenter) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[0]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -135,7 +559,7 @@ func (x *Datacenter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Datacenter.ProtoReflect.Descriptor instead.
 func (*Datacenter) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{0}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Datacenter) GetName() string {
@@ -220,7 +644,7 @@ type ListDatacentersRequest struct {
 
 func (x *ListDatacentersRequest) Reset() {
 	*x = ListDatacentersRequest{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[1]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -232,7 +656,7 @@ func (x *ListDatacentersRequest) String() string {
 func (*ListDatacentersRequest) ProtoMessage() {}
 
 func (x *ListDatacentersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[1]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -245,7 +669,7 @@ func (x *ListDatacentersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatacentersRequest.ProtoReflect.Descriptor instead.
 func (*ListDatacentersRequest) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{1}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ListDatacentersRequest) GetPageSize() int32 {
@@ -279,7 +703,7 @@ type ListDatacentersResponse struct {
 
 func (x *ListDatacentersResponse) Reset() {
 	*x = ListDatacentersResponse{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[2]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -291,7 +715,7 @@ func (x *ListDatacentersResponse) String() string {
 func (*ListDatacentersResponse) ProtoMessage() {}
 
 func (x *ListDatacentersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[2]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -304,7 +728,7 @@ func (x *ListDatacentersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatacentersResponse.ProtoReflect.Descriptor instead.
 func (*ListDatacentersResponse) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{2}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListDatacentersResponse) GetDatacenters() []*Datacenter {
@@ -353,7 +777,7 @@ type RegionHealth struct {
 
 func (x *RegionHealth) Reset() {
 	*x = RegionHealth{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[3]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -365,7 +789,7 @@ func (x *RegionHealth) String() string {
 func (*RegionHealth) ProtoMessage() {}
 
 func (x *RegionHealth) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[3]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -378,7 +802,7 @@ func (x *RegionHealth) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegionHealth.ProtoReflect.Descriptor instead.
 func (*RegionHealth) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{3}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *RegionHealth) GetDatacenterName() string {
@@ -488,7 +912,7 @@ type GetRegionHealthRequest struct {
 
 func (x *GetRegionHealthRequest) Reset() {
 	*x = GetRegionHealthRequest{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[4]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -500,7 +924,7 @@ func (x *GetRegionHealthRequest) String() string {
 func (*GetRegionHealthRequest) ProtoMessage() {}
 
 func (x *GetRegionHealthRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[4]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -513,7 +937,7 @@ func (x *GetRegionHealthRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRegionHealthRequest.ProtoReflect.Descriptor instead.
 func (*GetRegionHealthRequest) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{4}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetRegionHealthRequest) GetDatacenterName() string {
@@ -532,7 +956,7 @@ type GetRegionHealthResponse struct {
 
 func (x *GetRegionHealthResponse) Reset() {
 	*x = GetRegionHealthResponse{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[5]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -544,7 +968,7 @@ func (x *GetRegionHealthResponse) String() string {
 func (*GetRegionHealthResponse) ProtoMessage() {}
 
 func (x *GetRegionHealthResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[5]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -557,7 +981,7 @@ func (x *GetRegionHealthResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRegionHealthResponse.ProtoReflect.Descriptor instead.
 func (*GetRegionHealthResponse) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{5}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetRegionHealthResponse) GetHealth() *RegionHealth {
@@ -584,7 +1008,7 @@ type MaintenanceWindow struct {
 
 func (x *MaintenanceWindow) Reset() {
 	*x = MaintenanceWindow{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[6]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -596,7 +1020,7 @@ func (x *MaintenanceWindow) String() string {
 func (*MaintenanceWindow) ProtoMessage() {}
 
 func (x *MaintenanceWindow) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[6]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -609,7 +1033,7 @@ func (x *MaintenanceWindow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MaintenanceWindow.ProtoReflect.Descriptor instead.
 func (*MaintenanceWindow) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{6}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *MaintenanceWindow) GetName() string {
@@ -675,7 +1099,7 @@ type ListMaintenanceWindowsRequest struct {
 
 func (x *ListMaintenanceWindowsRequest) Reset() {
 	*x = ListMaintenanceWindowsRequest{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[7]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -687,7 +1111,7 @@ func (x *ListMaintenanceWindowsRequest) String() string {
 func (*ListMaintenanceWindowsRequest) ProtoMessage() {}
 
 func (x *ListMaintenanceWindowsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[7]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -700,7 +1124,7 @@ func (x *ListMaintenanceWindowsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMaintenanceWindowsRequest.ProtoReflect.Descriptor instead.
 func (*ListMaintenanceWindowsRequest) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{7}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListMaintenanceWindowsRequest) GetDatacenterName() string {
@@ -741,7 +1165,7 @@ type ListMaintenanceWindowsResponse struct {
 
 func (x *ListMaintenanceWindowsResponse) Reset() {
 	*x = ListMaintenanceWindowsResponse{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[8]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -753,7 +1177,7 @@ func (x *ListMaintenanceWindowsResponse) String() string {
 func (*ListMaintenanceWindowsResponse) ProtoMessage() {}
 
 func (x *ListMaintenanceWindowsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[8]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -766,7 +1190,7 @@ func (x *ListMaintenanceWindowsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMaintenanceWindowsResponse.ProtoReflect.Descriptor instead.
 func (*ListMaintenanceWindowsResponse) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{8}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListMaintenanceWindowsResponse) GetMaintenanceWindows() []*MaintenanceWindow {
@@ -794,13 +1218,17 @@ type QuoteVirtualMachineRequest struct {
 	ExtraDiskGib    int32  `protobuf:"varint,5,opt,name=extra_disk_gib,json=extraDiskGib,proto3" json:"extra_disk_gib,omitempty"`
 	PublicIpv4Count int32  `protobuf:"varint,6,opt,name=public_ipv4_count,json=publicIpv4Count,proto3" json:"public_ipv4_count,omitempty"`
 	Currency        string `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"` // default USD
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Whole-GPU passthrough. gpu_model is the SKU variant (e.g. "rtx4090"), gpu_count the number of
+	// cards; priced via compute.gpu.<model>.runtime_hours. Empty/0 = CPU-only quote.
+	GpuModel      string `protobuf:"bytes,8,opt,name=gpu_model,json=gpuModel,proto3" json:"gpu_model,omitempty"`
+	GpuCount      int32  `protobuf:"varint,9,opt,name=gpu_count,json=gpuCount,proto3" json:"gpu_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *QuoteVirtualMachineRequest) Reset() {
 	*x = QuoteVirtualMachineRequest{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[9]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -812,7 +1240,7 @@ func (x *QuoteVirtualMachineRequest) String() string {
 func (*QuoteVirtualMachineRequest) ProtoMessage() {}
 
 func (x *QuoteVirtualMachineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[9]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -825,7 +1253,7 @@ func (x *QuoteVirtualMachineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuoteVirtualMachineRequest.ProtoReflect.Descriptor instead.
 func (*QuoteVirtualMachineRequest) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{9}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *QuoteVirtualMachineRequest) GetVcpus() int32 {
@@ -877,6 +1305,20 @@ func (x *QuoteVirtualMachineRequest) GetCurrency() string {
 	return ""
 }
 
+func (x *QuoteVirtualMachineRequest) GetGpuModel() string {
+	if x != nil {
+		return x.GpuModel
+	}
+	return ""
+}
+
+func (x *QuoteVirtualMachineRequest) GetGpuCount() int32 {
+	if x != nil {
+		return x.GpuCount
+	}
+	return 0
+}
+
 type QuoteVirtualMachineResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// ROUND-to-int64 view for clients that don't want to parse decimals. For shapes whose
@@ -905,7 +1347,7 @@ type QuoteVirtualMachineResponse struct {
 
 func (x *QuoteVirtualMachineResponse) Reset() {
 	*x = QuoteVirtualMachineResponse{}
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[10]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -917,7 +1359,7 @@ func (x *QuoteVirtualMachineResponse) String() string {
 func (*QuoteVirtualMachineResponse) ProtoMessage() {}
 
 func (x *QuoteVirtualMachineResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[10]
+	mi := &file_aes_catalog_v1_catalog_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -930,7 +1372,7 @@ func (x *QuoteVirtualMachineResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuoteVirtualMachineResponse.ProtoReflect.Descriptor instead.
 func (*QuoteVirtualMachineResponse) Descriptor() ([]byte, []int) {
-	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{10}
+	return file_aes_catalog_v1_catalog_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *QuoteVirtualMachineResponse) GetHourlyMinor() int64 {
@@ -1014,7 +1456,43 @@ var File_aes_catalog_v1_catalog_proto protoreflect.FileDescriptor
 
 const file_aes_catalog_v1_catalog_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/catalog/v1/catalog.proto\x12\x0eaes.catalog.v1\"\xef\x04\n" +
+	"\x1caes/catalog/v1/catalog.proto\x12\x0eaes.catalog.v1\"?\n" +
+	"\x14GetVMCapacityRequest\x12'\n" +
+	"\x0fdatacenter_name\x18\x01 \x01(\tR\x0edatacenterName\"\xb0\x02\n" +
+	"\x10GpuModelCapacity\x12\x1b\n" +
+	"\tgpu_model\x18\x01 \x01(\tR\bgpuModel\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04free\x18\x03 \x01(\x05R\x04free\x12!\n" +
+	"\freserve_vcpu\x18\x04 \x01(\x03R\vreserveVcpu\x12&\n" +
+	"\x0freserve_ram_gib\x18\x05 \x01(\x03R\rreserveRamGib\x12+\n" +
+	"\x12max_node_free_vcpu\x18\x06 \x01(\x03R\x0fmaxNodeFreeVcpu\x120\n" +
+	"\x15max_node_free_ram_gib\x18\a \x01(\x03R\x11maxNodeFreeRamGib\x12+\n" +
+	"\x12max_node_free_gpus\x18\b \x01(\x05R\x0fmaxNodeFreeGpus\"\xf4\x02\n" +
+	"\x0fVMClassCapacity\x12\x1b\n" +
+	"\tcpu_class\x18\x01 \x01(\tR\bcpuClass\x12#\n" +
+	"\rsellable_vcpu\x18\x02 \x01(\x03R\fsellableVcpu\x12\x1b\n" +
+	"\tfree_vcpu\x18\x03 \x01(\x03R\bfreeVcpu\x12(\n" +
+	"\x10sellable_ram_gib\x18\x04 \x01(\x03R\x0esellableRamGib\x12 \n" +
+	"\ffree_ram_gib\x18\x05 \x01(\x03R\n" +
+	"freeRamGib\x12!\n" +
+	"\fcapacity_pct\x18\x06 \x01(\x05R\vcapacityPct\x124\n" +
+	"\x04gpus\x18\a \x03(\v2 .aes.catalog.v1.GpuModelCapacityR\x04gpus\x12+\n" +
+	"\x12max_node_free_vcpu\x18\b \x01(\x03R\x0fmaxNodeFreeVcpu\x120\n" +
+	"\x15max_node_free_ram_gib\x18\t \x01(\x03R\x11maxNodeFreeRamGib\"\xf5\x02\n" +
+	"\x14DatacenterVMCapacity\x12'\n" +
+	"\x0fdatacenter_name\x18\x01 \x01(\tR\x0edatacenterName\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x12!\n" +
+	"\fcapacity_pct\x18\x03 \x01(\x05R\vcapacityPct\x12#\n" +
+	"\rsellable_vcpu\x18\x04 \x01(\x03R\fsellableVcpu\x12\x1b\n" +
+	"\tfree_vcpu\x18\x05 \x01(\x03R\bfreeVcpu\x12(\n" +
+	"\x10sellable_ram_gib\x18\x06 \x01(\x03R\x0esellableRamGib\x12 \n" +
+	"\ffree_ram_gib\x18\a \x01(\x03R\n" +
+	"freeRamGib\x12(\n" +
+	"\x10storage_free_gib\x18\b \x01(\x03R\x0estorageFreeGib\x12A\n" +
+	"\fby_cpu_class\x18\t \x03(\v2\x1f.aes.catalog.v1.VMClassCapacityR\n" +
+	"byCpuClass\"_\n" +
+	"\x15GetVMCapacityResponse\x12F\n" +
+	"\vdatacenters\x18\x01 \x03(\v2$.aes.catalog.v1.DatacenterVMCapacityR\vdatacenters\"\xef\x04\n" +
 	"\n" +
 	"Datacenter\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
@@ -1080,7 +1558,7 @@ const file_aes_catalog_v1_catalog_proto_rawDesc = "" +
 	"page_token\x18\x04 \x01(\tR\tpageToken\"\x9c\x01\n" +
 	"\x1eListMaintenanceWindowsResponse\x12R\n" +
 	"\x13maintenance_windows\x18\x01 \x03(\v2!.aes.catalog.v1.MaintenanceWindowR\x12maintenanceWindows\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xfa\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xb4\x02\n" +
 	"\x1aQuoteVirtualMachineRequest\x12\x14\n" +
 	"\x05vcpus\x18\x01 \x01(\x05R\x05vcpus\x12\x17\n" +
 	"\aram_gib\x18\x02 \x01(\x05R\x06ramGib\x12\x1b\n" +
@@ -1088,7 +1566,9 @@ const file_aes_catalog_v1_catalog_proto_rawDesc = "" +
 	"\rboot_disk_gib\x18\x04 \x01(\x05R\vbootDiskGib\x12$\n" +
 	"\x0eextra_disk_gib\x18\x05 \x01(\x05R\fextraDiskGib\x12*\n" +
 	"\x11public_ipv4_count\x18\x06 \x01(\x05R\x0fpublicIpv4Count\x12\x1a\n" +
-	"\bcurrency\x18\a \x01(\tR\bcurrency\"\x8e\x04\n" +
+	"\bcurrency\x18\a \x01(\tR\bcurrency\x12\x1b\n" +
+	"\tgpu_model\x18\b \x01(\tR\bgpuModel\x12\x1b\n" +
+	"\tgpu_count\x18\t \x01(\x05R\bgpuCount\"\x8e\x04\n" +
 	"\x1bQuoteVirtualMachineResponse\x12!\n" +
 	"\fhourly_minor\x18\x01 \x01(\x03R\vhourlyMinor\x12&\n" +
 	"\x0fmonthly_1_minor\x18\x02 \x01(\x03R\rmonthly1Minor\x12&\n" +
@@ -1109,12 +1589,13 @@ const file_aes_catalog_v1_catalog_proto_rawDesc = "" +
 	"\x16DATACENTER_STATE_READY\x10\x03\x12\x1d\n" +
 	"\x19DATACENTER_STATE_DEGRADED\x10\x04\x12#\n" +
 	"\x1fDATACENTER_STATE_DEPROVISIONING\x10\x05\x12\x1c\n" +
-	"\x18DATACENTER_STATE_RETIRED\x10\x062\xc1\x03\n" +
+	"\x18DATACENTER_STATE_RETIRED\x10\x062\x9f\x04\n" +
 	"\x0eCatalogService\x12b\n" +
 	"\x0fListDatacenters\x12&.aes.catalog.v1.ListDatacentersRequest\x1a'.aes.catalog.v1.ListDatacentersResponse\x12b\n" +
 	"\x0fGetRegionHealth\x12&.aes.catalog.v1.GetRegionHealthRequest\x1a'.aes.catalog.v1.GetRegionHealthResponse\x12w\n" +
 	"\x16ListMaintenanceWindows\x12-.aes.catalog.v1.ListMaintenanceWindowsRequest\x1a..aes.catalog.v1.ListMaintenanceWindowsResponse\x12n\n" +
-	"\x13QuoteVirtualMachine\x12*.aes.catalog.v1.QuoteVirtualMachineRequest\x1a+.aes.catalog.v1.QuoteVirtualMachineResponseB\xc3\x01\n" +
+	"\x13QuoteVirtualMachine\x12*.aes.catalog.v1.QuoteVirtualMachineRequest\x1a+.aes.catalog.v1.QuoteVirtualMachineResponse\x12\\\n" +
+	"\rGetVMCapacity\x12$.aes.catalog.v1.GetVMCapacityRequest\x1a%.aes.catalog.v1.GetVMCapacityResponseB\xc3\x01\n" +
 	"\x12com.aes.catalog.v1B\fCatalogProtoP\x01ZEgithub.com/AES-Services/metalhost-sdk/gen/go/aes/catalog/v1;catalogv1\xa2\x02\x03ACX\xaa\x02\x0eAes.Catalog.V1\xca\x02\x0eAes\\Catalog\\V1\xe2\x02\x1aAes\\Catalog\\V1\\GPBMetadata\xea\x02\x10Aes::Catalog::V1b\x06proto3"
 
 var (
@@ -1130,43 +1611,53 @@ func file_aes_catalog_v1_catalog_proto_rawDescGZIP() []byte {
 }
 
 var file_aes_catalog_v1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_aes_catalog_v1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_aes_catalog_v1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_aes_catalog_v1_catalog_proto_goTypes = []any{
 	(DatacenterState)(0),                   // 0: aes.catalog.v1.DatacenterState
-	(*Datacenter)(nil),                     // 1: aes.catalog.v1.Datacenter
-	(*ListDatacentersRequest)(nil),         // 2: aes.catalog.v1.ListDatacentersRequest
-	(*ListDatacentersResponse)(nil),        // 3: aes.catalog.v1.ListDatacentersResponse
-	(*RegionHealth)(nil),                   // 4: aes.catalog.v1.RegionHealth
-	(*GetRegionHealthRequest)(nil),         // 5: aes.catalog.v1.GetRegionHealthRequest
-	(*GetRegionHealthResponse)(nil),        // 6: aes.catalog.v1.GetRegionHealthResponse
-	(*MaintenanceWindow)(nil),              // 7: aes.catalog.v1.MaintenanceWindow
-	(*ListMaintenanceWindowsRequest)(nil),  // 8: aes.catalog.v1.ListMaintenanceWindowsRequest
-	(*ListMaintenanceWindowsResponse)(nil), // 9: aes.catalog.v1.ListMaintenanceWindowsResponse
-	(*QuoteVirtualMachineRequest)(nil),     // 10: aes.catalog.v1.QuoteVirtualMachineRequest
-	(*QuoteVirtualMachineResponse)(nil),    // 11: aes.catalog.v1.QuoteVirtualMachineResponse
-	nil,                                    // 12: aes.catalog.v1.Datacenter.LabelsEntry
-	nil,                                    // 13: aes.catalog.v1.Datacenter.AnnotationsEntry
+	(*GetVMCapacityRequest)(nil),           // 1: aes.catalog.v1.GetVMCapacityRequest
+	(*GpuModelCapacity)(nil),               // 2: aes.catalog.v1.GpuModelCapacity
+	(*VMClassCapacity)(nil),                // 3: aes.catalog.v1.VMClassCapacity
+	(*DatacenterVMCapacity)(nil),           // 4: aes.catalog.v1.DatacenterVMCapacity
+	(*GetVMCapacityResponse)(nil),          // 5: aes.catalog.v1.GetVMCapacityResponse
+	(*Datacenter)(nil),                     // 6: aes.catalog.v1.Datacenter
+	(*ListDatacentersRequest)(nil),         // 7: aes.catalog.v1.ListDatacentersRequest
+	(*ListDatacentersResponse)(nil),        // 8: aes.catalog.v1.ListDatacentersResponse
+	(*RegionHealth)(nil),                   // 9: aes.catalog.v1.RegionHealth
+	(*GetRegionHealthRequest)(nil),         // 10: aes.catalog.v1.GetRegionHealthRequest
+	(*GetRegionHealthResponse)(nil),        // 11: aes.catalog.v1.GetRegionHealthResponse
+	(*MaintenanceWindow)(nil),              // 12: aes.catalog.v1.MaintenanceWindow
+	(*ListMaintenanceWindowsRequest)(nil),  // 13: aes.catalog.v1.ListMaintenanceWindowsRequest
+	(*ListMaintenanceWindowsResponse)(nil), // 14: aes.catalog.v1.ListMaintenanceWindowsResponse
+	(*QuoteVirtualMachineRequest)(nil),     // 15: aes.catalog.v1.QuoteVirtualMachineRequest
+	(*QuoteVirtualMachineResponse)(nil),    // 16: aes.catalog.v1.QuoteVirtualMachineResponse
+	nil,                                    // 17: aes.catalog.v1.Datacenter.LabelsEntry
+	nil,                                    // 18: aes.catalog.v1.Datacenter.AnnotationsEntry
 }
 var file_aes_catalog_v1_catalog_proto_depIdxs = []int32{
-	0,  // 0: aes.catalog.v1.Datacenter.state:type_name -> aes.catalog.v1.DatacenterState
-	12, // 1: aes.catalog.v1.Datacenter.labels:type_name -> aes.catalog.v1.Datacenter.LabelsEntry
-	13, // 2: aes.catalog.v1.Datacenter.annotations:type_name -> aes.catalog.v1.Datacenter.AnnotationsEntry
-	1,  // 3: aes.catalog.v1.ListDatacentersResponse.datacenters:type_name -> aes.catalog.v1.Datacenter
-	4,  // 4: aes.catalog.v1.GetRegionHealthResponse.health:type_name -> aes.catalog.v1.RegionHealth
-	7,  // 5: aes.catalog.v1.ListMaintenanceWindowsResponse.maintenance_windows:type_name -> aes.catalog.v1.MaintenanceWindow
-	2,  // 6: aes.catalog.v1.CatalogService.ListDatacenters:input_type -> aes.catalog.v1.ListDatacentersRequest
-	5,  // 7: aes.catalog.v1.CatalogService.GetRegionHealth:input_type -> aes.catalog.v1.GetRegionHealthRequest
-	8,  // 8: aes.catalog.v1.CatalogService.ListMaintenanceWindows:input_type -> aes.catalog.v1.ListMaintenanceWindowsRequest
-	10, // 9: aes.catalog.v1.CatalogService.QuoteVirtualMachine:input_type -> aes.catalog.v1.QuoteVirtualMachineRequest
-	3,  // 10: aes.catalog.v1.CatalogService.ListDatacenters:output_type -> aes.catalog.v1.ListDatacentersResponse
-	6,  // 11: aes.catalog.v1.CatalogService.GetRegionHealth:output_type -> aes.catalog.v1.GetRegionHealthResponse
-	9,  // 12: aes.catalog.v1.CatalogService.ListMaintenanceWindows:output_type -> aes.catalog.v1.ListMaintenanceWindowsResponse
-	11, // 13: aes.catalog.v1.CatalogService.QuoteVirtualMachine:output_type -> aes.catalog.v1.QuoteVirtualMachineResponse
-	10, // [10:14] is the sub-list for method output_type
-	6,  // [6:10] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	2,  // 0: aes.catalog.v1.VMClassCapacity.gpus:type_name -> aes.catalog.v1.GpuModelCapacity
+	3,  // 1: aes.catalog.v1.DatacenterVMCapacity.by_cpu_class:type_name -> aes.catalog.v1.VMClassCapacity
+	4,  // 2: aes.catalog.v1.GetVMCapacityResponse.datacenters:type_name -> aes.catalog.v1.DatacenterVMCapacity
+	0,  // 3: aes.catalog.v1.Datacenter.state:type_name -> aes.catalog.v1.DatacenterState
+	17, // 4: aes.catalog.v1.Datacenter.labels:type_name -> aes.catalog.v1.Datacenter.LabelsEntry
+	18, // 5: aes.catalog.v1.Datacenter.annotations:type_name -> aes.catalog.v1.Datacenter.AnnotationsEntry
+	6,  // 6: aes.catalog.v1.ListDatacentersResponse.datacenters:type_name -> aes.catalog.v1.Datacenter
+	9,  // 7: aes.catalog.v1.GetRegionHealthResponse.health:type_name -> aes.catalog.v1.RegionHealth
+	12, // 8: aes.catalog.v1.ListMaintenanceWindowsResponse.maintenance_windows:type_name -> aes.catalog.v1.MaintenanceWindow
+	7,  // 9: aes.catalog.v1.CatalogService.ListDatacenters:input_type -> aes.catalog.v1.ListDatacentersRequest
+	10, // 10: aes.catalog.v1.CatalogService.GetRegionHealth:input_type -> aes.catalog.v1.GetRegionHealthRequest
+	13, // 11: aes.catalog.v1.CatalogService.ListMaintenanceWindows:input_type -> aes.catalog.v1.ListMaintenanceWindowsRequest
+	15, // 12: aes.catalog.v1.CatalogService.QuoteVirtualMachine:input_type -> aes.catalog.v1.QuoteVirtualMachineRequest
+	1,  // 13: aes.catalog.v1.CatalogService.GetVMCapacity:input_type -> aes.catalog.v1.GetVMCapacityRequest
+	8,  // 14: aes.catalog.v1.CatalogService.ListDatacenters:output_type -> aes.catalog.v1.ListDatacentersResponse
+	11, // 15: aes.catalog.v1.CatalogService.GetRegionHealth:output_type -> aes.catalog.v1.GetRegionHealthResponse
+	14, // 16: aes.catalog.v1.CatalogService.ListMaintenanceWindows:output_type -> aes.catalog.v1.ListMaintenanceWindowsResponse
+	16, // 17: aes.catalog.v1.CatalogService.QuoteVirtualMachine:output_type -> aes.catalog.v1.QuoteVirtualMachineResponse
+	5,  // 18: aes.catalog.v1.CatalogService.GetVMCapacity:output_type -> aes.catalog.v1.GetVMCapacityResponse
+	14, // [14:19] is the sub-list for method output_type
+	9,  // [9:14] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_aes_catalog_v1_catalog_proto_init() }
@@ -1180,7 +1671,7 @@ func file_aes_catalog_v1_catalog_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_catalog_v1_catalog_proto_rawDesc), len(file_aes_catalog_v1_catalog_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   13,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

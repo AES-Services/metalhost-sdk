@@ -20,6 +20,73 @@ service CatalogService {
   // successful Quote means a subsequent CreateVM at the same shape will charge exactly
   // the quoted amount.
   rpc QuoteVirtualMachine(QuoteVirtualMachineRequest) returns (QuoteVirtualMachineResponse);
+  // GetVMCapacity returns per-datacenter VM capacity in sellable units, broken down by CPU class
+  // (pool) and GPU model. PUBLIC + unauthenticated (see publicMetalhostProcedures) — capacity is
+  // non-sensitive catalog data (same posture as GetRegionHealth). See docs/specs/GPU_POOLED_CAPACITY.md.
+  rpc GetVMCapacity(GetVMCapacityRequest) returns (GetVMCapacityResponse);
+}
+
+message GetVMCapacityRequest {
+  // Optional filter to one datacenter. Empty = all READY/DEGRADED DCs.
+  string datacenter_name = 1;
+}
+
+// GpuModelCapacity is the whole-GPU availability for one GPU model within a pool.
+message GpuModelCapacity {
+  string gpu_model = 1;       // e.g. "h100"
+  int32 total = 2;            // allocatable GPUs of this model in the pool
+  int32 free = 3;             // currently unleased
+  // Operator-set per-GPU reservation kept free for an unsold GPU (physical units). Informational.
+  int64 reserve_vcpu = 4;
+  int64 reserve_ram_gib = 5;
+  // Largest single VM (vCPU / RAM, oversubscribe-adjusted) that can schedule on the most-free node
+  // currently holding a free GPU of this model — RAW node free, BEFORE the reservation kept for the
+  // node's other unsold GPUs. A GPU VM lands on ONE node, so this — not the pool sum — bounds how
+  // big a GPU VM can be. 0 when the live probe is unavailable.
+  int64 max_node_free_vcpu = 6;
+  int64 max_node_free_ram_gib = 7;
+  // Free GPUs of this model on that same representative node. The configurator subtracts
+  // reserve_* × (max_node_free_gpus − requested_count) from the raw node free above, so renting MORE
+  // GPUs frees the reservation held for the node's remaining GPUs (more CPU/RAM for the VM).
+  int32 max_node_free_gpus = 8;
+}
+
+// VMClassCapacity is the sellable capacity of one pool = (datacenter, cpu_class).
+message VMClassCapacity {
+  string cpu_class = 1;       // e.g. "cascadelake", "genoa"
+  int64 sellable_vcpu = 2;
+  int64 free_vcpu = 3;
+  int64 sellable_ram_gib = 4;
+  int64 free_ram_gib = 5;
+  // Most-utilized dimension (cpu/ram/gpu) as 0..100 — a pool is "full" when this hits 100 even if
+  // another dimension has headroom (binding-resource rule).
+  int32 capacity_pct = 6;
+  // GPU availability per model in this pool (empty for non-GPU pools).
+  repeated GpuModelCapacity gpus = 7;
+  // Largest single CPU VM (vCPU / RAM, oversubscribe-adjusted) that can schedule on this class's
+  // most-free node. A VM lands on ONE node, so this bounds the configurator sliders — the pool
+  // sum (free_vcpu/free_ram_gib) can be admitted but then stay Pending if no single node fits.
+  // 0 when the live probe is unavailable.
+  int64 max_node_free_vcpu = 8;
+  int64 max_node_free_ram_gib = 9;
+}
+
+// DatacenterVMCapacity rolls the pool breakdown up to the datacenter. The rollup fields (4-8) are
+// the sum across by_cpu_class; simple consumers can read those and ignore the breakdown.
+message DatacenterVMCapacity {
+  string datacenter_name = 1;
+  string status = 2;          // READY / DEGRADED
+  int32 capacity_pct = 3;     // max across classes
+  int64 sellable_vcpu = 4;
+  int64 free_vcpu = 5;
+  int64 sellable_ram_gib = 6;
+  int64 free_ram_gib = 7;
+  int64 storage_free_gib = 8;
+  repeated VMClassCapacity by_cpu_class = 9;
+}
+
+message GetVMCapacityResponse {
+  repeated DatacenterVMCapacity datacenters = 1;
 }
 
 // Datacenter lifecycle.
@@ -149,6 +216,10 @@ message QuoteVirtualMachineRequest {
   int32 extra_disk_gib = 5;
   int32 public_ipv4_count = 6;
   string currency = 7;           // default USD
+  // Whole-GPU passthrough. gpu_model is the SKU variant (e.g. "rtx4090"), gpu_count the number of
+  // cards; priced via compute.gpu.<model>.runtime_hours. Empty/0 = CPU-only quote.
+  string gpu_model = 8;
+  int32 gpu_count = 9;
 }
 
 message QuoteVirtualMachineResponse {
