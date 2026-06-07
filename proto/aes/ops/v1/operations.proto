@@ -142,6 +142,10 @@ message CreateOperationRequest {
   // (vm_user_data) at the API edge; this field is purely for the persisted/displayed value.
   // Empty when the VM was created with raw vm_user_data.
   string vm_linux_username = 43;
+  // GPU passthrough for vm_provision (docs/specs/GPU_POOLED_CAPACITY.md). vm_gpu_model selects a GPU
+  // model; vm_gpu_count is the number of whole GPUs. Empty/0 = CPU-only VM.
+  string vm_gpu_model = 44;
+  int32 vm_gpu_count = 45;
 }
 
 message CreateOperationResponse {

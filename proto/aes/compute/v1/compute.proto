@@ -192,6 +192,11 @@ message VirtualMachine {
   int32 vcpus = 25;
   int32 ram_gib = 26;
   string cpu_class = 27;
+  // Whole-GPU passthrough attached to the VM. gpu_model is the SKU variant (e.g. "rtx4090");
+  // gpu_count is how many physical cards. Empty / 0 for a CPU-only VM. Stored on
+  // compute_instances; drives the compute.gpu.<model>.runtime_hours meter.
+  string gpu_model = 31;
+  int32 gpu_count = 32;
   // ────────────── Live cost fields (computed at Get-time, not persisted) ──────────────
   // current_cost_per_hour_minor_decimal: the hourly rate this VM would accrue in HOURLY mode
   // at current rates, including boot disk + any public IP. NUMERIC text so sub-cent precision
@@ -213,91 +218,115 @@ message VirtualMachine {
   string linux_username = 30;
 }
 
+// ───────────────────────────── Declarative VM manifest ─────────────────────────────
+// The customer-facing, CLI-and-web-shared create document (docs/specs/VM_DECLARATIVE_MANIFEST_AND_USERS.md).
+// CreateVirtualMachine takes this directly; the web configures it and sends it, and (planned)
+// `metalhost vm apply -f vm.yaml` deserializes YAML into the same message — one schema, the YAML
+// is just its serialization. api_version/kind round-trip the YAML form; the server validates them
+// when present but they carry no behavior (the RPC method already implies kind=VirtualMachine).
+message VirtualMachineManifest {
+  string api_version = 1; // "compute.metalhost.io/v1" (optional; validated when set)
+  string kind = 2;        // "VirtualMachine" (optional; validated when set)
+  VirtualMachineMetadata metadata = 3;
+  VirtualMachineSpec spec = 4;
+}
+
+message VirtualMachineMetadata {
+  // Hostname (DNS-1123 label, ≤63 chars). Empty → server defaults to the VM's resource id slug.
+  string name = 1;
+  // Owning project `projects/{slug}`. Empty → the principal's default project.
+  string project = 2;
+  // User-facing labels stamped at create time (filterable). `aes.metalhost/*` keys are reserved.
+  map<string, string> labels = 3;
+  // Operator notes / non-indexed metadata. Same `aes.metalhost/*` reservation.
+  map<string, string> annotations = 4;
+}
+
+message VirtualMachineSpec {
+  // Target datacenter `datacenters/{slug}`. Required.
+  string region = 1;
+  // Configurator shape. Required.
+  VMComputeSpec compute = 2;
+  // Boot source. Required (one of image / image_url / disk_name).
+  VMBootSpec boot = 3;
+  // Network attachment + public IP choice.
+  VMNetworkSpec network = 4;
+  // Login users created via cloud-init. Empty AND cloud_init empty → no inbound login (console
+  // only). When cloud_init is set it OWNS user creation and users is ignored.
+  repeated UserSpec users = 5;
+  // Raw #cloud-config userdata. When set, replaces all generated cloud-init (users included).
+  // Must be valid `#cloud-config` YAML.
+  string cloud_init = 6;
+  // Billing term. Defaults to HOURLY.
+  VMBillingSpec billing = 7;
+}
+
+message VMComputeSpec {
+  // CPU class — picks the pricing_components.vcpu/<class> row; must have pricing AND scheduler
+  // placement. Required.
+  string cpu_class = 1;
+  int32 vcpus = 2;   // required, validated against the RAM-per-vCPU ratio bounds
+  int32 ram_gib = 3; // required
+  // Optional whole-GPU passthrough. Omit for a CPU-only VM.
+  GPUSpec gpu = 4;
+}
+
+message GPUSpec {
+  string model = 1; // GPU model published in the chosen DC (e.g. "rtx4090")
+  int32 count = 2;  // whole GPUs to attach (≥1)
+}
+
+message VMBootSpec {
+  // Curated catalog image id (e.g. "ubuntu-24-04") — resolved server-side (pkg/osimage.Catalog)
+  // to an image URL + the distro's default login user. Mutually exclusive with image_url/disk_name.
+  string image = 1;
+  // Raw streamable image URL (CDI http source) — escape hatch for non-catalog images. Mutually
+  // exclusive with image/disk_name.
+  string image_url = 2;
+  // Boot disk size GiB (1..1024). Required when image/image_url is set.
+  int32 disk_gib = 3;
+  // Bind a pre-existing Disk as boot instead of importing an image (`projects/{p}/disks/{id}`).
+  // The disk must be AVAILABLE, same project+DC, unattached. Mutually exclusive with image/image_url.
+  string disk_name = 4;
+}
+
+message VMNetworkSpec {
+  // Tenant network `projects/{p}/networks/{id}`. Empty → the project's default network
+  // (auto-created lazily on first VM in the project + DC).
+  string network = 1;
+  // Allocate a public IPv4 from the DC pool for the VM's public NIC. Default false — VMs are
+  // reachable over IPv6 (always allocated from the network's /64) without burning a public v4.
+  bool public_ipv4 = 2;
+}
+
+message UserSpec {
+  // Login name. `^[a-z_][a-z0-9_-]{0,31}$`, and not `root`. Required.
+  string name = 1;
+  // Optional plaintext password. Sent over TLS, hashed server-side ($6$ SHA-512 crypt) into the
+  // cloud-init seed. NEVER persisted plaintext and never echoed back on Get/List. When any user
+  // has a password, cloud-init `ssh_pwauth` is enabled; otherwise it stays disabled.
+  string password = 2;
+  // Grant passwordless sudo (ALL=(ALL) NOPASSWD:ALL).
+  bool sudo = 3;
+  // Registered SSHKey resource refs (`projects/{p}/ssh-keys/{id}`), merged into this user's
+  // ssh_authorized_keys.
+  repeated string ssh_keys = 4;
+  // Inline OpenSSH public key(s), newline-separated. Merged after ssh_keys.
+  string ssh_pubkey = 5;
+}
+
+message VMBillingSpec {
+  // HOURLY (default) = per-hour usage. MONTHLY_* prepays the full term upfront at the tier discount.
+  BillingMode mode = 1;
+  // For MONTHLY_*: auto-renew at term end. Ignored when HOURLY.
+  bool autorenew = 2;
+}
+
+// CreateVirtualMachineRequest wraps the declarative manifest — the manifest IS the request body.
+// Internal control fields (clone source) never appear here: CloneVirtualMachine builds the create
+// input in-process rather than through this message.
 message CreateVirtualMachineRequest {
-  string project_name = 1;
-  string datacenter_name = 2;
-  reserved 3;
-  reserved "instance_type";
-  // Optional tenant network the VM attaches to. Resource name `projects/{p}/networks/{id}`.
-  // When empty, the project's default network is used (auto-created lazily on first VM in
-  // the project + DC). Single-NIC model — every VM has exactly one network.
-  string network_name = 4;
-  // Removed pre-launch in favor of disk-first VM model — boot disks are now first-class Disk
-  // resources owned by the project. Use boot_disk_name (existing) or boot_disk (inline create).
-  reserved 5, 6, 7;
-  reserved "disk_size_gib", "boot_image_url", "image_name";
-  // Optional SSH public key to inject into the default cloud-image user (`ubuntu` for Ubuntu
-  // images) via cloud-init. When set, KubeVirt attaches a cloudInitNoCloud seed disk; the
-  // first boot enables SSH for that key. Without this AND `user_data`, the VM has no inbound
-  // SSH and tenants must use console access.
-  string ssh_pubkey = 8;
-  // Optional raw cloud-config userdata. When set, replaces Metalhost's auto-generated cloud-init
-  // entirely — `ssh_pubkey` is ignored and the operator's user_data is the source of truth.
-  // Must be valid `#cloud-config` YAML; cloud-init silently ignores files without that header.
-  string user_data = 9;
-  // Optional references to registered SSHKey resources (`projects/{p}/ssh-keys/{id}`). When
-  // set, the keys' public_key values are merged into the cloud-init `ssh_authorized_keys`
-  // block alongside `ssh_pubkey`. Use this to manage VMs against a rotating team key set
-  // without re-pasting on every Create.
-  repeated string ssh_key_names = 10;
-  reserved 11;
-  reserved "user_data_snippet_names";
-  // Billing mode. Default HOURLY. MONTHLY_* charges the customer's wallet upfront for the
-  // entire term at the tier's discount; the prepayment must succeed or Create fails.
-  BillingMode billing_mode = 12;
-  // For MONTHLY_*: enable auto-renewal at term end. Defaults to false (customer renews
-  // explicitly or VM falls back to HOURLY). Ignored when billing_mode is HOURLY.
-  bool autorenew = 13;
-  // User-facing hostname (DNS-1123 label, ≤63 chars). Used as the VM's k8s object name and
-  // injected via cloud-init `set_hostname`. When empty, the server defaults to the VM's
-  // resource id (UUIDv7 slug). Must be unique within the target Network's namespace.
-  string hostname = 14;
-  // Allocate a public IPv4 from the DC's `aes.metalhost/public-ipv4-pool` for the VM's
-  // public NIC workflow. Default false — VMs are reachable via IPv6 (always allocated from
-  // the network's /64) without burning a public v4.
-  bool assign_public_ipv4 = 15;
-  // User-facing labels stamped at create time. Same shape + merge semantics as
-  // UpdateVirtualMachineRequest.labels (later mutations merge unless clear_labels=true).
-  // Indexed for filterable list queries. Keys under the `aes.metalhost/*` namespace are
-  // reserved — customer-set values there are accepted but may be overwritten by server
-  // reconcilers without notice (use a non-aes prefix for keys you want to control).
-  map<string, string> labels = 16;
-  // Operator notes / non-indexed metadata. Same merge-by-default semantics as labels.
-  // Same `aes.metalhost/*` reservation applies — server reconcilers may overwrite values
-  // there without notice.
-  map<string, string> annotations = 17;
-  // Bind the VM to a pre-existing Disk as its boot device (`projects/{p}/disks/{id}`). Disk
-  // must be AVAILABLE, in the same project + datacenter as the VM, and not already attached
-  // to another VM. Lets customers preserve a boot disk across VM rebuilds — DeleteVM detaches
-  // but never deletes the disk, so a fresh CreateVM with the same boot_disk_name boots the
-  // same data. Mutually exclusive with `boot_disk` (inline create).
-  string boot_disk_name = 18;
-  // Inline boot disk creation. Server creates the Disk first (waits for hydration when
-  // from_image_url is set), then provisions the VM bound to it. Convenience
-  // for the common case where a customer wants "give me a VM with a 50GiB Ubuntu boot disk"
-  // without a separate CreateDisk round-trip. The created Disk shows up in ListDisks and is
-  // billed independently — DeleteVM does NOT delete it. Mutually exclusive with `boot_disk_name`.
-  BootDiskSpec boot_disk = 19;
-  // Configurator shape — customer assembles their VM from priced components. All three are
-  // REQUIRED; the server rejects with InvalidArgument if any is unset. Validated at the API
-  // edge against the 1–16 GiB RAM-per-vCPU ratio bounds (services/pricing.Shape.Validate).
-  int32 vcpus = 20;
-  int32 ram_gib = 21;
-  // CPU class — picks the pricing_components.vcpu/<class> row. Must match a class that has
-  // both pricing AND scheduler placement (worker host labels). Required.
-  string cpu_class = 22;
-  // Clone bookkeeping: when this create was issued by CloneVirtualMachine, the source VM
-  // resource name. Threaded into the operation so the vm_provision workflow's
-  // CloneFirewallRules activity can copy the source's custom firewall rules onto the clone
-  // once its public IP is allocated. Empty for normal (non-clone) creates. Not customer-set.
-  string clone_source_vm_name = 23;
-  // Linux login user created by cloud-init and granted the injected SSH keys (`ssh
-  // <linux_username>@<ip>`). REQUIRED — the server rejects an empty value with
-  // InvalidArgument. Must be a valid Linux username: `^[a-z_][a-z0-9_-]{0,31}$`, and not
-  // `root`. Clients should default it to the selected image's distro user (Ubuntu →
-  // `ubuntu`, Debian → `debian`, etc.). Ignored when `user_data` is supplied — the customer's
-  // raw cloud-config is the source of truth and defines its own users.
-  string linux_username = 24;
+  VirtualMachineManifest manifest = 1;
 }
 
 // BootDiskSpec is the inline disk spec carried by CreateVirtualMachineRequest.boot_disk.

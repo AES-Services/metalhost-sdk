@@ -45,6 +45,9 @@ const (
 	// CatalogServiceQuoteVirtualMachineProcedure is the fully-qualified name of the CatalogService's
 	// QuoteVirtualMachine RPC.
 	CatalogServiceQuoteVirtualMachineProcedure = "/aes.catalog.v1.CatalogService/QuoteVirtualMachine"
+	// CatalogServiceGetVMCapacityProcedure is the fully-qualified name of the CatalogService's
+	// GetVMCapacity RPC.
+	CatalogServiceGetVMCapacityProcedure = "/aes.catalog.v1.CatalogService/GetVMCapacity"
 )
 
 // CatalogServiceClient is a client for the aes.catalog.v1.CatalogService service.
@@ -64,6 +67,10 @@ type CatalogServiceClient interface {
 	// successful Quote means a subsequent CreateVM at the same shape will charge exactly
 	// the quoted amount.
 	QuoteVirtualMachine(context.Context, *connect.Request[v1.QuoteVirtualMachineRequest]) (*connect.Response[v1.QuoteVirtualMachineResponse], error)
+	// GetVMCapacity returns per-datacenter VM capacity in sellable units, broken down by CPU class
+	// (pool) and GPU model. PUBLIC + unauthenticated (see publicMetalhostProcedures) — capacity is
+	// non-sensitive catalog data (same posture as GetRegionHealth). See docs/specs/GPU_POOLED_CAPACITY.md.
+	GetVMCapacity(context.Context, *connect.Request[v1.GetVMCapacityRequest]) (*connect.Response[v1.GetVMCapacityResponse], error)
 }
 
 // NewCatalogServiceClient constructs a client for the aes.catalog.v1.CatalogService service. By
@@ -101,6 +108,12 @@ func NewCatalogServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(catalogServiceMethods.ByName("QuoteVirtualMachine")),
 			connect.WithClientOptions(opts...),
 		),
+		getVMCapacity: connect.NewClient[v1.GetVMCapacityRequest, v1.GetVMCapacityResponse](
+			httpClient,
+			baseURL+CatalogServiceGetVMCapacityProcedure,
+			connect.WithSchema(catalogServiceMethods.ByName("GetVMCapacity")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -110,6 +123,7 @@ type catalogServiceClient struct {
 	getRegionHealth        *connect.Client[v1.GetRegionHealthRequest, v1.GetRegionHealthResponse]
 	listMaintenanceWindows *connect.Client[v1.ListMaintenanceWindowsRequest, v1.ListMaintenanceWindowsResponse]
 	quoteVirtualMachine    *connect.Client[v1.QuoteVirtualMachineRequest, v1.QuoteVirtualMachineResponse]
+	getVMCapacity          *connect.Client[v1.GetVMCapacityRequest, v1.GetVMCapacityResponse]
 }
 
 // ListDatacenters calls aes.catalog.v1.CatalogService.ListDatacenters.
@@ -132,6 +146,11 @@ func (c *catalogServiceClient) QuoteVirtualMachine(ctx context.Context, req *con
 	return c.quoteVirtualMachine.CallUnary(ctx, req)
 }
 
+// GetVMCapacity calls aes.catalog.v1.CatalogService.GetVMCapacity.
+func (c *catalogServiceClient) GetVMCapacity(ctx context.Context, req *connect.Request[v1.GetVMCapacityRequest]) (*connect.Response[v1.GetVMCapacityResponse], error) {
+	return c.getVMCapacity.CallUnary(ctx, req)
+}
+
 // CatalogServiceHandler is an implementation of the aes.catalog.v1.CatalogService service.
 type CatalogServiceHandler interface {
 	ListDatacenters(context.Context, *connect.Request[v1.ListDatacentersRequest]) (*connect.Response[v1.ListDatacentersResponse], error)
@@ -149,6 +168,10 @@ type CatalogServiceHandler interface {
 	// successful Quote means a subsequent CreateVM at the same shape will charge exactly
 	// the quoted amount.
 	QuoteVirtualMachine(context.Context, *connect.Request[v1.QuoteVirtualMachineRequest]) (*connect.Response[v1.QuoteVirtualMachineResponse], error)
+	// GetVMCapacity returns per-datacenter VM capacity in sellable units, broken down by CPU class
+	// (pool) and GPU model. PUBLIC + unauthenticated (see publicMetalhostProcedures) — capacity is
+	// non-sensitive catalog data (same posture as GetRegionHealth). See docs/specs/GPU_POOLED_CAPACITY.md.
+	GetVMCapacity(context.Context, *connect.Request[v1.GetVMCapacityRequest]) (*connect.Response[v1.GetVMCapacityResponse], error)
 }
 
 // NewCatalogServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -182,6 +205,12 @@ func NewCatalogServiceHandler(svc CatalogServiceHandler, opts ...connect.Handler
 		connect.WithSchema(catalogServiceMethods.ByName("QuoteVirtualMachine")),
 		connect.WithHandlerOptions(opts...),
 	)
+	catalogServiceGetVMCapacityHandler := connect.NewUnaryHandler(
+		CatalogServiceGetVMCapacityProcedure,
+		svc.GetVMCapacity,
+		connect.WithSchema(catalogServiceMethods.ByName("GetVMCapacity")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/aes.catalog.v1.CatalogService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case CatalogServiceListDatacentersProcedure:
@@ -192,6 +221,8 @@ func NewCatalogServiceHandler(svc CatalogServiceHandler, opts ...connect.Handler
 			catalogServiceListMaintenanceWindowsHandler.ServeHTTP(w, r)
 		case CatalogServiceQuoteVirtualMachineProcedure:
 			catalogServiceQuoteVirtualMachineHandler.ServeHTTP(w, r)
+		case CatalogServiceGetVMCapacityProcedure:
+			catalogServiceGetVMCapacityHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -215,4 +246,8 @@ func (UnimplementedCatalogServiceHandler) ListMaintenanceWindows(context.Context
 
 func (UnimplementedCatalogServiceHandler) QuoteVirtualMachine(context.Context, *connect.Request[v1.QuoteVirtualMachineRequest]) (*connect.Response[v1.QuoteVirtualMachineResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.catalog.v1.CatalogService.QuoteVirtualMachine is not implemented"))
+}
+
+func (UnimplementedCatalogServiceHandler) GetVMCapacity(context.Context, *connect.Request[v1.GetVMCapacityRequest]) (*connect.Response[v1.GetVMCapacityResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.catalog.v1.CatalogService.GetVMCapacity is not implemented"))
 }

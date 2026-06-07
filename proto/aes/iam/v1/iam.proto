@@ -82,6 +82,20 @@ service IamService {
   // Idempotent on already-revoked rows. Caller must hold admin.organization.
   rpc RevokeInvite(RevokeInviteRequest) returns (RevokeInviteResponse);
 
+  // ── Self-service multi-org (the org switcher + in-app invites) ────────────────────────────
+  // ListMyOrganizations returns every org the caller is a member of, with the caller's role +
+  // the org's state. Backs the org switcher (and the account page's memberships list).
+  rpc ListMyOrganizations(ListMyOrganizationsRequest) returns (ListMyOrganizationsResponse);
+  // ListMyInvites returns PENDING, unexpired org invites addressed to the caller's email — the
+  // in-app invitations inbox (no email round-trip needed to find/accept them).
+  rpc ListMyInvites(ListMyInvitesRequest) returns (ListMyInvitesResponse);
+  // AcceptMyInvite accepts a pending invite by id while authenticated. The invite's email must
+  // resolve to the caller's principal; on success it adds the org role binding. No token needed
+  // (the session is the proof) — distinct from the public token-bearer AcceptInvite.
+  rpc AcceptMyInvite(AcceptMyInviteRequest) returns (AcceptMyInviteResponse);
+  // DeclineMyInvite marks one of the caller's pending invites DECLINED.
+  rpc DeclineMyInvite(DeclineMyInviteRequest) returns (DeclineMyInviteResponse);
+
   // RotateApiKey atomically issues a new key + revokes the old one in a single call. Use
   // instead of revoke-then-create to avoid the window where neither key is valid.
   rpc RotateApiKey(RotateApiKeyRequest) returns (RotateApiKeyResponse);
@@ -518,6 +532,43 @@ message ListPendingInvitesResponse {
   repeated PendingInvite invites = 1;
   string next_page_token = 2;
 }
+
+// ── Self-service multi-org messages ────────────────────────────────────────────────────────
+message ListMyOrganizationsRequest {}
+message OrgMembership {
+  string organization_name = 1;       // organizations/<slug>
+  string organization_display_name = 2;
+  string role = 3;                    // caller's role in this org (org.admin wins if multiple)
+  string state = 4;                   // ACTIVE | SUSPENDED
+}
+message ListMyOrganizationsResponse {
+  repeated OrgMembership organizations = 1;
+}
+
+message ListMyInvitesRequest {}
+message MyInvite {
+  string invite_id = 1;
+  string organization_name = 2;
+  string organization_display_name = 3;
+  string role = 4;
+  string inviter_principal = 5;
+  int64 expires_at_unix = 6;
+}
+message ListMyInvitesResponse {
+  repeated MyInvite invites = 1;
+}
+
+message AcceptMyInviteRequest {
+  string invite_id = 1;
+}
+message AcceptMyInviteResponse {
+  string organization_name = 1;
+}
+
+message DeclineMyInviteRequest {
+  string invite_id = 1;
+}
+message DeclineMyInviteResponse {}
 
 message RevokeInviteRequest {
   string organization_name = 1;

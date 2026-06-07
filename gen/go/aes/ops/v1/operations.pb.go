@@ -194,8 +194,12 @@ type CreateOperationRequest struct {
 	// (vm_user_data) at the API edge; this field is purely for the persisted/displayed value.
 	// Empty when the VM was created with raw vm_user_data.
 	VmLinuxUsername string `protobuf:"bytes,43,opt,name=vm_linux_username,json=vmLinuxUsername,proto3" json:"vm_linux_username,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// GPU passthrough for vm_provision (docs/specs/GPU_POOLED_CAPACITY.md). vm_gpu_model selects a GPU
+	// model; vm_gpu_count is the number of whole GPUs. Empty/0 = CPU-only VM.
+	VmGpuModel    string `protobuf:"bytes,44,opt,name=vm_gpu_model,json=vmGpuModel,proto3" json:"vm_gpu_model,omitempty"`
+	VmGpuCount    int32  `protobuf:"varint,45,opt,name=vm_gpu_count,json=vmGpuCount,proto3" json:"vm_gpu_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateOperationRequest) Reset() {
@@ -485,6 +489,20 @@ func (x *CreateOperationRequest) GetVmLinuxUsername() string {
 		return x.VmLinuxUsername
 	}
 	return ""
+}
+
+func (x *CreateOperationRequest) GetVmGpuModel() string {
+	if x != nil {
+		return x.VmGpuModel
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetVmGpuCount() int32 {
+	if x != nil {
+		return x.VmGpuCount
+	}
+	return 0
 }
 
 type CreateOperationResponse struct {
@@ -1031,7 +1049,7 @@ var File_aes_ops_v1_operations_proto protoreflect.FileDescriptor
 const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\n" +
 	"\x1baes/ops/v1/operations.proto\x12\n" +
-	"aes.ops.v1\"\x82\x10\n" +
+	"aes.ops.v1\"\xc6\x10\n" +
 	"\x16CreateOperationRequest\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12'\n" +
 	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12&\n" +
@@ -1073,7 +1091,11 @@ const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\x19vm_boot_disk_clone_source\x18( \x01(\tR\x15vmBootDiskCloneSource\x124\n" +
 	"\x17vm_clone_source_vm_name\x18) \x01(\tR\x13vmCloneSourceVmName\x127\n" +
 	"\x18vm_delete_attached_disks\x18* \x01(\bR\x15vmDeleteAttachedDisks\x12*\n" +
-	"\x11vm_linux_username\x18+ \x01(\tR\x0fvmLinuxUsername\x1a;\n" +
+	"\x11vm_linux_username\x18+ \x01(\tR\x0fvmLinuxUsername\x12 \n" +
+	"\fvm_gpu_model\x18, \x01(\tR\n" +
+	"vmGpuModel\x12 \n" +
+	"\fvm_gpu_count\x18- \x01(\x05R\n" +
+	"vmGpuCount\x1a;\n" +
 	"\rVmLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a@\n" +

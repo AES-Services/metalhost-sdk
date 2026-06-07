@@ -75,6 +75,56 @@ func (BareMetalPowerAction) EnumDescriptor() ([]byte, []int) {
 	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{0}
 }
 
+// Availability of a published bare-metal host in the public inventory.
+type BareMetalAvailability int32
+
+const (
+	BareMetalAvailability_BARE_METAL_AVAILABILITY_UNSPECIFIED BareMetalAvailability = 0
+	BareMetalAvailability_BARE_METAL_AVAILABILITY_AVAILABLE   BareMetalAvailability = 1 // in the bookable pool (leasable now)
+	BareMetalAvailability_BARE_METAL_AVAILABILITY_LEASED      BareMetalAvailability = 2 // currently leased to a customer
+)
+
+// Enum value maps for BareMetalAvailability.
+var (
+	BareMetalAvailability_name = map[int32]string{
+		0: "BARE_METAL_AVAILABILITY_UNSPECIFIED",
+		1: "BARE_METAL_AVAILABILITY_AVAILABLE",
+		2: "BARE_METAL_AVAILABILITY_LEASED",
+	}
+	BareMetalAvailability_value = map[string]int32{
+		"BARE_METAL_AVAILABILITY_UNSPECIFIED": 0,
+		"BARE_METAL_AVAILABILITY_AVAILABLE":   1,
+		"BARE_METAL_AVAILABILITY_LEASED":      2,
+	}
+)
+
+func (x BareMetalAvailability) Enum() *BareMetalAvailability {
+	p := new(BareMetalAvailability)
+	*p = x
+	return p
+}
+
+func (x BareMetalAvailability) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BareMetalAvailability) Descriptor() protoreflect.EnumDescriptor {
+	return file_aes_baremetal_v1_baremetal_proto_enumTypes[1].Descriptor()
+}
+
+func (BareMetalAvailability) Type() protoreflect.EnumType {
+	return &file_aes_baremetal_v1_baremetal_proto_enumTypes[1]
+}
+
+func (x BareMetalAvailability) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BareMetalAvailability.Descriptor instead.
+func (BareMetalAvailability) EnumDescriptor() ([]byte, []int) {
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{1}
+}
+
 // BareMetalBootDevice selects the one-time boot source for SetBareMetalBootDevice.
 type BareMetalBootDevice int32
 
@@ -112,11 +162,11 @@ func (x BareMetalBootDevice) String() string {
 }
 
 func (BareMetalBootDevice) Descriptor() protoreflect.EnumDescriptor {
-	return file_aes_baremetal_v1_baremetal_proto_enumTypes[1].Descriptor()
+	return file_aes_baremetal_v1_baremetal_proto_enumTypes[2].Descriptor()
 }
 
 func (BareMetalBootDevice) Type() protoreflect.EnumType {
-	return &file_aes_baremetal_v1_baremetal_proto_enumTypes[1]
+	return &file_aes_baremetal_v1_baremetal_proto_enumTypes[2]
 }
 
 func (x BareMetalBootDevice) Number() protoreflect.EnumNumber {
@@ -125,7 +175,7 @@ func (x BareMetalBootDevice) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use BareMetalBootDevice.Descriptor instead.
 func (BareMetalBootDevice) EnumDescriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{1}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{2}
 }
 
 type BareMetalInstance struct {
@@ -613,6 +663,290 @@ func (x *ListAvailableBareMetalResponse) GetNextPageToken() string {
 	return ""
 }
 
+// BareMetalNode is one published host in the public inventory: the same spec fields as
+// AvailableBareMetal plus an availability tag and (when present) GPU model/count. No lessee, BMC,
+// or serial is ever projected.
+type BareMetalNode struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	HostName       string                 `protobuf:"bytes,1,opt,name=host_name,json=hostName,proto3" json:"host_name,omitempty"` // hosts/{slug}
+	DatacenterName string                 `protobuf:"bytes,2,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	SpecLabel      string                 `protobuf:"bytes,3,opt,name=spec_label,json=specLabel,proto3" json:"spec_label,omitempty"`
+	CpuModel       string                 `protobuf:"bytes,4,opt,name=cpu_model,json=cpuModel,proto3" json:"cpu_model,omitempty"`
+	CpuGeneration  string                 `protobuf:"bytes,5,opt,name=cpu_generation,json=cpuGeneration,proto3" json:"cpu_generation,omitempty"`
+	TotalCores     int32                  `protobuf:"varint,6,opt,name=total_cores,json=totalCores,proto3" json:"total_cores,omitempty"`
+	RamGib         int32                  `protobuf:"varint,7,opt,name=ram_gib,json=ramGib,proto3" json:"ram_gib,omitempty"`
+	StorageGib     int32                  `protobuf:"varint,8,opt,name=storage_gib,json=storageGib,proto3" json:"storage_gib,omitempty"`
+	// Listed monthly price (hourly = monthly/730). 0 when the host is unpriced.
+	MonthlyPriceMinor int64                 `protobuf:"varint,9,opt,name=monthly_price_minor,json=monthlyPriceMinor,proto3" json:"monthly_price_minor,omitempty"`
+	Currency          string                `protobuf:"bytes,10,opt,name=currency,proto3" json:"currency,omitempty"`
+	Availability      BareMetalAvailability `protobuf:"varint,11,opt,name=availability,proto3,enum=aes.baremetal.v1.BareMetalAvailability" json:"availability,omitempty"`
+	// GPU model + count when this is a GPU node (empty/0 otherwise). cpu_generation already carries
+	// the CPU class, so heterogeneous fleets (incl. AMD-CPU GPU boxes) are described per-node.
+	GpuModel      string `protobuf:"bytes,12,opt,name=gpu_model,json=gpuModel,proto3" json:"gpu_model,omitempty"`
+	GpuCount      int32  `protobuf:"varint,13,opt,name=gpu_count,json=gpuCount,proto3" json:"gpu_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BareMetalNode) Reset() {
+	*x = BareMetalNode{}
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BareMetalNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BareMetalNode) ProtoMessage() {}
+
+func (x *BareMetalNode) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BareMetalNode.ProtoReflect.Descriptor instead.
+func (*BareMetalNode) Descriptor() ([]byte, []int) {
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *BareMetalNode) GetHostName() string {
+	if x != nil {
+		return x.HostName
+	}
+	return ""
+}
+
+func (x *BareMetalNode) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *BareMetalNode) GetSpecLabel() string {
+	if x != nil {
+		return x.SpecLabel
+	}
+	return ""
+}
+
+func (x *BareMetalNode) GetCpuModel() string {
+	if x != nil {
+		return x.CpuModel
+	}
+	return ""
+}
+
+func (x *BareMetalNode) GetCpuGeneration() string {
+	if x != nil {
+		return x.CpuGeneration
+	}
+	return ""
+}
+
+func (x *BareMetalNode) GetTotalCores() int32 {
+	if x != nil {
+		return x.TotalCores
+	}
+	return 0
+}
+
+func (x *BareMetalNode) GetRamGib() int32 {
+	if x != nil {
+		return x.RamGib
+	}
+	return 0
+}
+
+func (x *BareMetalNode) GetStorageGib() int32 {
+	if x != nil {
+		return x.StorageGib
+	}
+	return 0
+}
+
+func (x *BareMetalNode) GetMonthlyPriceMinor() int64 {
+	if x != nil {
+		return x.MonthlyPriceMinor
+	}
+	return 0
+}
+
+func (x *BareMetalNode) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *BareMetalNode) GetAvailability() BareMetalAvailability {
+	if x != nil {
+		return x.Availability
+	}
+	return BareMetalAvailability_BARE_METAL_AVAILABILITY_UNSPECIFIED
+}
+
+func (x *BareMetalNode) GetGpuModel() string {
+	if x != nil {
+		return x.GpuModel
+	}
+	return ""
+}
+
+func (x *BareMetalNode) GetGpuCount() int32 {
+	if x != nil {
+		return x.GpuCount
+	}
+	return 0
+}
+
+type ListBareMetalInventoryRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Optional filter to one datacenter.
+	DatacenterName string `protobuf:"bytes,1,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	PageSize       int32  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken      string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ListBareMetalInventoryRequest) Reset() {
+	*x = ListBareMetalInventoryRequest{}
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBareMetalInventoryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBareMetalInventoryRequest) ProtoMessage() {}
+
+func (x *ListBareMetalInventoryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBareMetalInventoryRequest.ProtoReflect.Descriptor instead.
+func (*ListBareMetalInventoryRequest) Descriptor() ([]byte, []int) {
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ListBareMetalInventoryRequest) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *ListBareMetalInventoryRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListBareMetalInventoryRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListBareMetalInventoryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Nodes         []*BareMetalNode       `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	// Fleet totals for the current filter (whole fleet, not just this page).
+	Total         int32 `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+	Available     int32 `protobuf:"varint,4,opt,name=available,proto3" json:"available,omitempty"`
+	Leased        int32 `protobuf:"varint,5,opt,name=leased,proto3" json:"leased,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBareMetalInventoryResponse) Reset() {
+	*x = ListBareMetalInventoryResponse{}
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBareMetalInventoryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBareMetalInventoryResponse) ProtoMessage() {}
+
+func (x *ListBareMetalInventoryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBareMetalInventoryResponse.ProtoReflect.Descriptor instead.
+func (*ListBareMetalInventoryResponse) Descriptor() ([]byte, []int) {
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ListBareMetalInventoryResponse) GetNodes() []*BareMetalNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+func (x *ListBareMetalInventoryResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+func (x *ListBareMetalInventoryResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListBareMetalInventoryResponse) GetAvailable() int32 {
+	if x != nil {
+		return x.Available
+	}
+	return 0
+}
+
+func (x *ListBareMetalInventoryResponse) GetLeased() int32 {
+	if x != nil {
+		return x.Leased
+	}
+	return 0
+}
+
 type QuoteBareMetalRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Host to quote (must be available/priced).
@@ -627,7 +961,7 @@ type QuoteBareMetalRequest struct {
 
 func (x *QuoteBareMetalRequest) Reset() {
 	*x = QuoteBareMetalRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[4]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -639,7 +973,7 @@ func (x *QuoteBareMetalRequest) String() string {
 func (*QuoteBareMetalRequest) ProtoMessage() {}
 
 func (x *QuoteBareMetalRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[4]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -652,7 +986,7 @@ func (x *QuoteBareMetalRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuoteBareMetalRequest.ProtoReflect.Descriptor instead.
 func (*QuoteBareMetalRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{4}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *QuoteBareMetalRequest) GetHostName() string {
@@ -701,7 +1035,7 @@ type QuoteBareMetalResponse struct {
 
 func (x *QuoteBareMetalResponse) Reset() {
 	*x = QuoteBareMetalResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[5]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -713,7 +1047,7 @@ func (x *QuoteBareMetalResponse) String() string {
 func (*QuoteBareMetalResponse) ProtoMessage() {}
 
 func (x *QuoteBareMetalResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[5]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -726,7 +1060,7 @@ func (x *QuoteBareMetalResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuoteBareMetalResponse.ProtoReflect.Descriptor instead.
 func (*QuoteBareMetalResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{5}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *QuoteBareMetalResponse) GetMonthlyPriceMinor() int64 {
@@ -810,7 +1144,7 @@ type CreateBareMetalInstanceRequest struct {
 
 func (x *CreateBareMetalInstanceRequest) Reset() {
 	*x = CreateBareMetalInstanceRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[6]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -822,7 +1156,7 @@ func (x *CreateBareMetalInstanceRequest) String() string {
 func (*CreateBareMetalInstanceRequest) ProtoMessage() {}
 
 func (x *CreateBareMetalInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[6]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -835,7 +1169,7 @@ func (x *CreateBareMetalInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBareMetalInstanceRequest.ProtoReflect.Descriptor instead.
 func (*CreateBareMetalInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{6}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *CreateBareMetalInstanceRequest) GetName() string {
@@ -952,7 +1286,7 @@ type CreateBareMetalInstanceResponse struct {
 
 func (x *CreateBareMetalInstanceResponse) Reset() {
 	*x = CreateBareMetalInstanceResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[7]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -964,7 +1298,7 @@ func (x *CreateBareMetalInstanceResponse) String() string {
 func (*CreateBareMetalInstanceResponse) ProtoMessage() {}
 
 func (x *CreateBareMetalInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[7]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -977,7 +1311,7 @@ func (x *CreateBareMetalInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBareMetalInstanceResponse.ProtoReflect.Descriptor instead.
 func (*CreateBareMetalInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{7}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CreateBareMetalInstanceResponse) GetInstance() *BareMetalInstance {
@@ -996,7 +1330,7 @@ type GetBareMetalInstanceRequest struct {
 
 func (x *GetBareMetalInstanceRequest) Reset() {
 	*x = GetBareMetalInstanceRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[8]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1008,7 +1342,7 @@ func (x *GetBareMetalInstanceRequest) String() string {
 func (*GetBareMetalInstanceRequest) ProtoMessage() {}
 
 func (x *GetBareMetalInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[8]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1021,7 +1355,7 @@ func (x *GetBareMetalInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBareMetalInstanceRequest.ProtoReflect.Descriptor instead.
 func (*GetBareMetalInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{8}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetBareMetalInstanceRequest) GetName() string {
@@ -1040,7 +1374,7 @@ type GetBareMetalInstanceResponse struct {
 
 func (x *GetBareMetalInstanceResponse) Reset() {
 	*x = GetBareMetalInstanceResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[9]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1052,7 +1386,7 @@ func (x *GetBareMetalInstanceResponse) String() string {
 func (*GetBareMetalInstanceResponse) ProtoMessage() {}
 
 func (x *GetBareMetalInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[9]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1065,7 +1399,7 @@ func (x *GetBareMetalInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBareMetalInstanceResponse.ProtoReflect.Descriptor instead.
 func (*GetBareMetalInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{9}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetBareMetalInstanceResponse) GetInstance() *BareMetalInstance {
@@ -1087,7 +1421,7 @@ type ListBareMetalInstancesRequest struct {
 
 func (x *ListBareMetalInstancesRequest) Reset() {
 	*x = ListBareMetalInstancesRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[10]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1099,7 +1433,7 @@ func (x *ListBareMetalInstancesRequest) String() string {
 func (*ListBareMetalInstancesRequest) ProtoMessage() {}
 
 func (x *ListBareMetalInstancesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[10]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1112,7 +1446,7 @@ func (x *ListBareMetalInstancesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBareMetalInstancesRequest.ProtoReflect.Descriptor instead.
 func (*ListBareMetalInstancesRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{10}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListBareMetalInstancesRequest) GetProjectName() string {
@@ -1146,7 +1480,7 @@ type ListBareMetalInstancesResponse struct {
 
 func (x *ListBareMetalInstancesResponse) Reset() {
 	*x = ListBareMetalInstancesResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[11]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1158,7 +1492,7 @@ func (x *ListBareMetalInstancesResponse) String() string {
 func (*ListBareMetalInstancesResponse) ProtoMessage() {}
 
 func (x *ListBareMetalInstancesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[11]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1171,7 +1505,7 @@ func (x *ListBareMetalInstancesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBareMetalInstancesResponse.ProtoReflect.Descriptor instead.
 func (*ListBareMetalInstancesResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{11}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListBareMetalInstancesResponse) GetBareMetalInstances() []*BareMetalInstance {
@@ -1198,7 +1532,7 @@ type ReleaseBareMetalInstanceRequest struct {
 
 func (x *ReleaseBareMetalInstanceRequest) Reset() {
 	*x = ReleaseBareMetalInstanceRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[12]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1210,7 +1544,7 @@ func (x *ReleaseBareMetalInstanceRequest) String() string {
 func (*ReleaseBareMetalInstanceRequest) ProtoMessage() {}
 
 func (x *ReleaseBareMetalInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[12]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1223,7 +1557,7 @@ func (x *ReleaseBareMetalInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseBareMetalInstanceRequest.ProtoReflect.Descriptor instead.
 func (*ReleaseBareMetalInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{12}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ReleaseBareMetalInstanceRequest) GetName() string {
@@ -1248,7 +1582,7 @@ type ReleaseBareMetalInstanceResponse struct {
 
 func (x *ReleaseBareMetalInstanceResponse) Reset() {
 	*x = ReleaseBareMetalInstanceResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[13]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1260,7 +1594,7 @@ func (x *ReleaseBareMetalInstanceResponse) String() string {
 func (*ReleaseBareMetalInstanceResponse) ProtoMessage() {}
 
 func (x *ReleaseBareMetalInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[13]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1273,7 +1607,7 @@ func (x *ReleaseBareMetalInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseBareMetalInstanceResponse.ProtoReflect.Descriptor instead.
 func (*ReleaseBareMetalInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{13}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{16}
 }
 
 type RenewBareMetalNowRequest struct {
@@ -1285,7 +1619,7 @@ type RenewBareMetalNowRequest struct {
 
 func (x *RenewBareMetalNowRequest) Reset() {
 	*x = RenewBareMetalNowRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[14]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1297,7 +1631,7 @@ func (x *RenewBareMetalNowRequest) String() string {
 func (*RenewBareMetalNowRequest) ProtoMessage() {}
 
 func (x *RenewBareMetalNowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[14]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1310,7 +1644,7 @@ func (x *RenewBareMetalNowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenewBareMetalNowRequest.ProtoReflect.Descriptor instead.
 func (*RenewBareMetalNowRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{14}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *RenewBareMetalNowRequest) GetName() string {
@@ -1334,7 +1668,7 @@ type RenewBareMetalNowResponse struct {
 
 func (x *RenewBareMetalNowResponse) Reset() {
 	*x = RenewBareMetalNowResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[15]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1346,7 +1680,7 @@ func (x *RenewBareMetalNowResponse) String() string {
 func (*RenewBareMetalNowResponse) ProtoMessage() {}
 
 func (x *RenewBareMetalNowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[15]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1359,7 +1693,7 @@ func (x *RenewBareMetalNowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenewBareMetalNowResponse.ProtoReflect.Descriptor instead.
 func (*RenewBareMetalNowResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{15}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *RenewBareMetalNowResponse) GetInstance() *BareMetalInstance {
@@ -1400,7 +1734,7 @@ type SetBareMetalPowerRequest struct {
 
 func (x *SetBareMetalPowerRequest) Reset() {
 	*x = SetBareMetalPowerRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[16]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1412,7 +1746,7 @@ func (x *SetBareMetalPowerRequest) String() string {
 func (*SetBareMetalPowerRequest) ProtoMessage() {}
 
 func (x *SetBareMetalPowerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[16]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1425,7 +1759,7 @@ func (x *SetBareMetalPowerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetBareMetalPowerRequest.ProtoReflect.Descriptor instead.
 func (*SetBareMetalPowerRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{16}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *SetBareMetalPowerRequest) GetName() string {
@@ -1451,7 +1785,7 @@ type SetBareMetalPowerResponse struct {
 
 func (x *SetBareMetalPowerResponse) Reset() {
 	*x = SetBareMetalPowerResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[17]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1463,7 +1797,7 @@ func (x *SetBareMetalPowerResponse) String() string {
 func (*SetBareMetalPowerResponse) ProtoMessage() {}
 
 func (x *SetBareMetalPowerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[17]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1476,7 +1810,7 @@ func (x *SetBareMetalPowerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetBareMetalPowerResponse.ProtoReflect.Descriptor instead.
 func (*SetBareMetalPowerResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{17}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *SetBareMetalPowerResponse) GetInstance() *BareMetalInstance {
@@ -1503,7 +1837,7 @@ type ReinstallBareMetalRequest struct {
 
 func (x *ReinstallBareMetalRequest) Reset() {
 	*x = ReinstallBareMetalRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[18]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1515,7 +1849,7 @@ func (x *ReinstallBareMetalRequest) String() string {
 func (*ReinstallBareMetalRequest) ProtoMessage() {}
 
 func (x *ReinstallBareMetalRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[18]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1528,7 +1862,7 @@ func (x *ReinstallBareMetalRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReinstallBareMetalRequest.ProtoReflect.Descriptor instead.
 func (*ReinstallBareMetalRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{18}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ReinstallBareMetalRequest) GetName() string {
@@ -1589,7 +1923,7 @@ type ReinstallBareMetalResponse struct {
 
 func (x *ReinstallBareMetalResponse) Reset() {
 	*x = ReinstallBareMetalResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[19]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1601,7 +1935,7 @@ func (x *ReinstallBareMetalResponse) String() string {
 func (*ReinstallBareMetalResponse) ProtoMessage() {}
 
 func (x *ReinstallBareMetalResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[19]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1614,7 +1948,7 @@ func (x *ReinstallBareMetalResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReinstallBareMetalResponse.ProtoReflect.Descriptor instead.
 func (*ReinstallBareMetalResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{19}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ReinstallBareMetalResponse) GetInstance() *BareMetalInstance {
@@ -1633,7 +1967,7 @@ type GetBareMetalConsoleURLRequest struct {
 
 func (x *GetBareMetalConsoleURLRequest) Reset() {
 	*x = GetBareMetalConsoleURLRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[20]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1645,7 +1979,7 @@ func (x *GetBareMetalConsoleURLRequest) String() string {
 func (*GetBareMetalConsoleURLRequest) ProtoMessage() {}
 
 func (x *GetBareMetalConsoleURLRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[20]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1658,7 +1992,7 @@ func (x *GetBareMetalConsoleURLRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBareMetalConsoleURLRequest.ProtoReflect.Descriptor instead.
 func (*GetBareMetalConsoleURLRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{20}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetBareMetalConsoleURLRequest) GetName() string {
@@ -1684,7 +2018,7 @@ type GetBareMetalConsoleURLResponse struct {
 
 func (x *GetBareMetalConsoleURLResponse) Reset() {
 	*x = GetBareMetalConsoleURLResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[21]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1696,7 +2030,7 @@ func (x *GetBareMetalConsoleURLResponse) String() string {
 func (*GetBareMetalConsoleURLResponse) ProtoMessage() {}
 
 func (x *GetBareMetalConsoleURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[21]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1709,7 +2043,7 @@ func (x *GetBareMetalConsoleURLResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBareMetalConsoleURLResponse.ProtoReflect.Descriptor instead.
 func (*GetBareMetalConsoleURLResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{21}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetBareMetalConsoleURLResponse) GetConsoleUrl() string {
@@ -1745,7 +2079,7 @@ type EnterBareMetalRescueModeRequest struct {
 
 func (x *EnterBareMetalRescueModeRequest) Reset() {
 	*x = EnterBareMetalRescueModeRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[22]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1757,7 +2091,7 @@ func (x *EnterBareMetalRescueModeRequest) String() string {
 func (*EnterBareMetalRescueModeRequest) ProtoMessage() {}
 
 func (x *EnterBareMetalRescueModeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[22]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1770,7 +2104,7 @@ func (x *EnterBareMetalRescueModeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterBareMetalRescueModeRequest.ProtoReflect.Descriptor instead.
 func (*EnterBareMetalRescueModeRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{22}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *EnterBareMetalRescueModeRequest) GetName() string {
@@ -1796,7 +2130,7 @@ type EnterBareMetalRescueModeResponse struct {
 
 func (x *EnterBareMetalRescueModeResponse) Reset() {
 	*x = EnterBareMetalRescueModeResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[23]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1808,7 +2142,7 @@ func (x *EnterBareMetalRescueModeResponse) String() string {
 func (*EnterBareMetalRescueModeResponse) ProtoMessage() {}
 
 func (x *EnterBareMetalRescueModeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[23]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1821,7 +2155,7 @@ func (x *EnterBareMetalRescueModeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterBareMetalRescueModeResponse.ProtoReflect.Descriptor instead.
 func (*EnterBareMetalRescueModeResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{23}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *EnterBareMetalRescueModeResponse) GetInstance() *BareMetalInstance {
@@ -1840,7 +2174,7 @@ type ExitBareMetalRescueModeRequest struct {
 
 func (x *ExitBareMetalRescueModeRequest) Reset() {
 	*x = ExitBareMetalRescueModeRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[24]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1852,7 +2186,7 @@ func (x *ExitBareMetalRescueModeRequest) String() string {
 func (*ExitBareMetalRescueModeRequest) ProtoMessage() {}
 
 func (x *ExitBareMetalRescueModeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[24]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1865,7 +2199,7 @@ func (x *ExitBareMetalRescueModeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExitBareMetalRescueModeRequest.ProtoReflect.Descriptor instead.
 func (*ExitBareMetalRescueModeRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{24}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ExitBareMetalRescueModeRequest) GetName() string {
@@ -1884,7 +2218,7 @@ type ExitBareMetalRescueModeResponse struct {
 
 func (x *ExitBareMetalRescueModeResponse) Reset() {
 	*x = ExitBareMetalRescueModeResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[25]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1896,7 +2230,7 @@ func (x *ExitBareMetalRescueModeResponse) String() string {
 func (*ExitBareMetalRescueModeResponse) ProtoMessage() {}
 
 func (x *ExitBareMetalRescueModeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[25]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1909,7 +2243,7 @@ func (x *ExitBareMetalRescueModeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExitBareMetalRescueModeResponse.ProtoReflect.Descriptor instead.
 func (*ExitBareMetalRescueModeResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{25}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ExitBareMetalRescueModeResponse) GetInstance() *BareMetalInstance {
@@ -1933,7 +2267,7 @@ type CreateBareMetalISOUploadURLRequest struct {
 
 func (x *CreateBareMetalISOUploadURLRequest) Reset() {
 	*x = CreateBareMetalISOUploadURLRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[26]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1945,7 +2279,7 @@ func (x *CreateBareMetalISOUploadURLRequest) String() string {
 func (*CreateBareMetalISOUploadURLRequest) ProtoMessage() {}
 
 func (x *CreateBareMetalISOUploadURLRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[26]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1958,7 +2292,7 @@ func (x *CreateBareMetalISOUploadURLRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use CreateBareMetalISOUploadURLRequest.ProtoReflect.Descriptor instead.
 func (*CreateBareMetalISOUploadURLRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{26}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *CreateBareMetalISOUploadURLRequest) GetProjectName() string {
@@ -1988,7 +2322,7 @@ type CreateBareMetalISOUploadURLResponse struct {
 
 func (x *CreateBareMetalISOUploadURLResponse) Reset() {
 	*x = CreateBareMetalISOUploadURLResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[27]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2000,7 +2334,7 @@ func (x *CreateBareMetalISOUploadURLResponse) String() string {
 func (*CreateBareMetalISOUploadURLResponse) ProtoMessage() {}
 
 func (x *CreateBareMetalISOUploadURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[27]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2013,7 +2347,7 @@ func (x *CreateBareMetalISOUploadURLResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use CreateBareMetalISOUploadURLResponse.ProtoReflect.Descriptor instead.
 func (*CreateBareMetalISOUploadURLResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{27}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *CreateBareMetalISOUploadURLResponse) GetUploadUrl() string {
@@ -2050,7 +2384,7 @@ type ISOFile struct {
 
 func (x *ISOFile) Reset() {
 	*x = ISOFile{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[28]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2062,7 +2396,7 @@ func (x *ISOFile) String() string {
 func (*ISOFile) ProtoMessage() {}
 
 func (x *ISOFile) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[28]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2075,7 +2409,7 @@ func (x *ISOFile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ISOFile.ProtoReflect.Descriptor instead.
 func (*ISOFile) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{28}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ISOFile) GetObjectKey() string {
@@ -2115,7 +2449,7 @@ type ListBareMetalISOsRequest struct {
 
 func (x *ListBareMetalISOsRequest) Reset() {
 	*x = ListBareMetalISOsRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[29]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2127,7 +2461,7 @@ func (x *ListBareMetalISOsRequest) String() string {
 func (*ListBareMetalISOsRequest) ProtoMessage() {}
 
 func (x *ListBareMetalISOsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[29]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2140,7 +2474,7 @@ func (x *ListBareMetalISOsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBareMetalISOsRequest.ProtoReflect.Descriptor instead.
 func (*ListBareMetalISOsRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{29}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ListBareMetalISOsRequest) GetProjectName() string {
@@ -2163,7 +2497,7 @@ type CreateBareMetalISOFromURLRequest struct {
 
 func (x *CreateBareMetalISOFromURLRequest) Reset() {
 	*x = CreateBareMetalISOFromURLRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[30]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2175,7 +2509,7 @@ func (x *CreateBareMetalISOFromURLRequest) String() string {
 func (*CreateBareMetalISOFromURLRequest) ProtoMessage() {}
 
 func (x *CreateBareMetalISOFromURLRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[30]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2188,7 +2522,7 @@ func (x *CreateBareMetalISOFromURLRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBareMetalISOFromURLRequest.ProtoReflect.Descriptor instead.
 func (*CreateBareMetalISOFromURLRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{30}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *CreateBareMetalISOFromURLRequest) GetProjectName() string {
@@ -2222,7 +2556,7 @@ type CreateBareMetalISOFromURLResponse struct {
 
 func (x *CreateBareMetalISOFromURLResponse) Reset() {
 	*x = CreateBareMetalISOFromURLResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[31]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2234,7 +2568,7 @@ func (x *CreateBareMetalISOFromURLResponse) String() string {
 func (*CreateBareMetalISOFromURLResponse) ProtoMessage() {}
 
 func (x *CreateBareMetalISOFromURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[31]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2247,7 +2581,7 @@ func (x *CreateBareMetalISOFromURLResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use CreateBareMetalISOFromURLResponse.ProtoReflect.Descriptor instead.
 func (*CreateBareMetalISOFromURLResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{31}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *CreateBareMetalISOFromURLResponse) GetObjectKey() string {
@@ -2268,7 +2602,7 @@ type ListBareMetalISOsResponse struct {
 
 func (x *ListBareMetalISOsResponse) Reset() {
 	*x = ListBareMetalISOsResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[32]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2280,7 +2614,7 @@ func (x *ListBareMetalISOsResponse) String() string {
 func (*ListBareMetalISOsResponse) ProtoMessage() {}
 
 func (x *ListBareMetalISOsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[32]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2293,7 +2627,7 @@ func (x *ListBareMetalISOsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBareMetalISOsResponse.ProtoReflect.Descriptor instead.
 func (*ListBareMetalISOsResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{32}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ListBareMetalISOsResponse) GetIsos() []*ISOFile {
@@ -2320,7 +2654,7 @@ type DeleteBareMetalISORequest struct {
 
 func (x *DeleteBareMetalISORequest) Reset() {
 	*x = DeleteBareMetalISORequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[33]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2332,7 +2666,7 @@ func (x *DeleteBareMetalISORequest) String() string {
 func (*DeleteBareMetalISORequest) ProtoMessage() {}
 
 func (x *DeleteBareMetalISORequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[33]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2345,7 +2679,7 @@ func (x *DeleteBareMetalISORequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteBareMetalISORequest.ProtoReflect.Descriptor instead.
 func (*DeleteBareMetalISORequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{33}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *DeleteBareMetalISORequest) GetProjectName() string {
@@ -2370,7 +2704,7 @@ type DeleteBareMetalISOResponse struct {
 
 func (x *DeleteBareMetalISOResponse) Reset() {
 	*x = DeleteBareMetalISOResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[34]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2382,7 +2716,7 @@ func (x *DeleteBareMetalISOResponse) String() string {
 func (*DeleteBareMetalISOResponse) ProtoMessage() {}
 
 func (x *DeleteBareMetalISOResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[34]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2395,7 +2729,7 @@ func (x *DeleteBareMetalISOResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteBareMetalISOResponse.ProtoReflect.Descriptor instead.
 func (*DeleteBareMetalISOResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{34}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{37}
 }
 
 type GetBareMetalVirtualMediaRequest struct {
@@ -2407,7 +2741,7 @@ type GetBareMetalVirtualMediaRequest struct {
 
 func (x *GetBareMetalVirtualMediaRequest) Reset() {
 	*x = GetBareMetalVirtualMediaRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[35]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2419,7 +2753,7 @@ func (x *GetBareMetalVirtualMediaRequest) String() string {
 func (*GetBareMetalVirtualMediaRequest) ProtoMessage() {}
 
 func (x *GetBareMetalVirtualMediaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[35]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2432,7 +2766,7 @@ func (x *GetBareMetalVirtualMediaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBareMetalVirtualMediaRequest.ProtoReflect.Descriptor instead.
 func (*GetBareMetalVirtualMediaRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{35}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *GetBareMetalVirtualMediaRequest) GetName() string {
@@ -2455,7 +2789,7 @@ type GetBareMetalVirtualMediaResponse struct {
 
 func (x *GetBareMetalVirtualMediaResponse) Reset() {
 	*x = GetBareMetalVirtualMediaResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[36]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2467,7 +2801,7 @@ func (x *GetBareMetalVirtualMediaResponse) String() string {
 func (*GetBareMetalVirtualMediaResponse) ProtoMessage() {}
 
 func (x *GetBareMetalVirtualMediaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[36]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2480,7 +2814,7 @@ func (x *GetBareMetalVirtualMediaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBareMetalVirtualMediaResponse.ProtoReflect.Descriptor instead.
 func (*GetBareMetalVirtualMediaResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{36}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *GetBareMetalVirtualMediaResponse) GetInserted() bool {
@@ -2515,7 +2849,7 @@ type AttachBareMetalISORequest struct {
 
 func (x *AttachBareMetalISORequest) Reset() {
 	*x = AttachBareMetalISORequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[37]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2527,7 +2861,7 @@ func (x *AttachBareMetalISORequest) String() string {
 func (*AttachBareMetalISORequest) ProtoMessage() {}
 
 func (x *AttachBareMetalISORequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[37]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2540,7 +2874,7 @@ func (x *AttachBareMetalISORequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachBareMetalISORequest.ProtoReflect.Descriptor instead.
 func (*AttachBareMetalISORequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{37}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *AttachBareMetalISORequest) GetName() string {
@@ -2566,7 +2900,7 @@ type AttachBareMetalISOResponse struct {
 
 func (x *AttachBareMetalISOResponse) Reset() {
 	*x = AttachBareMetalISOResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[38]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2578,7 +2912,7 @@ func (x *AttachBareMetalISOResponse) String() string {
 func (*AttachBareMetalISOResponse) ProtoMessage() {}
 
 func (x *AttachBareMetalISOResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[38]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2591,7 +2925,7 @@ func (x *AttachBareMetalISOResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachBareMetalISOResponse.ProtoReflect.Descriptor instead.
 func (*AttachBareMetalISOResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{38}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *AttachBareMetalISOResponse) GetInstance() *BareMetalInstance {
@@ -2610,7 +2944,7 @@ type DetachBareMetalISORequest struct {
 
 func (x *DetachBareMetalISORequest) Reset() {
 	*x = DetachBareMetalISORequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[39]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2622,7 +2956,7 @@ func (x *DetachBareMetalISORequest) String() string {
 func (*DetachBareMetalISORequest) ProtoMessage() {}
 
 func (x *DetachBareMetalISORequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[39]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2635,7 +2969,7 @@ func (x *DetachBareMetalISORequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachBareMetalISORequest.ProtoReflect.Descriptor instead.
 func (*DetachBareMetalISORequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{39}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *DetachBareMetalISORequest) GetName() string {
@@ -2654,7 +2988,7 @@ type DetachBareMetalISOResponse struct {
 
 func (x *DetachBareMetalISOResponse) Reset() {
 	*x = DetachBareMetalISOResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[40]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2666,7 +3000,7 @@ func (x *DetachBareMetalISOResponse) String() string {
 func (*DetachBareMetalISOResponse) ProtoMessage() {}
 
 func (x *DetachBareMetalISOResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[40]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2679,7 +3013,7 @@ func (x *DetachBareMetalISOResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachBareMetalISOResponse.ProtoReflect.Descriptor instead.
 func (*DetachBareMetalISOResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{40}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *DetachBareMetalISOResponse) GetInstance() *BareMetalInstance {
@@ -2699,7 +3033,7 @@ type SetBareMetalBootDeviceRequest struct {
 
 func (x *SetBareMetalBootDeviceRequest) Reset() {
 	*x = SetBareMetalBootDeviceRequest{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[41]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2711,7 +3045,7 @@ func (x *SetBareMetalBootDeviceRequest) String() string {
 func (*SetBareMetalBootDeviceRequest) ProtoMessage() {}
 
 func (x *SetBareMetalBootDeviceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[41]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2724,7 +3058,7 @@ func (x *SetBareMetalBootDeviceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetBareMetalBootDeviceRequest.ProtoReflect.Descriptor instead.
 func (*SetBareMetalBootDeviceRequest) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{41}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *SetBareMetalBootDeviceRequest) GetName() string {
@@ -2750,7 +3084,7 @@ type SetBareMetalBootDeviceResponse struct {
 
 func (x *SetBareMetalBootDeviceResponse) Reset() {
 	*x = SetBareMetalBootDeviceResponse{}
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[42]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2762,7 +3096,7 @@ func (x *SetBareMetalBootDeviceResponse) String() string {
 func (*SetBareMetalBootDeviceResponse) ProtoMessage() {}
 
 func (x *SetBareMetalBootDeviceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[42]
+	mi := &file_aes_baremetal_v1_baremetal_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2775,7 +3109,7 @@ func (x *SetBareMetalBootDeviceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetBareMetalBootDeviceResponse.ProtoReflect.Descriptor instead.
 func (*SetBareMetalBootDeviceResponse) Descriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{42}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *SetBareMetalBootDeviceResponse) GetInstance() *BareMetalInstance {
@@ -2846,7 +3180,36 @@ const file_aes_baremetal_v1_baremetal_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\"\x84\x01\n" +
 	"\x1eListAvailableBareMetalResponse\x12:\n" +
 	"\x05hosts\x18\x01 \x03(\v2$.aes.baremetal.v1.AvailableBareMetalR\x05hosts\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xc5\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xe6\x03\n" +
+	"\rBareMetalNode\x12\x1b\n" +
+	"\thost_name\x18\x01 \x01(\tR\bhostName\x12'\n" +
+	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12\x1d\n" +
+	"\n" +
+	"spec_label\x18\x03 \x01(\tR\tspecLabel\x12\x1b\n" +
+	"\tcpu_model\x18\x04 \x01(\tR\bcpuModel\x12%\n" +
+	"\x0ecpu_generation\x18\x05 \x01(\tR\rcpuGeneration\x12\x1f\n" +
+	"\vtotal_cores\x18\x06 \x01(\x05R\n" +
+	"totalCores\x12\x17\n" +
+	"\aram_gib\x18\a \x01(\x05R\x06ramGib\x12\x1f\n" +
+	"\vstorage_gib\x18\b \x01(\x05R\n" +
+	"storageGib\x12.\n" +
+	"\x13monthly_price_minor\x18\t \x01(\x03R\x11monthlyPriceMinor\x12\x1a\n" +
+	"\bcurrency\x18\n" +
+	" \x01(\tR\bcurrency\x12K\n" +
+	"\favailability\x18\v \x01(\x0e2'.aes.baremetal.v1.BareMetalAvailabilityR\favailability\x12\x1b\n" +
+	"\tgpu_model\x18\f \x01(\tR\bgpuModel\x12\x1b\n" +
+	"\tgpu_count\x18\r \x01(\x05R\bgpuCount\"\x84\x01\n" +
+	"\x1dListBareMetalInventoryRequest\x12'\n" +
+	"\x0fdatacenter_name\x18\x01 \x01(\tR\x0edatacenterName\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\"\xcb\x01\n" +
+	"\x1eListBareMetalInventoryResponse\x125\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x1f.aes.baremetal.v1.BareMetalNodeR\x05nodes\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12\x14\n" +
+	"\x05total\x18\x03 \x01(\x05R\x05total\x12\x1c\n" +
+	"\tavailable\x18\x04 \x01(\x05R\tavailable\x12\x16\n" +
+	"\x06leased\x18\x05 \x01(\x05R\x06leased\"\xc5\x01\n" +
 	"\x15QuoteBareMetalRequest\x12\x1b\n" +
 	"\thost_name\x18\x01 \x01(\tR\bhostName\x12>\n" +
 	"\fbilling_mode\x18\x02 \x01(\x0e2\x1b.aes.compute.v1.BillingModeR\vbillingMode\x12\x1a\n" +
@@ -2999,14 +3362,19 @@ const file_aes_baremetal_v1_baremetal_proto_rawDesc = "" +
 	"#BARE_METAL_POWER_ACTION_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aBARE_METAL_POWER_ACTION_ON\x10\x01\x12\x1f\n" +
 	"\x1bBARE_METAL_POWER_ACTION_OFF\x10\x02\x12\"\n" +
-	"\x1eBARE_METAL_POWER_ACTION_REBOOT\x10\x03*\xa0\x01\n" +
+	"\x1eBARE_METAL_POWER_ACTION_REBOOT\x10\x03*\x8b\x01\n" +
+	"\x15BareMetalAvailability\x12'\n" +
+	"#BARE_METAL_AVAILABILITY_UNSPECIFIED\x10\x00\x12%\n" +
+	"!BARE_METAL_AVAILABILITY_AVAILABLE\x10\x01\x12\"\n" +
+	"\x1eBARE_METAL_AVAILABILITY_LEASED\x10\x02*\xa0\x01\n" +
 	"\x13BareMetalBootDevice\x12&\n" +
 	"\"BARE_METAL_BOOT_DEVICE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bBARE_METAL_BOOT_DEVICE_DISK\x10\x01\x12 \n" +
 	"\x1cBARE_METAL_BOOT_DEVICE_CDROM\x10\x02\x12\x1e\n" +
-	"\x1aBARE_METAL_BOOT_DEVICE_PXE\x10\x032\x90\x13\n" +
+	"\x1aBARE_METAL_BOOT_DEVICE_PXE\x10\x032\x8d\x14\n" +
 	"\x10BareMetalService\x12{\n" +
-	"\x16ListAvailableBareMetal\x12/.aes.baremetal.v1.ListAvailableBareMetalRequest\x1a0.aes.baremetal.v1.ListAvailableBareMetalResponse\x12c\n" +
+	"\x16ListAvailableBareMetal\x12/.aes.baremetal.v1.ListAvailableBareMetalRequest\x1a0.aes.baremetal.v1.ListAvailableBareMetalResponse\x12{\n" +
+	"\x16ListBareMetalInventory\x12/.aes.baremetal.v1.ListBareMetalInventoryRequest\x1a0.aes.baremetal.v1.ListBareMetalInventoryResponse\x12c\n" +
 	"\x0eQuoteBareMetal\x12'.aes.baremetal.v1.QuoteBareMetalRequest\x1a(.aes.baremetal.v1.QuoteBareMetalResponse\x12~\n" +
 	"\x17CreateBareMetalInstance\x120.aes.baremetal.v1.CreateBareMetalInstanceRequest\x1a1.aes.baremetal.v1.CreateBareMetalInstanceResponse\x12u\n" +
 	"\x14GetBareMetalInstance\x12-.aes.baremetal.v1.GetBareMetalInstanceRequest\x1a..aes.baremetal.v1.GetBareMetalInstanceResponse\x12{\n" +
@@ -3040,128 +3408,136 @@ func file_aes_baremetal_v1_baremetal_proto_rawDescGZIP() []byte {
 	return file_aes_baremetal_v1_baremetal_proto_rawDescData
 }
 
-var file_aes_baremetal_v1_baremetal_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_aes_baremetal_v1_baremetal_proto_msgTypes = make([]protoimpl.MessageInfo, 47)
+var file_aes_baremetal_v1_baremetal_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_aes_baremetal_v1_baremetal_proto_msgTypes = make([]protoimpl.MessageInfo, 50)
 var file_aes_baremetal_v1_baremetal_proto_goTypes = []any{
 	(BareMetalPowerAction)(0),                   // 0: aes.baremetal.v1.BareMetalPowerAction
-	(BareMetalBootDevice)(0),                    // 1: aes.baremetal.v1.BareMetalBootDevice
-	(*BareMetalInstance)(nil),                   // 2: aes.baremetal.v1.BareMetalInstance
-	(*AvailableBareMetal)(nil),                  // 3: aes.baremetal.v1.AvailableBareMetal
-	(*ListAvailableBareMetalRequest)(nil),       // 4: aes.baremetal.v1.ListAvailableBareMetalRequest
-	(*ListAvailableBareMetalResponse)(nil),      // 5: aes.baremetal.v1.ListAvailableBareMetalResponse
-	(*QuoteBareMetalRequest)(nil),               // 6: aes.baremetal.v1.QuoteBareMetalRequest
-	(*QuoteBareMetalResponse)(nil),              // 7: aes.baremetal.v1.QuoteBareMetalResponse
-	(*CreateBareMetalInstanceRequest)(nil),      // 8: aes.baremetal.v1.CreateBareMetalInstanceRequest
-	(*CreateBareMetalInstanceResponse)(nil),     // 9: aes.baremetal.v1.CreateBareMetalInstanceResponse
-	(*GetBareMetalInstanceRequest)(nil),         // 10: aes.baremetal.v1.GetBareMetalInstanceRequest
-	(*GetBareMetalInstanceResponse)(nil),        // 11: aes.baremetal.v1.GetBareMetalInstanceResponse
-	(*ListBareMetalInstancesRequest)(nil),       // 12: aes.baremetal.v1.ListBareMetalInstancesRequest
-	(*ListBareMetalInstancesResponse)(nil),      // 13: aes.baremetal.v1.ListBareMetalInstancesResponse
-	(*ReleaseBareMetalInstanceRequest)(nil),     // 14: aes.baremetal.v1.ReleaseBareMetalInstanceRequest
-	(*ReleaseBareMetalInstanceResponse)(nil),    // 15: aes.baremetal.v1.ReleaseBareMetalInstanceResponse
-	(*RenewBareMetalNowRequest)(nil),            // 16: aes.baremetal.v1.RenewBareMetalNowRequest
-	(*RenewBareMetalNowResponse)(nil),           // 17: aes.baremetal.v1.RenewBareMetalNowResponse
-	(*SetBareMetalPowerRequest)(nil),            // 18: aes.baremetal.v1.SetBareMetalPowerRequest
-	(*SetBareMetalPowerResponse)(nil),           // 19: aes.baremetal.v1.SetBareMetalPowerResponse
-	(*ReinstallBareMetalRequest)(nil),           // 20: aes.baremetal.v1.ReinstallBareMetalRequest
-	(*ReinstallBareMetalResponse)(nil),          // 21: aes.baremetal.v1.ReinstallBareMetalResponse
-	(*GetBareMetalConsoleURLRequest)(nil),       // 22: aes.baremetal.v1.GetBareMetalConsoleURLRequest
-	(*GetBareMetalConsoleURLResponse)(nil),      // 23: aes.baremetal.v1.GetBareMetalConsoleURLResponse
-	(*EnterBareMetalRescueModeRequest)(nil),     // 24: aes.baremetal.v1.EnterBareMetalRescueModeRequest
-	(*EnterBareMetalRescueModeResponse)(nil),    // 25: aes.baremetal.v1.EnterBareMetalRescueModeResponse
-	(*ExitBareMetalRescueModeRequest)(nil),      // 26: aes.baremetal.v1.ExitBareMetalRescueModeRequest
-	(*ExitBareMetalRescueModeResponse)(nil),     // 27: aes.baremetal.v1.ExitBareMetalRescueModeResponse
-	(*CreateBareMetalISOUploadURLRequest)(nil),  // 28: aes.baremetal.v1.CreateBareMetalISOUploadURLRequest
-	(*CreateBareMetalISOUploadURLResponse)(nil), // 29: aes.baremetal.v1.CreateBareMetalISOUploadURLResponse
-	(*ISOFile)(nil),                             // 30: aes.baremetal.v1.ISOFile
-	(*ListBareMetalISOsRequest)(nil),            // 31: aes.baremetal.v1.ListBareMetalISOsRequest
-	(*CreateBareMetalISOFromURLRequest)(nil),    // 32: aes.baremetal.v1.CreateBareMetalISOFromURLRequest
-	(*CreateBareMetalISOFromURLResponse)(nil),   // 33: aes.baremetal.v1.CreateBareMetalISOFromURLResponse
-	(*ListBareMetalISOsResponse)(nil),           // 34: aes.baremetal.v1.ListBareMetalISOsResponse
-	(*DeleteBareMetalISORequest)(nil),           // 35: aes.baremetal.v1.DeleteBareMetalISORequest
-	(*DeleteBareMetalISOResponse)(nil),          // 36: aes.baremetal.v1.DeleteBareMetalISOResponse
-	(*GetBareMetalVirtualMediaRequest)(nil),     // 37: aes.baremetal.v1.GetBareMetalVirtualMediaRequest
-	(*GetBareMetalVirtualMediaResponse)(nil),    // 38: aes.baremetal.v1.GetBareMetalVirtualMediaResponse
-	(*AttachBareMetalISORequest)(nil),           // 39: aes.baremetal.v1.AttachBareMetalISORequest
-	(*AttachBareMetalISOResponse)(nil),          // 40: aes.baremetal.v1.AttachBareMetalISOResponse
-	(*DetachBareMetalISORequest)(nil),           // 41: aes.baremetal.v1.DetachBareMetalISORequest
-	(*DetachBareMetalISOResponse)(nil),          // 42: aes.baremetal.v1.DetachBareMetalISOResponse
-	(*SetBareMetalBootDeviceRequest)(nil),       // 43: aes.baremetal.v1.SetBareMetalBootDeviceRequest
-	(*SetBareMetalBootDeviceResponse)(nil),      // 44: aes.baremetal.v1.SetBareMetalBootDeviceResponse
-	nil,                                         // 45: aes.baremetal.v1.BareMetalInstance.LabelsEntry
-	nil,                                         // 46: aes.baremetal.v1.BareMetalInstance.AnnotationsEntry
-	nil,                                         // 47: aes.baremetal.v1.CreateBareMetalInstanceRequest.LabelsEntry
-	nil,                                         // 48: aes.baremetal.v1.CreateBareMetalInstanceRequest.AnnotationsEntry
-	(v1.BillingMode)(0),                         // 49: aes.compute.v1.BillingMode
+	(BareMetalAvailability)(0),                  // 1: aes.baremetal.v1.BareMetalAvailability
+	(BareMetalBootDevice)(0),                    // 2: aes.baremetal.v1.BareMetalBootDevice
+	(*BareMetalInstance)(nil),                   // 3: aes.baremetal.v1.BareMetalInstance
+	(*AvailableBareMetal)(nil),                  // 4: aes.baremetal.v1.AvailableBareMetal
+	(*ListAvailableBareMetalRequest)(nil),       // 5: aes.baremetal.v1.ListAvailableBareMetalRequest
+	(*ListAvailableBareMetalResponse)(nil),      // 6: aes.baremetal.v1.ListAvailableBareMetalResponse
+	(*BareMetalNode)(nil),                       // 7: aes.baremetal.v1.BareMetalNode
+	(*ListBareMetalInventoryRequest)(nil),       // 8: aes.baremetal.v1.ListBareMetalInventoryRequest
+	(*ListBareMetalInventoryResponse)(nil),      // 9: aes.baremetal.v1.ListBareMetalInventoryResponse
+	(*QuoteBareMetalRequest)(nil),               // 10: aes.baremetal.v1.QuoteBareMetalRequest
+	(*QuoteBareMetalResponse)(nil),              // 11: aes.baremetal.v1.QuoteBareMetalResponse
+	(*CreateBareMetalInstanceRequest)(nil),      // 12: aes.baremetal.v1.CreateBareMetalInstanceRequest
+	(*CreateBareMetalInstanceResponse)(nil),     // 13: aes.baremetal.v1.CreateBareMetalInstanceResponse
+	(*GetBareMetalInstanceRequest)(nil),         // 14: aes.baremetal.v1.GetBareMetalInstanceRequest
+	(*GetBareMetalInstanceResponse)(nil),        // 15: aes.baremetal.v1.GetBareMetalInstanceResponse
+	(*ListBareMetalInstancesRequest)(nil),       // 16: aes.baremetal.v1.ListBareMetalInstancesRequest
+	(*ListBareMetalInstancesResponse)(nil),      // 17: aes.baremetal.v1.ListBareMetalInstancesResponse
+	(*ReleaseBareMetalInstanceRequest)(nil),     // 18: aes.baremetal.v1.ReleaseBareMetalInstanceRequest
+	(*ReleaseBareMetalInstanceResponse)(nil),    // 19: aes.baremetal.v1.ReleaseBareMetalInstanceResponse
+	(*RenewBareMetalNowRequest)(nil),            // 20: aes.baremetal.v1.RenewBareMetalNowRequest
+	(*RenewBareMetalNowResponse)(nil),           // 21: aes.baremetal.v1.RenewBareMetalNowResponse
+	(*SetBareMetalPowerRequest)(nil),            // 22: aes.baremetal.v1.SetBareMetalPowerRequest
+	(*SetBareMetalPowerResponse)(nil),           // 23: aes.baremetal.v1.SetBareMetalPowerResponse
+	(*ReinstallBareMetalRequest)(nil),           // 24: aes.baremetal.v1.ReinstallBareMetalRequest
+	(*ReinstallBareMetalResponse)(nil),          // 25: aes.baremetal.v1.ReinstallBareMetalResponse
+	(*GetBareMetalConsoleURLRequest)(nil),       // 26: aes.baremetal.v1.GetBareMetalConsoleURLRequest
+	(*GetBareMetalConsoleURLResponse)(nil),      // 27: aes.baremetal.v1.GetBareMetalConsoleURLResponse
+	(*EnterBareMetalRescueModeRequest)(nil),     // 28: aes.baremetal.v1.EnterBareMetalRescueModeRequest
+	(*EnterBareMetalRescueModeResponse)(nil),    // 29: aes.baremetal.v1.EnterBareMetalRescueModeResponse
+	(*ExitBareMetalRescueModeRequest)(nil),      // 30: aes.baremetal.v1.ExitBareMetalRescueModeRequest
+	(*ExitBareMetalRescueModeResponse)(nil),     // 31: aes.baremetal.v1.ExitBareMetalRescueModeResponse
+	(*CreateBareMetalISOUploadURLRequest)(nil),  // 32: aes.baremetal.v1.CreateBareMetalISOUploadURLRequest
+	(*CreateBareMetalISOUploadURLResponse)(nil), // 33: aes.baremetal.v1.CreateBareMetalISOUploadURLResponse
+	(*ISOFile)(nil),                             // 34: aes.baremetal.v1.ISOFile
+	(*ListBareMetalISOsRequest)(nil),            // 35: aes.baremetal.v1.ListBareMetalISOsRequest
+	(*CreateBareMetalISOFromURLRequest)(nil),    // 36: aes.baremetal.v1.CreateBareMetalISOFromURLRequest
+	(*CreateBareMetalISOFromURLResponse)(nil),   // 37: aes.baremetal.v1.CreateBareMetalISOFromURLResponse
+	(*ListBareMetalISOsResponse)(nil),           // 38: aes.baremetal.v1.ListBareMetalISOsResponse
+	(*DeleteBareMetalISORequest)(nil),           // 39: aes.baremetal.v1.DeleteBareMetalISORequest
+	(*DeleteBareMetalISOResponse)(nil),          // 40: aes.baremetal.v1.DeleteBareMetalISOResponse
+	(*GetBareMetalVirtualMediaRequest)(nil),     // 41: aes.baremetal.v1.GetBareMetalVirtualMediaRequest
+	(*GetBareMetalVirtualMediaResponse)(nil),    // 42: aes.baremetal.v1.GetBareMetalVirtualMediaResponse
+	(*AttachBareMetalISORequest)(nil),           // 43: aes.baremetal.v1.AttachBareMetalISORequest
+	(*AttachBareMetalISOResponse)(nil),          // 44: aes.baremetal.v1.AttachBareMetalISOResponse
+	(*DetachBareMetalISORequest)(nil),           // 45: aes.baremetal.v1.DetachBareMetalISORequest
+	(*DetachBareMetalISOResponse)(nil),          // 46: aes.baremetal.v1.DetachBareMetalISOResponse
+	(*SetBareMetalBootDeviceRequest)(nil),       // 47: aes.baremetal.v1.SetBareMetalBootDeviceRequest
+	(*SetBareMetalBootDeviceResponse)(nil),      // 48: aes.baremetal.v1.SetBareMetalBootDeviceResponse
+	nil,                                         // 49: aes.baremetal.v1.BareMetalInstance.LabelsEntry
+	nil,                                         // 50: aes.baremetal.v1.BareMetalInstance.AnnotationsEntry
+	nil,                                         // 51: aes.baremetal.v1.CreateBareMetalInstanceRequest.LabelsEntry
+	nil,                                         // 52: aes.baremetal.v1.CreateBareMetalInstanceRequest.AnnotationsEntry
+	(v1.BillingMode)(0),                         // 53: aes.compute.v1.BillingMode
 }
 var file_aes_baremetal_v1_baremetal_proto_depIdxs = []int32{
-	45, // 0: aes.baremetal.v1.BareMetalInstance.labels:type_name -> aes.baremetal.v1.BareMetalInstance.LabelsEntry
-	46, // 1: aes.baremetal.v1.BareMetalInstance.annotations:type_name -> aes.baremetal.v1.BareMetalInstance.AnnotationsEntry
-	49, // 2: aes.baremetal.v1.BareMetalInstance.billing_mode:type_name -> aes.compute.v1.BillingMode
-	3,  // 3: aes.baremetal.v1.ListAvailableBareMetalResponse.hosts:type_name -> aes.baremetal.v1.AvailableBareMetal
-	49, // 4: aes.baremetal.v1.QuoteBareMetalRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
-	47, // 5: aes.baremetal.v1.CreateBareMetalInstanceRequest.labels:type_name -> aes.baremetal.v1.CreateBareMetalInstanceRequest.LabelsEntry
-	48, // 6: aes.baremetal.v1.CreateBareMetalInstanceRequest.annotations:type_name -> aes.baremetal.v1.CreateBareMetalInstanceRequest.AnnotationsEntry
-	49, // 7: aes.baremetal.v1.CreateBareMetalInstanceRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
-	2,  // 8: aes.baremetal.v1.CreateBareMetalInstanceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	2,  // 9: aes.baremetal.v1.GetBareMetalInstanceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	2,  // 10: aes.baremetal.v1.ListBareMetalInstancesResponse.bare_metal_instances:type_name -> aes.baremetal.v1.BareMetalInstance
-	2,  // 11: aes.baremetal.v1.RenewBareMetalNowResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	0,  // 12: aes.baremetal.v1.SetBareMetalPowerRequest.action:type_name -> aes.baremetal.v1.BareMetalPowerAction
-	2,  // 13: aes.baremetal.v1.SetBareMetalPowerResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	2,  // 14: aes.baremetal.v1.ReinstallBareMetalResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	2,  // 15: aes.baremetal.v1.EnterBareMetalRescueModeResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	2,  // 16: aes.baremetal.v1.ExitBareMetalRescueModeResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	30, // 17: aes.baremetal.v1.ListBareMetalISOsResponse.isos:type_name -> aes.baremetal.v1.ISOFile
-	2,  // 18: aes.baremetal.v1.AttachBareMetalISOResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	2,  // 19: aes.baremetal.v1.DetachBareMetalISOResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	1,  // 20: aes.baremetal.v1.SetBareMetalBootDeviceRequest.device:type_name -> aes.baremetal.v1.BareMetalBootDevice
-	2,  // 21: aes.baremetal.v1.SetBareMetalBootDeviceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	4,  // 22: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal:input_type -> aes.baremetal.v1.ListAvailableBareMetalRequest
-	6,  // 23: aes.baremetal.v1.BareMetalService.QuoteBareMetal:input_type -> aes.baremetal.v1.QuoteBareMetalRequest
-	8,  // 24: aes.baremetal.v1.BareMetalService.CreateBareMetalInstance:input_type -> aes.baremetal.v1.CreateBareMetalInstanceRequest
-	10, // 25: aes.baremetal.v1.BareMetalService.GetBareMetalInstance:input_type -> aes.baremetal.v1.GetBareMetalInstanceRequest
-	12, // 26: aes.baremetal.v1.BareMetalService.ListBareMetalInstances:input_type -> aes.baremetal.v1.ListBareMetalInstancesRequest
-	14, // 27: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance:input_type -> aes.baremetal.v1.ReleaseBareMetalInstanceRequest
-	16, // 28: aes.baremetal.v1.BareMetalService.RenewBareMetalNow:input_type -> aes.baremetal.v1.RenewBareMetalNowRequest
-	18, // 29: aes.baremetal.v1.BareMetalService.SetBareMetalPower:input_type -> aes.baremetal.v1.SetBareMetalPowerRequest
-	20, // 30: aes.baremetal.v1.BareMetalService.ReinstallBareMetal:input_type -> aes.baremetal.v1.ReinstallBareMetalRequest
-	22, // 31: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL:input_type -> aes.baremetal.v1.GetBareMetalConsoleURLRequest
-	24, // 32: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode:input_type -> aes.baremetal.v1.EnterBareMetalRescueModeRequest
-	26, // 33: aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode:input_type -> aes.baremetal.v1.ExitBareMetalRescueModeRequest
-	28, // 34: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL:input_type -> aes.baremetal.v1.CreateBareMetalISOUploadURLRequest
-	31, // 35: aes.baremetal.v1.BareMetalService.ListBareMetalISOs:input_type -> aes.baremetal.v1.ListBareMetalISOsRequest
-	32, // 36: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL:input_type -> aes.baremetal.v1.CreateBareMetalISOFromURLRequest
-	35, // 37: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO:input_type -> aes.baremetal.v1.DeleteBareMetalISORequest
-	39, // 38: aes.baremetal.v1.BareMetalService.AttachBareMetalISO:input_type -> aes.baremetal.v1.AttachBareMetalISORequest
-	37, // 39: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia:input_type -> aes.baremetal.v1.GetBareMetalVirtualMediaRequest
-	41, // 40: aes.baremetal.v1.BareMetalService.DetachBareMetalISO:input_type -> aes.baremetal.v1.DetachBareMetalISORequest
-	43, // 41: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice:input_type -> aes.baremetal.v1.SetBareMetalBootDeviceRequest
-	5,  // 42: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal:output_type -> aes.baremetal.v1.ListAvailableBareMetalResponse
-	7,  // 43: aes.baremetal.v1.BareMetalService.QuoteBareMetal:output_type -> aes.baremetal.v1.QuoteBareMetalResponse
-	9,  // 44: aes.baremetal.v1.BareMetalService.CreateBareMetalInstance:output_type -> aes.baremetal.v1.CreateBareMetalInstanceResponse
-	11, // 45: aes.baremetal.v1.BareMetalService.GetBareMetalInstance:output_type -> aes.baremetal.v1.GetBareMetalInstanceResponse
-	13, // 46: aes.baremetal.v1.BareMetalService.ListBareMetalInstances:output_type -> aes.baremetal.v1.ListBareMetalInstancesResponse
-	15, // 47: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance:output_type -> aes.baremetal.v1.ReleaseBareMetalInstanceResponse
-	17, // 48: aes.baremetal.v1.BareMetalService.RenewBareMetalNow:output_type -> aes.baremetal.v1.RenewBareMetalNowResponse
-	19, // 49: aes.baremetal.v1.BareMetalService.SetBareMetalPower:output_type -> aes.baremetal.v1.SetBareMetalPowerResponse
-	21, // 50: aes.baremetal.v1.BareMetalService.ReinstallBareMetal:output_type -> aes.baremetal.v1.ReinstallBareMetalResponse
-	23, // 51: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL:output_type -> aes.baremetal.v1.GetBareMetalConsoleURLResponse
-	25, // 52: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode:output_type -> aes.baremetal.v1.EnterBareMetalRescueModeResponse
-	27, // 53: aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode:output_type -> aes.baremetal.v1.ExitBareMetalRescueModeResponse
-	29, // 54: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL:output_type -> aes.baremetal.v1.CreateBareMetalISOUploadURLResponse
-	34, // 55: aes.baremetal.v1.BareMetalService.ListBareMetalISOs:output_type -> aes.baremetal.v1.ListBareMetalISOsResponse
-	33, // 56: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL:output_type -> aes.baremetal.v1.CreateBareMetalISOFromURLResponse
-	36, // 57: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO:output_type -> aes.baremetal.v1.DeleteBareMetalISOResponse
-	40, // 58: aes.baremetal.v1.BareMetalService.AttachBareMetalISO:output_type -> aes.baremetal.v1.AttachBareMetalISOResponse
-	38, // 59: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia:output_type -> aes.baremetal.v1.GetBareMetalVirtualMediaResponse
-	42, // 60: aes.baremetal.v1.BareMetalService.DetachBareMetalISO:output_type -> aes.baremetal.v1.DetachBareMetalISOResponse
-	44, // 61: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice:output_type -> aes.baremetal.v1.SetBareMetalBootDeviceResponse
-	42, // [42:62] is the sub-list for method output_type
-	22, // [22:42] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	49, // 0: aes.baremetal.v1.BareMetalInstance.labels:type_name -> aes.baremetal.v1.BareMetalInstance.LabelsEntry
+	50, // 1: aes.baremetal.v1.BareMetalInstance.annotations:type_name -> aes.baremetal.v1.BareMetalInstance.AnnotationsEntry
+	53, // 2: aes.baremetal.v1.BareMetalInstance.billing_mode:type_name -> aes.compute.v1.BillingMode
+	4,  // 3: aes.baremetal.v1.ListAvailableBareMetalResponse.hosts:type_name -> aes.baremetal.v1.AvailableBareMetal
+	1,  // 4: aes.baremetal.v1.BareMetalNode.availability:type_name -> aes.baremetal.v1.BareMetalAvailability
+	7,  // 5: aes.baremetal.v1.ListBareMetalInventoryResponse.nodes:type_name -> aes.baremetal.v1.BareMetalNode
+	53, // 6: aes.baremetal.v1.QuoteBareMetalRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
+	51, // 7: aes.baremetal.v1.CreateBareMetalInstanceRequest.labels:type_name -> aes.baremetal.v1.CreateBareMetalInstanceRequest.LabelsEntry
+	52, // 8: aes.baremetal.v1.CreateBareMetalInstanceRequest.annotations:type_name -> aes.baremetal.v1.CreateBareMetalInstanceRequest.AnnotationsEntry
+	53, // 9: aes.baremetal.v1.CreateBareMetalInstanceRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
+	3,  // 10: aes.baremetal.v1.CreateBareMetalInstanceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	3,  // 11: aes.baremetal.v1.GetBareMetalInstanceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	3,  // 12: aes.baremetal.v1.ListBareMetalInstancesResponse.bare_metal_instances:type_name -> aes.baremetal.v1.BareMetalInstance
+	3,  // 13: aes.baremetal.v1.RenewBareMetalNowResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	0,  // 14: aes.baremetal.v1.SetBareMetalPowerRequest.action:type_name -> aes.baremetal.v1.BareMetalPowerAction
+	3,  // 15: aes.baremetal.v1.SetBareMetalPowerResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	3,  // 16: aes.baremetal.v1.ReinstallBareMetalResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	3,  // 17: aes.baremetal.v1.EnterBareMetalRescueModeResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	3,  // 18: aes.baremetal.v1.ExitBareMetalRescueModeResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	34, // 19: aes.baremetal.v1.ListBareMetalISOsResponse.isos:type_name -> aes.baremetal.v1.ISOFile
+	3,  // 20: aes.baremetal.v1.AttachBareMetalISOResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	3,  // 21: aes.baremetal.v1.DetachBareMetalISOResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	2,  // 22: aes.baremetal.v1.SetBareMetalBootDeviceRequest.device:type_name -> aes.baremetal.v1.BareMetalBootDevice
+	3,  // 23: aes.baremetal.v1.SetBareMetalBootDeviceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	5,  // 24: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal:input_type -> aes.baremetal.v1.ListAvailableBareMetalRequest
+	8,  // 25: aes.baremetal.v1.BareMetalService.ListBareMetalInventory:input_type -> aes.baremetal.v1.ListBareMetalInventoryRequest
+	10, // 26: aes.baremetal.v1.BareMetalService.QuoteBareMetal:input_type -> aes.baremetal.v1.QuoteBareMetalRequest
+	12, // 27: aes.baremetal.v1.BareMetalService.CreateBareMetalInstance:input_type -> aes.baremetal.v1.CreateBareMetalInstanceRequest
+	14, // 28: aes.baremetal.v1.BareMetalService.GetBareMetalInstance:input_type -> aes.baremetal.v1.GetBareMetalInstanceRequest
+	16, // 29: aes.baremetal.v1.BareMetalService.ListBareMetalInstances:input_type -> aes.baremetal.v1.ListBareMetalInstancesRequest
+	18, // 30: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance:input_type -> aes.baremetal.v1.ReleaseBareMetalInstanceRequest
+	20, // 31: aes.baremetal.v1.BareMetalService.RenewBareMetalNow:input_type -> aes.baremetal.v1.RenewBareMetalNowRequest
+	22, // 32: aes.baremetal.v1.BareMetalService.SetBareMetalPower:input_type -> aes.baremetal.v1.SetBareMetalPowerRequest
+	24, // 33: aes.baremetal.v1.BareMetalService.ReinstallBareMetal:input_type -> aes.baremetal.v1.ReinstallBareMetalRequest
+	26, // 34: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL:input_type -> aes.baremetal.v1.GetBareMetalConsoleURLRequest
+	28, // 35: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode:input_type -> aes.baremetal.v1.EnterBareMetalRescueModeRequest
+	30, // 36: aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode:input_type -> aes.baremetal.v1.ExitBareMetalRescueModeRequest
+	32, // 37: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL:input_type -> aes.baremetal.v1.CreateBareMetalISOUploadURLRequest
+	35, // 38: aes.baremetal.v1.BareMetalService.ListBareMetalISOs:input_type -> aes.baremetal.v1.ListBareMetalISOsRequest
+	36, // 39: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL:input_type -> aes.baremetal.v1.CreateBareMetalISOFromURLRequest
+	39, // 40: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO:input_type -> aes.baremetal.v1.DeleteBareMetalISORequest
+	43, // 41: aes.baremetal.v1.BareMetalService.AttachBareMetalISO:input_type -> aes.baremetal.v1.AttachBareMetalISORequest
+	41, // 42: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia:input_type -> aes.baremetal.v1.GetBareMetalVirtualMediaRequest
+	45, // 43: aes.baremetal.v1.BareMetalService.DetachBareMetalISO:input_type -> aes.baremetal.v1.DetachBareMetalISORequest
+	47, // 44: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice:input_type -> aes.baremetal.v1.SetBareMetalBootDeviceRequest
+	6,  // 45: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal:output_type -> aes.baremetal.v1.ListAvailableBareMetalResponse
+	9,  // 46: aes.baremetal.v1.BareMetalService.ListBareMetalInventory:output_type -> aes.baremetal.v1.ListBareMetalInventoryResponse
+	11, // 47: aes.baremetal.v1.BareMetalService.QuoteBareMetal:output_type -> aes.baremetal.v1.QuoteBareMetalResponse
+	13, // 48: aes.baremetal.v1.BareMetalService.CreateBareMetalInstance:output_type -> aes.baremetal.v1.CreateBareMetalInstanceResponse
+	15, // 49: aes.baremetal.v1.BareMetalService.GetBareMetalInstance:output_type -> aes.baremetal.v1.GetBareMetalInstanceResponse
+	17, // 50: aes.baremetal.v1.BareMetalService.ListBareMetalInstances:output_type -> aes.baremetal.v1.ListBareMetalInstancesResponse
+	19, // 51: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance:output_type -> aes.baremetal.v1.ReleaseBareMetalInstanceResponse
+	21, // 52: aes.baremetal.v1.BareMetalService.RenewBareMetalNow:output_type -> aes.baremetal.v1.RenewBareMetalNowResponse
+	23, // 53: aes.baremetal.v1.BareMetalService.SetBareMetalPower:output_type -> aes.baremetal.v1.SetBareMetalPowerResponse
+	25, // 54: aes.baremetal.v1.BareMetalService.ReinstallBareMetal:output_type -> aes.baremetal.v1.ReinstallBareMetalResponse
+	27, // 55: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL:output_type -> aes.baremetal.v1.GetBareMetalConsoleURLResponse
+	29, // 56: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode:output_type -> aes.baremetal.v1.EnterBareMetalRescueModeResponse
+	31, // 57: aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode:output_type -> aes.baremetal.v1.ExitBareMetalRescueModeResponse
+	33, // 58: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL:output_type -> aes.baremetal.v1.CreateBareMetalISOUploadURLResponse
+	38, // 59: aes.baremetal.v1.BareMetalService.ListBareMetalISOs:output_type -> aes.baremetal.v1.ListBareMetalISOsResponse
+	37, // 60: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL:output_type -> aes.baremetal.v1.CreateBareMetalISOFromURLResponse
+	40, // 61: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO:output_type -> aes.baremetal.v1.DeleteBareMetalISOResponse
+	44, // 62: aes.baremetal.v1.BareMetalService.AttachBareMetalISO:output_type -> aes.baremetal.v1.AttachBareMetalISOResponse
+	42, // 63: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia:output_type -> aes.baremetal.v1.GetBareMetalVirtualMediaResponse
+	46, // 64: aes.baremetal.v1.BareMetalService.DetachBareMetalISO:output_type -> aes.baremetal.v1.DetachBareMetalISOResponse
+	48, // 65: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice:output_type -> aes.baremetal.v1.SetBareMetalBootDeviceResponse
+	45, // [45:66] is the sub-list for method output_type
+	24, // [24:45] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_aes_baremetal_v1_baremetal_proto_init() }
@@ -3174,8 +3550,8 @@ func file_aes_baremetal_v1_baremetal_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_baremetal_v1_baremetal_proto_rawDesc), len(file_aes_baremetal_v1_baremetal_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   47,
+			NumEnums:      3,
+			NumMessages:   50,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
