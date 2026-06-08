@@ -58,7 +58,6 @@ for pkg in \
   health \
   iam \
   network \
-  objectstore \
   ops \
   project \
   quota \

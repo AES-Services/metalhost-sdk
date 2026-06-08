@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package aes.storage.v1;
 
+import "google/protobuf/field_mask.proto";
+
 // StorageService manages persistent block disks: standalone PVCs that customers create up
 // front, attach to VMs (potentially hot-plug at runtime), and reuse across VM lifetimes. The
 // boot disk inside CreateVirtualMachine is a separate concern (it lives only as long as the VM
@@ -41,56 +43,64 @@ service StorageService {
 // namespace. State machine:
 //   PROVISIONING → AVAILABLE → ATTACHED → AVAILABLE (on detach) → DELETING → DELETED
 // Attached disks cannot be deleted — detach first.
+// Disk is the single source of truth for a block volume across read and write: GetDisk /
+// ListDisks return it, and CreateDisk / UpdateDisk accept it. Field behavior is documented
+// per-field below using AIP-203 vocabulary; the server enforces it (see CreateDisk/UpdateDisk):
+//
+//   [OUTPUT_ONLY] server-owned — ignored on create/update, only ever returned.
+//   [IMMUTABLE]   settable at create, rejected/ignored on update.
+//   [MUTABLE]     (default) settable at create and update.
+//
+// When google/api/field_behavior is vendored these comments become real
+// (google.api.field_behavior) annotations so buf/codegen/SDKs can enforce them mechanically.
 message Disk {
-  // Resource name `projects/{project}/disks/{id}`.
+  // [OUTPUT_ONLY] Resource name `projects/{project}/disks/{id}`. Server-assigned on create.
   string name = 1;
+  // [MUTABLE] Human-friendly label.
   string display_name = 2;
+  // [OUTPUT_ONLY] Parent project (`projects/{id}`). On create the request `parent` wins.
   string project_name = 3;
+  // [IMMUTABLE] Datacenter the disk lives in (`datacenters/{id}`). DC-local; cannot move.
   string datacenter_name = 4;
+  // [IMMUTABLE] 1..1024 GiB at create. Grow via ResizeDisk (one-way), never via UpdateDisk.
   int32 size_gib = 5;
-  // Customer-facing storage tier — currently `nvme` only. Translated per-DC to a real k8s
-  // StorageClass at PVC create time — see the DC's `aes.metalhost/storage-class-nvme` annotation.
+  // [IMMUTABLE] Customer-facing storage tier — currently `nvme` only. Translated per-DC to a real
+  // k8s StorageClass at PVC create time — see the DC's `aes.metalhost/storage-class-nvme` annotation.
   string storage_class = 6;
-  // PROVISIONING / AVAILABLE / ATTACHED / DELETING / DELETED.
+  // [OUTPUT_ONLY] PROVISIONING / AVAILABLE / ATTACHED / DELETING / DELETED.
   string state = 7;
-  // VM the disk is currently attached to (`virtual-machines/{id}`); empty when AVAILABLE.
+  // [OUTPUT_ONLY] VM the disk is currently attached to (`virtual-machines/{id}`); empty when AVAILABLE.
   string attached_vm = 8;
+  // [OUTPUT_ONLY]
   int64 create_time_unix = 9;
+  // [OUTPUT_ONLY]
   int64 update_time_unix = 10;
+  // [MUTABLE]
   map<string, string> labels = 11;
+  // [MUTABLE]
   map<string, string> annotations = 12;
-  // Tenant Network the disk's PVC lives in (`projects/{p}/networks/{id}`). Disks are
+  // [IMMUTABLE] Tenant Network the disk's PVC lives in (`projects/{p}/networks/{id}`). Disks are
   // namespace-scoped because KubeVirt only mounts PVCs in the same k8s namespace as the VM.
   // Set at create time; immutable. Disks can only attach to VMs on the same Network.
   string network_name = 13;
 }
 
+// CreateDiskRequest follows AIP-133 standard-create: a parent, the resource to create, and an
+// optional client-chosen id. All disk attributes live on the nested Disk (size, tier, datacenter,
+// network, display_name, labels, annotations). OUTPUT_ONLY fields on `disk` are ignored.
 message CreateDiskRequest {
   // The project the disk belongs to (`projects/{id}`).
-  string project_name = 1;
-  // The datacenter the disk lives in (`datacenters/{id}`). Disks are DC-local — they cannot move
-  // between DCs and can only attach to VMs in the same DC.
-  string datacenter_name = 2;
-  // 1..1024 GiB. Lift the upper bound via project quota when needed.
-  int32 size_gib = 3;
-  // `nvme` (currently the only tier offered). Required when from_image_url is empty.
-  string storage_class = 4;
-  string display_name = 5;
-  map<string, string> labels = 6;
-  map<string, string> annotations = 7;
-  reserved 8;
-  reserved "from_snapshot";
-  // Tenant Network the disk attaches to (`projects/{p}/networks/{id}`). When empty, the
-  // project's default Network is used (auto-created on first VM/disk in the project + DC).
-  // Disks can only attach to VMs on the same Network because KubeVirt requires same-namespace
-  // PVC mounts.
-  string network_name = 9;
-  // Optional: hydrate the new disk from a streamable raw disk image URL (e.g. an Ubuntu cloud
-  // image). CDI's http source writes the image byte-for-byte into the PVC during PROVISIONING;
-  // the disk transitions to AVAILABLE once import completes. The disk is billed from the
-  // moment it lands in AVAILABLE/ATTACHED state — the meter loop skips PROVISIONING so
-  // customers don't pay during CDI hydration.
-  string from_image_url = 10;
+  string parent = 1;
+  // The disk to create. size_gib / storage_class / datacenter_name / network_name are required;
+  // state / name / timestamps are OUTPUT_ONLY and ignored here.
+  Disk disk = 2;
+  // Optional client-supplied id; the server assigns one when empty.
+  string disk_id = 3;
+  // Optional create-only hydration source (not a persisted resource field): stream a raw disk
+  // image from this URL (e.g. an Ubuntu cloud image) into the new PVC during PROVISIONING. CDI's
+  // http source writes the image byte-for-byte; the disk flips to AVAILABLE once import completes.
+  // Billed from AVAILABLE/ATTACHED — the meter loop skips PROVISIONING so no charge during import.
+  string from_image_url = 4;
 }
 
 message CreateDiskResponse {
@@ -116,14 +126,14 @@ message ListDisksResponse {
   string next_page_token = 2;
 }
 
+// UpdateDiskRequest follows AIP-134 standard-update: the resource carrying new values (identified
+// by `disk.name`) plus a field mask naming which fields to write. Only MUTABLE fields are
+// honored — display_name, labels, annotations. A field named in the mask is replaced with the
+// value on `disk` (so labels:{} in the mask clears labels). An empty mask updates all mutable
+// fields. IMMUTABLE/OUTPUT_ONLY fields in the mask are ignored.
 message UpdateDiskRequest {
-  string name = 1;
-  optional string display_name = 2;
-  // Merge-by-default; set clear_labels=true to fully replace.
-  map<string, string> labels = 3;
-  bool clear_labels = 4;
-  map<string, string> annotations = 5;
-  bool clear_annotations = 6;
+  Disk disk = 1;
+  google.protobuf.FieldMask update_mask = 2;
 }
 
 message UpdateDiskResponse {

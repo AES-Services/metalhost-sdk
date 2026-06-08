@@ -9,6 +9,7 @@ package storagev1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -27,26 +28,44 @@ const (
 //	PROVISIONING → AVAILABLE → ATTACHED → AVAILABLE (on detach) → DELETING → DELETED
 //
 // Attached disks cannot be deleted — detach first.
+// Disk is the single source of truth for a block volume across read and write: GetDisk /
+// ListDisks return it, and CreateDisk / UpdateDisk accept it. Field behavior is documented
+// per-field below using AIP-203 vocabulary; the server enforces it (see CreateDisk/UpdateDisk):
+//
+//	[OUTPUT_ONLY] server-owned — ignored on create/update, only ever returned.
+//	[IMMUTABLE]   settable at create, rejected/ignored on update.
+//	[MUTABLE]     (default) settable at create and update.
+//
+// When google/api/field_behavior is vendored these comments become real
+// (google.api.field_behavior) annotations so buf/codegen/SDKs can enforce them mechanically.
 type Disk struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Resource name `projects/{project}/disks/{id}`.
-	Name           string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	DisplayName    string `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	ProjectName    string `protobuf:"bytes,3,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	// [OUTPUT_ONLY] Resource name `projects/{project}/disks/{id}`. Server-assigned on create.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// [MUTABLE] Human-friendly label.
+	DisplayName string `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// [OUTPUT_ONLY] Parent project (`projects/{id}`). On create the request `parent` wins.
+	ProjectName string `protobuf:"bytes,3,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	// [IMMUTABLE] Datacenter the disk lives in (`datacenters/{id}`). DC-local; cannot move.
 	DatacenterName string `protobuf:"bytes,4,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
-	SizeGib        int32  `protobuf:"varint,5,opt,name=size_gib,json=sizeGib,proto3" json:"size_gib,omitempty"`
-	// Customer-facing storage tier — currently `nvme` only. Translated per-DC to a real k8s
-	// StorageClass at PVC create time — see the DC's `aes.metalhost/storage-class-nvme` annotation.
+	// [IMMUTABLE] 1..1024 GiB at create. Grow via ResizeDisk (one-way), never via UpdateDisk.
+	SizeGib int32 `protobuf:"varint,5,opt,name=size_gib,json=sizeGib,proto3" json:"size_gib,omitempty"`
+	// [IMMUTABLE] Customer-facing storage tier — currently `nvme` only. Translated per-DC to a real
+	// k8s StorageClass at PVC create time — see the DC's `aes.metalhost/storage-class-nvme` annotation.
 	StorageClass string `protobuf:"bytes,6,opt,name=storage_class,json=storageClass,proto3" json:"storage_class,omitempty"`
-	// PROVISIONING / AVAILABLE / ATTACHED / DELETING / DELETED.
+	// [OUTPUT_ONLY] PROVISIONING / AVAILABLE / ATTACHED / DELETING / DELETED.
 	State string `protobuf:"bytes,7,opt,name=state,proto3" json:"state,omitempty"`
-	// VM the disk is currently attached to (`virtual-machines/{id}`); empty when AVAILABLE.
-	AttachedVm     string            `protobuf:"bytes,8,opt,name=attached_vm,json=attachedVm,proto3" json:"attached_vm,omitempty"`
-	CreateTimeUnix int64             `protobuf:"varint,9,opt,name=create_time_unix,json=createTimeUnix,proto3" json:"create_time_unix,omitempty"`
-	UpdateTimeUnix int64             `protobuf:"varint,10,opt,name=update_time_unix,json=updateTimeUnix,proto3" json:"update_time_unix,omitempty"`
-	Labels         map[string]string `protobuf:"bytes,11,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Annotations    map[string]string `protobuf:"bytes,12,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Tenant Network the disk's PVC lives in (`projects/{p}/networks/{id}`). Disks are
+	// [OUTPUT_ONLY] VM the disk is currently attached to (`virtual-machines/{id}`); empty when AVAILABLE.
+	AttachedVm string `protobuf:"bytes,8,opt,name=attached_vm,json=attachedVm,proto3" json:"attached_vm,omitempty"`
+	// [OUTPUT_ONLY]
+	CreateTimeUnix int64 `protobuf:"varint,9,opt,name=create_time_unix,json=createTimeUnix,proto3" json:"create_time_unix,omitempty"`
+	// [OUTPUT_ONLY]
+	UpdateTimeUnix int64 `protobuf:"varint,10,opt,name=update_time_unix,json=updateTimeUnix,proto3" json:"update_time_unix,omitempty"`
+	// [MUTABLE]
+	Labels map[string]string `protobuf:"bytes,11,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// [MUTABLE]
+	Annotations map[string]string `protobuf:"bytes,12,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// [IMMUTABLE] Tenant Network the disk's PVC lives in (`projects/{p}/networks/{id}`). Disks are
 	// namespace-scoped because KubeVirt only mounts PVCs in the same k8s namespace as the VM.
 	// Set at create time; immutable. Disks can only attach to VMs on the same Network.
 	NetworkName   string `protobuf:"bytes,13,opt,name=network_name,json=networkName,proto3" json:"network_name,omitempty"`
@@ -175,31 +194,23 @@ func (x *Disk) GetNetworkName() string {
 	return ""
 }
 
+// CreateDiskRequest follows AIP-133 standard-create: a parent, the resource to create, and an
+// optional client-chosen id. All disk attributes live on the nested Disk (size, tier, datacenter,
+// network, display_name, labels, annotations). OUTPUT_ONLY fields on `disk` are ignored.
 type CreateDiskRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The project the disk belongs to (`projects/{id}`).
-	ProjectName string `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
-	// The datacenter the disk lives in (`datacenters/{id}`). Disks are DC-local — they cannot move
-	// between DCs and can only attach to VMs in the same DC.
-	DatacenterName string `protobuf:"bytes,2,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
-	// 1..1024 GiB. Lift the upper bound via project quota when needed.
-	SizeGib int32 `protobuf:"varint,3,opt,name=size_gib,json=sizeGib,proto3" json:"size_gib,omitempty"`
-	// `nvme` (currently the only tier offered). Required when from_image_url is empty.
-	StorageClass string            `protobuf:"bytes,4,opt,name=storage_class,json=storageClass,proto3" json:"storage_class,omitempty"`
-	DisplayName  string            `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	Labels       map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Annotations  map[string]string `protobuf:"bytes,7,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Tenant Network the disk attaches to (`projects/{p}/networks/{id}`). When empty, the
-	// project's default Network is used (auto-created on first VM/disk in the project + DC).
-	// Disks can only attach to VMs on the same Network because KubeVirt requires same-namespace
-	// PVC mounts.
-	NetworkName string `protobuf:"bytes,9,opt,name=network_name,json=networkName,proto3" json:"network_name,omitempty"`
-	// Optional: hydrate the new disk from a streamable raw disk image URL (e.g. an Ubuntu cloud
-	// image). CDI's http source writes the image byte-for-byte into the PVC during PROVISIONING;
-	// the disk transitions to AVAILABLE once import completes. The disk is billed from the
-	// moment it lands in AVAILABLE/ATTACHED state — the meter loop skips PROVISIONING so
-	// customers don't pay during CDI hydration.
-	FromImageUrl  string `protobuf:"bytes,10,opt,name=from_image_url,json=fromImageUrl,proto3" json:"from_image_url,omitempty"`
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// The disk to create. size_gib / storage_class / datacenter_name / network_name are required;
+	// state / name / timestamps are OUTPUT_ONLY and ignored here.
+	Disk *Disk `protobuf:"bytes,2,opt,name=disk,proto3" json:"disk,omitempty"`
+	// Optional client-supplied id; the server assigns one when empty.
+	DiskId string `protobuf:"bytes,3,opt,name=disk_id,json=diskId,proto3" json:"disk_id,omitempty"`
+	// Optional create-only hydration source (not a persisted resource field): stream a raw disk
+	// image from this URL (e.g. an Ubuntu cloud image) into the new PVC during PROVISIONING. CDI's
+	// http source writes the image byte-for-byte; the disk flips to AVAILABLE once import completes.
+	// Billed from AVAILABLE/ATTACHED — the meter loop skips PROVISIONING so no charge during import.
+	FromImageUrl  string `protobuf:"bytes,4,opt,name=from_image_url,json=fromImageUrl,proto3" json:"from_image_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -234,58 +245,23 @@ func (*CreateDiskRequest) Descriptor() ([]byte, []int) {
 	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateDiskRequest) GetProjectName() string {
+func (x *CreateDiskRequest) GetParent() string {
 	if x != nil {
-		return x.ProjectName
+		return x.Parent
 	}
 	return ""
 }
 
-func (x *CreateDiskRequest) GetDatacenterName() string {
+func (x *CreateDiskRequest) GetDisk() *Disk {
 	if x != nil {
-		return x.DatacenterName
-	}
-	return ""
-}
-
-func (x *CreateDiskRequest) GetSizeGib() int32 {
-	if x != nil {
-		return x.SizeGib
-	}
-	return 0
-}
-
-func (x *CreateDiskRequest) GetStorageClass() string {
-	if x != nil {
-		return x.StorageClass
-	}
-	return ""
-}
-
-func (x *CreateDiskRequest) GetDisplayName() string {
-	if x != nil {
-		return x.DisplayName
-	}
-	return ""
-}
-
-func (x *CreateDiskRequest) GetLabels() map[string]string {
-	if x != nil {
-		return x.Labels
+		return x.Disk
 	}
 	return nil
 }
 
-func (x *CreateDiskRequest) GetAnnotations() map[string]string {
+func (x *CreateDiskRequest) GetDiskId() string {
 	if x != nil {
-		return x.Annotations
-	}
-	return nil
-}
-
-func (x *CreateDiskRequest) GetNetworkName() string {
-	if x != nil {
-		return x.NetworkName
+		return x.DiskId
 	}
 	return ""
 }
@@ -541,17 +517,17 @@ func (x *ListDisksResponse) GetNextPageToken() string {
 	return ""
 }
 
+// UpdateDiskRequest follows AIP-134 standard-update: the resource carrying new values (identified
+// by `disk.name`) plus a field mask naming which fields to write. Only MUTABLE fields are
+// honored — display_name, labels, annotations. A field named in the mask is replaced with the
+// value on `disk` (so labels:{} in the mask clears labels). An empty mask updates all mutable
+// fields. IMMUTABLE/OUTPUT_ONLY fields in the mask are ignored.
 type UpdateDiskRequest struct {
-	state       protoimpl.MessageState `protogen:"open.v1"`
-	Name        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	DisplayName *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	// Merge-by-default; set clear_labels=true to fully replace.
-	Labels           map[string]string `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	ClearLabels      bool              `protobuf:"varint,4,opt,name=clear_labels,json=clearLabels,proto3" json:"clear_labels,omitempty"`
-	Annotations      map[string]string `protobuf:"bytes,5,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	ClearAnnotations bool              `protobuf:"varint,6,opt,name=clear_annotations,json=clearAnnotations,proto3" json:"clear_annotations,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Disk          *Disk                  `protobuf:"bytes,1,opt,name=disk,proto3" json:"disk,omitempty"`
+	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateDiskRequest) Reset() {
@@ -584,46 +560,18 @@ func (*UpdateDiskRequest) Descriptor() ([]byte, []int) {
 	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *UpdateDiskRequest) GetName() string {
+func (x *UpdateDiskRequest) GetDisk() *Disk {
 	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *UpdateDiskRequest) GetDisplayName() string {
-	if x != nil && x.DisplayName != nil {
-		return *x.DisplayName
-	}
-	return ""
-}
-
-func (x *UpdateDiskRequest) GetLabels() map[string]string {
-	if x != nil {
-		return x.Labels
+		return x.Disk
 	}
 	return nil
 }
 
-func (x *UpdateDiskRequest) GetClearLabels() bool {
+func (x *UpdateDiskRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
 	if x != nil {
-		return x.ClearLabels
-	}
-	return false
-}
-
-func (x *UpdateDiskRequest) GetAnnotations() map[string]string {
-	if x != nil {
-		return x.Annotations
+		return x.UpdateMask
 	}
 	return nil
-}
-
-func (x *UpdateDiskRequest) GetClearAnnotations() bool {
-	if x != nil {
-		return x.ClearAnnotations
-	}
-	return false
 }
 
 type UpdateDiskResponse struct {
@@ -1527,7 +1475,7 @@ var File_aes_storage_v1_storage_proto protoreflect.FileDescriptor
 
 const file_aes_storage_v1_storage_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/storage/v1/storage.proto\x12\x0eaes.storage.v1\"\xf5\x04\n" +
+	"\x1caes/storage/v1/storage.proto\x12\x0eaes.storage.v1\x1a google/protobuf/field_mask.proto\"\xf5\x04\n" +
 	"\x04Disk\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12!\n" +
@@ -1549,24 +1497,12 @@ const file_aes_storage_v1_storage_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb8\x04\n" +
-	"\x11CreateDiskRequest\x12!\n" +
-	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12'\n" +
-	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12\x19\n" +
-	"\bsize_gib\x18\x03 \x01(\x05R\asizeGib\x12#\n" +
-	"\rstorage_class\x18\x04 \x01(\tR\fstorageClass\x12!\n" +
-	"\fdisplay_name\x18\x05 \x01(\tR\vdisplayName\x12E\n" +
-	"\x06labels\x18\x06 \x03(\v2-.aes.storage.v1.CreateDiskRequest.LabelsEntryR\x06labels\x12T\n" +
-	"\vannotations\x18\a \x03(\v22.aes.storage.v1.CreateDiskRequest.AnnotationsEntryR\vannotations\x12!\n" +
-	"\fnetwork_name\x18\t \x01(\tR\vnetworkName\x12$\n" +
-	"\x0efrom_image_url\x18\n" +
-	" \x01(\tR\ffromImageUrl\x1a9\n" +
-	"\vLabelsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
-	"\x10AnnotationsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\b\x10\tR\rfrom_snapshot\">\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x94\x01\n" +
+	"\x11CreateDiskRequest\x12\x16\n" +
+	"\x06parent\x18\x01 \x01(\tR\x06parent\x12(\n" +
+	"\x04disk\x18\x02 \x01(\v2\x14.aes.storage.v1.DiskR\x04disk\x12\x17\n" +
+	"\adisk_id\x18\x03 \x01(\tR\x06diskId\x12$\n" +
+	"\x0efrom_image_url\x18\x04 \x01(\tR\ffromImageUrl\">\n" +
 	"\x12CreateDiskResponse\x12(\n" +
 	"\x04disk\x18\x01 \x01(\v2\x14.aes.storage.v1.DiskR\x04disk\"$\n" +
 	"\x0eGetDiskRequest\x12\x12\n" +
@@ -1580,21 +1516,11 @@ const file_aes_storage_v1_storage_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\"g\n" +
 	"\x11ListDisksResponse\x12*\n" +
 	"\x05disks\x18\x01 \x03(\v2\x14.aes.storage.v1.DiskR\x05disks\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xc8\x03\n" +
-	"\x11UpdateDiskRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12&\n" +
-	"\fdisplay_name\x18\x02 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12E\n" +
-	"\x06labels\x18\x03 \x03(\v2-.aes.storage.v1.UpdateDiskRequest.LabelsEntryR\x06labels\x12!\n" +
-	"\fclear_labels\x18\x04 \x01(\bR\vclearLabels\x12T\n" +
-	"\vannotations\x18\x05 \x03(\v22.aes.storage.v1.UpdateDiskRequest.AnnotationsEntryR\vannotations\x12+\n" +
-	"\x11clear_annotations\x18\x06 \x01(\bR\x10clearAnnotations\x1a9\n" +
-	"\vLabelsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
-	"\x10AnnotationsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x0f\n" +
-	"\r_display_name\">\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"z\n" +
+	"\x11UpdateDiskRequest\x12(\n" +
+	"\x04disk\x18\x01 \x01(\v2\x14.aes.storage.v1.DiskR\x04disk\x12;\n" +
+	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
+	"updateMask\">\n" +
 	"\x12UpdateDiskResponse\x12(\n" +
 	"\x04disk\x18\x01 \x01(\v2\x14.aes.storage.v1.DiskR\x04disk\"'\n" +
 	"\x11DeleteDiskRequest\x12\x12\n" +
@@ -1698,7 +1624,7 @@ func file_aes_storage_v1_storage_proto_rawDescGZIP() []byte {
 	return file_aes_storage_v1_storage_proto_rawDescData
 }
 
-var file_aes_storage_v1_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
+var file_aes_storage_v1_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_aes_storage_v1_storage_proto_goTypes = []any{
 	(*Disk)(nil),                    // 0: aes.storage.v1.Disk
 	(*CreateDiskRequest)(nil),       // 1: aes.storage.v1.CreateDiskRequest
@@ -1726,62 +1652,58 @@ var file_aes_storage_v1_storage_proto_goTypes = []any{
 	(*DeleteFileShareResponse)(nil), // 23: aes.storage.v1.DeleteFileShareResponse
 	nil,                             // 24: aes.storage.v1.Disk.LabelsEntry
 	nil,                             // 25: aes.storage.v1.Disk.AnnotationsEntry
-	nil,                             // 26: aes.storage.v1.CreateDiskRequest.LabelsEntry
-	nil,                             // 27: aes.storage.v1.CreateDiskRequest.AnnotationsEntry
-	nil,                             // 28: aes.storage.v1.UpdateDiskRequest.LabelsEntry
-	nil,                             // 29: aes.storage.v1.UpdateDiskRequest.AnnotationsEntry
-	nil,                             // 30: aes.storage.v1.FileShare.LabelsEntry
-	nil,                             // 31: aes.storage.v1.FileShare.AnnotationsEntry
-	nil,                             // 32: aes.storage.v1.CreateFileShareRequest.LabelsEntry
-	nil,                             // 33: aes.storage.v1.CreateFileShareRequest.AnnotationsEntry
+	nil,                             // 26: aes.storage.v1.FileShare.LabelsEntry
+	nil,                             // 27: aes.storage.v1.FileShare.AnnotationsEntry
+	nil,                             // 28: aes.storage.v1.CreateFileShareRequest.LabelsEntry
+	nil,                             // 29: aes.storage.v1.CreateFileShareRequest.AnnotationsEntry
+	(*fieldmaskpb.FieldMask)(nil),   // 30: google.protobuf.FieldMask
 }
 var file_aes_storage_v1_storage_proto_depIdxs = []int32{
 	24, // 0: aes.storage.v1.Disk.labels:type_name -> aes.storage.v1.Disk.LabelsEntry
 	25, // 1: aes.storage.v1.Disk.annotations:type_name -> aes.storage.v1.Disk.AnnotationsEntry
-	26, // 2: aes.storage.v1.CreateDiskRequest.labels:type_name -> aes.storage.v1.CreateDiskRequest.LabelsEntry
-	27, // 3: aes.storage.v1.CreateDiskRequest.annotations:type_name -> aes.storage.v1.CreateDiskRequest.AnnotationsEntry
-	0,  // 4: aes.storage.v1.CreateDiskResponse.disk:type_name -> aes.storage.v1.Disk
-	0,  // 5: aes.storage.v1.GetDiskResponse.disk:type_name -> aes.storage.v1.Disk
-	0,  // 6: aes.storage.v1.ListDisksResponse.disks:type_name -> aes.storage.v1.Disk
-	28, // 7: aes.storage.v1.UpdateDiskRequest.labels:type_name -> aes.storage.v1.UpdateDiskRequest.LabelsEntry
-	29, // 8: aes.storage.v1.UpdateDiskRequest.annotations:type_name -> aes.storage.v1.UpdateDiskRequest.AnnotationsEntry
-	0,  // 9: aes.storage.v1.UpdateDiskResponse.disk:type_name -> aes.storage.v1.Disk
-	0,  // 10: aes.storage.v1.AttachDiskResponse.disk:type_name -> aes.storage.v1.Disk
-	0,  // 11: aes.storage.v1.DetachDiskResponse.disk:type_name -> aes.storage.v1.Disk
-	0,  // 12: aes.storage.v1.ResizeDiskResponse.disk:type_name -> aes.storage.v1.Disk
-	30, // 13: aes.storage.v1.FileShare.labels:type_name -> aes.storage.v1.FileShare.LabelsEntry
-	31, // 14: aes.storage.v1.FileShare.annotations:type_name -> aes.storage.v1.FileShare.AnnotationsEntry
-	32, // 15: aes.storage.v1.CreateFileShareRequest.labels:type_name -> aes.storage.v1.CreateFileShareRequest.LabelsEntry
-	33, // 16: aes.storage.v1.CreateFileShareRequest.annotations:type_name -> aes.storage.v1.CreateFileShareRequest.AnnotationsEntry
-	17, // 17: aes.storage.v1.CreateFileShareResponse.file_share:type_name -> aes.storage.v1.FileShare
-	17, // 18: aes.storage.v1.ListFileSharesResponse.file_shares:type_name -> aes.storage.v1.FileShare
-	1,  // 19: aes.storage.v1.StorageService.CreateDisk:input_type -> aes.storage.v1.CreateDiskRequest
-	3,  // 20: aes.storage.v1.StorageService.GetDisk:input_type -> aes.storage.v1.GetDiskRequest
-	5,  // 21: aes.storage.v1.StorageService.ListDisks:input_type -> aes.storage.v1.ListDisksRequest
-	7,  // 22: aes.storage.v1.StorageService.UpdateDisk:input_type -> aes.storage.v1.UpdateDiskRequest
-	9,  // 23: aes.storage.v1.StorageService.DeleteDisk:input_type -> aes.storage.v1.DeleteDiskRequest
-	11, // 24: aes.storage.v1.StorageService.AttachDisk:input_type -> aes.storage.v1.AttachDiskRequest
-	13, // 25: aes.storage.v1.StorageService.DetachDisk:input_type -> aes.storage.v1.DetachDiskRequest
-	15, // 26: aes.storage.v1.StorageService.ResizeDisk:input_type -> aes.storage.v1.ResizeDiskRequest
-	18, // 27: aes.storage.v1.StorageService.CreateFileShare:input_type -> aes.storage.v1.CreateFileShareRequest
-	20, // 28: aes.storage.v1.StorageService.ListFileShares:input_type -> aes.storage.v1.ListFileSharesRequest
-	22, // 29: aes.storage.v1.StorageService.DeleteFileShare:input_type -> aes.storage.v1.DeleteFileShareRequest
-	2,  // 30: aes.storage.v1.StorageService.CreateDisk:output_type -> aes.storage.v1.CreateDiskResponse
-	4,  // 31: aes.storage.v1.StorageService.GetDisk:output_type -> aes.storage.v1.GetDiskResponse
-	6,  // 32: aes.storage.v1.StorageService.ListDisks:output_type -> aes.storage.v1.ListDisksResponse
-	8,  // 33: aes.storage.v1.StorageService.UpdateDisk:output_type -> aes.storage.v1.UpdateDiskResponse
-	10, // 34: aes.storage.v1.StorageService.DeleteDisk:output_type -> aes.storage.v1.DeleteDiskResponse
-	12, // 35: aes.storage.v1.StorageService.AttachDisk:output_type -> aes.storage.v1.AttachDiskResponse
-	14, // 36: aes.storage.v1.StorageService.DetachDisk:output_type -> aes.storage.v1.DetachDiskResponse
-	16, // 37: aes.storage.v1.StorageService.ResizeDisk:output_type -> aes.storage.v1.ResizeDiskResponse
-	19, // 38: aes.storage.v1.StorageService.CreateFileShare:output_type -> aes.storage.v1.CreateFileShareResponse
-	21, // 39: aes.storage.v1.StorageService.ListFileShares:output_type -> aes.storage.v1.ListFileSharesResponse
-	23, // 40: aes.storage.v1.StorageService.DeleteFileShare:output_type -> aes.storage.v1.DeleteFileShareResponse
-	30, // [30:41] is the sub-list for method output_type
-	19, // [19:30] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	0,  // 2: aes.storage.v1.CreateDiskRequest.disk:type_name -> aes.storage.v1.Disk
+	0,  // 3: aes.storage.v1.CreateDiskResponse.disk:type_name -> aes.storage.v1.Disk
+	0,  // 4: aes.storage.v1.GetDiskResponse.disk:type_name -> aes.storage.v1.Disk
+	0,  // 5: aes.storage.v1.ListDisksResponse.disks:type_name -> aes.storage.v1.Disk
+	0,  // 6: aes.storage.v1.UpdateDiskRequest.disk:type_name -> aes.storage.v1.Disk
+	30, // 7: aes.storage.v1.UpdateDiskRequest.update_mask:type_name -> google.protobuf.FieldMask
+	0,  // 8: aes.storage.v1.UpdateDiskResponse.disk:type_name -> aes.storage.v1.Disk
+	0,  // 9: aes.storage.v1.AttachDiskResponse.disk:type_name -> aes.storage.v1.Disk
+	0,  // 10: aes.storage.v1.DetachDiskResponse.disk:type_name -> aes.storage.v1.Disk
+	0,  // 11: aes.storage.v1.ResizeDiskResponse.disk:type_name -> aes.storage.v1.Disk
+	26, // 12: aes.storage.v1.FileShare.labels:type_name -> aes.storage.v1.FileShare.LabelsEntry
+	27, // 13: aes.storage.v1.FileShare.annotations:type_name -> aes.storage.v1.FileShare.AnnotationsEntry
+	28, // 14: aes.storage.v1.CreateFileShareRequest.labels:type_name -> aes.storage.v1.CreateFileShareRequest.LabelsEntry
+	29, // 15: aes.storage.v1.CreateFileShareRequest.annotations:type_name -> aes.storage.v1.CreateFileShareRequest.AnnotationsEntry
+	17, // 16: aes.storage.v1.CreateFileShareResponse.file_share:type_name -> aes.storage.v1.FileShare
+	17, // 17: aes.storage.v1.ListFileSharesResponse.file_shares:type_name -> aes.storage.v1.FileShare
+	1,  // 18: aes.storage.v1.StorageService.CreateDisk:input_type -> aes.storage.v1.CreateDiskRequest
+	3,  // 19: aes.storage.v1.StorageService.GetDisk:input_type -> aes.storage.v1.GetDiskRequest
+	5,  // 20: aes.storage.v1.StorageService.ListDisks:input_type -> aes.storage.v1.ListDisksRequest
+	7,  // 21: aes.storage.v1.StorageService.UpdateDisk:input_type -> aes.storage.v1.UpdateDiskRequest
+	9,  // 22: aes.storage.v1.StorageService.DeleteDisk:input_type -> aes.storage.v1.DeleteDiskRequest
+	11, // 23: aes.storage.v1.StorageService.AttachDisk:input_type -> aes.storage.v1.AttachDiskRequest
+	13, // 24: aes.storage.v1.StorageService.DetachDisk:input_type -> aes.storage.v1.DetachDiskRequest
+	15, // 25: aes.storage.v1.StorageService.ResizeDisk:input_type -> aes.storage.v1.ResizeDiskRequest
+	18, // 26: aes.storage.v1.StorageService.CreateFileShare:input_type -> aes.storage.v1.CreateFileShareRequest
+	20, // 27: aes.storage.v1.StorageService.ListFileShares:input_type -> aes.storage.v1.ListFileSharesRequest
+	22, // 28: aes.storage.v1.StorageService.DeleteFileShare:input_type -> aes.storage.v1.DeleteFileShareRequest
+	2,  // 29: aes.storage.v1.StorageService.CreateDisk:output_type -> aes.storage.v1.CreateDiskResponse
+	4,  // 30: aes.storage.v1.StorageService.GetDisk:output_type -> aes.storage.v1.GetDiskResponse
+	6,  // 31: aes.storage.v1.StorageService.ListDisks:output_type -> aes.storage.v1.ListDisksResponse
+	8,  // 32: aes.storage.v1.StorageService.UpdateDisk:output_type -> aes.storage.v1.UpdateDiskResponse
+	10, // 33: aes.storage.v1.StorageService.DeleteDisk:output_type -> aes.storage.v1.DeleteDiskResponse
+	12, // 34: aes.storage.v1.StorageService.AttachDisk:output_type -> aes.storage.v1.AttachDiskResponse
+	14, // 35: aes.storage.v1.StorageService.DetachDisk:output_type -> aes.storage.v1.DetachDiskResponse
+	16, // 36: aes.storage.v1.StorageService.ResizeDisk:output_type -> aes.storage.v1.ResizeDiskResponse
+	19, // 37: aes.storage.v1.StorageService.CreateFileShare:output_type -> aes.storage.v1.CreateFileShareResponse
+	21, // 38: aes.storage.v1.StorageService.ListFileShares:output_type -> aes.storage.v1.ListFileSharesResponse
+	23, // 39: aes.storage.v1.StorageService.DeleteFileShare:output_type -> aes.storage.v1.DeleteFileShareResponse
+	29, // [29:40] is the sub-list for method output_type
+	18, // [18:29] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_aes_storage_v1_storage_proto_init() }
@@ -1789,14 +1711,13 @@ func file_aes_storage_v1_storage_proto_init() {
 	if File_aes_storage_v1_storage_proto != nil {
 		return
 	}
-	file_aes_storage_v1_storage_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_storage_v1_storage_proto_rawDesc), len(file_aes_storage_v1_storage_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   34,
+			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

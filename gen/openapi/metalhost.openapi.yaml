@@ -3685,291 +3685,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.ListNetworksResponse'
-  /aes.objectstore.v1.ObjectStoreService/CreateBucket:
-    post:
-      tags:
-        - aes.objectstore.v1.ObjectStoreService
-      summary: CreateBucket
-      operationId: aes.objectstore.v1.ObjectStoreService.CreateBucket
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.objectstore.v1.CreateBucketRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.objectstore.v1.CreateBucketResponse'
-  /aes.objectstore.v1.ObjectStoreService/CreatePresignedDownloadURL:
-    post:
-      tags:
-        - aes.objectstore.v1.ObjectStoreService
-      summary: CreatePresignedDownloadURL
-      operationId: aes.objectstore.v1.ObjectStoreService.CreatePresignedDownloadURL
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.objectstore.v1.CreatePresignedDownloadURLRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.objectstore.v1.CreatePresignedDownloadURLResponse'
-  /aes.objectstore.v1.ObjectStoreService/CreatePresignedUploadURL:
-    post:
-      tags:
-        - aes.objectstore.v1.ObjectStoreService
-      summary: CreatePresignedUploadURL
-      description: |-
-        CreatePresignedUploadURL returns a short-lived signed PUT URL for an object key in the
-         bucket. Caller does the upload directly to MinIO. Auth & quota are enforced at signing
-         time, not at upload time — once you have the URL you can use it until expiry.
-      operationId: aes.objectstore.v1.ObjectStoreService.CreatePresignedUploadURL
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.objectstore.v1.CreatePresignedUploadURLRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.objectstore.v1.CreatePresignedUploadURLResponse'
-  /aes.objectstore.v1.ObjectStoreService/DeleteBucket:
-    post:
-      tags:
-        - aes.objectstore.v1.ObjectStoreService
-      summary: DeleteBucket
-      description: DeleteBucket fails if the bucket is non-empty (S3 semantics). Use DeleteObject loop first.
-      operationId: aes.objectstore.v1.ObjectStoreService.DeleteBucket
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.objectstore.v1.DeleteBucketRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.objectstore.v1.DeleteBucketResponse'
-  /aes.objectstore.v1.ObjectStoreService/DeleteObject:
-    post:
-      tags:
-        - aes.objectstore.v1.ObjectStoreService
-      summary: DeleteObject
-      operationId: aes.objectstore.v1.ObjectStoreService.DeleteObject
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.objectstore.v1.DeleteObjectRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.objectstore.v1.DeleteObjectResponse'
-  /aes.objectstore.v1.ObjectStoreService/GetBucket:
-    post:
-      tags:
-        - aes.objectstore.v1.ObjectStoreService
-      summary: GetBucket
-      operationId: aes.objectstore.v1.ObjectStoreService.GetBucket
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.objectstore.v1.GetBucketRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.objectstore.v1.GetBucketResponse'
-  /aes.objectstore.v1.ObjectStoreService/ListBuckets:
-    post:
-      tags:
-        - aes.objectstore.v1.ObjectStoreService
-      summary: ListBuckets
-      operationId: aes.objectstore.v1.ObjectStoreService.ListBuckets
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.objectstore.v1.ListBucketsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.objectstore.v1.ListBucketsResponse'
-  /aes.objectstore.v1.ObjectStoreService/ListObjects:
-    post:
-      tags:
-        - aes.objectstore.v1.ObjectStoreService
-      summary: ListObjects
-      operationId: aes.objectstore.v1.ObjectStoreService.ListObjects
-      parameters:
-        - name: Connect-Protocol-Version
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/connect-protocol-version'
-        - name: Connect-Timeout-Ms
-          in: header
-          schema:
-            $ref: '#/components/schemas/connect-timeout-header'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/aes.objectstore.v1.ListObjectsRequest'
-        required: true
-      responses:
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/connect.error'
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/aes.objectstore.v1.ListObjectsResponse'
   /aes.ops.v1.OperationsService/GetOperation:
     post:
       tags:
@@ -11516,315 +11231,6 @@ components:
           title: value
       title: LabelsEntry
       additionalProperties: false
-    aes.objectstore.v1.Bucket:
-      type: object
-      properties:
-        name:
-          type: string
-          title: name
-        projectName:
-          type: string
-          title: project_name
-        createTimeUnix:
-          type:
-            - integer
-            - string
-          title: create_time_unix
-          format: int64
-        updateTimeUnix:
-          type:
-            - integer
-            - string
-          title: update_time_unix
-          format: int64
-        labels:
-          type: object
-          title: labels
-          additionalProperties:
-            type: string
-            title: value
-        annotations:
-          type: object
-          title: annotations
-          additionalProperties:
-            type: string
-            title: value
-      title: Bucket
-      additionalProperties: false
-    aes.objectstore.v1.Bucket.AnnotationsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: AnnotationsEntry
-      additionalProperties: false
-    aes.objectstore.v1.Bucket.LabelsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: LabelsEntry
-      additionalProperties: false
-    aes.objectstore.v1.CreateBucketRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          title: name
-          description: Bucket name as `buckets/{slug}`. Slug must be DNS-safe and unique.
-        projectName:
-          type: string
-          title: project_name
-        labels:
-          type: object
-          title: labels
-          additionalProperties:
-            type: string
-            title: value
-        annotations:
-          type: object
-          title: annotations
-          additionalProperties:
-            type: string
-            title: value
-        idempotencyKey:
-          type: string
-          title: idempotency_key
-      title: CreateBucketRequest
-      additionalProperties: false
-    aes.objectstore.v1.CreateBucketRequest.AnnotationsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: AnnotationsEntry
-      additionalProperties: false
-    aes.objectstore.v1.CreateBucketRequest.LabelsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: LabelsEntry
-      additionalProperties: false
-    aes.objectstore.v1.CreateBucketResponse:
-      type: object
-      properties:
-        bucket:
-          title: bucket
-          $ref: '#/components/schemas/aes.objectstore.v1.Bucket'
-      title: CreateBucketResponse
-      additionalProperties: false
-    aes.objectstore.v1.CreatePresignedDownloadURLRequest:
-      type: object
-      properties:
-        bucketName:
-          type: string
-          title: bucket_name
-        objectKey:
-          type: string
-          title: object_key
-        expiresSeconds:
-          type: integer
-          title: expires_seconds
-          format: int32
-      title: CreatePresignedDownloadURLRequest
-      additionalProperties: false
-    aes.objectstore.v1.CreatePresignedDownloadURLResponse:
-      type: object
-      properties:
-        downloadUrl:
-          type: string
-          title: download_url
-        expiresAtUnix:
-          type:
-            - integer
-            - string
-          title: expires_at_unix
-          format: int64
-      title: CreatePresignedDownloadURLResponse
-      additionalProperties: false
-    aes.objectstore.v1.CreatePresignedUploadURLRequest:
-      type: object
-      properties:
-        bucketName:
-          type: string
-          title: bucket_name
-          description: Bucket name (`buckets/{slug}`).
-        objectKey:
-          type: string
-          title: object_key
-          description: Object key inside the bucket — opaque path-like string. Forward slashes ok.
-        expiresSeconds:
-          type: integer
-          title: expires_seconds
-          format: int32
-          description: Default 3600. Max 86400 (24h) — enforced server-side.
-      title: CreatePresignedUploadURLRequest
-      additionalProperties: false
-    aes.objectstore.v1.CreatePresignedUploadURLResponse:
-      type: object
-      properties:
-        uploadUrl:
-          type: string
-          title: upload_url
-          description: Direct S3 URL the client PUTs the object body to.
-        expiresAtUnix:
-          type:
-            - integer
-            - string
-          title: expires_at_unix
-          format: int64
-      title: CreatePresignedUploadURLResponse
-      additionalProperties: false
-    aes.objectstore.v1.DeleteBucketRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          title: name
-        idempotencyKey:
-          type: string
-          title: idempotency_key
-      title: DeleteBucketRequest
-      additionalProperties: false
-    aes.objectstore.v1.DeleteBucketResponse:
-      type: object
-      title: DeleteBucketResponse
-      additionalProperties: false
-    aes.objectstore.v1.DeleteObjectRequest:
-      type: object
-      properties:
-        bucketName:
-          type: string
-          title: bucket_name
-        objectKey:
-          type: string
-          title: object_key
-        idempotencyKey:
-          type: string
-          title: idempotency_key
-      title: DeleteObjectRequest
-      additionalProperties: false
-    aes.objectstore.v1.DeleteObjectResponse:
-      type: object
-      title: DeleteObjectResponse
-      additionalProperties: false
-    aes.objectstore.v1.GetBucketRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          title: name
-      title: GetBucketRequest
-      additionalProperties: false
-    aes.objectstore.v1.GetBucketResponse:
-      type: object
-      properties:
-        bucket:
-          title: bucket
-          $ref: '#/components/schemas/aes.objectstore.v1.Bucket'
-      title: GetBucketResponse
-      additionalProperties: false
-    aes.objectstore.v1.ListBucketsRequest:
-      type: object
-      properties:
-        projectName:
-          type: string
-          title: project_name
-          description: Filter by project; empty = all buckets the caller has access to.
-        pageSize:
-          type: integer
-          title: page_size
-          format: int32
-        pageToken:
-          type: string
-          title: page_token
-      title: ListBucketsRequest
-      additionalProperties: false
-    aes.objectstore.v1.ListBucketsResponse:
-      type: object
-      properties:
-        buckets:
-          type: array
-          items:
-            $ref: '#/components/schemas/aes.objectstore.v1.Bucket'
-          title: buckets
-        nextPageToken:
-          type: string
-          title: next_page_token
-      title: ListBucketsResponse
-      additionalProperties: false
-    aes.objectstore.v1.ListObjectsRequest:
-      type: object
-      properties:
-        bucketName:
-          type: string
-          title: bucket_name
-        prefix:
-          type: string
-          title: prefix
-          description: Optional key prefix filter. "" = all keys.
-        pageSize:
-          type: integer
-          title: page_size
-          format: int32
-        pageToken:
-          type: string
-          title: page_token
-      title: ListObjectsRequest
-      additionalProperties: false
-    aes.objectstore.v1.ListObjectsResponse:
-      type: object
-      properties:
-        objects:
-          type: array
-          items:
-            $ref: '#/components/schemas/aes.objectstore.v1.ObjectInfo'
-          title: objects
-        nextPageToken:
-          type: string
-          title: next_page_token
-      title: ListObjectsResponse
-      additionalProperties: false
-    aes.objectstore.v1.ObjectInfo:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        sizeBytes:
-          type:
-            - integer
-            - string
-          title: size_bytes
-          format: int64
-        lastModifiedUnix:
-          type:
-            - integer
-            - string
-          title: last_modified_unix
-          format: int64
-        etag:
-          type: string
-          title: etag
-      title: ObjectInfo
-      additionalProperties: false
     aes.ops.v1.CancelOperationRequest:
       type: object
       properties:
@@ -12646,81 +12052,34 @@ components:
     aes.storage.v1.CreateDiskRequest:
       type: object
       properties:
-        projectName:
+        parent:
           type: string
-          title: project_name
+          title: parent
           description: The project the disk belongs to (`projects/{id}`).
-        datacenterName:
-          type: string
-          title: datacenter_name
+        disk:
+          title: disk
           description: |-
-            The datacenter the disk lives in (`datacenters/{id}`). Disks are DC-local — they cannot move
-             between DCs and can only attach to VMs in the same DC.
-        sizeGib:
-          type: integer
-          title: size_gib
-          format: int32
-          description: 1..1024 GiB. Lift the upper bound via project quota when needed.
-        storageClass:
+            The disk to create. size_gib / storage_class / datacenter_name / network_name are required;
+             state / name / timestamps are OUTPUT_ONLY and ignored here.
+          $ref: '#/components/schemas/aes.storage.v1.Disk'
+        diskId:
           type: string
-          title: storage_class
-          description: '`nvme` (currently the only tier offered). Required when from_image_url is empty.'
-        displayName:
-          type: string
-          title: display_name
-        labels:
-          type: object
-          title: labels
-          additionalProperties:
-            type: string
-            title: value
-        annotations:
-          type: object
-          title: annotations
-          additionalProperties:
-            type: string
-            title: value
-        networkName:
-          type: string
-          title: network_name
-          description: |-
-            Tenant Network the disk attaches to (`projects/{p}/networks/{id}`). When empty, the
-             project's default Network is used (auto-created on first VM/disk in the project + DC).
-             Disks can only attach to VMs on the same Network because KubeVirt requires same-namespace
-             PVC mounts.
+          title: disk_id
+          description: Optional client-supplied id; the server assigns one when empty.
         fromImageUrl:
           type: string
           title: from_image_url
           description: |-
-            Optional: hydrate the new disk from a streamable raw disk image URL (e.g. an Ubuntu cloud
-             image). CDI's http source writes the image byte-for-byte into the PVC during PROVISIONING;
-             the disk transitions to AVAILABLE once import completes. The disk is billed from the
-             moment it lands in AVAILABLE/ATTACHED state — the meter loop skips PROVISIONING so
-             customers don't pay during CDI hydration.
+            Optional create-only hydration source (not a persisted resource field): stream a raw disk
+             image from this URL (e.g. an Ubuntu cloud image) into the new PVC during PROVISIONING. CDI's
+             http source writes the image byte-for-byte; the disk flips to AVAILABLE once import completes.
+             Billed from AVAILABLE/ATTACHED — the meter loop skips PROVISIONING so no charge during import.
       title: CreateDiskRequest
       additionalProperties: false
-    aes.storage.v1.CreateDiskRequest.AnnotationsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: AnnotationsEntry
-      additionalProperties: false
-    aes.storage.v1.CreateDiskRequest.LabelsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: LabelsEntry
-      additionalProperties: false
+      description: |-
+        CreateDiskRequest follows AIP-133 standard-create: a parent, the resource to create, and an
+         optional client-chosen id. All disk attributes live on the nested Disk (size, tier, datacenter,
+         network, display_name, labels, annotations). OUTPUT_ONLY fields on `disk` are ignored.
     aes.storage.v1.CreateDiskResponse:
       type: object
       properties:
@@ -12839,63 +12198,71 @@ components:
         name:
           type: string
           title: name
-          description: Resource name `projects/{project}/disks/{id}`.
+          description: '[OUTPUT_ONLY] Resource name `projects/{project}/disks/{id}`. Server-assigned on create.'
         displayName:
           type: string
           title: display_name
+          description: '[MUTABLE] Human-friendly label.'
         projectName:
           type: string
           title: project_name
+          description: '[OUTPUT_ONLY] Parent project (`projects/{id}`). On create the request `parent` wins.'
         datacenterName:
           type: string
           title: datacenter_name
+          description: '[IMMUTABLE] Datacenter the disk lives in (`datacenters/{id}`). DC-local; cannot move.'
         sizeGib:
           type: integer
           title: size_gib
           format: int32
+          description: '[IMMUTABLE] 1..1024 GiB at create. Grow via ResizeDisk (one-way), never via UpdateDisk.'
         storageClass:
           type: string
           title: storage_class
           description: |-
-            Customer-facing storage tier — currently `nvme` only. Translated per-DC to a real k8s
-             StorageClass at PVC create time — see the DC's `aes.metalhost/storage-class-nvme` annotation.
+            [IMMUTABLE] Customer-facing storage tier — currently `nvme` only. Translated per-DC to a real
+             k8s StorageClass at PVC create time — see the DC's `aes.metalhost/storage-class-nvme` annotation.
         state:
           type: string
           title: state
-          description: PROVISIONING / AVAILABLE / ATTACHED / DELETING / DELETED.
+          description: '[OUTPUT_ONLY] PROVISIONING / AVAILABLE / ATTACHED / DELETING / DELETED.'
         attachedVm:
           type: string
           title: attached_vm
-          description: VM the disk is currently attached to (`virtual-machines/{id}`); empty when AVAILABLE.
+          description: '[OUTPUT_ONLY] VM the disk is currently attached to (`virtual-machines/{id}`); empty when AVAILABLE.'
         createTimeUnix:
           type:
             - integer
             - string
           title: create_time_unix
           format: int64
+          description: '[OUTPUT_ONLY]'
         updateTimeUnix:
           type:
             - integer
             - string
           title: update_time_unix
           format: int64
+          description: '[OUTPUT_ONLY]'
         labels:
           type: object
           title: labels
           additionalProperties:
             type: string
             title: value
+          description: '[MUTABLE]'
         annotations:
           type: object
           title: annotations
           additionalProperties:
             type: string
             title: value
+          description: '[MUTABLE]'
         networkName:
           type: string
           title: network_name
           description: |-
-            Tenant Network the disk's PVC lives in (`projects/{p}/networks/{id}`). Disks are
+            [IMMUTABLE] Tenant Network the disk's PVC lives in (`projects/{p}/networks/{id}`). Disks are
              namespace-scoped because KubeVirt only mounts PVCs in the same k8s namespace as the VM.
              Set at create time; immutable. Disks can only attach to VMs on the same Network.
       title: Disk
@@ -12905,6 +12272,16 @@ components:
          namespace. State machine:
            PROVISIONING → AVAILABLE → ATTACHED → AVAILABLE (on detach) → DELETING → DELETED
          Attached disks cannot be deleted — detach first.
+         Disk is the single source of truth for a block volume across read and write: GetDisk /
+         ListDisks return it, and CreateDisk / UpdateDisk accept it. Field behavior is documented
+         per-field below using AIP-203 vocabulary; the server enforces it (see CreateDisk/UpdateDisk):
+
+           [OUTPUT_ONLY] server-owned — ignored on create/update, only ever returned.
+           [IMMUTABLE]   settable at create, rejected/ignored on update.
+           [MUTABLE]     (default) settable at create and update.
+
+         When google/api/field_behavior is vendored these comments become real
+         (google.api.field_behavior) annotations so buf/codegen/SDKs can enforce them mechanically.
     aes.storage.v1.Disk.AnnotationsEntry:
       type: object
       properties:
@@ -13123,57 +12500,20 @@ components:
     aes.storage.v1.UpdateDiskRequest:
       type: object
       properties:
-        name:
-          type: string
-          title: name
-        displayName:
-          type:
-            - string
-            - "null"
-          title: display_name
-        labels:
-          type: object
-          title: labels
-          additionalProperties:
-            type: string
-            title: value
-          description: Merge-by-default; set clear_labels=true to fully replace.
-        clearLabels:
-          type: boolean
-          title: clear_labels
-        annotations:
-          type: object
-          title: annotations
-          additionalProperties:
-            type: string
-            title: value
-        clearAnnotations:
-          type: boolean
-          title: clear_annotations
+        disk:
+          title: disk
+          $ref: '#/components/schemas/aes.storage.v1.Disk'
+        updateMask:
+          title: update_mask
+          $ref: '#/components/schemas/google.protobuf.FieldMask'
       title: UpdateDiskRequest
       additionalProperties: false
-    aes.storage.v1.UpdateDiskRequest.AnnotationsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: AnnotationsEntry
-      additionalProperties: false
-    aes.storage.v1.UpdateDiskRequest.LabelsEntry:
-      type: object
-      properties:
-        key:
-          type: string
-          title: key
-        value:
-          type: string
-          title: value
-      title: LabelsEntry
-      additionalProperties: false
+      description: |-
+        UpdateDiskRequest follows AIP-134 standard-update: the resource carrying new values (identified
+         by `disk.name`) plus a field mask naming which fields to write. Only MUTABLE fields are
+         honored — display_name, labels, annotations. A field named in the mask is replaced with the
+         value on `disk` (so labels:{} in the mask clears labels). An empty mask updates all mutable
+         fields. IMMUTABLE/OUTPUT_ONLY fields in the mask are ignored.
     aes.storage.v1.UpdateDiskResponse:
       type: object
       properties:
@@ -15093,6 +14433,208 @@ components:
           description: Deserialized error detail payload. The 'type' field indicates the schema. This field is for easier debugging and should not be relied upon for application logic.
       additionalProperties: true
       description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message, with an additional debug field for ConnectRPC error details.
+    google.protobuf.FieldMask:
+      type: string
+      description: |-
+        `FieldMask` represents a set of symbolic field paths, for example:
+
+             paths: "f.a"
+             paths: "f.b.d"
+
+         Here `f` represents a field in some root message, `a` and `b`
+         fields in the message found in `f`, and `d` a field found in the
+         message in `f.b`.
+
+         Field masks are used to specify a subset of fields that should be
+         returned by a get operation or modified by an update operation.
+         Field masks also have a custom JSON encoding (see below).
+
+         # Field Masks in Projections
+
+         When used in the context of a projection, a response message or
+         sub-message is filtered by the API to only contain those fields as
+         specified in the mask. For example, if the mask in the previous
+         example is applied to a response message as follows:
+
+             f {
+               a : 22
+               b {
+                 d : 1
+                 x : 2
+               }
+               y : 13
+             }
+             z: 8
+
+         The result will not contain specific values for fields x,y and z
+         (their value will be set to the default, and omitted in proto text
+         output):
+
+
+             f {
+               a : 22
+               b {
+                 d : 1
+               }
+             }
+
+         A repeated field is not allowed except at the last position of a
+         paths string.
+
+         If a FieldMask object is not present in a get operation, the
+         operation applies to all fields (as if a FieldMask of all fields
+         had been specified).
+
+         Note that a field mask does not necessarily apply to the
+         top-level response message. In case of a REST get operation, the
+         field mask applies directly to the response, but in case of a REST
+         list operation, the mask instead applies to each individual message
+         in the returned resource list. In case of a REST custom method,
+         other definitions may be used. Where the mask applies will be
+         clearly documented together with its declaration in the API.  In
+         any case, the effect on the returned resource/resources is required
+         behavior for APIs.
+
+         # Field Masks in Update Operations
+
+         A field mask in update operations specifies which fields of the
+         targeted resource are going to be updated. The API is required
+         to only change the values of the fields as specified in the mask
+         and leave the others untouched. If a resource is passed in to
+         describe the updated values, the API ignores the values of all
+         fields not covered by the mask.
+
+         If a repeated field is specified for an update operation, new values will
+         be appended to the existing repeated field in the target resource. Note that
+         a repeated field is only allowed in the last position of a `paths` string.
+
+         If a sub-message is specified in the last position of the field mask for an
+         update operation, then new value will be merged into the existing sub-message
+         in the target resource.
+
+         For example, given the target message:
+
+             f {
+               b {
+                 d: 1
+                 x: 2
+               }
+               c: [1]
+             }
+
+         And an update message:
+
+             f {
+               b {
+                 d: 10
+               }
+               c: [2]
+             }
+
+         then if the field mask is:
+
+          paths: ["f.b", "f.c"]
+
+         then the result will be:
+
+             f {
+               b {
+                 d: 10
+                 x: 2
+               }
+               c: [1, 2]
+             }
+
+         An implementation may provide options to override this default behavior for
+         repeated and message fields.
+
+         In order to reset a field's value to the default, the field must
+         be in the mask and set to the default value in the provided resource.
+         Hence, in order to reset all fields of a resource, provide a default
+         instance of the resource and set all fields in the mask, or do
+         not provide a mask as described below.
+
+         If a field mask is not present on update, the operation applies to
+         all fields (as if a field mask of all fields has been specified).
+         Note that in the presence of schema evolution, this may mean that
+         fields the client does not know and has therefore not filled into
+         the request will be reset to their default. If this is unwanted
+         behavior, a specific service may require a client to always specify
+         a field mask, producing an error if not.
+
+         As with get operations, the location of the resource which
+         describes the updated values in the request message depends on the
+         operation kind. In any case, the effect of the field mask is
+         required to be honored by the API.
+
+         ## Considerations for HTTP REST
+
+         The HTTP kind of an update operation which uses a field mask must
+         be set to PATCH instead of PUT in order to satisfy HTTP semantics
+         (PUT must only be used for full updates).
+
+         # JSON Encoding of Field Masks
+
+         In JSON, a field mask is encoded as a single string where paths are
+         separated by a comma. Fields name in each path are converted
+         to/from lower-camel naming conventions.
+
+         As an example, consider the following message declarations:
+
+             message Profile {
+               User user = 1;
+               Photo photo = 2;
+             }
+             message User {
+               string display_name = 1;
+               string address = 2;
+             }
+
+         In proto a field mask for `Profile` may look as such:
+
+             mask {
+               paths: "user.display_name"
+               paths: "photo"
+             }
+
+         In JSON, the same mask is represented as below:
+
+             {
+               mask: "user.displayName,photo"
+             }
+
+         # Field Masks and Oneof Fields
+
+         Field masks treat fields in oneofs just as regular fields. Consider the
+         following message:
+
+             message SampleMessage {
+               oneof test_oneof {
+                 string name = 4;
+                 SubMessage sub_message = 9;
+               }
+             }
+
+         The field mask can be:
+
+             mask {
+               paths: "name"
+             }
+
+         Or:
+
+             mask {
+               paths: "sub_message"
+             }
+
+         Note that oneof type names ("test_oneof" in this case) cannot be used in
+         paths.
+
+         ## Field Mask Verification
+
+         The implementation of any API method which has a FieldMask type field in the
+         request should verify the included field paths, and return an
+         `INVALID_ARGUMENT` error if any path is unmappable.
     google.protobuf.Timestamp:
       type: string
       examples:
@@ -15295,16 +14837,6 @@ tags:
        Firewall RPCs back the OVN ACL set on the public-vlan50 localnet switch — NetworkPolicy
        (the original backing) only filters east-west on the pod's primary CNI, leaving the
        public NIC unfiltered.
-  - name: aes.objectstore.v1.ObjectStoreService
-    description: |-
-      ObjectStoreService is Metalhost's S3-compatible object storage facade. Backed by MinIO in dev;
-       pointed at a managed S3-compatible cluster in production. Each Bucket maps 1:1 to an S3
-       bucket on the underlying store; per-object access is via presigned URLs (clients PUT/GET
-       directly to MinIO, metalhostd never proxies object payloads).
-
-       Bucket name is `buckets/{slug}`; the underlying S3 bucket name is the slug. Slug must be
-       DNS-safe (lowercase, [a-z0-9-]) and globally unique within the Metalhost deployment — same
-       uniqueness rule as S3 globally, scoped to the Metalhost MinIO tenant.
   - name: aes.project.v1.ProjectService
     description: |-
       ProjectService is the tenancy slice of the control plane (design §4 project-svc).
