@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package aes.project.v1;
 
-// ProjectService is the tenancy slice of the control plane (design §4 project-svc).
+// ProjectService is the tenancy slice of the control plane.
 //
 // Removed surfaces (folded into AdminProjectService or dropped entirely):
 //   - ListOrganizations: every customer has exactly one org; multi-org switcher is v2.
@@ -205,7 +205,6 @@ message ActivityEvent {
   // notification feed (top-up succeeded, VM operation completed, spending alert triggered,
   // member invite accepted, billing account suspended, etc.). When false, it's still a real
   // audit row visible in Settings > Activity log, but isn't loud enough for the bell.
-  // The classification is server-side (see services/project/dashboard.go notifyInApp()) so
-  // the policy can evolve without a frontend redeploy.
+  // The classification is server-side so the policy can evolve without a frontend redeploy.
   bool notify_in_app = 7;
 }

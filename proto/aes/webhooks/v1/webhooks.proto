@@ -3,8 +3,8 @@ syntax = "proto3";
 package aes.webhooks.v1;
 
 // WebhooksService manages customer-defined HTTP callbacks for resource events. Customers
-// register endpoint URLs + the event types they care about; metalhostd's outbox worker delivers
-// matching events as POSTs with HMAC-SHA256 signatures (X-Metalhost-Signature header) using a
+// register endpoint URLs + the event types they care about; Metalhost delivers matching
+// events as POSTs with HMAC-SHA256 signatures (X-Metalhost-Signature header) using a
 // per-subscription shared secret returned at create time.
 //
 // Event types follow the convention `{domain}.{resource}.{verb}` —

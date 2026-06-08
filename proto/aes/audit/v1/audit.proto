@@ -2,13 +2,12 @@ syntax = "proto3";
 
 package aes.audit.v1;
 
-// AuditService records security-relevant events (design §4 audit-svc).
+// AuditService records security-relevant events.
 //
-// Customer-facing surface is read-only — SearchEvents only. LogEvent is intentionally
-// not routed as an RPC: it stays a Go method on services/audit.Server (and the
-// pkg/auditdb helper of the same name) called by backend services that write audit
-// entries on the customer's behalf. Exposing the write side would let any caller
-// inject fake audit entries against any principal/resource — a real auditability hole.
+// Customer-facing surface is read-only — SearchEvents only. The write side is intentionally
+// not exposed: audit entries are written server-side on the customer's behalf. Exposing the
+// write side would let any caller inject fake audit entries against any principal/resource —
+// a real auditability hole.
 service AuditService {
   rpc SearchEvents(SearchEventsRequest) returns (SearchEventsResponse);
 }

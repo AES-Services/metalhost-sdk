@@ -21,45 +21,39 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Network is a tenant-owned L2 logical switch within a single datacenter, backed by an
-// OVN-Kubernetes UserDefinedNetwork (UDN). Resource name format:
-// `projects/{project}/networks/{network_id}`.
+// Network is a tenant-owned, isolated L2 segment within a single datacenter. Resource name
+// format: `projects/{project}/networks/{network_id}`.
 //
-// Issue #11 redesign: networks are no longer Multus NADs. The platform allocates an IPv6
-// /64 from the DC's tenant prefix (always) and an IPv4 /24 from the DC's RFC1918 supernet
-// (when requested), then creates a UDN that OVN-K reconciles into a logical switch with
-// IPAM. VLAN IDs are an internal implementation detail (Geneve VNIs handle isolation), no
-// longer customer-visible.
+// The platform allocates an IPv6 /64 from the datacenter's tenant prefix (always) and an
+// IPv4 /24 from the datacenter's private supernet (when requested). VLAN IDs are an internal
+// detail and are not customer-visible.
 type Network struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	DisplayName    string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	ProjectName    string                 `protobuf:"bytes,3,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
 	DatacenterName string                 `protobuf:"bytes,4,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
-	// IPv4 subnet CIDR allocated from the DC's `aes.metalhost/ipv4-tenant-prefix` (RFC1918
-	// class-A or class-B supernet). Empty when the network is IPv6-only. Always a /24 in v1.
+	// IPv4 subnet CIDR allocated from the datacenter's private tenant prefix. Empty when the
+	// network is IPv6-only. Always a /24 in v1.
 	SubnetCidrV4 string `protobuf:"bytes,6,opt,name=subnet_cidr_v4,json=subnetCidrV4,proto3" json:"subnet_cidr_v4,omitempty"`
-	// IPv6 subnet CIDR allocated from the DC's `aes.metalhost/ipv6-tenant-prefix` (the org's
-	// /48). Always a /64. Public-routable, no NAT — IPv6 is native.
+	// IPv6 subnet CIDR allocated from the datacenter's tenant prefix. Always a /64.
+	// Public-routable, no NAT — IPv6 is native.
 	SubnetCidrV6 string `protobuf:"bytes,7,opt,name=subnet_cidr_v6,json=subnetCidrV6,proto3" json:"subnet_cidr_v6,omitempty"`
-	// Whereabouts allocation range (inclusive). Empty = the full subnet is allocatable.
+	// IP allocation range (inclusive). Empty = the full subnet is allocatable.
 	IpRangeStart   string            `protobuf:"bytes,8,opt,name=ip_range_start,json=ipRangeStart,proto3" json:"ip_range_start,omitempty"`
 	IpRangeEnd     string            `protobuf:"bytes,9,opt,name=ip_range_end,json=ipRangeEnd,proto3" json:"ip_range_end,omitempty"`
 	CreateTimeUnix int64             `protobuf:"varint,10,opt,name=create_time_unix,json=createTimeUnix,proto3" json:"create_time_unix,omitempty"`
 	UpdateTimeUnix int64             `protobuf:"varint,11,opt,name=update_time_unix,json=updateTimeUnix,proto3" json:"update_time_unix,omitempty"`
 	Labels         map[string]string `protobuf:"bytes,12,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Annotations    map[string]string `protobuf:"bytes,13,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// "creating" while the UDN reconciler is in flight; "active" when the OVN-K UDN status
-	// is Ready; "failed" on reconciler error; "deleting" / "deleted" during GC. Read-only.
+	// "creating" while the network is being provisioned; "active" when ready; "failed" on
+	// error; "deleting" / "deleted" during teardown. Read-only.
 	State string `protobuf:"bytes,14,opt,name=state,proto3" json:"state,omitempty"`
-	// Name of the OVN-K UserDefinedNetwork CR backing this Network. Output-only. Format
-	// `udn-<network_id>` — the slug after `udn-` matches the network_id slug for ease of
-	// operator inspection.
+	// Internal identifier for the backing network resource. Output-only; opaque to clients.
 	OvnUdnName string `protobuf:"bytes,15,opt,name=ovn_udn_name,json=ovnUdnName,proto3" json:"ovn_udn_name,omitempty"`
-	// K8s namespace where the UDN CR + the VMs attached to this Network live. Output-only.
-	// Format `net-<network_id>`. Each Network is its own namespace because OVN-K only allows
-	// one Primary UDN per namespace — VMs in the same Network share the namespace and can
-	// talk over the network's /24 + /64; VMs in different Networks are fully isolated.
+	// Internal network-segment identifier this Network's VMs live in. Output-only. VMs in the
+	// same Network can talk over the network's /24 + /64; VMs in different Networks are fully
+	// isolated.
 	Namespace     string `protobuf:"bytes,16,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -209,9 +203,9 @@ type CreateNetworkRequest struct {
 	NetworkId      string `protobuf:"bytes,2,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
 	DisplayName    string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	DatacenterName string `protobuf:"bytes,4,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
-	// Optional preferred IPv4 CIDR. When empty the platform allocates a /24 from the DC's
-	// tenant prefix. When set, the platform may reject if the CIDR is not within the DC's
-	// tenant prefix or collides with another network in the same DC. Always a /24 in v1.
+	// Optional preferred IPv4 CIDR. When empty the platform allocates a /24 from the datacenter's
+	// tenant prefix. When set, the platform may reject if the CIDR is not within the datacenter's
+	// tenant prefix or collides with another network in the same datacenter. Always a /24 in v1.
 	SubnetCidrV4  string            `protobuf:"bytes,6,opt,name=subnet_cidr_v4,json=subnetCidrV4,proto3" json:"subnet_cidr_v4,omitempty"`
 	IpRangeStart  string            `protobuf:"bytes,8,opt,name=ip_range_start,json=ipRangeStart,proto3" json:"ip_range_start,omitempty"`
 	IpRangeEnd    string            `protobuf:"bytes,9,opt,name=ip_range_end,json=ipRangeEnd,proto3" json:"ip_range_end,omitempty"`
@@ -476,9 +470,8 @@ func (x *ListNetworksResponse) GetNextPageToken() string {
 //
 // Range semantics (firewall rules): when `end_port` is 0/unset the mapping covers the single
 // `port`. When `end_port > 0` it must satisfy `port <= end_port` and the mapping covers
-// every port in [port, end_port] inclusive — backend installs one OVN ACL with a range match
-// (`tcp.dst >= port && tcp.dst <= end_port`) rather than expanding to N single-port ACLs.
-// Useful for k8s NodePort (30000-32767), RTMP/SIP, or any service that listens on a window.
+// every port in [port, end_port] inclusive. Useful for NodePort ranges (30000-32767),
+// RTMP/SIP, or any service that listens on a window.
 type PortMapping struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// External port (the one customers connect to), or the lower bound of a range. 1..65535.
@@ -554,9 +547,8 @@ func (x *PortMapping) GetEndPort() int32 {
 	return 0
 }
 
-// PublicIp is a customer-allocated external IP routing to a VM.
-// PublicIp is a customer-allocated public IPv4 reserved for a tenant VM from the DC's
-// `aes.metalhost/public-ipv4-pool`.
+// PublicIp is a customer-allocated public IPv4 reserved for a tenant VM from the datacenter's
+// public IP pool.
 type PublicIp struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Resource name `projects/{project}/public-ips/{id}`.
@@ -693,9 +685,9 @@ func (x *PublicIp) GetAnnotations() map[string]string {
 	return nil
 }
 
-// FirewallRule is one allow-list rule for a VM. Backed by a NetworkPolicy. Multiple rules on
-// the same VM compose additively (NetworkPolicies union). direction='ingress' uses sources +
-// ports as the allow set; direction='egress' uses destinations + ports.
+// FirewallRule is one allow-list rule for a VM. Multiple rules on the same VM compose
+// additively (the allow sets union). direction='ingress' uses sources + ports as the allow
+// set; direction='egress' uses destinations + ports.
 type FirewallRule struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Resource name `projects/{project}/firewall-rules/{id}`.

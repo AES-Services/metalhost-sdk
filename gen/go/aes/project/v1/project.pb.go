@@ -1315,8 +1315,7 @@ type ActivityEvent struct {
 	// notification feed (top-up succeeded, VM operation completed, spending alert triggered,
 	// member invite accepted, billing account suspended, etc.). When false, it's still a real
 	// audit row visible in Settings > Activity log, but isn't loud enough for the bell.
-	// The classification is server-side (see services/project/dashboard.go notifyInApp()) so
-	// the policy can evolve without a frontend redeploy.
+	// The classification is server-side so the policy can evolve without a frontend redeploy.
 	NotifyInApp   bool `protobuf:"varint,7,opt,name=notify_in_app,json=notifyInApp,proto3" json:"notify_in_app,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

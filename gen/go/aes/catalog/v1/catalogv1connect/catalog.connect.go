@@ -68,8 +68,8 @@ type CatalogServiceClient interface {
 	// the quoted amount.
 	QuoteVirtualMachine(context.Context, *connect.Request[v1.QuoteVirtualMachineRequest]) (*connect.Response[v1.QuoteVirtualMachineResponse], error)
 	// GetVMCapacity returns per-datacenter VM capacity in sellable units, broken down by CPU class
-	// (pool) and GPU model. PUBLIC + unauthenticated (see publicMetalhostProcedures) — capacity is
-	// non-sensitive catalog data (same posture as GetRegionHealth). See docs/specs/GPU_POOLED_CAPACITY.md.
+	// and GPU model. Public + unauthenticated — capacity is non-sensitive catalog data (same
+	// posture as GetRegionHealth).
 	GetVMCapacity(context.Context, *connect.Request[v1.GetVMCapacityRequest]) (*connect.Response[v1.GetVMCapacityResponse], error)
 }
 
@@ -169,8 +169,8 @@ type CatalogServiceHandler interface {
 	// the quoted amount.
 	QuoteVirtualMachine(context.Context, *connect.Request[v1.QuoteVirtualMachineRequest]) (*connect.Response[v1.QuoteVirtualMachineResponse], error)
 	// GetVMCapacity returns per-datacenter VM capacity in sellable units, broken down by CPU class
-	// (pool) and GPU model. PUBLIC + unauthenticated (see publicMetalhostProcedures) — capacity is
-	// non-sensitive catalog data (same posture as GetRegionHealth). See docs/specs/GPU_POOLED_CAPACITY.md.
+	// and GPU model. Public + unauthenticated — capacity is non-sensitive catalog data (same
+	// posture as GetRegionHealth).
 	GetVMCapacity(context.Context, *connect.Request[v1.GetVMCapacityRequest]) (*connect.Response[v1.GetVMCapacityResponse], error)
 }
 

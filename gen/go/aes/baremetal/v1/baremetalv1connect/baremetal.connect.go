@@ -114,7 +114,7 @@ type BareMetalServiceClient interface {
 	CreateBareMetalInstance(context.Context, *connect.Request[v1.CreateBareMetalInstanceRequest]) (*connect.Response[v1.CreateBareMetalInstanceResponse], error)
 	GetBareMetalInstance(context.Context, *connect.Request[v1.GetBareMetalInstanceRequest]) (*connect.Response[v1.GetBareMetalInstanceResponse], error)
 	ListBareMetalInstances(context.Context, *connect.Request[v1.ListBareMetalInstancesRequest]) (*connect.Response[v1.ListBareMetalInstancesResponse], error)
-	// ReleaseBareMetalInstance ends the lease; the host's role returns to 'baremetal_pool'. Refused
+	// ReleaseBareMetalInstance ends the lease; the host returns to the available pool. Refused
 	// while a MONTHLY_* term is still active (hard non-cancel, same as DeleteVirtualMachine). The
 	// customer's data on local disks is not wiped by Metalhost — operator policy decides whether
 	// the host is reformatted before re-leasing.
@@ -125,38 +125,36 @@ type BareMetalServiceClient interface {
 	// SetBareMetalPower performs a BMC power action (on / off / reboot) via Redfish. Billing is
 	// unaffected — a leased host bills whether it's powered on or off.
 	SetBareMetalPower(context.Context, *connect.Request[v1.SetBareMetalPowerRequest]) (*connect.Response[v1.SetBareMetalPowerResponse], error)
-	// ReinstallBareMetal re-runs the OS install (Tinkerbell) + cloud-init seed on a leased host,
-	// wiping the OS disk. Keeps the same lease + IPv4 block. Use to switch image or get a clean slate.
+	// ReinstallBareMetal re-runs the OS install + cloud-init seed on a leased host, wiping the
+	// OS disk. Keeps the same lease + IPv4 block. Use to switch image or get a clean slate.
 	ReinstallBareMetal(context.Context, *connect.Request[v1.ReinstallBareMetalRequest]) (*connect.Response[v1.ReinstallBareMetalResponse], error)
 	// GetBareMetalConsoleURL returns a short-lived websocket URL for the host's graphical KVM
-	// console, bridged to the BMC's VNC server (iDRAC). The server enables VNC on the BMC with a
-	// fresh per-session password (returned in vnc_password) and disables it again when the session
+	// console, bridged to the BMC's VNC server. The server enables VNC on the BMC with a fresh
+	// per-session password (returned in vnc_password) and disables it again when the session
 	// ends — VNC is off at rest. Token expires after 60s; connect promptly.
 	GetBareMetalConsoleURL(context.Context, *connect.Request[v1.GetBareMetalConsoleURLRequest]) (*connect.Response[v1.GetBareMetalConsoleURLResponse], error)
-	// EnterRescueMode boots the host into a rescue image via Redfish one-time boot override
-	// followed by a power cycle. The rescue image URL is the operator's responsibility (set
-	// via METALHOST_BM_RESCUE_IMAGE_URL or per-DC annotation `aes.metalhost/bm-rescue-image-url`).
-	// The instance's spec.rescue_mode flag is set so subsequent reads / future workers know
-	// the host is in rescue. ExitRescueMode reverses this — clears the boot override and
+	// EnterRescueMode boots the host into a rescue image via a one-time BMC boot override
+	// followed by a power cycle. The instance's rescue_mode flag is set so subsequent reads
+	// know the host is in rescue. ExitRescueMode reverses this — clears the boot override and
 	// power-cycles back to the normal disk boot order.
 	EnterBareMetalRescueMode(context.Context, *connect.Request[v1.EnterBareMetalRescueModeRequest]) (*connect.Response[v1.EnterBareMetalRescueModeResponse], error)
 	ExitBareMetalRescueMode(context.Context, *connect.Request[v1.ExitBareMetalRescueModeRequest]) (*connect.Response[v1.ExitBareMetalRescueModeResponse], error)
 	// --- Bring-your-own-OS virtual media + ISO library (docs/specs/BARE_METAL_BYO_OS.md) ---
 	// The ISO library is per-ORG (shared across the org's projects), quota-limited. Upload once,
 	// re-use across leases. CreateBareMetalISOUploadURL returns a short-lived presigned PUT URL the
-	// customer uploads their install ISO to (directly to object storage), plus the object key.
+	// customer uploads their install ISO to, plus the object key.
 	CreateBareMetalISOUploadURL(context.Context, *connect.Request[v1.CreateBareMetalISOUploadURLRequest]) (*connect.Response[v1.CreateBareMetalISOUploadURLResponse], error)
 	// ListBareMetalISOs lists the org's uploaded install ISOs (the library shown on the mgmt page
 	// and the console's ISO picker).
 	ListBareMetalISOs(context.Context, *connect.Request[v1.ListBareMetalISOsRequest]) (*connect.Response[v1.ListBareMetalISOsResponse], error)
-	// CreateBareMetalISOFromURL imports an ISO into the org library by URL — metalhostd fetches it
-	// server-side (datacenter bandwidth) into object storage, so no slow browser upload. Returns
-	// immediately; the ISO appears in ListBareMetalISOs once the fetch completes.
+	// CreateBareMetalISOFromURL imports an ISO into the org library by URL — Metalhost fetches it
+	// server-side, so no slow browser upload. Returns immediately; the ISO appears in
+	// ListBareMetalISOs once the fetch completes.
 	CreateBareMetalISOFromURL(context.Context, *connect.Request[v1.CreateBareMetalISOFromURLRequest]) (*connect.Response[v1.CreateBareMetalISOFromURLResponse], error)
-	// DeleteBareMetalISO removes an ISO from the org library + object storage.
+	// DeleteBareMetalISO removes an ISO from the org library.
 	DeleteBareMetalISO(context.Context, *connect.Request[v1.DeleteBareMetalISORequest]) (*connect.Response[v1.DeleteBareMetalISOResponse], error)
-	// AttachBareMetalISO mounts a library ISO (by object key) as the host's BMC virtual CD: the BMC
-	// fetches it from metalhostd's ISO proxy (/v1/bm-iso/<token>.iso) which streams from the bucket.
+	// AttachBareMetalISO mounts a library ISO (by object key) as the host's BMC virtual CD; the
+	// BMC streams it from Metalhost for the duration of the mount.
 	AttachBareMetalISO(context.Context, *connect.Request[v1.AttachBareMetalISORequest]) (*connect.Response[v1.AttachBareMetalISOResponse], error)
 	// GetBareMetalVirtualMedia reports the BMC's current virtual-CD mount state (so the UI shows the
 	// real attach/detach state after a refresh, not just optimistic client state).
@@ -454,7 +452,7 @@ type BareMetalServiceHandler interface {
 	CreateBareMetalInstance(context.Context, *connect.Request[v1.CreateBareMetalInstanceRequest]) (*connect.Response[v1.CreateBareMetalInstanceResponse], error)
 	GetBareMetalInstance(context.Context, *connect.Request[v1.GetBareMetalInstanceRequest]) (*connect.Response[v1.GetBareMetalInstanceResponse], error)
 	ListBareMetalInstances(context.Context, *connect.Request[v1.ListBareMetalInstancesRequest]) (*connect.Response[v1.ListBareMetalInstancesResponse], error)
-	// ReleaseBareMetalInstance ends the lease; the host's role returns to 'baremetal_pool'. Refused
+	// ReleaseBareMetalInstance ends the lease; the host returns to the available pool. Refused
 	// while a MONTHLY_* term is still active (hard non-cancel, same as DeleteVirtualMachine). The
 	// customer's data on local disks is not wiped by Metalhost — operator policy decides whether
 	// the host is reformatted before re-leasing.
@@ -465,38 +463,36 @@ type BareMetalServiceHandler interface {
 	// SetBareMetalPower performs a BMC power action (on / off / reboot) via Redfish. Billing is
 	// unaffected — a leased host bills whether it's powered on or off.
 	SetBareMetalPower(context.Context, *connect.Request[v1.SetBareMetalPowerRequest]) (*connect.Response[v1.SetBareMetalPowerResponse], error)
-	// ReinstallBareMetal re-runs the OS install (Tinkerbell) + cloud-init seed on a leased host,
-	// wiping the OS disk. Keeps the same lease + IPv4 block. Use to switch image or get a clean slate.
+	// ReinstallBareMetal re-runs the OS install + cloud-init seed on a leased host, wiping the
+	// OS disk. Keeps the same lease + IPv4 block. Use to switch image or get a clean slate.
 	ReinstallBareMetal(context.Context, *connect.Request[v1.ReinstallBareMetalRequest]) (*connect.Response[v1.ReinstallBareMetalResponse], error)
 	// GetBareMetalConsoleURL returns a short-lived websocket URL for the host's graphical KVM
-	// console, bridged to the BMC's VNC server (iDRAC). The server enables VNC on the BMC with a
-	// fresh per-session password (returned in vnc_password) and disables it again when the session
+	// console, bridged to the BMC's VNC server. The server enables VNC on the BMC with a fresh
+	// per-session password (returned in vnc_password) and disables it again when the session
 	// ends — VNC is off at rest. Token expires after 60s; connect promptly.
 	GetBareMetalConsoleURL(context.Context, *connect.Request[v1.GetBareMetalConsoleURLRequest]) (*connect.Response[v1.GetBareMetalConsoleURLResponse], error)
-	// EnterRescueMode boots the host into a rescue image via Redfish one-time boot override
-	// followed by a power cycle. The rescue image URL is the operator's responsibility (set
-	// via METALHOST_BM_RESCUE_IMAGE_URL or per-DC annotation `aes.metalhost/bm-rescue-image-url`).
-	// The instance's spec.rescue_mode flag is set so subsequent reads / future workers know
-	// the host is in rescue. ExitRescueMode reverses this — clears the boot override and
+	// EnterRescueMode boots the host into a rescue image via a one-time BMC boot override
+	// followed by a power cycle. The instance's rescue_mode flag is set so subsequent reads
+	// know the host is in rescue. ExitRescueMode reverses this — clears the boot override and
 	// power-cycles back to the normal disk boot order.
 	EnterBareMetalRescueMode(context.Context, *connect.Request[v1.EnterBareMetalRescueModeRequest]) (*connect.Response[v1.EnterBareMetalRescueModeResponse], error)
 	ExitBareMetalRescueMode(context.Context, *connect.Request[v1.ExitBareMetalRescueModeRequest]) (*connect.Response[v1.ExitBareMetalRescueModeResponse], error)
 	// --- Bring-your-own-OS virtual media + ISO library (docs/specs/BARE_METAL_BYO_OS.md) ---
 	// The ISO library is per-ORG (shared across the org's projects), quota-limited. Upload once,
 	// re-use across leases. CreateBareMetalISOUploadURL returns a short-lived presigned PUT URL the
-	// customer uploads their install ISO to (directly to object storage), plus the object key.
+	// customer uploads their install ISO to, plus the object key.
 	CreateBareMetalISOUploadURL(context.Context, *connect.Request[v1.CreateBareMetalISOUploadURLRequest]) (*connect.Response[v1.CreateBareMetalISOUploadURLResponse], error)
 	// ListBareMetalISOs lists the org's uploaded install ISOs (the library shown on the mgmt page
 	// and the console's ISO picker).
 	ListBareMetalISOs(context.Context, *connect.Request[v1.ListBareMetalISOsRequest]) (*connect.Response[v1.ListBareMetalISOsResponse], error)
-	// CreateBareMetalISOFromURL imports an ISO into the org library by URL — metalhostd fetches it
-	// server-side (datacenter bandwidth) into object storage, so no slow browser upload. Returns
-	// immediately; the ISO appears in ListBareMetalISOs once the fetch completes.
+	// CreateBareMetalISOFromURL imports an ISO into the org library by URL — Metalhost fetches it
+	// server-side, so no slow browser upload. Returns immediately; the ISO appears in
+	// ListBareMetalISOs once the fetch completes.
 	CreateBareMetalISOFromURL(context.Context, *connect.Request[v1.CreateBareMetalISOFromURLRequest]) (*connect.Response[v1.CreateBareMetalISOFromURLResponse], error)
-	// DeleteBareMetalISO removes an ISO from the org library + object storage.
+	// DeleteBareMetalISO removes an ISO from the org library.
 	DeleteBareMetalISO(context.Context, *connect.Request[v1.DeleteBareMetalISORequest]) (*connect.Response[v1.DeleteBareMetalISOResponse], error)
-	// AttachBareMetalISO mounts a library ISO (by object key) as the host's BMC virtual CD: the BMC
-	// fetches it from metalhostd's ISO proxy (/v1/bm-iso/<token>.iso) which streams from the bucket.
+	// AttachBareMetalISO mounts a library ISO (by object key) as the host's BMC virtual CD; the
+	// BMC streams it from Metalhost for the duration of the mount.
 	AttachBareMetalISO(context.Context, *connect.Request[v1.AttachBareMetalISORequest]) (*connect.Response[v1.AttachBareMetalISOResponse], error)
 	// GetBareMetalVirtualMedia reports the BMC's current virtual-CD mount state (so the UI shows the
 	// real attach/detach state after a refresh, not just optimistic client state).

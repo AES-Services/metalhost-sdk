@@ -164,7 +164,7 @@ type GetAuthMetadataResponse struct {
 	OidcAudience string `protobuf:"bytes,3,opt,name=oidc_audience,json=oidcAudience,proto3" json:"oidc_audience,omitempty"`
 	// True when an issuer is configured (discovery / token validation may still be gateway-only in Phase 0).
 	SupportsOidc bool `protobuf:"varint,4,opt,name=supports_oidc,json=supportsOidc,proto3" json:"supports_oidc,omitempty"`
-	// True when CheckPermission is backed by policy (Postgres iam_bindings / role_permissions in metalhostd).
+	// True when CheckPermission is backed by role/permission policy.
 	SupportsRbac  bool `protobuf:"varint,5,opt,name=supports_rbac,json=supportsRbac,proto3" json:"supports_rbac,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -281,7 +281,7 @@ type GetCallerIdentityResponse struct {
 	// are rejected by RequireProjectAccess. Empty means the token has no project scope (its
 	// permissions are limited only by the principal's role bindings).
 	ScopeProject string `protobuf:"bytes,3,opt,name=scope_project,json=scopeProject,proto3" json:"scope_project,omitempty"`
-	// Organizations the caller has an iam_bindings row against (any role). Useful for the
+	// Organizations the caller has a role binding against (any role). Useful for the
 	// portal landing resolver: when this is non-empty but default_project is empty, the user
 	// has access to ≥1 org but hasn't created/been-assigned a project yet — route them to
 	// the onboarding wizard. Empty list means the user has no org access at all (orphan
@@ -351,7 +351,7 @@ func (x *GetCallerIdentityResponse) GetAccessibleOrganizations() []string {
 
 type CheckPermissionRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// When empty, uses the authenticated principal from the request context (requires API key auth on metalhostd).
+	// When empty, uses the authenticated principal from the request context (requires API key auth).
 	Principal string `protobuf:"bytes,1,opt,name=principal,proto3" json:"principal,omitempty"`
 	// Permission id, e.g. admin.platform or admin.catalog.read.
 	Permission string `protobuf:"bytes,2,opt,name=permission,proto3" json:"permission,omitempty"`

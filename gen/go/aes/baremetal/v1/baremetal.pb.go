@@ -190,7 +190,7 @@ type BareMetalInstance struct {
 	HostName string `protobuf:"bytes,5,opt,name=host_name,json=hostName,proto3" json:"host_name,omitempty"`
 	// PROVISIONING / ACTIVE / RELEASING / RELEASED.
 	State string `protobuf:"bytes,6,opt,name=state,proto3" json:"state,omitempty"`
-	// Redfish endpoint forwarded from the host record. Customer uses this to BMC-control the box
+	// Redfish endpoint for this leased host. Customer uses this to BMC-control the box
 	// (PXE install, power cycle, console). Empty when the host has no Redfish configured.
 	RedfishEndpoint string            `protobuf:"bytes,7,opt,name=redfish_endpoint,json=redfishEndpoint,proto3" json:"redfish_endpoint,omitempty"`
 	CreateTimeUnix  int64             `protobuf:"varint,8,opt,name=create_time_unix,json=createTimeUnix,proto3" json:"create_time_unix,omitempty"`
@@ -219,7 +219,7 @@ type BareMetalInstance struct {
 	PowerState string `protobuf:"bytes,23,opt,name=power_state,json=powerState,proto3" json:"power_state,omitempty"`
 	// Public network details for the host's NIC, from the DC pool. Surfaced so a bring-your-own-OS
 	// customer can hand-configure their network: gateway + the SUBNET prefix length the IPs sit in
-	// (e.g. /24). The managed-install netplan uses these too. Empty/0 when the DC has none set.
+	// (e.g. /24). The managed install uses these too. Empty/0 when the DC has none set.
 	PublicGateway   string `protobuf:"bytes,24,opt,name=public_gateway,json=publicGateway,proto3" json:"public_gateway,omitempty"`
 	PublicPrefixLen int32  `protobuf:"varint,25,opt,name=public_prefix_len,json=publicPrefixLen,proto3" json:"public_prefix_len,omitempty"`
 	unknownFields   protoimpl.UnknownFields
@@ -2009,8 +2009,8 @@ type GetBareMetalConsoleURLResponse struct {
 	ConsoleUrl    string `protobuf:"bytes,1,opt,name=console_url,json=consoleUrl,proto3" json:"console_url,omitempty"`
 	ExpiresAtUnix int64  `protobuf:"varint,2,opt,name=expires_at_unix,json=expiresAtUnix,proto3" json:"expires_at_unix,omitempty"`
 	// Per-session VNC password the noVNC client authenticates with (≤8 chars — RFB limit). The
-	// BMC's VNC server is only reachable from metalhostd on the OOB management network, so this is
-	// defense-in-depth behind the token+cookie gate, not the primary control.
+	// BMC's VNC server is only reachable through Metalhost, so this is defense-in-depth behind
+	// the token+cookie gate, not the primary control.
 	VncPassword   string `protobuf:"bytes,3,opt,name=vnc_password,json=vncPassword,proto3" json:"vnc_password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2070,8 +2070,8 @@ func (x *GetBareMetalConsoleURLResponse) GetVncPassword() string {
 type EnterBareMetalRescueModeRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Optional explicit rescue image URL override; defaults to the per-DC annotation or
-	// METALHOST_BM_RESCUE_IMAGE_URL. Useful for distro-specific rescue tooling.
+	// Optional explicit rescue image URL override; defaults to the datacenter's configured
+	// rescue image. Useful for distro-specific rescue tooling.
 	RescueImageUrl string `protobuf:"bytes,2,opt,name=rescue_image_url,json=rescueImageUrl,proto3" json:"rescue_image_url,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache

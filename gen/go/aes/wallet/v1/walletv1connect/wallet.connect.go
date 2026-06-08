@@ -110,9 +110,9 @@ type WalletServiceClient interface {
 	ListBillingAccounts(context.Context, *connect.Request[v1.ListBillingAccountsRequest]) (*connect.Response[v1.ListBillingAccountsResponse], error)
 	GetBillingAccount(context.Context, *connect.Request[v1.GetBillingAccountRequest]) (*connect.Response[v1.GetBillingAccountResponse], error)
 	GetWallet(context.Context, *connect.Request[v1.GetWalletRequest]) (*connect.Response[v1.GetWalletResponse], error)
-	// GetWalletBalance returns the current prepay liability balance computed from
-	// ledger_postings. Separate from GetWallet so the cheap balance-only lookup doesn't drag
-	// the full wallet metadata + permissions check overhead. Caller needs wallet read access.
+	// GetWalletBalance returns the current prepay balance. Separate from GetWallet so the cheap
+	// balance-only lookup doesn't drag the full wallet metadata + permissions check overhead.
+	// Caller needs wallet read access.
 	GetWalletBalance(context.Context, *connect.Request[v1.GetWalletBalanceRequest]) (*connect.Response[v1.GetWalletBalanceResponse], error)
 	// ListPublicMeterRates returns the currently-effective rate per (meter, currency). Read-only,
 	// un-scoped — meters are public catalog data; pricing is the same for every customer (any
@@ -150,11 +150,11 @@ type WalletServiceClient interface {
 	// Stripe Dashboard and the charge.refunded webhook posts the ledger entry.
 	ConfigureWalletAlerts(context.Context, *connect.Request[v1.ConfigureWalletAlertsRequest]) (*connect.Response[v1.ConfigureWalletAlertsResponse], error)
 	GetWalletAlerts(context.Context, *connect.Request[v1.GetWalletAlertsRequest]) (*connect.Response[v1.GetWalletAlertsResponse], error)
-	// Customer-initiated top-ups (PLATFORM_DESIGN §6.11). Two flavors:
-	//   - Stripe payment intent: customer's browser confirms a card charge; on success
-	//     Metalhost's Stripe webhook posts a TOPUP_CLEARING / CUSTOMER_PREPAY_LIABILITY journal.
+	// Customer-initiated top-ups. Two flavors:
+	//   - Stripe payment intent: customer's browser confirms a card charge; the wallet is
+	//     credited on payment success.
 	//   - Coinbase checkout: returns a hosted Coinbase URL the customer pays USDC on (any chain
-	//     Coinbase supports); the Coinbase webhook posts the same journal on payment success.
+	//     Coinbase supports); the wallet is credited on payment success.
 	CreateStripeTopUpIntent(context.Context, *connect.Request[v1.CreateStripeTopUpIntentRequest]) (*connect.Response[v1.CreateStripeTopUpIntentResponse], error)
 	// CreateCardSetupIntent: Stripe SetupIntent in card mode. Returns the client_secret the
 	// browser's <PaymentElement> needs to render + collect card details without charging.
@@ -162,7 +162,7 @@ type WalletServiceClient interface {
 	// payment_method_id to persist + add to the customer. Used by onboarding + add-card UI.
 	CreateCardSetupIntent(context.Context, *connect.Request[v1.CreateCardSetupIntentRequest]) (*connect.Response[v1.CreateCardSetupIntentResponse], error)
 	// CreateCoinbaseTopUpCheckout: hosted USDC checkout for a wallet top-up. Returns a Coinbase
-	// checkout URL the customer pays on; the /v1/public/coinbase/webhook handler credits the wallet.
+	// checkout URL the customer pays on; the wallet is credited when payment is confirmed.
 	CreateCoinbaseTopUpCheckout(context.Context, *connect.Request[v1.CreateCoinbaseTopUpCheckoutRequest]) (*connect.Response[v1.CreateCoinbaseTopUpCheckoutResponse], error)
 	ListTopUps(context.Context, *connect.Request[v1.ListTopUpsRequest]) (*connect.Response[v1.ListTopUpsResponse], error)
 	GetTopUp(context.Context, *connect.Request[v1.GetTopUpRequest]) (*connect.Response[v1.GetTopUpResponse], error)
@@ -484,9 +484,9 @@ type WalletServiceHandler interface {
 	ListBillingAccounts(context.Context, *connect.Request[v1.ListBillingAccountsRequest]) (*connect.Response[v1.ListBillingAccountsResponse], error)
 	GetBillingAccount(context.Context, *connect.Request[v1.GetBillingAccountRequest]) (*connect.Response[v1.GetBillingAccountResponse], error)
 	GetWallet(context.Context, *connect.Request[v1.GetWalletRequest]) (*connect.Response[v1.GetWalletResponse], error)
-	// GetWalletBalance returns the current prepay liability balance computed from
-	// ledger_postings. Separate from GetWallet so the cheap balance-only lookup doesn't drag
-	// the full wallet metadata + permissions check overhead. Caller needs wallet read access.
+	// GetWalletBalance returns the current prepay balance. Separate from GetWallet so the cheap
+	// balance-only lookup doesn't drag the full wallet metadata + permissions check overhead.
+	// Caller needs wallet read access.
 	GetWalletBalance(context.Context, *connect.Request[v1.GetWalletBalanceRequest]) (*connect.Response[v1.GetWalletBalanceResponse], error)
 	// ListPublicMeterRates returns the currently-effective rate per (meter, currency). Read-only,
 	// un-scoped — meters are public catalog data; pricing is the same for every customer (any
@@ -524,11 +524,11 @@ type WalletServiceHandler interface {
 	// Stripe Dashboard and the charge.refunded webhook posts the ledger entry.
 	ConfigureWalletAlerts(context.Context, *connect.Request[v1.ConfigureWalletAlertsRequest]) (*connect.Response[v1.ConfigureWalletAlertsResponse], error)
 	GetWalletAlerts(context.Context, *connect.Request[v1.GetWalletAlertsRequest]) (*connect.Response[v1.GetWalletAlertsResponse], error)
-	// Customer-initiated top-ups (PLATFORM_DESIGN §6.11). Two flavors:
-	//   - Stripe payment intent: customer's browser confirms a card charge; on success
-	//     Metalhost's Stripe webhook posts a TOPUP_CLEARING / CUSTOMER_PREPAY_LIABILITY journal.
+	// Customer-initiated top-ups. Two flavors:
+	//   - Stripe payment intent: customer's browser confirms a card charge; the wallet is
+	//     credited on payment success.
 	//   - Coinbase checkout: returns a hosted Coinbase URL the customer pays USDC on (any chain
-	//     Coinbase supports); the Coinbase webhook posts the same journal on payment success.
+	//     Coinbase supports); the wallet is credited on payment success.
 	CreateStripeTopUpIntent(context.Context, *connect.Request[v1.CreateStripeTopUpIntentRequest]) (*connect.Response[v1.CreateStripeTopUpIntentResponse], error)
 	// CreateCardSetupIntent: Stripe SetupIntent in card mode. Returns the client_secret the
 	// browser's <PaymentElement> needs to render + collect card details without charging.
@@ -536,7 +536,7 @@ type WalletServiceHandler interface {
 	// payment_method_id to persist + add to the customer. Used by onboarding + add-card UI.
 	CreateCardSetupIntent(context.Context, *connect.Request[v1.CreateCardSetupIntentRequest]) (*connect.Response[v1.CreateCardSetupIntentResponse], error)
 	// CreateCoinbaseTopUpCheckout: hosted USDC checkout for a wallet top-up. Returns a Coinbase
-	// checkout URL the customer pays on; the /v1/public/coinbase/webhook handler credits the wallet.
+	// checkout URL the customer pays on; the wallet is credited when payment is confirmed.
 	CreateCoinbaseTopUpCheckout(context.Context, *connect.Request[v1.CreateCoinbaseTopUpCheckoutRequest]) (*connect.Response[v1.CreateCoinbaseTopUpCheckoutResponse], error)
 	ListTopUps(context.Context, *connect.Request[v1.ListTopUpsRequest]) (*connect.Response[v1.ListTopUpsResponse], error)
 	GetTopUp(context.Context, *connect.Request[v1.GetTopUpRequest]) (*connect.Response[v1.GetTopUpResponse], error)

@@ -74,20 +74,19 @@ type StorageServiceClient interface {
 	ListDisks(context.Context, *connect.Request[v1.ListDisksRequest]) (*connect.Response[v1.ListDisksResponse], error)
 	UpdateDisk(context.Context, *connect.Request[v1.UpdateDiskRequest]) (*connect.Response[v1.UpdateDiskResponse], error)
 	DeleteDisk(context.Context, *connect.Request[v1.DeleteDiskRequest]) (*connect.Response[v1.DeleteDiskResponse], error)
-	// AttachDisk hot-plugs the disk into the named VM via the KubeVirt addvolume subresource.
-	// The disk must be AVAILABLE (not already attached); the VM must be RUNNING.
+	// AttachDisk hot-plugs the disk into the named VM. The disk must be AVAILABLE (not already
+	// attached); the VM must be RUNNING.
 	AttachDisk(context.Context, *connect.Request[v1.AttachDiskRequest]) (*connect.Response[v1.AttachDiskResponse], error)
-	// DetachDisk hot-unplugs via removevolume. The disk returns to AVAILABLE; the VM keeps running.
+	// DetachDisk hot-unplugs the disk. The disk returns to AVAILABLE; the VM keeps running.
 	DetachDisk(context.Context, *connect.Request[v1.DetachDiskRequest]) (*connect.Response[v1.DetachDiskResponse], error)
-	// ResizeDisk grows the underlying PVC. Online-resize per CSI spec — the volume expansion
-	// happens without unmounting; for attached disks, the guest sees the new size after a
-	// filesystem-level resize (xfs_growfs / resize2fs). Shrinking is not supported (PVC expansion
-	// is one-way at the CSI level).
+	// ResizeDisk grows the disk online — the volume expands without unmounting; for attached
+	// disks, the guest sees the new size after a filesystem-level resize. Shrinking is not
+	// supported (expansion is one-way).
 	ResizeDisk(context.Context, *connect.Request[v1.ResizeDiskRequest]) (*connect.Response[v1.ResizeDiskResponse], error)
-	// File shares — RWX NFS volumes (CephFS-backed, exported via Ganesha) that multiple VMs in
-	// the same tenant network can mount concurrently. The per-share Ganesha export ACL
-	// whitelists the tenant network CIDR, so any VM on that network can `mount -t nfs4` using
-	// the FileShare's `mount_command`. No attach/detach bookkeeping — the customer mounts in-guest.
+	// File shares — RWX NFS volumes that multiple VMs in the same tenant network can mount
+	// concurrently. Access is restricted to the tenant network, so any VM on that network can
+	// `mount -t nfs4` using the FileShare's `mount_command`. No attach/detach bookkeeping —
+	// the customer mounts in-guest.
 	CreateFileShare(context.Context, *connect.Request[v1.CreateFileShareRequest]) (*connect.Response[v1.CreateFileShareResponse], error)
 	ListFileShares(context.Context, *connect.Request[v1.ListFileSharesRequest]) (*connect.Response[v1.ListFileSharesResponse], error)
 	DeleteFileShare(context.Context, *connect.Request[v1.DeleteFileShareRequest]) (*connect.Response[v1.DeleteFileShareResponse], error)
@@ -250,20 +249,19 @@ type StorageServiceHandler interface {
 	ListDisks(context.Context, *connect.Request[v1.ListDisksRequest]) (*connect.Response[v1.ListDisksResponse], error)
 	UpdateDisk(context.Context, *connect.Request[v1.UpdateDiskRequest]) (*connect.Response[v1.UpdateDiskResponse], error)
 	DeleteDisk(context.Context, *connect.Request[v1.DeleteDiskRequest]) (*connect.Response[v1.DeleteDiskResponse], error)
-	// AttachDisk hot-plugs the disk into the named VM via the KubeVirt addvolume subresource.
-	// The disk must be AVAILABLE (not already attached); the VM must be RUNNING.
+	// AttachDisk hot-plugs the disk into the named VM. The disk must be AVAILABLE (not already
+	// attached); the VM must be RUNNING.
 	AttachDisk(context.Context, *connect.Request[v1.AttachDiskRequest]) (*connect.Response[v1.AttachDiskResponse], error)
-	// DetachDisk hot-unplugs via removevolume. The disk returns to AVAILABLE; the VM keeps running.
+	// DetachDisk hot-unplugs the disk. The disk returns to AVAILABLE; the VM keeps running.
 	DetachDisk(context.Context, *connect.Request[v1.DetachDiskRequest]) (*connect.Response[v1.DetachDiskResponse], error)
-	// ResizeDisk grows the underlying PVC. Online-resize per CSI spec — the volume expansion
-	// happens without unmounting; for attached disks, the guest sees the new size after a
-	// filesystem-level resize (xfs_growfs / resize2fs). Shrinking is not supported (PVC expansion
-	// is one-way at the CSI level).
+	// ResizeDisk grows the disk online — the volume expands without unmounting; for attached
+	// disks, the guest sees the new size after a filesystem-level resize. Shrinking is not
+	// supported (expansion is one-way).
 	ResizeDisk(context.Context, *connect.Request[v1.ResizeDiskRequest]) (*connect.Response[v1.ResizeDiskResponse], error)
-	// File shares — RWX NFS volumes (CephFS-backed, exported via Ganesha) that multiple VMs in
-	// the same tenant network can mount concurrently. The per-share Ganesha export ACL
-	// whitelists the tenant network CIDR, so any VM on that network can `mount -t nfs4` using
-	// the FileShare's `mount_command`. No attach/detach bookkeeping — the customer mounts in-guest.
+	// File shares — RWX NFS volumes that multiple VMs in the same tenant network can mount
+	// concurrently. Access is restricted to the tenant network, so any VM on that network can
+	// `mount -t nfs4` using the FileShare's `mount_command`. No attach/detach bookkeeping —
+	// the customer mounts in-guest.
 	CreateFileShare(context.Context, *connect.Request[v1.CreateFileShareRequest]) (*connect.Response[v1.CreateFileShareResponse], error)
 	ListFileShares(context.Context, *connect.Request[v1.ListFileSharesRequest]) (*connect.Response[v1.ListFileSharesResponse], error)
 	DeleteFileShare(context.Context, *connect.Request[v1.DeleteFileShareRequest]) (*connect.Response[v1.DeleteFileShareResponse], error)

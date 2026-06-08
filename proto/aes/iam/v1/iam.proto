@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package aes.iam.v1;
 
-// IamService holds identity primitives (design §4 iam-svc).
+// IamService holds identity primitives.
 //
 // Customer-facing surface intentionally excludes:
 //   - ValidateApiKey, ValidateOidcToken — internal-only (the HTTP auth middleware uses
@@ -202,7 +202,7 @@ message GetAuthMetadataResponse {
   string oidc_audience = 3;
   // True when an issuer is configured (discovery / token validation may still be gateway-only in Phase 0).
   bool supports_oidc = 4;
-  // True when CheckPermission is backed by policy (Postgres iam_bindings / role_permissions in metalhostd).
+  // True when CheckPermission is backed by role/permission policy.
   bool supports_rbac = 5;
 }
 
@@ -217,7 +217,7 @@ message GetCallerIdentityResponse {
   // are rejected by RequireProjectAccess. Empty means the token has no project scope (its
   // permissions are limited only by the principal's role bindings).
   string scope_project = 3;
-  // Organizations the caller has an iam_bindings row against (any role). Useful for the
+  // Organizations the caller has a role binding against (any role). Useful for the
   // portal landing resolver: when this is non-empty but default_project is empty, the user
   // has access to ≥1 org but hasn't created/been-assigned a project yet — route them to
   // the onboarding wizard. Empty list means the user has no org access at all (orphan
@@ -226,7 +226,7 @@ message GetCallerIdentityResponse {
 }
 
 message CheckPermissionRequest {
-  // When empty, uses the authenticated principal from the request context (requires API key auth on metalhostd).
+  // When empty, uses the authenticated principal from the request context (requires API key auth).
   string principal = 1;
   // Permission id, e.g. admin.platform or admin.catalog.read.
   string permission = 2;

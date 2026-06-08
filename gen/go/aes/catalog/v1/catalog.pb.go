@@ -513,13 +513,13 @@ type Datacenter struct {
 	Name        string          `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	DisplayName string          `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	State       DatacenterState `protobuf:"varint,3,opt,name=state,proto3,enum=aes.catalog.v1.DatacenterState" json:"state,omitempty"`
-	// Kubernetes API endpoint for the DC control plane (operator-visible).
+	// Operator-visible control-plane endpoint for the datacenter.
 	KubernetesApiEndpoint string            `protobuf:"bytes,5,opt,name=kubernetes_api_endpoint,json=kubernetesApiEndpoint,proto3" json:"kubernetes_api_endpoint,omitempty"`
 	Labels                map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Annotations           map[string]string `protobuf:"bytes,7,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	KubernetesVersion     string            `protobuf:"bytes,8,opt,name=kubernetes_version,json=kubernetesVersion,proto3" json:"kubernetes_version,omitempty"`
 	KubevirtVersion       string            `protobuf:"bytes,9,opt,name=kubevirt_version,json=kubevirtVersion,proto3" json:"kubevirt_version,omitempty"`
-	// Opaque summary JSON or text for health snapshots (OVN, Rook, etc.).
+	// Opaque summary JSON or text for health snapshots.
 	HealthSummary string `protobuf:"bytes,10,opt,name=health_summary,json=healthSummary,proto3" json:"health_summary,omitempty"`
 	// ────────────── Capacity (populated by ListDatacenters / GetDatacenter) ──────────────
 	// capacity_pct: % of usable VM CPU capacity currently allocated (0..100). Same number
@@ -756,19 +756,18 @@ type RegionHealth struct {
 	DegradedComponents []string               `protobuf:"bytes,4,rep,name=degraded_components,json=degradedComponents,proto3" json:"degraded_components,omitempty"`
 	HealthSummary      string                 `protobuf:"bytes,5,opt,name=health_summary,json=healthSummary,proto3" json:"health_summary,omitempty"`
 	LastUpdatedUnix    int64                  `protobuf:"varint,6,opt,name=last_updated_unix,json=lastUpdatedUnix,proto3" json:"last_updated_unix,omitempty"`
-	// VM CPU capacity (k8s_vm pool). sellable = total vCPU a customer can buy (physical pool ×
-	// oversubscribe ratio); running = in use; free = available. Presented to customers as
-	// plain vCPU counts — the ratio is not exposed here.
+	// VM CPU capacity. sellable = total vCPU a customer can buy; running = in use;
+	// free = available. Presented to customers as plain vCPU counts.
 	VmSellableVcpu int64 `protobuf:"varint,8,opt,name=vm_sellable_vcpu,json=vmSellableVcpu,proto3" json:"vm_sellable_vcpu,omitempty"`
 	VmRunningVcpu  int64 `protobuf:"varint,9,opt,name=vm_running_vcpu,json=vmRunningVcpu,proto3" json:"vm_running_vcpu,omitempty"`
 	VmFreeVcpu     int64 `protobuf:"varint,10,opt,name=vm_free_vcpu,json=vmFreeVcpu,proto3" json:"vm_free_vcpu,omitempty"`
-	// VM RAM capacity (k8s_vm pool). sellable = cached pool allocatable memory × RAM
-	// oversubscribe ratio (default 1:1); running = Σ ram_gib of RUNNING VMs; free = headroom.
+	// VM RAM capacity. sellable = total RAM a customer can buy; running = Σ ram_gib of
+	// RUNNING VMs; free = headroom.
 	VmSellableRamGib int64 `protobuf:"varint,11,opt,name=vm_sellable_ram_gib,json=vmSellableRamGib,proto3" json:"vm_sellable_ram_gib,omitempty"`
 	VmRunningRamGib  int64 `protobuf:"varint,12,opt,name=vm_running_ram_gib,json=vmRunningRamGib,proto3" json:"vm_running_ram_gib,omitempty"`
 	VmFreeRamGib     int64 `protobuf:"varint,13,opt,name=vm_free_ram_gib,json=vmFreeRamGib,proto3" json:"vm_free_ram_gib,omitempty"`
-	// Ceph storage (post-replication usable). usable = raw total ÷ replication; free = Rook's
-	// reported usable available. Zero when the DC has no Ceph cache (not deployed / stale).
+	// Block storage capacity (post-replication usable). usable = total after replication;
+	// free = available. Zero when the datacenter has no storage capacity data (stale/unavailable).
 	StorageUsableGib int64 `protobuf:"varint,14,opt,name=storage_usable_gib,json=storageUsableGib,proto3" json:"storage_usable_gib,omitempty"`
 	StorageFreeGib   int64 `protobuf:"varint,15,opt,name=storage_free_gib,json=storageFreeGib,proto3" json:"storage_free_gib,omitempty"`
 	unknownFields    protoimpl.UnknownFields

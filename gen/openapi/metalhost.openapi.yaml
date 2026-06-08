@@ -52,8 +52,8 @@ paths:
         - aes.baremetal.v1.BareMetalService
       summary: AttachBareMetalISO
       description: |-
-        AttachBareMetalISO mounts a library ISO (by object key) as the host's BMC virtual CD: the BMC
-         fetches it from metalhostd's ISO proxy (/v1/bm-iso/<token>.iso) which streams from the bucket.
+        AttachBareMetalISO mounts a library ISO (by object key) as the host's BMC virtual CD; the
+         BMC streams it from Metalhost for the duration of the mount.
       operationId: aes.baremetal.v1.BareMetalService.AttachBareMetalISO
       parameters:
         - name: Connect-Protocol-Version
@@ -90,9 +90,9 @@ paths:
         - aes.baremetal.v1.BareMetalService
       summary: CreateBareMetalISOFromURL
       description: |-
-        CreateBareMetalISOFromURL imports an ISO into the org library by URL — metalhostd fetches it
-         server-side (datacenter bandwidth) into object storage, so no slow browser upload. Returns
-         immediately; the ISO appears in ListBareMetalISOs once the fetch completes.
+        CreateBareMetalISOFromURL imports an ISO into the org library by URL — Metalhost fetches it
+         server-side, so no slow browser upload. Returns immediately; the ISO appears in
+         ListBareMetalISOs once the fetch completes.
       operationId: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL
       parameters:
         - name: Connect-Protocol-Version
@@ -132,7 +132,7 @@ paths:
         --- Bring-your-own-OS virtual media + ISO library (docs/specs/BARE_METAL_BYO_OS.md) ---
          The ISO library is per-ORG (shared across the org's projects), quota-limited. Upload once,
          re-use across leases. CreateBareMetalISOUploadURL returns a short-lived presigned PUT URL the
-         customer uploads their install ISO to (directly to object storage), plus the object key.
+         customer uploads their install ISO to, plus the object key.
       operationId: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL
       parameters:
         - name: Connect-Protocol-Version
@@ -203,7 +203,7 @@ paths:
       tags:
         - aes.baremetal.v1.BareMetalService
       summary: DeleteBareMetalISO
-      description: DeleteBareMetalISO removes an ISO from the org library + object storage.
+      description: DeleteBareMetalISO removes an ISO from the org library.
       operationId: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO
       parameters:
         - name: Connect-Protocol-Version
@@ -276,11 +276,9 @@ paths:
         - aes.baremetal.v1.BareMetalService
       summary: EnterBareMetalRescueMode
       description: |-
-        EnterRescueMode boots the host into a rescue image via Redfish one-time boot override
-         followed by a power cycle. The rescue image URL is the operator's responsibility (set
-         via METALHOST_BM_RESCUE_IMAGE_URL or per-DC annotation `aes.metalhost/bm-rescue-image-url`).
-         The instance's spec.rescue_mode flag is set so subsequent reads / future workers know
-         the host is in rescue. ExitRescueMode reverses this — clears the boot override and
+        EnterRescueMode boots the host into a rescue image via a one-time BMC boot override
+         followed by a power cycle. The instance's rescue_mode flag is set so subsequent reads
+         know the host is in rescue. ExitRescueMode reverses this — clears the boot override and
          power-cycles back to the normal disk boot order.
       operationId: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode
       parameters:
@@ -354,8 +352,8 @@ paths:
       summary: GetBareMetalConsoleURL
       description: |-
         GetBareMetalConsoleURL returns a short-lived websocket URL for the host's graphical KVM
-         console, bridged to the BMC's VNC server (iDRAC). The server enables VNC on the BMC with a
-         fresh per-session password (returned in vnc_password) and disables it again when the session
+         console, bridged to the BMC's VNC server. The server enables VNC on the BMC with a fresh
+         per-session password (returned in vnc_password) and disables it again when the session
          ends — VNC is off at rest. Token expires after 60s; connect promptly.
       operationId: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL
       parameters:
@@ -655,8 +653,8 @@ paths:
         - aes.baremetal.v1.BareMetalService
       summary: ReinstallBareMetal
       description: |-
-        ReinstallBareMetal re-runs the OS install (Tinkerbell) + cloud-init seed on a leased host,
-         wiping the OS disk. Keeps the same lease + IPv4 block. Use to switch image or get a clean slate.
+        ReinstallBareMetal re-runs the OS install + cloud-init seed on a leased host, wiping the
+         OS disk. Keeps the same lease + IPv4 block. Use to switch image or get a clean slate.
       operationId: aes.baremetal.v1.BareMetalService.ReinstallBareMetal
       parameters:
         - name: Connect-Protocol-Version
@@ -693,7 +691,7 @@ paths:
         - aes.baremetal.v1.BareMetalService
       summary: ReleaseBareMetalInstance
       description: |-
-        ReleaseBareMetalInstance ends the lease; the host's role returns to 'baremetal_pool'. Refused
+        ReleaseBareMetalInstance ends the lease; the host returns to the available pool. Refused
          while a MONTHLY_* term is still active (hard non-cancel, same as DeleteVirtualMachine). The
          customer's data on local disks is not wiped by Metalhost — operator policy decides whether
          the host is reformatted before re-leasing.
@@ -886,8 +884,8 @@ paths:
       summary: GetVMCapacity
       description: |-
         GetVMCapacity returns per-datacenter VM capacity in sellable units, broken down by CPU class
-         (pool) and GPU model. PUBLIC + unauthenticated (see publicMetalhostProcedures) — capacity is
-         non-sensitive catalog data (same posture as GetRegionHealth). See docs/specs/GPU_POOLED_CAPACITY.md.
+         and GPU model. Public + unauthenticated — capacity is non-sensitive catalog data (same
+         posture as GetRegionHealth).
       operationId: aes.catalog.v1.CatalogService.GetVMCapacity
       parameters:
         - name: Connect-Protocol-Version
@@ -1041,9 +1039,9 @@ paths:
       summary: CloneVirtualMachine
       description: |-
         CloneVirtualMachine creates a new VM whose BOOT disk is a copy of an existing VM's boot
-         disk at the point of clone. Async, disk-first: snapshots the source boot disk, clones it
-         into a fresh PVC, and provisions the new VM from it inside the vm_provision workflow;
-         returns an Operation the caller polls like a create. The new VM gets a fresh name +
+         disk at the point of clone. Async, disk-first: snapshots the source boot disk, copies it,
+         and provisions the new VM from the copy; returns an Operation the caller polls like a
+         create. The new VM gets a fresh name +
          project-scoped resource ID. Custom firewall rules ARE copied; networks are NOT (clone is
          per-VM, not per-stack). Boot disk only — any attached DATA disks on the source are NOT
          cloned (tracked as a follow-on, mirrors CreateVirtualMachineFromBackup).
@@ -1083,8 +1081,8 @@ paths:
         - aes.compute.v1.ComputeService
       summary: CreateVirtualMachine
       description: |-
-        CreateVirtualMachine starts a vm_provision Operation (Temporal when configured + DATABASE_URL);
-         otherwise inserts a RUNNING VM synchronously. Response carries the Operation when async.
+        CreateVirtualMachine provisions a new VM. Returns a long-running Operation the client polls
+         to completion; the synchronous create path returns the VM directly.
       operationId: aes.compute.v1.ComputeService.CreateVirtualMachine
       parameters:
         - name: Connect-Protocol-Version
@@ -1124,10 +1122,8 @@ paths:
         CreateVirtualMachineFromBackup spins up a new VM whose boot disk is materialized from
          a previously-taken VmSnapshot. Same project, same DC as the source backup. Boot disk
          only in v1 — data disks from the source aren't re-attached (tracked as a follow-on).
-         The source VM is untouched. Implementation walks the VirtualMachineSnapshot CR's
-         status.virtualMachineSnapshotContentName → status.volumeBackups[] to find the boot
-         disk's preserved VolumeSnapshot, materialises a new Disk via the internal
-         CreateDiskFromVolumeSnapshot path, and chains CreateVirtualMachine(boot_disk_name=…).
+         The source VM is untouched; the new VM's boot disk is built from the snapshot's
+         preserved boot volume.
       operationId: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup
       parameters:
         - name: Connect-Protocol-Version
@@ -1164,8 +1160,8 @@ paths:
         - aes.compute.v1.ComputeService
       summary: DeleteVirtualMachine
       description: |-
-        DeleteVirtualMachine stops billing and removes a VM. Starts a vm_delete Operation when Temporal
-         is configured; otherwise soft-deletes synchronously.
+        DeleteVirtualMachine stops billing and removes a VM. Returns a long-running Operation the
+         client polls; the synchronous path soft-deletes immediately.
       operationId: aes.compute.v1.ComputeService.DeleteVirtualMachine
       parameters:
         - name: Connect-Protocol-Version
@@ -1237,9 +1233,8 @@ paths:
         - aes.compute.v1.ComputeService
       summary: GetVMMetrics
       description: |-
-        GetVMMetrics returns CPU/memory/disk/network samples for a VM over a time range. Sourced
-         from the cluster's Prometheus (kube-prometheus-stack), which scrapes virt-handler's
-         exported metrics. Caller specifies the rollup window (default 1m, max 1h step).
+        GetVMMetrics returns CPU/memory/disk/network samples for a VM over a time range. Caller
+         specifies the rollup window (default 1m, max 1h step).
       operationId: aes.compute.v1.ComputeService.GetVMMetrics
       parameters:
         - name: Connect-Protocol-Version
@@ -1417,7 +1412,7 @@ paths:
       summary: OpenConsole
       description: |-
         OpenConsole returns a short-lived token + WebSocket URL the client uses to connect to the
-         VM's serial or VNC console. metalhostd proxies the WebSocket so the DC apiserver stays private.
+         VM's serial or VNC console. The connection is proxied through the Metalhost endpoint.
       operationId: aes.compute.v1.ComputeService.OpenConsole
       parameters:
         - name: Connect-Protocol-Version
@@ -1455,9 +1450,7 @@ paths:
       summary: |-
         ReimageVirtualMachine wipes the OS disk and reinstalls from a (potentially new) image.
          The VM must be STOPPED — refuses on RUNNING to avoid surprising the customer.
-         Implementation: delete the existing DataVolume, create a fresh DataVolume from the named
-         MachineImage (or boot_image_url), restart the VM. Networks, public IPs, and firewall rules
-         survive — only the disk is replaced.
+         Networks, public IPs, and firewall rules survive — only the disk is replaced.
       description: |-
         Use cases: customer wants to start from a clean slate without recreating the VM (preserves
          resource name, networks, IPs, ssh keys), or wants to upgrade the base image (Ubuntu 24.04
@@ -1539,14 +1532,11 @@ paths:
         - aes.compute.v1.ComputeService
       summary: ResizeVirtualMachine
       description: |-
-        ResizeVirtualMachine changes the configurator shape (vcpus / ram_gib / cpu_class).
-         KubeVirt CPU and memory are immutable on a running VMI in 1.8, so this is a stop →
-         patch VM spec → start sequence. The whole sequence runs as a vm_resize Operation
-         (Temporal + DATABASE_URL); the response carries the Operation so the client returns
-         immediately and polls. Brief downtime — seconds for cirros, longer for graceful Linux
-         shutdown. Disks, networks, and IP addresses survive. cpu_class changes are allowed
-         but require a worker host with a matching label; KubeVirt schedules the new VMI
-         against the updated nodeSelector or the start activity fails the operation.
+        ResizeVirtualMachine changes the configurator shape (vcpus / ram_gib / cpu_class). CPU and
+         memory can't change on a running VM, so this is a stop → reshape → start sequence run as a
+         long-running Operation; the response carries the Operation so the client returns immediately
+         and polls. Brief downtime. Disks, networks, and IP addresses survive. A cpu_class change
+         requires capacity for the new class in the datacenter, or the operation fails.
       operationId: aes.compute.v1.ComputeService.ResizeVirtualMachine
       parameters:
         - name: Connect-Protocol-Version
@@ -1582,7 +1572,7 @@ paths:
       tags:
         - aes.compute.v1.ComputeService
       summary: RestartVirtualMachine
-      description: RestartVirtualMachine triggers a guest reboot via the KubeVirt restart subresource.
+      description: RestartVirtualMachine reboots the guest OS.
       operationId: aes.compute.v1.ComputeService.RestartVirtualMachine
       parameters:
         - name: Connect-Protocol-Version
@@ -1658,8 +1648,7 @@ paths:
       summary: SnapshotVirtualMachine
       description: |-
         SnapshotVirtualMachine takes a point-in-time copy of a VM (definition + every disk).
-         Backed by KubeVirt's VirtualMachineSnapshot CRD which internally creates CSI VolumeSnapshots
-         for each PVC. NOT a backup — same caveat as disk snapshots.
+         NOT a backup — same caveat as disk snapshots.
       operationId: aes.compute.v1.ComputeService.SnapshotVirtualMachine
       parameters:
         - name: Connect-Protocol-Version
@@ -1695,7 +1684,7 @@ paths:
       tags:
         - aes.compute.v1.ComputeService
       summary: StartVirtualMachine
-      description: StartVirtualMachine flips the KubeVirt VM to running. Idempotent on already-running VMs.
+      description: StartVirtualMachine starts a stopped VM. Idempotent on already-running VMs.
       operationId: aes.compute.v1.ComputeService.StartVirtualMachine
       parameters:
         - name: Connect-Protocol-Version
@@ -3511,10 +3500,8 @@ paths:
         - aes.network.v1.NetworkService
       summary: CreateFirewallRule
       description: |-
-        CreateFirewallRule programs OVN ACLs on the public-vlan50 logical switch scoped to the
-         VM's public IP, permitting the listed ingress ports from the listed source CIDRs.
-         Egress is unrestricted (blocking it breaks cloud-init / package installs / DNS).
-         Multi-port rules expand server-side into one ACL per (port, source) leaf.
+        CreateFirewallRule opens the listed ingress ports on the VM's public IP from the listed
+         source CIDRs. Egress is unrestricted (blocking it breaks cloud-init / package installs / DNS).
       operationId: aes.network.v1.NetworkService.CreateFirewallRule
       parameters:
         - name: Connect-Protocol-Version
@@ -4200,8 +4187,8 @@ paths:
         - aes.storage.v1.StorageService
       summary: AttachDisk
       description: |-
-        AttachDisk hot-plugs the disk into the named VM via the KubeVirt addvolume subresource.
-         The disk must be AVAILABLE (not already attached); the VM must be RUNNING.
+        AttachDisk hot-plugs the disk into the named VM. The disk must be AVAILABLE (not already
+         attached); the VM must be RUNNING.
       operationId: aes.storage.v1.StorageService.AttachDisk
       parameters:
         - name: Connect-Protocol-Version
@@ -4273,10 +4260,10 @@ paths:
         - aes.storage.v1.StorageService
       summary: CreateFileShare
       description: |-
-        File shares — RWX NFS volumes (CephFS-backed, exported via Ganesha) that multiple VMs in
-         the same tenant network can mount concurrently. The per-share Ganesha export ACL
-         whitelists the tenant network CIDR, so any VM on that network can `mount -t nfs4` using
-         the FileShare's `mount_command`. No attach/detach bookkeeping — the customer mounts in-guest.
+        File shares — RWX NFS volumes that multiple VMs in the same tenant network can mount
+         concurrently. Access is restricted to the tenant network, so any VM on that network can
+         `mount -t nfs4` using the FileShare's `mount_command`. No attach/detach bookkeeping —
+         the customer mounts in-guest.
       operationId: aes.storage.v1.StorageService.CreateFileShare
       parameters:
         - name: Connect-Protocol-Version
@@ -4382,7 +4369,7 @@ paths:
       tags:
         - aes.storage.v1.StorageService
       summary: DetachDisk
-      description: DetachDisk hot-unplugs via removevolume. The disk returns to AVAILABLE; the VM keeps running.
+      description: DetachDisk hot-unplugs the disk. The disk returns to AVAILABLE; the VM keeps running.
       operationId: aes.storage.v1.StorageService.DetachDisk
       parameters:
         - name: Connect-Protocol-Version
@@ -4524,10 +4511,9 @@ paths:
         - aes.storage.v1.StorageService
       summary: ResizeDisk
       description: |-
-        ResizeDisk grows the underlying PVC. Online-resize per CSI spec — the volume expansion
-         happens without unmounting; for attached disks, the guest sees the new size after a
-         filesystem-level resize (xfs_growfs / resize2fs). Shrinking is not supported (PVC expansion
-         is one-way at the CSI level).
+        ResizeDisk grows the disk online — the volume expands without unmounting; for attached
+         disks, the guest sees the new size after a filesystem-level resize. Shrinking is not
+         supported (expansion is one-way).
       operationId: aes.storage.v1.StorageService.ResizeDisk
       parameters:
         - name: Connect-Protocol-Version
@@ -4951,7 +4937,7 @@ paths:
       summary: CreateCoinbaseTopUpCheckout
       description: |-
         CreateCoinbaseTopUpCheckout: hosted USDC checkout for a wallet top-up. Returns a Coinbase
-         checkout URL the customer pays on; the /v1/public/coinbase/webhook handler credits the wallet.
+         checkout URL the customer pays on; the wallet is credited when payment is confirmed.
       operationId: aes.wallet.v1.WalletService.CreateCoinbaseTopUpCheckout
       parameters:
         - name: Connect-Protocol-Version
@@ -4988,11 +4974,11 @@ paths:
         - aes.wallet.v1.WalletService
       summary: CreateStripeTopUpIntent
       description: |-
-        Customer-initiated top-ups (PLATFORM_DESIGN §6.11). Two flavors:
-           - Stripe payment intent: customer's browser confirms a card charge; on success
-             Metalhost's Stripe webhook posts a TOPUP_CLEARING / CUSTOMER_PREPAY_LIABILITY journal.
+        Customer-initiated top-ups. Two flavors:
+           - Stripe payment intent: customer's browser confirms a card charge; the wallet is
+             credited on payment success.
            - Coinbase checkout: returns a hosted Coinbase URL the customer pays USDC on (any chain
-             Coinbase supports); the Coinbase webhook posts the same journal on payment success.
+             Coinbase supports); the wallet is credited on payment success.
       operationId: aes.wallet.v1.WalletService.CreateStripeTopUpIntent
       parameters:
         - name: Connect-Protocol-Version
@@ -5383,9 +5369,9 @@ paths:
         - aes.wallet.v1.WalletService
       summary: GetWalletBalance
       description: |-
-        GetWalletBalance returns the current prepay liability balance computed from
-         ledger_postings. Separate from GetWallet so the cheap balance-only lookup doesn't drag
-         the full wallet metadata + permissions check overhead. Caller needs wallet read access.
+        GetWalletBalance returns the current prepay balance. Separate from GetWallet so the cheap
+         balance-only lookup doesn't drag the full wallet metadata + permissions check overhead.
+         Caller needs wallet read access.
       operationId: aes.wallet.v1.WalletService.GetWalletBalance
       parameters:
         - name: Connect-Protocol-Version
@@ -6163,7 +6149,7 @@ components:
           type: string
           title: redfish_endpoint
           description: |-
-            Redfish endpoint forwarded from the host record. Customer uses this to BMC-control the box
+            Redfish endpoint for this leased host. Customer uses this to BMC-control the box
              (PXE install, power cycle, console). Empty when the host has no Redfish configured.
         createTimeUnix:
           type:
@@ -6248,7 +6234,7 @@ components:
           description: |-
             Public network details for the host's NIC, from the DC pool. Surfaced so a bring-your-own-OS
              customer can hand-configure their network: gateway + the SUBNET prefix length the IPs sit in
-             (e.g. /24). The managed-install netplan uses these too. Empty/0 when the DC has none set.
+             (e.g. /24). The managed install uses these too. Empty/0 when the DC has none set.
         publicPrefixLen:
           type: integer
           title: public_prefix_len
@@ -6549,8 +6535,8 @@ components:
           type: string
           title: rescue_image_url
           description: |-
-            Optional explicit rescue image URL override; defaults to the per-DC annotation or
-             METALHOST_BM_RESCUE_IMAGE_URL. Useful for distro-specific rescue tooling.
+            Optional explicit rescue image URL override; defaults to the datacenter's configured
+             rescue image. Useful for distro-specific rescue tooling.
       title: EnterBareMetalRescueModeRequest
       additionalProperties: false
     aes.baremetal.v1.EnterBareMetalRescueModeResponse:
@@ -6605,8 +6591,8 @@ components:
           title: vnc_password
           description: |-
             Per-session VNC password the noVNC client authenticates with (≤8 chars — RFB limit). The
-             BMC's VNC server is only reachable from metalhostd on the OOB management network, so this is
-             defense-in-depth behind the token+cookie gate, not the primary control.
+             BMC's VNC server is only reachable through Metalhost, so this is defense-in-depth behind
+             the token+cookie gate, not the primary control.
       title: GetBareMetalConsoleURLResponse
       additionalProperties: false
     aes.baremetal.v1.GetBareMetalInstanceRequest:
@@ -6999,7 +6985,7 @@ components:
         kubernetesApiEndpoint:
           type: string
           title: kubernetes_api_endpoint
-          description: Kubernetes API endpoint for the DC control plane (operator-visible).
+          description: Operator-visible control-plane endpoint for the datacenter.
         labels:
           type: object
           title: labels
@@ -7021,7 +7007,7 @@ components:
         healthSummary:
           type: string
           title: health_summary
-          description: Opaque summary JSON or text for health snapshots (OVN, Rook, etc.).
+          description: Opaque summary JSON or text for health snapshots.
         capacityPct:
           type: integer
           title: capacity_pct
@@ -7459,9 +7445,8 @@ components:
           title: vm_sellable_vcpu
           format: int64
           description: |-
-            VM CPU capacity (k8s_vm pool). sellable = total vCPU a customer can buy (physical pool ×
-             oversubscribe ratio); running = in use; free = available. Presented to customers as
-             plain vCPU counts — the ratio is not exposed here.
+            VM CPU capacity. sellable = total vCPU a customer can buy; running = in use;
+             free = available. Presented to customers as plain vCPU counts.
         vmRunningVcpu:
           type:
             - integer
@@ -7481,8 +7466,8 @@ components:
           title: vm_sellable_ram_gib
           format: int64
           description: |-
-            VM RAM capacity (k8s_vm pool). sellable = cached pool allocatable memory × RAM
-             oversubscribe ratio (default 1:1); running = Σ ram_gib of RUNNING VMs; free = headroom.
+            VM RAM capacity. sellable = total RAM a customer can buy; running = Σ ram_gib of
+             RUNNING VMs; free = headroom.
         vmRunningRamGib:
           type:
             - integer
@@ -7502,8 +7487,8 @@ components:
           title: storage_usable_gib
           format: int64
           description: |-
-            Ceph storage (post-replication usable). usable = raw total ÷ replication; free = Rook's
-             reported usable available. Zero when the DC has no Ceph cache (not deployed / stale).
+            Block storage capacity (post-replication usable). usable = total after replication;
+             free = available. Zero when the datacenter has no storage capacity data (stale/unavailable).
         storageFreeGib:
           type:
             - integer
@@ -7613,8 +7598,8 @@ components:
           type: string
           title: from_image_url
           description: |-
-            Streamable raw disk image URL (CDI http source). Required UNLESS clone_source_disk
-             is set (clone path supplies the data by snapshotting an existing disk instead).
+            Streamable raw disk image URL. Required UNLESS clone_source_disk is set (clone path
+             supplies the data by snapshotting an existing disk instead).
         labels:
           type: object
           title: labels
@@ -7631,10 +7616,9 @@ components:
           type: string
           title: clone_source_disk
           description: |-
-            Clone path: when set, this boot disk is created by snapshotting the named source
-             Disk + cloning it into a fresh PVC (done in the vm_provision workflow, not the RPC),
-             rather than CDI-importing from from_image_url. Set by CloneVirtualMachine; customers
-             don't set this directly. size_gib is derived from the source snapshot's restoreSize.
+            Clone path: when set, this boot disk is created by copying the named source Disk rather
+             than importing from from_image_url. Set by CloneVirtualMachine; customers don't set this
+             directly. size_gib is derived from the source.
       title: BootDiskSpec
       additionalProperties: false
       description: |-
@@ -7731,8 +7715,8 @@ components:
         operation:
           title: operation
           description: |-
-            When async provisioning is configured, the long-running operation tracking the actual
-             VirtualMachineRestore application. Empty in sync mode (row inserted, no cluster apply).
+            When async provisioning is configured, the long-running operation tracking the clone.
+             Empty in sync mode.
           $ref: '#/components/schemas/aes.ops.v1.Operation'
       title: CloneVirtualMachineResponse
       additionalProperties: false
@@ -7743,7 +7727,7 @@ components:
         - CONSOLE_TYPE_UNSPECIFIED
         - CONSOLE_TYPE_SERIAL
         - CONSOLE_TYPE_VNC
-      description: ConsoleType picks which KubeVirt console subresource the proxy bridges to.
+      description: ConsoleType picks which console the proxy bridges to.
     aes.compute.v1.CreateSSHKeyRequest:
       type: object
       properties:
@@ -7906,9 +7890,8 @@ components:
           description: |-
             Reserved for a future implementation that materialises an intermediate DiskSnapshot row
              for the cloned boot disk. Today the server uses an internal storage path that bypasses
-             the public DiskSnapshot model (the on-cluster VolumeSnapshot already exists, owned by
-             KubeVirt's VirtualMachineSnapshot controller), so this field is always empty. Kept on
-             the wire so a later implementation can populate it without a proto change.
+             the public DiskSnapshot model, so this field is always empty. Kept on the wire so a later
+             implementation can populate it without a proto change.
         operation:
           title: operation
           description: When async provisioning is configured, the long-running operation. Empty in sync mode.
@@ -7932,11 +7915,11 @@ components:
       properties:
         operation:
           title: operation
-          description: 'Set when provisioning is async (Temporal + Postgres): poll GetOperation until SUCCEEDED; metadata may include virtual_machine_name.'
+          description: 'Set when provisioning is async: poll GetOperation until SUCCEEDED; metadata may include virtual_machine_name.'
           $ref: '#/components/schemas/aes.ops.v1.Operation'
         virtualMachine:
           title: virtual_machine
-          description: Set only for synchronous (in-memory or no Temporal) create path.
+          description: Set only for the synchronous create path.
           $ref: '#/components/schemas/aes.compute.v1.VirtualMachine'
       title: CreateVirtualMachineResponse
       additionalProperties: false
@@ -7980,7 +7963,7 @@ components:
       properties:
         operation:
           title: operation
-          description: 'Set when delete is async (Temporal + Postgres): poll GetOperation until SUCCEEDED.'
+          description: 'Set when delete is async: poll GetOperation until SUCCEEDED.'
           $ref: '#/components/schemas/aes.ops.v1.Operation'
       title: DeleteVirtualMachineResponse
       additionalProperties: false
@@ -8217,10 +8200,9 @@ components:
           type: string
           title: websocket_path
           description: |-
-            Relative path the client opens via WebSocket on the metalhostd public endpoint
-             (e.g. wss://metalhost/v1/console/<token>). metalhostd validates the token, resolves the VM's
-             datacenter kubeconfig, and bridges to the KubeVirt subresource so the apiserver stays
-             private.
+            Relative path the client opens via WebSocket on the Metalhost public endpoint
+             (e.g. wss://metalhost/v1/console/<token>). The server validates the token and bridges to
+             the VM's console privately.
         token:
           type: string
           title: token
@@ -8245,9 +8227,9 @@ components:
           type: string
           title: boot_image_url
           description: |-
-            Required: streamable raw disk image URL (CDI http source). Setting this is the
-             canonical way to upgrade the base OS (Ubuntu 24.04 → 26.04) without recreating
-             the VM. Empty = reuse the original boot source.
+            Required: streamable raw disk image URL. Setting this is the canonical way to upgrade
+             the base OS (Ubuntu 24.04 → 26.04) without recreating the VM. Empty = reuse the original
+             boot source.
         confirmationToken:
           type: string
           title: confirmation_token
@@ -8318,8 +8300,8 @@ components:
           type: string
           title: cpu_class
           description: |-
-            CPU class. Required — changing class is allowed but the cluster must have a worker with
-             a matching `aes.metalhost/cpu-class=<class>` label or the rescheduled VM won't start.
+            CPU class. Required — changing class is allowed but the datacenter must have capacity for
+             the new class or the VM won't restart.
       title: ResizeVirtualMachineRequest
       additionalProperties: false
     aes.compute.v1.ResizeVirtualMachineResponse:
@@ -8327,16 +8309,15 @@ components:
       properties:
         virtualMachine:
           title: virtual_machine
-          description: Set on the sync (in-memory / no-Temporal) path.
+          description: Set on the synchronous path.
           $ref: '#/components/schemas/aes.compute.v1.VirtualMachine'
         operation:
           title: operation
           description: |-
-            Set when the request was dispatched as a vm_resize Operation (Temporal +
-             DATABASE_URL). Client polls GetOperation until SUCCEEDED, then re-Gets the VM
-             to see the new shape. The operation runs the full stop → wait-for-VMI →
-             patch → start → DB update sequence under Temporal's retry envelope so a
-             mid-flight crash doesn't strand the VM in STOPPED with the old shape.
+            Set when the resize runs as a long-running Operation. Client polls GetOperation until
+             SUCCEEDED, then re-Gets the VM to see the new shape. The operation runs the full
+             stop → reshape → start sequence with retries so a mid-flight failure doesn't strand
+             the VM in STOPPED with the old shape.
           $ref: '#/components/schemas/aes.ops.v1.Operation'
       title: ResizeVirtualMachineResponse
       additionalProperties: false
@@ -8457,8 +8438,8 @@ components:
           type: string
           title: vm_name
           description: |-
-            VM to snapshot (`virtual-machines/{id}`). Can be RUNNING or STOPPED — KubeVirt handles
-             both (running snapshots use the same CSI VolumeSnapshot mechanism with quiesce=false).
+            VM to snapshot (`virtual-machines/{id}`). Can be RUNNING or STOPPED — both are supported
+             (running snapshots are crash-consistent).
         displayName:
           type: string
           title: display_name
@@ -8590,14 +8571,14 @@ components:
           type: string
           title: image
           description: |-
-            Curated catalog image id (e.g. "ubuntu-24-04") — resolved server-side (pkg/osimage.Catalog)
-             to an image URL + the distro's default login user. Mutually exclusive with image_url/disk_name.
+            Curated catalog image id (e.g. "ubuntu-24-04") — resolved server-side to an image URL +
+             the distro's default login user. Mutually exclusive with image_url/disk_name.
         imageUrl:
           type: string
           title: image_url
           description: |-
-            Raw streamable image URL (CDI http source) — escape hatch for non-catalog images. Mutually
-             exclusive with image/disk_name.
+            Raw streamable image URL — escape hatch for non-catalog images. Mutually exclusive with
+             image/disk_name.
         diskGib:
           type: integer
           title: disk_gib
@@ -8617,9 +8598,7 @@ components:
         cpuClass:
           type: string
           title: cpu_class
-          description: |-
-            CPU class — picks the pricing_components.vcpu/<class> row; must have pricing AND scheduler
-             placement. Required.
+          description: CPU class — must have published pricing and capacity in the datacenter. Required.
         vcpus:
           type: integer
           title: vcpus
@@ -8669,9 +8648,8 @@ components:
           type: string
           title: state
           description: |-
-            Current lifecycle state — RUNNING / STOPPED / SUSPENDED / DELETING / DELETED. Reflects DB;
-             updated by Start/Stop/Restart/Suspend/Resume RPCs after the underlying KubeVirt subresource
-             call succeeds.
+            Current lifecycle state — RUNNING / STOPPED / SUSPENDED / DELETING / DELETED. Updated after
+             the corresponding lifecycle RPC succeeds.
         createTimeUnix:
           type:
             - integer
@@ -8730,42 +8708,40 @@ components:
           type: string
           title: private_ipv4
           description: |-
-            ────────────── Runtime-derived fields (populated from KubeVirt at Get/List time) ──────────────
-             These are NOT stored in the compute_instances row. Get/List handlers query the DC's
-             KubeVirt apiserver and fill them so the API surface matches reality (private IP from the
-             tenant UDN, host node, disk size, boot image, KubeVirt status.printableStatus). Empty when
-             the VM has been deleted or the cluster is unreachable — `state` then reads `DELETED`/`UNKNOWN`.
+            ────────────── Runtime-derived fields (populated live at Get/List time) ──────────────
+             These are NOT stored; Get/List handlers read them from the datacenter so the API surface
+             matches reality (private IP, host node, disk size, boot image, detailed status). Empty when
+             the VM has been deleted or is unreachable — `state` then reads `DELETED`/`UNKNOWN`.
 
-             Tenant-private IPv4 from the project's UserDefinedNetwork. Pinned across stop/start by
-             OVN-K's IPAMClaim. Routable only inside the tenant network (cross-network requires explicit
-             peering); for outbound internet egress the VM uses its public NIC when one is allocated.
+             Tenant-private IPv4 from the project's network. Pinned across stop/start. Routable only
+             inside the tenant network (cross-network requires explicit peering); for outbound internet
+             egress the VM uses its public NIC when one is allocated.
         hostNode:
           type: string
           title: host_node
           description: |-
-            K8s Node hosting the virt-launcher pod (e.g. "worker-01"). Useful for capacity reports
-             and live-migration affinity hints.
+            Host the VM runs on (e.g. "worker-01"). Useful for capacity reports and migration
+             affinity hints.
         statusDetail:
           type: string
           title: status_detail
           description: |-
-            KubeVirt VirtualMachine.status.printableStatus — finer-grained than `state`. Values:
-             "Running", "Starting", "Stopping", "Stopped", "Provisioning", "ErrImagePull", "Unknown",
-             and others. Use for UI surfacing of transient phases that don't map cleanly to `state`.
+            Finer-grained status than `state`. Values: "Running", "Starting", "Stopping", "Stopped",
+             "Provisioning", "ErrImagePull", "Unknown", and others. Use for UI surfacing of transient
+             phases that don't map cleanly to `state`.
         hostname:
           type: string
           title: hostname
           description: |-
-            User-facing hostname (DNS-1123 label, ≤63 chars). Written to the VM's k8s object name and
-             injected as cloud-init `set_hostname`. Customer chooses; defaults to the resource id if
-             omitted at create time.
+            User-facing hostname (DNS-1123 label, ≤63 chars). Injected as the guest's cloud-init
+             hostname. Customer chooses; defaults to the resource id if omitted at create time.
         networkName:
           type: string
           title: network_name
           description: |-
             Tenant network the VM is attached to (`projects/{p}/networks/{id}`). Each VM has exactly
-             one network — the network's namespace + Primary UDN provide the VM's single NIC and IPv6
-             address. VMs in the same network can talk freely; cross-network requires explicit peering.
+             one network, which provides the VM's single NIC and IPv6 address. VMs in the same network
+             can talk freely; cross-network requires explicit peering.
         publicIpv4:
           type: string
           title: public_ipv4
@@ -8778,16 +8754,16 @@ components:
           title: ipv6
           description: |-
             IPv6 address from the tenant Network's /64, on the VM's primary NIC. Pinned across
-             stop/start by the same IPAMClaim that pins private_ipv4. Note: this is NOT "private"
-             in the RFC1918 sense — when the DC's tenant prefix is a real GUA /48, this address
-             is globally routable. The OVN-K UDN provides tenant isolation at the network layer,
-             not via address scope. Lab DCs using ULA-style /48s see locally-scoped addresses here.
+             stop/start, same as private_ipv4. Note: this is NOT "private" in the RFC1918 sense —
+             when the DC's tenant prefix is a real GUA /48, this address is globally routable. Tenant
+             isolation is enforced at the network layer, not via address scope. Lab DCs using
+             ULA-style /48s see locally-scoped addresses here.
         bootDisk:
           type: string
           title: boot_disk
           description: |-
             The Disk resource bound as the VM's boot device (`projects/{p}/disks/{id}`). Set on every
-             persistent VM (containerDisk lab/ephemeral VMs leave it empty). The disk has its own
+             persistent VM (ephemeral lab VMs leave it empty). The disk has its own
              lifecycle: DeleteVirtualMachine detaches it but does not delete it, so a customer can bind
              the same boot_disk to a fresh VM and keep their data. Use GetDisk for size + source URL.
         vcpus:
@@ -8795,8 +8771,8 @@ components:
           title: vcpus
           format: int32
           description: |-
-            Configurator shape — the (vcpus, ram_gib, cpu_class) the VM was created with. Stored on
-             compute_instances; drives the per-component usage events the metering loop emits hourly.
+            Configurator shape — the (vcpus, ram_gib, cpu_class) the VM was created with. Drives the
+             per-component hourly usage events.
         ramGib:
           type: integer
           title: ram_gib
@@ -8809,8 +8785,8 @@ components:
           title: gpu_model
           description: |-
             Whole-GPU passthrough attached to the VM. gpu_model is the SKU variant (e.g. "rtx4090");
-             gpu_count is how many physical cards. Empty / 0 for a CPU-only VM. Stored on
-             compute_instances; drives the compute.gpu.<model>.runtime_hours meter.
+             gpu_count is how many physical cards. Empty / 0 for a CPU-only VM. Drives the
+             compute.gpu.<model>.runtime_hours meter.
         gpuCount:
           type: integer
           title: gpu_count
@@ -8828,10 +8804,9 @@ components:
              Why decimal: a small VM's hourly rate is fractional cents — rounding to int64 hides the
              truth and customers see "$0/hr". The portal displays the decimal value to 4-6 places.
 
-             mtd_spend_minor_decimal: month-to-date wallet debits attributed to this VM, summed from
-             ledger_postings joined to settled usage_events via journal_entry_id. Reflects what the
-             customer has actually paid for this VM since start-of-month UTC. Sub-cent residue still
-             sitting in pending_charge_accumulator is NOT counted (it hasn't been charged yet).
+             mtd_spend_minor_decimal: month-to-date wallet debits attributed to this VM. Reflects what
+             the customer has actually paid for this VM since start-of-month UTC. Sub-cent residue not
+             yet charged is NOT counted.
         mtdSpendMinorDecimal:
           type: string
           title: mtd_spend_minor_decimal
@@ -9038,8 +9013,8 @@ components:
           title: current_cost_per_hour_minor_decimal
           description: |-
             ────────────── Live cost fields (computed at Get/List-time, not persisted) ──
-             Hourly rate this snapshot accrues against the wallet at current pricing:
-               size_gib × pricing_components(storage_snapshot_gib, standard).unit_price_minor
+             Hourly rate this snapshot accrues against the wallet at current pricing
+             (size_gib × the snapshot storage unit price).
              NUMERIC text so fractional cents survive the wire (a 40 GiB backup costs
              ~0.55 cents per hour — int64 would round to 1 and overstate by ~80%).
              Zero ("0") when rates aren't seeded or the snapshot is in a non-billing
@@ -9055,10 +9030,10 @@ components:
       description: |-
         MachineImage is a registered URL pointing at a streamable raw disk image. Resource name:
          `projects/{project}/images/{image_id}`. Day-1 images are external URLs (S3/GCS/operator
-         HTTP); a cluster-internal upload endpoint is a future story.
-         VmSnapshot is a point-in-time copy of a VM (definition + every PVC). Backed by KubeVirt's
-         VirtualMachineSnapshot CRD on the DC cluster. State machine: CREATING → READY → DELETING →
-         DELETED. Survives source VM deletion (the snapshot row is independent).
+         HTTP); a managed upload endpoint is a future story.
+         VmSnapshot is a point-in-time copy of a VM (definition + every disk). State machine:
+         CREATING → READY → DELETING → DELETED. Survives source VM deletion (the snapshot row is
+         independent).
     aes.compute.v1.VmSnapshot.AnnotationsEntry:
       type: object
       properties:
@@ -9231,7 +9206,7 @@ components:
         principal:
           type: string
           title: principal
-          description: When empty, uses the authenticated principal from the request context (requires API key auth on metalhostd).
+          description: When empty, uses the authenticated principal from the request context (requires API key auth).
         permission:
           type: string
           title: permission
@@ -9421,7 +9396,7 @@ components:
         supportsRbac:
           type: boolean
           title: supports_rbac
-          description: True when CheckPermission is backed by policy (Postgres iam_bindings / role_permissions in metalhostd).
+          description: True when CheckPermission is backed by role/permission policy.
       title: GetAuthMetadataResponse
       additionalProperties: false
     aes.iam.v1.GetCallerIdentityRequest:
@@ -9452,7 +9427,7 @@ components:
             type: string
           title: accessible_organizations
           description: |-
-            Organizations the caller has an iam_bindings row against (any role). Useful for the
+            Organizations the caller has a role binding against (any role). Useful for the
              portal landing resolver: when this is non-empty but default_project is empty, the user
              has access to ≥1 org but hasn't created/been-assigned a project yet — route them to
              the onboarding wizard. Empty list means the user has no org access at all (orphan
@@ -10763,9 +10738,9 @@ components:
           type: string
           title: subnet_cidr_v4
           description: |-
-            Optional preferred IPv4 CIDR. When empty the platform allocates a /24 from the DC's
-             tenant prefix. When set, the platform may reject if the CIDR is not within the DC's
-             tenant prefix or collides with another network in the same DC. Always a /24 in v1.
+            Optional preferred IPv4 CIDR. When empty the platform allocates a /24 from the datacenter's
+             tenant prefix. When set, the platform may reject if the CIDR is not within the datacenter's
+             tenant prefix or collides with another network in the same datacenter. Always a /24 in v1.
         ipRangeStart:
           type: string
           title: ip_range_start
@@ -10909,9 +10884,9 @@ components:
       title: FirewallRule
       additionalProperties: false
       description: |-
-        FirewallRule is one allow-list rule for a VM. Backed by a NetworkPolicy. Multiple rules on
-         the same VM compose additively (NetworkPolicies union). direction='ingress' uses sources +
-         ports as the allow set; direction='egress' uses destinations + ports.
+        FirewallRule is one allow-list rule for a VM. Multiple rules on the same VM compose
+         additively (the allow sets union). direction='ingress' uses sources + ports as the allow
+         set; direction='egress' uses destinations + ports.
     aes.network.v1.FirewallRule.AnnotationsEntry:
       type: object
       properties:
@@ -11014,18 +10989,18 @@ components:
           type: string
           title: subnet_cidr_v4
           description: |-
-            IPv4 subnet CIDR allocated from the DC's `aes.metalhost/ipv4-tenant-prefix` (RFC1918
-             class-A or class-B supernet). Empty when the network is IPv6-only. Always a /24 in v1.
+            IPv4 subnet CIDR allocated from the datacenter's private tenant prefix. Empty when the
+             network is IPv6-only. Always a /24 in v1.
         subnetCidrV6:
           type: string
           title: subnet_cidr_v6
           description: |-
-            IPv6 subnet CIDR allocated from the DC's `aes.metalhost/ipv6-tenant-prefix` (the org's
-             /48). Always a /64. Public-routable, no NAT — IPv6 is native.
+            IPv6 subnet CIDR allocated from the datacenter's tenant prefix. Always a /64.
+             Public-routable, no NAT — IPv6 is native.
         ipRangeStart:
           type: string
           title: ip_range_start
-          description: Whereabouts allocation range (inclusive). Empty = the full subnet is allocatable.
+          description: IP allocation range (inclusive). Empty = the full subnet is allocatable.
         ipRangeEnd:
           type: string
           title: ip_range_end
@@ -11057,35 +11032,28 @@ components:
           type: string
           title: state
           description: |-
-            "creating" while the UDN reconciler is in flight; "active" when the OVN-K UDN status
-             is Ready; "failed" on reconciler error; "deleting" / "deleted" during GC. Read-only.
+            "creating" while the network is being provisioned; "active" when ready; "failed" on
+             error; "deleting" / "deleted" during teardown. Read-only.
         ovnUdnName:
           type: string
           title: ovn_udn_name
-          description: |-
-            Name of the OVN-K UserDefinedNetwork CR backing this Network. Output-only. Format
-             `udn-<network_id>` — the slug after `udn-` matches the network_id slug for ease of
-             operator inspection.
+          description: Internal identifier for the backing network resource. Output-only; opaque to clients.
         namespace:
           type: string
           title: namespace
           description: |-
-            K8s namespace where the UDN CR + the VMs attached to this Network live. Output-only.
-             Format `net-<network_id>`. Each Network is its own namespace because OVN-K only allows
-             one Primary UDN per namespace — VMs in the same Network share the namespace and can
-             talk over the network's /24 + /64; VMs in different Networks are fully isolated.
+            Internal network-segment identifier this Network's VMs live in. Output-only. VMs in the
+             same Network can talk over the network's /24 + /64; VMs in different Networks are fully
+             isolated.
       title: Network
       additionalProperties: false
       description: |-
-        Network is a tenant-owned L2 logical switch within a single datacenter, backed by an
-         OVN-Kubernetes UserDefinedNetwork (UDN). Resource name format:
-         `projects/{project}/networks/{network_id}`.
+        Network is a tenant-owned, isolated L2 segment within a single datacenter. Resource name
+         format: `projects/{project}/networks/{network_id}`.
 
-         Issue #11 redesign: networks are no longer Multus NADs. The platform allocates an IPv6
-         /64 from the DC's tenant prefix (always) and an IPv4 /24 from the DC's RFC1918 supernet
-         (when requested), then creates a UDN that OVN-K reconciles into a logical switch with
-         IPAM. VLAN IDs are an internal implementation detail (Geneve VNIs handle isolation), no
-         longer customer-visible.
+         The platform allocates an IPv6 /64 from the datacenter's tenant prefix (always) and an
+         IPv4 /24 from the datacenter's private supernet (when requested). VLAN IDs are an internal
+         detail and are not customer-visible.
     aes.network.v1.Network.AnnotationsEntry:
       type: object
       properties:
@@ -11143,9 +11111,8 @@ components:
 
          Range semantics (firewall rules): when `end_port` is 0/unset the mapping covers the single
          `port`. When `end_port > 0` it must satisfy `port <= end_port` and the mapping covers
-         every port in [port, end_port] inclusive — backend installs one OVN ACL with a range match
-         (`tcp.dst >= port && tcp.dst <= end_port`) rather than expanding to N single-port ACLs.
-         Useful for k8s NodePort (30000-32767), RTMP/SIP, or any service that listens on a window.
+         every port in [port, end_port] inclusive. Useful for NodePort ranges (30000-32767),
+         RTMP/SIP, or any service that listens on a window.
     aes.network.v1.PublicIp:
       type: object
       properties:
@@ -11206,9 +11173,8 @@ components:
       title: PublicIp
       additionalProperties: false
       description: |-
-        PublicIp is a customer-allocated external IP routing to a VM.
-         PublicIp is a customer-allocated public IPv4 reserved for a tenant VM from the DC's
-         `aes.metalhost/public-ipv4-pool`.
+        PublicIp is a customer-allocated public IPv4 reserved for a tenant VM from the datacenter's
+         public IP pool.
     aes.network.v1.PublicIp.AnnotationsEntry:
       type: object
       properties:
@@ -11253,31 +11219,28 @@ components:
         kind:
           type: string
           title: kind
-          description: Workflow or API kind for audit, e.g. `noop`, `datacenter_provision`, `vm_provision`, `vm_delete`, `vm_resize`, `host_provision`, `host_decommission`.
+          description: Operation kind for audit, e.g. `noop`, `vm_provision`, `vm_delete`, `vm_resize`.
         datacenterName:
           type: string
           title: datacenter_name
-          description: 'When kind is `datacenter_provision` or `datacenter_tier1`: datacenter resource name (`datacenters/...`).'
+          description: Datacenter resource name (`datacenters/...`) for datacenter-scoped operations.
         vmProjectName:
           type: string
           title: vm_project_name
           description: |-
-            When kind is `vm_provision`, required: VM placement (see ComputeService.CreateVirtualMachine).
-             Pricing + shape come from vm_vcpus/vm_ram_gib/vm_cpu_class below — no per-SKU rate lookup.
+            For VM provisioning, required: VM placement (see ComputeService.CreateVirtualMachine).
+             Pricing + shape come from vm_vcpus/vm_ram_gib/vm_cpu_class below.
         vmDatacenterName:
           type: string
           title: vm_datacenter_name
         vmName:
           type: string
           title: vm_name
-          description: 'When kind is `vm_delete`, required: VM resource name to destroy.'
+          description: 'For VM deletion, required: VM resource name to destroy.'
         hostName:
           type: string
           title: host_name
-          description: |-
-            When kind is `host_provision`, required: inventory host (`hosts/...`) to join as a worker
-             and the target datacenter the host should join. The host must already be registered in
-             inventory with SSH metadata; the workflow handles node-prep + kubeadm join + label apply.
+          description: 'For host provisioning, required: the host to add as a worker and the datacenter it joins.'
         vmSshPubkey:
           type: string
           title: vm_ssh_pubkey
@@ -11292,10 +11255,9 @@ components:
           type: string
           title: vm_billing_mode
           description: |-
-            Billing intent for vm_provision. Customer is charged at API-edge BEFORE the workflow
-             starts (per the prepaid-on-create model); these fields snapshot the charge so the
-             workflow can write the vm_reservations row + flip compute_instances columns after VM
-             insertion without re-querying meter rates (which could have changed since the API call).
+            Billing intent for VM provisioning. The customer is charged at the API edge BEFORE
+             provisioning starts (prepaid-on-create); these fields snapshot that charge so the
+             recorded term doesn't re-query rates that could have changed since the API call.
              Empty vm_billing_mode = HOURLY (no upfront charge happened). "HOURLY" | "MONTHLY_1" | "MONTHLY_3" | "MONTHLY_6" | "MONTHLY_12"
         vmAutorenew:
           type: boolean
@@ -11315,18 +11277,14 @@ components:
         vmPrepayJournalEntryId:
           type: string
           title: vm_prepay_journal_entry_id
-          description: |-
-            Journal entry id from the wallet's ChargeVMReservation call. Workflow links the
-             vm_reservations row to this journal so cancellation/refund flows can locate it.
+          description: Wallet journal entry id for the prepayment, so refund/cancellation flows can locate it.
         vmCommitmentEndAtUnix:
           type:
             - integer
             - string
           title: vm_commitment_end_at_unix
           format: int64
-          description: |-
-            Term-end timestamp computed at charge time. Workflow writes this to
-             compute_instances.commitment_end_at and vm_reservations.end_at exactly.
+          description: Term-end timestamp computed at charge time.
         vmWalletName:
           type: string
           title: vm_wallet_name
@@ -11337,24 +11295,17 @@ components:
         vmNetworkName:
           type: string
           title: vm_network_name
-          description: |-
-            Single-NIC redesign: tenant Network the VM attaches to (resource name). Resolved at
-             CreateVM API edge (default-network ensure runs there); workflow uses it to derive the
-             k8s namespace + UDN attachment.
+          description: Tenant Network the VM attaches to (resource name). Resolved at the CreateVM API edge.
         vmNamespace:
           type: string
           title: vm_namespace
-          description: |-
-            K8s namespace the VM CR + virt-launcher pod should be created in. Equals
-             `net-<network-id>` for the resolved Network. Workflow does NOT auto-create the namespace
-             — it must already exist (network reconciler ensures it on Network create).
+          description: Internal network-segment identifier the VM is created in, derived from the resolved Network.
         vmHostname:
           type: string
           title: vm_hostname
           description: |-
-            User-facing hostname (DNS-1123 label, ≤63 chars). Used as the VM's k8s object name +
-             cloud-init set_hostname. When empty, the workflow falls back to the VM's resource id
-             slug.
+            User-facing hostname (DNS-1123 label, ≤63 chars). Used as the guest's cloud-init hostname.
+             When empty, falls back to the VM's resource id slug.
         vmAssignPublicIpv4:
           type: boolean
           title: vm_assign_public_ipv4
@@ -11368,9 +11319,8 @@ components:
             type: string
             title: value
           description: |-
-            User-facing labels stamped at create time. Workflow writes them into compute_instances.spec
-             so GetVM/ListVMs surface them. Same merge semantics as UpdateVirtualMachineRequest.labels
-             for later mutations.
+            User-facing labels stamped at create time so GetVM/ListVMs surface them. Same merge
+             semantics as VM label updates for later mutations.
         vmAnnotations:
           type: object
           title: vm_annotations
@@ -11382,20 +11332,18 @@ components:
           type: string
           title: vm_boot_disk_name
           description: |-
-            Pre-resolved boot disk for vm_provision (`projects/{p}/disks/{id}`). The compute API edge
-             resolves boot_disk_name (existing) or BootDiskSpec (inline create + hydration wait) to a
-             concrete Disk before kicking the workflow. Workflow's CreateKubeVirtVM references the disk's
-             PVC directly via persistentVolumeClaim.claimName. Empty = ephemeral containerDisk fallback
-             (lab/CI only). The boot disk is owned by the project, not the VM — DeleteVirtualMachine
-             detaches it but does not delete it.
+            Pre-resolved boot disk for VM provisioning (`projects/{p}/disks/{id}`). The compute API
+             edge resolves boot_disk_name (existing) or BootDiskSpec (inline create + readiness wait)
+             to a concrete Disk before provisioning begins. Empty = ephemeral boot fallback (lab/CI
+             only). The boot disk is owned by the project, not the VM — DeleteVirtualMachine detaches
+             it but does not delete it.
         vmVcpus:
           type: integer
           title: vm_vcpus
           format: int32
           description: |-
-            Configurator shape stamped onto the operation so the workflow's vm-insert activity
-             writes the same vcpus / ram_gib / cpu_class onto compute_instances. See
-             services/pricing.Shape.
+            Configurator shape stamped onto the operation so provisioning records the same
+             vcpus / ram_gib / cpu_class on the VM.
         vmRamGib:
           type: integer
           title: vm_ram_gib
@@ -11408,11 +11356,9 @@ components:
           title: vm_boot_disk_size_gib
           format: int32
           description: |-
-            Inline boot-disk spec for vm_provision. When set (and vm_boot_disk_name is empty),
-             the workflow's HydrateInlineBootDisk activity calls Storage.CreateDisk + polls for
-             AVAILABLE before VM creation proceeds. Replaces the prior synchronous-at-API-edge
-             pattern that blocked the HTTP call for the entire image-pull window (#120). Mirrors
-             compute.v1.BootDiskSpec field-for-field.
+            Inline boot-disk spec for VM provisioning. When set (and vm_boot_disk_name is empty),
+             provisioning creates the disk and waits for it to become AVAILABLE before the VM is
+             created. Mirrors compute.v1.BootDiskSpec field-for-field.
         vmBootDiskFromImageUrl:
           type: string
           title: vm_boot_disk_from_image_url
@@ -11429,12 +11375,9 @@ components:
           type: boolean
           title: decommission_skip_wipe
           description: |-
-            Decommission-specific. When kind == "host_decommission", these are passed in
-             the same request as host_name + datacenter_name so the workflow handler reads
-             them from the request directly (no post-CreateOperation metadata patch round
-             trip that could race or fail half-way).
-               decommission_skip_wipe: skip the Tinkerbell disk wipe (default false; only
-                                       set true when the disk is known to be wiped already).
+            Decommission-specific. Passed alongside host_name + datacenter_name.
+               decommission_skip_wipe: skip the disk wipe (default false; only set true when the
+                                       disk is known to be wiped already).
                decommission_reason: operator-supplied audit string.
         decommissionReason:
           type: string
@@ -11443,15 +11386,12 @@ components:
           type: string
           title: vm_boot_disk_clone_source
           description: |-
-            Clone-specific (kind == "vm_provision" driven by CloneVirtualMachine). When
-             vm_boot_disk_clone_source is set, the workflow's HydrateInlineBootDisk activity
-             snapshots that source Disk + clones it into a fresh PVC instead of CDI-importing
-             from a URL — moving the (previously synchronous-at-API-edge) snapshot/clone/wait off
-             the HTTP call so CloneVirtualMachine returns an Operation in ~ms like create.
-               vm_boot_disk_clone_source: source Disk resource name to snapshot + clone.
-               vm_clone_source_vm_name:  source VM resource name — read by the CloneFirewallRules
-                                         activity to copy the source's custom firewall rules onto
-                                         the clone after its public IP is allocated.
+            Clone-specific (VM provisioning driven by CloneVirtualMachine). When
+             vm_boot_disk_clone_source is set, the boot disk is created by copying that source Disk
+             instead of importing from a URL, so CloneVirtualMachine returns an Operation quickly.
+               vm_boot_disk_clone_source: source Disk resource name to copy.
+               vm_clone_source_vm_name:  source VM resource name — used to copy the source's custom
+                                         firewall rules onto the clone after its public IP is allocated.
         vmCloneSourceVmName:
           type: string
           title: vm_clone_source_vm_name
@@ -11459,15 +11399,14 @@ components:
           type: boolean
           title: vm_delete_attached_disks
           description: |-
-            Delete-specific (kind == "vm_delete"). When true the VMDeleteWorkflow deletes the VM's
-             attached disks (boot + data) instead of detaching them back to AVAILABLE.
+            Delete-specific. When true, deletes the VM's attached disks (boot + data) instead of
+             detaching them back to AVAILABLE.
         vmLinuxUsername:
           type: string
           title: vm_linux_username
           description: |-
-            Linux login user (kind == "vm_provision"). Threaded from
-             compute.CreateVirtualMachineRequest.linux_username so the workflow's
-             ProvisionVirtualMachine activity persists it onto compute_instances.spec.linux_username
+            Linux login user (VM provisioning). Threaded from
+             compute.CreateVirtualMachineRequest.linux_username so it can be persisted and displayed
              (the Access-panel / `ssh <user>@<ip>` user). The user is ALSO baked into the cloud-config
              (vm_user_data) at the API edge; this field is purely for the persisted/displayed value.
              Empty when the VM was created with raw vm_user_data.
@@ -11475,8 +11414,8 @@ components:
           type: string
           title: vm_gpu_model
           description: |-
-            GPU passthrough for vm_provision (docs/specs/GPU_POOLED_CAPACITY.md). vm_gpu_model selects a GPU
-             model; vm_gpu_count is the number of whole GPUs. Empty/0 = CPU-only VM.
+            GPU passthrough for VM provisioning. vm_gpu_model selects a GPU model; vm_gpu_count is
+             the number of whole GPUs. Empty/0 = CPU-only VM.
         vmGpuCount:
           type: integer
           title: vm_gpu_count
@@ -11596,7 +11535,7 @@ components:
         temporalWorkflowId:
           type: string
           title: temporal_workflow_id
-          description: Populated after a Temporal workflow is started for this operation (if any).
+          description: Internal execution-tracking identifiers for this operation (if any). Opaque to clients.
         temporalRunId:
           type: string
           title: temporal_run_id
@@ -11683,8 +11622,7 @@ components:
              notification feed (top-up succeeded, VM operation completed, spending alert triggered,
              member invite accepted, billing account suspended, etc.). When false, it's still a real
              audit row visible in Settings > Activity log, but isn't loud enough for the bell.
-             The classification is server-side (see services/project/dashboard.go notifyInApp()) so
-             the policy can evolve without a frontend redeploy.
+             The classification is server-side so the policy can evolve without a frontend redeploy.
       title: ActivityEvent
       additionalProperties: false
     aes.project.v1.CheckSlugAvailableRequest:
@@ -12071,9 +12009,9 @@ components:
           title: from_image_url
           description: |-
             Optional create-only hydration source (not a persisted resource field): stream a raw disk
-             image from this URL (e.g. an Ubuntu cloud image) into the new PVC during PROVISIONING. CDI's
-             http source writes the image byte-for-byte; the disk flips to AVAILABLE once import completes.
-             Billed from AVAILABLE/ATTACHED — the meter loop skips PROVISIONING so no charge during import.
+             image from this URL (e.g. an Ubuntu cloud image) into the new disk during PROVISIONING.
+             The image is written byte-for-byte; the disk flips to AVAILABLE once import completes.
+             Billed from AVAILABLE/ATTACHED — PROVISIONING is not metered, so no charge during import.
       title: CreateDiskRequest
       additionalProperties: false
       description: |-
@@ -12104,7 +12042,7 @@ components:
         storageClass:
           type: string
           title: storage_class
-          description: Storage tier alias. Defaults to "cephfs-rwx" when empty.
+          description: Storage tier alias for the shared filesystem. Defaults to the standard RWX tier when empty.
         displayName:
           type: string
           title: display_name
@@ -12219,9 +12157,7 @@ components:
         storageClass:
           type: string
           title: storage_class
-          description: |-
-            [IMMUTABLE] Customer-facing storage tier — currently `nvme` only. Translated per-DC to a real
-             k8s StorageClass at PVC create time — see the DC's `aes.metalhost/storage-class-nvme` annotation.
+          description: '[IMMUTABLE] Customer-facing storage tier — currently `nvme` only.'
         state:
           type: string
           title: state
@@ -12262,14 +12198,12 @@ components:
           type: string
           title: network_name
           description: |-
-            [IMMUTABLE] Tenant Network the disk's PVC lives in (`projects/{p}/networks/{id}`). Disks are
-             namespace-scoped because KubeVirt only mounts PVCs in the same k8s namespace as the VM.
-             Set at create time; immutable. Disks can only attach to VMs on the same Network.
+            [IMMUTABLE] Tenant Network the disk lives in (`projects/{p}/networks/{id}`). Set at create
+             time; immutable. Disks can only attach to VMs on the same Network.
       title: Disk
       additionalProperties: false
       description: |-
-        Disk is a persistent block volume backed by a PVC in the datacenter cluster's metalhost-vms
-         namespace. State machine:
+        Disk is a persistent block volume that lives in a single datacenter. State machine:
            PROVISIONING → AVAILABLE → ATTACHED → AVAILABLE (on detach) → DELETING → DELETED
          Attached disks cannot be deleted — detach first.
          Disk is the single source of truth for a block volume across read and write: GetDisk /
@@ -12328,9 +12262,7 @@ components:
         storageClass:
           type: string
           title: storage_class
-          description: |-
-            Storage tier alias (e.g. "cephfs-rwx"). Today only "cephfs-rwx" is offered; the value
-             identifies which DC NFS gateway to use, not a k8s StorageClass.
+          description: Storage tier alias for the shared filesystem. Today a single RWX tier is offered.
         displayName:
           type: string
           title: display_name
@@ -12363,23 +12295,21 @@ components:
           title: nfs_server_endpoint
           description: |-
             NFS server endpoint customers mount over (host[:port]). Same address for every share in
-             a DC — one Ganesha gateway exposes many exports. Allocated from the DC's
-             public-ipv4-pool, advertised via MetalLB.
+             a datacenter.
         nfsExportPath:
           type: string
           title: nfs_export_path
           description: |-
-            Pseudo path inside the NFS export namespace. Per-share UUID — knowing the path is
-             necessary but not sufficient for access (Ganesha's per-export ACL whitelists the
-             tenant network CIDR; mounts from outside that CIDR get permission denied).
+            Pseudo path inside the NFS export. Per-share UUID — knowing the path is necessary but not
+             sufficient for access (mounts are restricted to the tenant network; mounts from outside
+             that network get permission denied).
         mountCommand:
           type: string
           title: mount_command
           description: |-
             Convenience: the full mount command for a Linux guest. e.g.
-             `mount -t nfs4 209.135.147.135:/projects/<uuid>/<uuid> /mnt/share`. Customers paste this
-             into cloud-init or run by hand — any VM on the tenant network is allowed by the
-             Ganesha export ACL.
+             `mount -t nfs4 <endpoint>:/projects/<uuid>/<uuid> /mnt/share`. Customers paste this into
+             cloud-init or run by hand — any VM on the tenant network is allowed.
       title: FileShare
       additionalProperties: false
     aes.storage.v1.FileShare.AnnotationsEntry:
@@ -12486,7 +12416,7 @@ components:
           type: integer
           title: new_size_gib
           format: int32
-          description: New target size. Must be strictly greater than current size (PVC expansion is one-way).
+          description: New target size. Must be strictly greater than current size (expansion is one-way).
       title: ResizeDiskRequest
       additionalProperties: false
     aes.storage.v1.ResizeDiskResponse:
@@ -13275,7 +13205,7 @@ components:
             - string
           title: mtd_spend_minor
           format: int64
-          description: Spend so far in the current period (sum of CUSTOMER_PREPAY_LIABILITY debits).
+          description: Spend so far in the current period.
         daysElapsed:
           type: integer
           title: days_elapsed
@@ -13382,9 +13312,8 @@ components:
           title: balance_minor
           format: int64
           description: |-
-            Current prepay liability balance in minor currency units. Positive = customer has credit.
-             Computed by summing ledger_postings where account_code='CUSTOMER_PREPAY_LIABILITY' and
-             applying direction (credit = +, debit = -).
+            Current prepay balance in minor currency units. Positive = customer has credit
+             (credits add, debits subtract).
         currency:
           type: string
           title: currency
@@ -13848,7 +13777,7 @@ components:
         projectName:
           type: string
           title: project_name
-          description: Optional projects/...; when empty, server may use authenticated default project (metalhostd).
+          description: Optional projects/...; when empty, the server may use the authenticated default project.
         resourceName:
           type: string
           title: resource_name
@@ -13947,8 +13876,8 @@ components:
           type: boolean
           title: use_registered_meter_rate
           description: |-
-            When true, amount_minor is ignored; the charge is round(quantity * unit_price_minor) from
-             usage_meter_rates for the usage row's meter and the wallet currency (Postgres), or in-memory rates (dev).
+            When true, amount_minor is ignored; the charge is round(quantity * unit_price_minor) using
+             the registered meter rate for the usage row's meter and the wallet currency.
       title: SettleUsageToLedgerRequest
       additionalProperties: false
     aes.wallet.v1.SettleUsageToLedgerResponse:
@@ -14735,57 +14664,41 @@ security: []
 tags:
   - name: aes.audit.v1.AuditService
     description: |-
-      AuditService records security-relevant events (design §4 audit-svc).
+      AuditService records security-relevant events.
 
-       Customer-facing surface is read-only — SearchEvents only. LogEvent is intentionally
-       not routed as an RPC: it stays a Go method on services/audit.Server (and the
-       pkg/auditdb helper of the same name) called by backend services that write audit
-       entries on the customer's behalf. Exposing the write side would let any caller
-       inject fake audit entries against any principal/resource — a real auditability hole.
+       Customer-facing surface is read-only — SearchEvents only. The write side is intentionally
+       not exposed: audit entries are written server-side on the customer's behalf. Exposing the
+       write side would let any caller inject fake audit entries against any principal/resource —
+       a real auditability hole.
   - name: aes.ops.v1.OperationsService
     description: |-
       Long-running async work unit (GCP Long-Operation style). Mutations return
        a name like `operations/op_abc123`; clients poll GetOperation until terminal state.
 
-       Customer-facing surface is read-only: Get + List. Operation creation is server-side
-       only — kicked off by other services (CreateVM, ProvisionDatacenter, etc.) when they
-       need to track a long-running activity. Cancellation isn't exposed to customers:
-       proper mid-flight rollback requires per-workflow cleanup logic (e.g., release public
-       IPs, refund wallet, soft-delete VM row), and Temporal cancellation alone doesn't
-       guarantee that. The CreateOperation message + handler still exist as backend
-       machinery — see services/ops/server.go — they're just not routed as an RPC.
+       Customer-facing surface is read-only: Get + List. Operations are created server-side
+       by other services (e.g. CreateVM) when they need to track long-running work.
+       Cancellation isn't exposed because clean mid-flight rollback requires per-operation
+       cleanup that a blind cancel can't guarantee.
   - name: aes.compute.v1.ComputeService
-    description: |-
-      ComputeService is the control-plane API for VMs.
-
-       Removed in the v1 rip:
-         - UpdateVirtualMachine: only patched labels/annotations, no UI surface.
-         - SuspendVirtualMachine / ResumeVirtualMachine: KubeVirt pause/unpause, niche; deferred.
-         - GetVMLogs: OpenConsole covers the live-tail use case; this point-in-time snapshot wasn't worth maintaining.
-         - CreateMachineImage / GetMachineImage / ListMachineImages / DeleteMachineImage:
-           no customer image upload at launch. System catalog images are managed by
-           AdminCatalogService.
-         - PrepareImageUpload / FinalizeImageUpload: deprecated stubs, removed.
-         - GuestExec: moved to AdminComputeService — privileged backdoor that bypasses guest auth
-           belongs on the operator surface, not the customer one.
+    description: ComputeService is the control-plane API for VMs.
   - name: aes.baremetal.v1.BareMetalService
     description: |-
       BareMetalService is the customer-facing API for whole-host leases. Distinct from
-       ComputeService (which serves KubeVirt VMs) because the lifecycle is different: no live
+       ComputeService (which serves VMs) because the lifecycle is different: no live
        migration, no resize, the customer typically PXE-installs their own OS, and the lease is
        pinned to a specific physical host until released.
 
-       Pricing is per-server: an operator sets each host's monthly price (SetHostPrice, admin API)
-       before publishing it to the bare-metal pool. Billing is identical to VMs — HOURLY meters at
-       the host's monthly/730 hourly rate through the usage_events pipeline; MONTHLY_{1,3,6,12}
-       prepays the term at the same tiered discounts, hard non-cancel, optional autorenew.
+       Pricing is per-server: each host has a monthly price set before it's published to the
+       bare-metal pool. Billing is identical to VMs — HOURLY meters at the host's monthly/730
+       hourly rate; MONTHLY_{1,3,6,12} prepays the term at the same tiered discounts, hard
+       non-cancel, optional autorenew.
 
        Flow: customer calls ListAvailableBareMetal to browse published hosts (discovered specs +
        monthly price), then CreateBareMetalInstance(host_name, billing_mode) to lease a specific
-       machine. Metalhost flips the host's role to 'baremetal_leased' and returns access info
-       (Redfish endpoint for OS install). ReleaseBareMetalInstance flips it back to 'baremetal_pool'.
+       machine. Metalhost marks the host leased and returns access info (Redfish endpoint for OS
+       install). ReleaseBareMetalInstance returns it to the available pool.
   - name: aes.catalog.v1.CatalogService
-    description: CatalogService exposes datacenters and SKUs per PLATFORM_DESIGN.md §4.
+    description: CatalogService exposes datacenters, capacity, and pricing.
   - name: aes.compute.v1.SSHKeysService
     description: |-
       SSHKeysService manages reusable SSH keys at the project level. Keys registered here can be
@@ -14800,7 +14713,7 @@ tags:
     description: Liveness/readiness for load balancers and ops.
   - name: aes.iam.v1.IamService
     description: |-
-      IamService holds identity primitives (design §4 iam-svc).
+      IamService holds identity primitives.
 
        Customer-facing surface intentionally excludes:
          - ValidateApiKey, ValidateOidcToken — internal-only (the HTTP auth middleware uses
@@ -14815,31 +14728,15 @@ tags:
        The Go methods for these stay callable internally where needed.
   - name: aes.network.v1.NetworkService
     description: |-
-      NetworkService manages tenant-facing networks backed by OVN-Kubernetes
-       UserDefinedNetwork (UDN) resources for tenant-private connectivity. Each Network maps to a
-       tenant network namespace. VM public connectivity is delivered via the public NIC model.
+      NetworkService manages tenant-facing networks for tenant-private connectivity. Each Network
+       is an isolated L2 segment in a single datacenter. VM public connectivity is delivered via
+       the public NIC model.
 
-       Ripped in the v1 audit:
-         - GetServiceMetadata: bootstrap-era stub-status probe; dead.
-         - GetNetwork / DeleteNetwork: 1-network-per-project invariant pre-launch — list covers
-           reads, no UI delete.
-         - GetPublicIp / ListPublicIps / ReleasePublicIp: no customer IP-management surface;
-           VM provision / delete workflows manage public_ips rows directly.
-         - AllocatePublicIp: previously customer-callable, now internal-only. Allocation alone
-           is a footgun — the IP row gets billed but the VM has no public NIC unless the
-           allocation runs *during* vm_provision (KubeVirt 1.8 can't hot-add NICs). Customers
-           opt into a public IP at VM-create time via `assign_public_ipv4`; post-create
-           attach isn't supported and the customer-facing copy says so.
-         - GetFirewallRule / GetLoadBalancer: single-resource Get is redundant with List.
-         - CreateLoadBalancer / ListLoadBalancers / UpdateLoadBalancer / DeleteLoadBalancer:
-           LB UX needs a redesign and 1-VM-customers don't need it at launch. Bring back in v2.
-
-       Firewall RPCs back the OVN ACL set on the public-vlan50 localnet switch — NetworkPolicy
-       (the original backing) only filters east-west on the pod's primary CNI, leaving the
-       public NIC unfiltered.
+       Public IPs are opted into at VM-create time via `assign_public_ipv4`; standalone allocation
+       and post-create attach aren't supported. Load balancer APIs are deferred to a future release.
   - name: aes.project.v1.ProjectService
     description: |-
-      ProjectService is the tenancy slice of the control plane (design §4 project-svc).
+      ProjectService is the tenancy slice of the control plane.
 
        Removed surfaces (folded into AdminProjectService or dropped entirely):
          - ListOrganizations: every customer has exactly one org; multi-org switcher is v2.
@@ -14861,15 +14758,13 @@ tags:
        default).
   - name: aes.storage.v1.StorageService
     description: |-
-      StorageService manages persistent block disks: standalone PVCs that customers create up
+      StorageService manages persistent block disks: standalone volumes that customers create up
        front, attach to VMs (potentially hot-plug at runtime), and reuse across VM lifetimes. The
        boot disk inside CreateVirtualMachine is a separate concern (it lives only as long as the VM
        does); this service is for data disks the customer wants to keep.
 
        Storage class is presented to the customer as a friendly tier name — currently `nvme` only.
-       Metalhost translates that per-datacenter to the actual k8s StorageClass via DC annotation
-       `aes.metalhost/storage-class-nvme`. Lab DCs may map it to `local-path`; production DCs map
-       to a Rook RBD tier. (`ssd` was reserved for a future SATA-SSD tier and is rejected today.)
+       (`ssd` was reserved for a future SATA-SSD tier and is rejected today.)
   - name: aes.support.v1.SupportService
     description: |-
       SupportService is the customer-facing ticket API. Tickets are organization-scoped — every
@@ -14886,8 +14781,8 @@ tags:
   - name: aes.webhooks.v1.WebhooksService
     description: |-
       WebhooksService manages customer-defined HTTP callbacks for resource events. Customers
-       register endpoint URLs + the event types they care about; metalhostd's outbox worker delivers
-       matching events as POSTs with HMAC-SHA256 signatures (X-Metalhost-Signature header) using a
+       register endpoint URLs + the event types they care about; Metalhost delivers matching
+       events as POSTs with HMAC-SHA256 signatures (X-Metalhost-Signature header) using a
        per-subscription shared secret returned at create time.
 
        Event types follow the convention `{domain}.{resource}.{verb}` —

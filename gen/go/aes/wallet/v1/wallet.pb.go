@@ -2417,9 +2417,8 @@ func (x *GetWalletBalanceRequest) GetName() string {
 type GetWalletBalanceResponse struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
 	WalletName string                 `protobuf:"bytes,1,opt,name=wallet_name,json=walletName,proto3" json:"wallet_name,omitempty"`
-	// Current prepay liability balance in minor currency units. Positive = customer has credit.
-	// Computed by summing ledger_postings where account_code='CUSTOMER_PREPAY_LIABILITY' and
-	// applying direction (credit = +, debit = -).
+	// Current prepay balance in minor currency units. Positive = customer has credit
+	// (credits add, debits subtract).
 	BalanceMinor int64  `protobuf:"varint,2,opt,name=balance_minor,json=balanceMinor,proto3" json:"balance_minor,omitempty"`
 	Currency     string `protobuf:"bytes,3,opt,name=currency,proto3" json:"currency,omitempty"`
 	// Timestamp of the latest journal entry on this wallet; UI uses this to show "updated 2m ago"
@@ -2601,7 +2600,7 @@ func (x *RecordJournalEntryResponse) GetJournalEntryId() string {
 
 type RecordUsageEventRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Optional projects/...; when empty, server may use authenticated default project (metalhostd).
+	// Optional projects/...; when empty, the server may use the authenticated default project.
 	ProjectName  string `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
 	ResourceName string `protobuf:"bytes,2,opt,name=resource_name,json=resourceName,proto3" json:"resource_name,omitempty"`
 	Meter        string `protobuf:"bytes,3,opt,name=meter,proto3" json:"meter,omitempty"`
@@ -2758,8 +2757,8 @@ type SettleUsageToLedgerRequest struct {
 	IdempotencyKey string `protobuf:"bytes,5,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	// When empty, a short server-generated description is used.
 	Description string `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
-	// When true, amount_minor is ignored; the charge is round(quantity * unit_price_minor) from
-	// usage_meter_rates for the usage row's meter and the wallet currency (Postgres), or in-memory rates (dev).
+	// When true, amount_minor is ignored; the charge is round(quantity * unit_price_minor) using
+	// the registered meter rate for the usage row's meter and the wallet currency.
 	UseRegisteredMeterRate bool `protobuf:"varint,7,opt,name=use_registered_meter_rate,json=useRegisteredMeterRate,proto3" json:"use_registered_meter_rate,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
@@ -3150,7 +3149,7 @@ func (x *GetCostForecastRequest) GetPeriod() string {
 type GetCostForecastResponse struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Currency string                 `protobuf:"bytes,1,opt,name=currency,proto3" json:"currency,omitempty"`
-	// Spend so far in the current period (sum of CUSTOMER_PREPAY_LIABILITY debits).
+	// Spend so far in the current period.
 	MtdSpendMinor int64 `protobuf:"varint,2,opt,name=mtd_spend_minor,json=mtdSpendMinor,proto3" json:"mtd_spend_minor,omitempty"`
 	// Days elapsed since period_start (1 on day 1).
 	DaysElapsed int32 `protobuf:"varint,3,opt,name=days_elapsed,json=daysElapsed,proto3" json:"days_elapsed,omitempty"`

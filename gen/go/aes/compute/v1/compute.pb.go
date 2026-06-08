@@ -29,7 +29,7 @@ type BillingMode int32
 
 const (
 	BillingMode_BILLING_MODE_UNSPECIFIED BillingMode = 0
-	// Per-hour usage events accrue against CUSTOMER_PREPAY_LIABILITY each metering tick.
+	// Per-hour usage events accrue against the wallet's prepay balance each metering tick.
 	BillingMode_BILLING_MODE_HOURLY BillingMode = 1
 	// 1-month prepaid term, ~10% discount. commitment_end_at = create + ~30d.
 	BillingMode_BILLING_MODE_MONTHLY_1 BillingMode = 2
@@ -88,7 +88,7 @@ func (BillingMode) EnumDescriptor() ([]byte, []int) {
 	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{0}
 }
 
-// ConsoleType picks which KubeVirt console subresource the proxy bridges to.
+// ConsoleType picks which console the proxy bridges to.
 type ConsoleType int32
 
 const (
@@ -147,9 +147,8 @@ type VirtualMachine struct {
 	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	ProjectName    string                 `protobuf:"bytes,2,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
 	DatacenterName string                 `protobuf:"bytes,3,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
-	// Current lifecycle state — RUNNING / STOPPED / SUSPENDED / DELETING / DELETED. Reflects DB;
-	// updated by Start/Stop/Restart/Suspend/Resume RPCs after the underlying KubeVirt subresource
-	// call succeeds.
+	// Current lifecycle state — RUNNING / STOPPED / SUSPENDED / DELETING / DELETED. Updated after
+	// the corresponding lifecycle RPC succeeds.
 	State          string `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
 	CreateTimeUnix int64  `protobuf:"varint,6,opt,name=create_time_unix,json=createTimeUnix,proto3" json:"create_time_unix,omitempty"`
 	// User-facing labels (filterable, indexed externally). Merged on Update unless clear_labels.
@@ -171,54 +170,52 @@ type VirtualMachine struct {
 	// For MONTHLY_*: whether the renewal worker should auto-charge for the next term when
 	// this one ends. Customer toggles via SetVMAutorenew. Ignored when billing_mode is HOURLY.
 	Autorenew bool `protobuf:"varint,13,opt,name=autorenew,proto3" json:"autorenew,omitempty"`
-	// ────────────── Runtime-derived fields (populated from KubeVirt at Get/List time) ──────────────
-	// These are NOT stored in the compute_instances row. Get/List handlers query the DC's
-	// KubeVirt apiserver and fill them so the API surface matches reality (private IP from the
-	// tenant UDN, host node, disk size, boot image, KubeVirt status.printableStatus). Empty when
-	// the VM has been deleted or the cluster is unreachable — `state` then reads `DELETED`/`UNKNOWN`.
+	// ────────────── Runtime-derived fields (populated live at Get/List time) ──────────────
+	// These are NOT stored; Get/List handlers read them from the datacenter so the API surface
+	// matches reality (private IP, host node, disk size, boot image, detailed status). Empty when
+	// the VM has been deleted or is unreachable — `state` then reads `DELETED`/`UNKNOWN`.
 	//
-	// Tenant-private IPv4 from the project's UserDefinedNetwork. Pinned across stop/start by
-	// OVN-K's IPAMClaim. Routable only inside the tenant network (cross-network requires explicit
-	// peering); for outbound internet egress the VM uses its public NIC when one is allocated.
+	// Tenant-private IPv4 from the project's network. Pinned across stop/start. Routable only
+	// inside the tenant network (cross-network requires explicit peering); for outbound internet
+	// egress the VM uses its public NIC when one is allocated.
 	PrivateIpv4 string `protobuf:"bytes,14,opt,name=private_ipv4,json=privateIpv4,proto3" json:"private_ipv4,omitempty"`
-	// K8s Node hosting the virt-launcher pod (e.g. "worker-01"). Useful for capacity reports
-	// and live-migration affinity hints.
+	// Host the VM runs on (e.g. "worker-01"). Useful for capacity reports and migration
+	// affinity hints.
 	HostNode string `protobuf:"bytes,16,opt,name=host_node,json=hostNode,proto3" json:"host_node,omitempty"`
-	// KubeVirt VirtualMachine.status.printableStatus — finer-grained than `state`. Values:
-	// "Running", "Starting", "Stopping", "Stopped", "Provisioning", "ErrImagePull", "Unknown",
-	// and others. Use for UI surfacing of transient phases that don't map cleanly to `state`.
+	// Finer-grained status than `state`. Values: "Running", "Starting", "Stopping", "Stopped",
+	// "Provisioning", "ErrImagePull", "Unknown", and others. Use for UI surfacing of transient
+	// phases that don't map cleanly to `state`.
 	StatusDetail string `protobuf:"bytes,19,opt,name=status_detail,json=statusDetail,proto3" json:"status_detail,omitempty"`
-	// User-facing hostname (DNS-1123 label, ≤63 chars). Written to the VM's k8s object name and
-	// injected as cloud-init `set_hostname`. Customer chooses; defaults to the resource id if
-	// omitted at create time.
+	// User-facing hostname (DNS-1123 label, ≤63 chars). Injected as the guest's cloud-init
+	// hostname. Customer chooses; defaults to the resource id if omitted at create time.
 	Hostname string `protobuf:"bytes,20,opt,name=hostname,proto3" json:"hostname,omitempty"`
 	// Tenant network the VM is attached to (`projects/{p}/networks/{id}`). Each VM has exactly
-	// one network — the network's namespace + Primary UDN provide the VM's single NIC and IPv6
-	// address. VMs in the same network can talk freely; cross-network requires explicit peering.
+	// one network, which provides the VM's single NIC and IPv6 address. VMs in the same network
+	// can talk freely; cross-network requires explicit peering.
 	NetworkName string `protobuf:"bytes,21,opt,name=network_name,json=networkName,proto3" json:"network_name,omitempty"`
 	// Public IPv4 address allocated to this VM for the public NIC workflow. Empty when the VM
 	// was created without `assign_public_ipv4=true`. When set, this is the same value as the
 	// PublicIp resource's ip_address.
 	PublicIpv4 string `protobuf:"bytes,22,opt,name=public_ipv4,json=publicIpv4,proto3" json:"public_ipv4,omitempty"`
 	// IPv6 address from the tenant Network's /64, on the VM's primary NIC. Pinned across
-	// stop/start by the same IPAMClaim that pins private_ipv4. Note: this is NOT "private"
-	// in the RFC1918 sense — when the DC's tenant prefix is a real GUA /48, this address
-	// is globally routable. The OVN-K UDN provides tenant isolation at the network layer,
-	// not via address scope. Lab DCs using ULA-style /48s see locally-scoped addresses here.
+	// stop/start, same as private_ipv4. Note: this is NOT "private" in the RFC1918 sense —
+	// when the DC's tenant prefix is a real GUA /48, this address is globally routable. Tenant
+	// isolation is enforced at the network layer, not via address scope. Lab DCs using
+	// ULA-style /48s see locally-scoped addresses here.
 	Ipv6 string `protobuf:"bytes,23,opt,name=ipv6,proto3" json:"ipv6,omitempty"`
 	// The Disk resource bound as the VM's boot device (`projects/{p}/disks/{id}`). Set on every
-	// persistent VM (containerDisk lab/ephemeral VMs leave it empty). The disk has its own
+	// persistent VM (ephemeral lab VMs leave it empty). The disk has its own
 	// lifecycle: DeleteVirtualMachine detaches it but does not delete it, so a customer can bind
 	// the same boot_disk to a fresh VM and keep their data. Use GetDisk for size + source URL.
 	BootDisk string `protobuf:"bytes,24,opt,name=boot_disk,json=bootDisk,proto3" json:"boot_disk,omitempty"`
-	// Configurator shape — the (vcpus, ram_gib, cpu_class) the VM was created with. Stored on
-	// compute_instances; drives the per-component usage events the metering loop emits hourly.
+	// Configurator shape — the (vcpus, ram_gib, cpu_class) the VM was created with. Drives the
+	// per-component hourly usage events.
 	Vcpus    int32  `protobuf:"varint,25,opt,name=vcpus,proto3" json:"vcpus,omitempty"`
 	RamGib   int32  `protobuf:"varint,26,opt,name=ram_gib,json=ramGib,proto3" json:"ram_gib,omitempty"`
 	CpuClass string `protobuf:"bytes,27,opt,name=cpu_class,json=cpuClass,proto3" json:"cpu_class,omitempty"`
 	// Whole-GPU passthrough attached to the VM. gpu_model is the SKU variant (e.g. "rtx4090");
-	// gpu_count is how many physical cards. Empty / 0 for a CPU-only VM. Stored on
-	// compute_instances; drives the compute.gpu.<model>.runtime_hours meter.
+	// gpu_count is how many physical cards. Empty / 0 for a CPU-only VM. Drives the
+	// compute.gpu.<model>.runtime_hours meter.
 	GpuModel string `protobuf:"bytes,31,opt,name=gpu_model,json=gpuModel,proto3" json:"gpu_model,omitempty"`
 	GpuCount int32  `protobuf:"varint,32,opt,name=gpu_count,json=gpuCount,proto3" json:"gpu_count,omitempty"`
 	// ────────────── Live cost fields (computed at Get-time, not persisted) ──────────────
@@ -230,10 +227,9 @@ type VirtualMachine struct {
 	// Why decimal: a small VM's hourly rate is fractional cents — rounding to int64 hides the
 	// truth and customers see "$0/hr". The portal displays the decimal value to 4-6 places.
 	//
-	// mtd_spend_minor_decimal: month-to-date wallet debits attributed to this VM, summed from
-	// ledger_postings joined to settled usage_events via journal_entry_id. Reflects what the
-	// customer has actually paid for this VM since start-of-month UTC. Sub-cent residue still
-	// sitting in pending_charge_accumulator is NOT counted (it hasn't been charged yet).
+	// mtd_spend_minor_decimal: month-to-date wallet debits attributed to this VM. Reflects what
+	// the customer has actually paid for this VM since start-of-month UTC. Sub-cent residue not
+	// yet charged is NOT counted.
 	CurrentCostPerHourMinorDecimal string `protobuf:"bytes,28,opt,name=current_cost_per_hour_minor_decimal,json=currentCostPerHourMinorDecimal,proto3" json:"current_cost_per_hour_minor_decimal,omitempty"`
 	MtdSpendMinorDecimal           string `protobuf:"bytes,29,opt,name=mtd_spend_minor_decimal,json=mtdSpendMinorDecimal,proto3" json:"mtd_spend_minor_decimal,omitempty"`
 	// Linux login user cloud-init created for SSH access (`ssh <linux_username>@<public_ipv4>`).
@@ -719,8 +715,7 @@ func (x *VirtualMachineSpec) GetBilling() *VMBillingSpec {
 
 type VMComputeSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// CPU class — picks the pricing_components.vcpu/<class> row; must have pricing AND scheduler
-	// placement. Required.
+	// CPU class — must have published pricing and capacity in the datacenter. Required.
 	CpuClass string `protobuf:"bytes,1,opt,name=cpu_class,json=cpuClass,proto3" json:"cpu_class,omitempty"`
 	Vcpus    int32  `protobuf:"varint,2,opt,name=vcpus,proto3" json:"vcpus,omitempty"`                 // required, validated against the RAM-per-vCPU ratio bounds
 	RamGib   int32  `protobuf:"varint,3,opt,name=ram_gib,json=ramGib,proto3" json:"ram_gib,omitempty"` // required
@@ -842,11 +837,11 @@ func (x *GPUSpec) GetCount() int32 {
 
 type VMBootSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Curated catalog image id (e.g. "ubuntu-24-04") — resolved server-side (pkg/osimage.Catalog)
-	// to an image URL + the distro's default login user. Mutually exclusive with image_url/disk_name.
+	// Curated catalog image id (e.g. "ubuntu-24-04") — resolved server-side to an image URL +
+	// the distro's default login user. Mutually exclusive with image_url/disk_name.
 	Image string `protobuf:"bytes,1,opt,name=image,proto3" json:"image,omitempty"`
-	// Raw streamable image URL (CDI http source) — escape hatch for non-catalog images. Mutually
-	// exclusive with image/disk_name.
+	// Raw streamable image URL — escape hatch for non-catalog images. Mutually exclusive with
+	// image/disk_name.
 	ImageUrl string `protobuf:"bytes,2,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
 	// Boot disk size GiB (1..1024). Required when image/image_url is set.
 	DiskGib int32 `protobuf:"varint,3,opt,name=disk_gib,json=diskGib,proto3" json:"disk_gib,omitempty"`
@@ -1167,15 +1162,14 @@ type BootDiskSpec struct {
 	SizeGib int32 `protobuf:"varint,2,opt,name=size_gib,json=sizeGib,proto3" json:"size_gib,omitempty"`
 	// Storage tier (`nvme`). Defaults to nvme.
 	StorageClass string `protobuf:"bytes,3,opt,name=storage_class,json=storageClass,proto3" json:"storage_class,omitempty"`
-	// Streamable raw disk image URL (CDI http source). Required UNLESS clone_source_disk
-	// is set (clone path supplies the data by snapshotting an existing disk instead).
+	// Streamable raw disk image URL. Required UNLESS clone_source_disk is set (clone path
+	// supplies the data by snapshotting an existing disk instead).
 	FromImageUrl string            `protobuf:"bytes,4,opt,name=from_image_url,json=fromImageUrl,proto3" json:"from_image_url,omitempty"`
 	Labels       map[string]string `protobuf:"bytes,7,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Annotations  map[string]string `protobuf:"bytes,8,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Clone path: when set, this boot disk is created by snapshotting the named source
-	// Disk + cloning it into a fresh PVC (done in the vm_provision workflow, not the RPC),
-	// rather than CDI-importing from from_image_url. Set by CloneVirtualMachine; customers
-	// don't set this directly. size_gib is derived from the source snapshot's restoreSize.
+	// Clone path: when set, this boot disk is created by copying the named source Disk rather
+	// than importing from from_image_url. Set by CloneVirtualMachine; customers don't set this
+	// directly. size_gib is derived from the source.
 	CloneSourceDisk string `protobuf:"bytes,9,opt,name=clone_source_disk,json=cloneSourceDisk,proto3" json:"clone_source_disk,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
@@ -1262,9 +1256,9 @@ func (x *BootDiskSpec) GetCloneSourceDisk() string {
 
 type CreateVirtualMachineResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Set when provisioning is async (Temporal + Postgres): poll GetOperation until SUCCEEDED; metadata may include virtual_machine_name.
+	// Set when provisioning is async: poll GetOperation until SUCCEEDED; metadata may include virtual_machine_name.
 	Operation *v1.Operation `protobuf:"bytes,1,opt,name=operation,proto3" json:"operation,omitempty"`
-	// Set only for synchronous (in-memory or no Temporal) create path.
+	// Set only for the synchronous create path.
 	VirtualMachine *VirtualMachine `protobuf:"bytes,2,opt,name=virtual_machine,json=virtualMachine,proto3" json:"virtual_machine,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
@@ -1583,7 +1577,7 @@ func (x *DeleteVirtualMachineRequest) GetDeleteAttachedDisks() bool {
 
 type DeleteVirtualMachineResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Set when delete is async (Temporal + Postgres): poll GetOperation until SUCCEEDED.
+	// Set when delete is async: poll GetOperation until SUCCEEDED.
 	Operation     *v1.Operation `protobuf:"bytes,1,opt,name=operation,proto3" json:"operation,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1898,8 +1892,8 @@ type ResizeVirtualMachineRequest struct {
 	// recompute consistently). Same 1–16 GiB RAM-per-vCPU ratio bounds as Create.
 	Vcpus  int32 `protobuf:"varint,3,opt,name=vcpus,proto3" json:"vcpus,omitempty"`
 	RamGib int32 `protobuf:"varint,4,opt,name=ram_gib,json=ramGib,proto3" json:"ram_gib,omitempty"`
-	// CPU class. Required — changing class is allowed but the cluster must have a worker with
-	// a matching `aes.metalhost/cpu-class=<class>` label or the rescheduled VM won't start.
+	// CPU class. Required — changing class is allowed but the datacenter must have capacity for
+	// the new class or the VM won't restart.
 	CpuClass      string `protobuf:"bytes,5,opt,name=cpu_class,json=cpuClass,proto3" json:"cpu_class,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1965,13 +1959,12 @@ func (x *ResizeVirtualMachineRequest) GetCpuClass() string {
 
 type ResizeVirtualMachineResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Set on the sync (in-memory / no-Temporal) path.
+	// Set on the synchronous path.
 	VirtualMachine *VirtualMachine `protobuf:"bytes,1,opt,name=virtual_machine,json=virtualMachine,proto3" json:"virtual_machine,omitempty"`
-	// Set when the request was dispatched as a vm_resize Operation (Temporal +
-	// DATABASE_URL). Client polls GetOperation until SUCCEEDED, then re-Gets the VM
-	// to see the new shape. The operation runs the full stop → wait-for-VMI →
-	// patch → start → DB update sequence under Temporal's retry envelope so a
-	// mid-flight crash doesn't strand the VM in STOPPED with the old shape.
+	// Set when the resize runs as a long-running Operation. Client polls GetOperation until
+	// SUCCEEDED, then re-Gets the VM to see the new shape. The operation runs the full
+	// stop → reshape → start sequence with retries so a mid-flight failure doesn't strand
+	// the VM in STOPPED with the old shape.
 	Operation     *v1.Operation `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2234,9 +2227,9 @@ func (x *RenewVMNowResponse) GetChargedAmountMinor() int64 {
 type ReimageVirtualMachineRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Required: streamable raw disk image URL (CDI http source). Setting this is the
-	// canonical way to upgrade the base OS (Ubuntu 24.04 → 26.04) without recreating
-	// the VM. Empty = reuse the original boot source.
+	// Required: streamable raw disk image URL. Setting this is the canonical way to upgrade
+	// the base OS (Ubuntu 24.04 → 26.04) without recreating the VM. Empty = reuse the original
+	// boot source.
 	BootImageUrl string `protobuf:"bytes,3,opt,name=boot_image_url,json=bootImageUrl,proto3" json:"boot_image_url,omitempty"`
 	// Required confirmation token. Server returns the expected value on a first call and the
 	// client echoes it back on the second to acknowledge data loss. Wire format: must equal
@@ -2397,10 +2390,9 @@ func (x *OpenConsoleRequest) GetType() ConsoleType {
 
 type OpenConsoleResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Relative path the client opens via WebSocket on the metalhostd public endpoint
-	// (e.g. wss://metalhost/v1/console/<token>). metalhostd validates the token, resolves the VM's
-	// datacenter kubeconfig, and bridges to the KubeVirt subresource so the apiserver stays
-	// private.
+	// Relative path the client opens via WebSocket on the Metalhost public endpoint
+	// (e.g. wss://metalhost/v1/console/<token>). The server validates the token and bridges to
+	// the VM's console privately.
 	WebsocketPath string `protobuf:"bytes,1,opt,name=websocket_path,json=websocketPath,proto3" json:"websocket_path,omitempty"`
 	// One-shot token embedded in the websocket_path. Single-use, scoped to (vm, console_type),
 	// expires at expires_at_unix.
@@ -2463,10 +2455,10 @@ func (x *OpenConsoleResponse) GetExpiresAtUnix() int64 {
 
 // MachineImage is a registered URL pointing at a streamable raw disk image. Resource name:
 // `projects/{project}/images/{image_id}`. Day-1 images are external URLs (S3/GCS/operator
-// HTTP); a cluster-internal upload endpoint is a future story.
-// VmSnapshot is a point-in-time copy of a VM (definition + every PVC). Backed by KubeVirt's
-// VirtualMachineSnapshot CRD on the DC cluster. State machine: CREATING → READY → DELETING →
-// DELETED. Survives source VM deletion (the snapshot row is independent).
+// HTTP); a managed upload endpoint is a future story.
+// VmSnapshot is a point-in-time copy of a VM (definition + every disk). State machine:
+// CREATING → READY → DELETING → DELETED. Survives source VM deletion (the snapshot row is
+// independent).
 type VmSnapshot struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Resource name `projects/{project}/vm-snapshots/{id}`.
@@ -2485,10 +2477,8 @@ type VmSnapshot struct {
 	Labels         map[string]string `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Annotations    map[string]string `protobuf:"bytes,11,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// ────────────── Live cost fields (computed at Get/List-time, not persisted) ──
-	// Hourly rate this snapshot accrues against the wallet at current pricing:
-	//
-	//	size_gib × pricing_components(storage_snapshot_gib, standard).unit_price_minor
-	//
+	// Hourly rate this snapshot accrues against the wallet at current pricing
+	// (size_gib × the snapshot storage unit price).
 	// NUMERIC text so fractional cents survive the wire (a 40 GiB backup costs
 	// ~0.55 cents per hour — int64 would round to 1 and overstate by ~80%).
 	// Zero ("0") when rates aren't seeded or the snapshot is in a non-billing
@@ -2624,8 +2614,8 @@ func (x *VmSnapshot) GetMonthlyCostMinorDecimal() string {
 
 type SnapshotVirtualMachineRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// VM to snapshot (`virtual-machines/{id}`). Can be RUNNING or STOPPED — KubeVirt handles
-	// both (running snapshots use the same CSI VolumeSnapshot mechanism with quiesce=false).
+	// VM to snapshot (`virtual-machines/{id}`). Can be RUNNING or STOPPED — both are supported
+	// (running snapshots are crash-consistent).
 	VmName        string            `protobuf:"bytes,1,opt,name=vm_name,json=vmName,proto3" json:"vm_name,omitempty"`
 	DisplayName   string            `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	Labels        map[string]string `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -3324,8 +3314,8 @@ type CloneVirtualMachineResponse struct {
 	// The intermediate snapshot the clone was taken from. Useful for retry / audit; the
 	// customer can reuse it to clone again or roll back.
 	VmSnapshotName string `protobuf:"bytes,2,opt,name=vm_snapshot_name,json=vmSnapshotName,proto3" json:"vm_snapshot_name,omitempty"`
-	// When async provisioning is configured, the long-running operation tracking the actual
-	// VirtualMachineRestore application. Empty in sync mode (row inserted, no cluster apply).
+	// When async provisioning is configured, the long-running operation tracking the clone.
+	// Empty in sync mode.
 	Operation     *v1.Operation `protobuf:"bytes,3,opt,name=operation,proto3" json:"operation,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -3534,9 +3524,8 @@ type CreateVirtualMachineFromBackupResponse struct {
 	VirtualMachine *VirtualMachine        `protobuf:"bytes,1,opt,name=virtual_machine,json=virtualMachine,proto3" json:"virtual_machine,omitempty"`
 	// Reserved for a future implementation that materialises an intermediate DiskSnapshot row
 	// for the cloned boot disk. Today the server uses an internal storage path that bypasses
-	// the public DiskSnapshot model (the on-cluster VolumeSnapshot already exists, owned by
-	// KubeVirt's VirtualMachineSnapshot controller), so this field is always empty. Kept on
-	// the wire so a later implementation can populate it without a proto change.
+	// the public DiskSnapshot model, so this field is always empty. Kept on the wire so a later
+	// implementation can populate it without a proto change.
 	DiskSnapshotName string `protobuf:"bytes,2,opt,name=disk_snapshot_name,json=diskSnapshotName,proto3" json:"disk_snapshot_name,omitempty"`
 	// When async provisioning is configured, the long-running operation. Empty in sync mode.
 	Operation     *v1.Operation `protobuf:"bytes,3,opt,name=operation,proto3" json:"operation,omitempty"`

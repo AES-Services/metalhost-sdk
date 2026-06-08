@@ -5,13 +5,10 @@ package aes.ops.v1;
 // Long-running async work unit (GCP Long-Operation style). Mutations return
 // a name like `operations/op_abc123`; clients poll GetOperation until terminal state.
 //
-// Customer-facing surface is read-only: Get + List. Operation creation is server-side
-// only — kicked off by other services (CreateVM, ProvisionDatacenter, etc.) when they
-// need to track a long-running activity. Cancellation isn't exposed to customers:
-// proper mid-flight rollback requires per-workflow cleanup logic (e.g., release public
-// IPs, refund wallet, soft-delete VM row), and Temporal cancellation alone doesn't
-// guarantee that. The CreateOperation message + handler still exist as backend
-// machinery — see services/ops/server.go — they're just not routed as an RPC.
+// Customer-facing surface is read-only: Get + List. Operations are created server-side
+// by other services (e.g. CreateVM) when they need to track long-running work.
+// Cancellation isn't exposed because clean mid-flight rollback requires per-operation
+// cleanup that a blind cancel can't guarantee.
 service OperationsService {
   rpc GetOperation(GetOperationRequest) returns (GetOperationResponse);
   // Lists operations in name order (opaque page_token is the last-seen name).
@@ -19,21 +16,19 @@ service OperationsService {
 }
 
 message CreateOperationRequest {
-  // Workflow or API kind for audit, e.g. `noop`, `datacenter_provision`, `vm_provision`, `vm_delete`, `vm_resize`, `host_provision`, `host_decommission`.
+  // Operation kind for audit, e.g. `noop`, `vm_provision`, `vm_delete`, `vm_resize`.
   string kind = 1;
-  // When kind is `datacenter_provision` or `datacenter_tier1`: datacenter resource name (`datacenters/...`).
+  // Datacenter resource name (`datacenters/...`) for datacenter-scoped operations.
   string datacenter_name = 2;
-  // When kind is `vm_provision`, required: VM placement (see ComputeService.CreateVirtualMachine).
-  // Pricing + shape come from vm_vcpus/vm_ram_gib/vm_cpu_class below — no per-SKU rate lookup.
+  // For VM provisioning, required: VM placement (see ComputeService.CreateVirtualMachine).
+  // Pricing + shape come from vm_vcpus/vm_ram_gib/vm_cpu_class below.
   string vm_project_name = 3;
   string vm_datacenter_name = 4;
   reserved 5;
   reserved "vm_instance_type";
-  // When kind is `vm_delete`, required: VM resource name to destroy.
+  // For VM deletion, required: VM resource name to destroy.
   string vm_name = 6;
-  // When kind is `host_provision`, required: inventory host (`hosts/...`) to join as a worker
-  // and the target datacenter the host should join. The host must already be registered in
-  // inventory with SSH metadata; the workflow handles node-prep + kubeadm join + label apply.
+  // For host provisioning, required: the host to add as a worker and the datacenter it joins.
   string host_name = 7;
   // Reserved — was the legacy multi-network list. Replaced by `vm_network_name`
   // (field 21) below.
@@ -44,67 +39,54 @@ message CreateOperationRequest {
   // Optional raw cloud-config userdata (full `#cloud-config` document). Supersedes ssh_pubkey
   // when both are set.
   string vm_user_data = 12;
-  // Billing intent for vm_provision. Customer is charged at API-edge BEFORE the workflow
-  // starts (per the prepaid-on-create model); these fields snapshot the charge so the
-  // workflow can write the vm_reservations row + flip compute_instances columns after VM
-  // insertion without re-querying meter rates (which could have changed since the API call).
+  // Billing intent for VM provisioning. The customer is charged at the API edge BEFORE
+  // provisioning starts (prepaid-on-create); these fields snapshot that charge so the
+  // recorded term doesn't re-query rates that could have changed since the API call.
   // Empty vm_billing_mode = HOURLY (no upfront charge happened).
   string vm_billing_mode = 13;          // "HOURLY" | "MONTHLY_1" | "MONTHLY_3" | "MONTHLY_6" | "MONTHLY_12"
   bool vm_autorenew = 14;
   int64 vm_prepaid_amount_minor = 15;
   int64 vm_hourly_rate_minor = 16;
-  // Journal entry id from the wallet's ChargeVMReservation call. Workflow links the
-  // vm_reservations row to this journal so cancellation/refund flows can locate it.
+  // Wallet journal entry id for the prepayment, so refund/cancellation flows can locate it.
   string vm_prepay_journal_entry_id = 17;
-  // Term-end timestamp computed at charge time. Workflow writes this to
-  // compute_instances.commitment_end_at and vm_reservations.end_at exactly.
+  // Term-end timestamp computed at charge time.
   int64 vm_commitment_end_at_unix = 18;
   // Wallet + billing account snapshots so the workflow doesn't have to re-resolve them.
   string vm_wallet_name = 19;
   string vm_billing_account_name = 20;
-  // Single-NIC redesign: tenant Network the VM attaches to (resource name). Resolved at
-  // CreateVM API edge (default-network ensure runs there); workflow uses it to derive the
-  // k8s namespace + UDN attachment.
+  // Tenant Network the VM attaches to (resource name). Resolved at the CreateVM API edge.
   string vm_network_name = 21;
-  // K8s namespace the VM CR + virt-launcher pod should be created in. Equals
-  // `net-<network-id>` for the resolved Network. Workflow does NOT auto-create the namespace
-  // — it must already exist (network reconciler ensures it on Network create).
+  // Internal network-segment identifier the VM is created in, derived from the resolved Network.
   string vm_namespace = 22;
-  // User-facing hostname (DNS-1123 label, ≤63 chars). Used as the VM's k8s object name +
-  // cloud-init set_hostname. When empty, the workflow falls back to the VM's resource id
-  // slug.
+  // User-facing hostname (DNS-1123 label, ≤63 chars). Used as the guest's cloud-init hostname.
+  // When empty, falls back to the VM's resource id slug.
   string vm_hostname = 23;
   // Allocate a public IPv4 from the DC's pool for the VM public NIC workflow. Default false;
   // v6 is always reachable from the network's /64 without burning a public v4.
   bool vm_assign_public_ipv4 = 24;
-  // User-facing labels stamped at create time. Workflow writes them into compute_instances.spec
-  // so GetVM/ListVMs surface them. Same merge semantics as UpdateVirtualMachineRequest.labels
-  // for later mutations.
+  // User-facing labels stamped at create time so GetVM/ListVMs surface them. Same merge
+  // semantics as VM label updates for later mutations.
   map<string, string> vm_labels = 25;
   // Operator notes / non-indexed metadata. Same shape as labels.
   map<string, string> vm_annotations = 26;
-  // Pre-resolved boot disk for vm_provision (`projects/{p}/disks/{id}`). The compute API edge
-  // resolves boot_disk_name (existing) or BootDiskSpec (inline create + hydration wait) to a
-  // concrete Disk before kicking the workflow. Workflow's CreateKubeVirtVM references the disk's
-  // PVC directly via persistentVolumeClaim.claimName. Empty = ephemeral containerDisk fallback
-  // (lab/CI only). The boot disk is owned by the project, not the VM — DeleteVirtualMachine
-  // detaches it but does not delete it.
+  // Pre-resolved boot disk for VM provisioning (`projects/{p}/disks/{id}`). The compute API
+  // edge resolves boot_disk_name (existing) or BootDiskSpec (inline create + readiness wait)
+  // to a concrete Disk before provisioning begins. Empty = ephemeral boot fallback (lab/CI
+  // only). The boot disk is owned by the project, not the VM — DeleteVirtualMachine detaches
+  // it but does not delete it.
   string vm_boot_disk_name = 27;
   // Removed when the configurator landed: hard non-cancel makes early-cancel + later-reuse
   // structurally impossible, so the REUSABLE-credit field has no callers.
   reserved 28;
   reserved "vm_reuse_existing_term_id";
-  // Configurator shape stamped onto the operation so the workflow's vm-insert activity
-  // writes the same vcpus / ram_gib / cpu_class onto compute_instances. See
-  // services/pricing.Shape.
+  // Configurator shape stamped onto the operation so provisioning records the same
+  // vcpus / ram_gib / cpu_class on the VM.
   int32 vm_vcpus = 29;
   int32 vm_ram_gib = 30;
   string vm_cpu_class = 31;
-  // Inline boot-disk spec for vm_provision. When set (and vm_boot_disk_name is empty),
-  // the workflow's HydrateInlineBootDisk activity calls Storage.CreateDisk + polls for
-  // AVAILABLE before VM creation proceeds. Replaces the prior synchronous-at-API-edge
-  // pattern that blocked the HTTP call for the entire image-pull window (#120). Mirrors
-  // compute.v1.BootDiskSpec field-for-field.
+  // Inline boot-disk spec for VM provisioning. When set (and vm_boot_disk_name is empty),
+  // provisioning creates the disk and waits for it to become AVAILABLE before the VM is
+  // created. Mirrors compute.v1.BootDiskSpec field-for-field.
   int32 vm_boot_disk_size_gib = 32;
   string vm_boot_disk_from_image_url = 33;
   string vm_boot_disk_from_image_name = 34;
@@ -112,38 +94,31 @@ message CreateOperationRequest {
   reserved "vm_boot_disk_from_snapshot";
   string vm_boot_disk_storage_class = 36;
   string vm_boot_disk_display_name = 37;
-  // Decommission-specific. When kind == "host_decommission", these are passed in
-  // the same request as host_name + datacenter_name so the workflow handler reads
-  // them from the request directly (no post-CreateOperation metadata patch round
-  // trip that could race or fail half-way).
-  //   decommission_skip_wipe: skip the Tinkerbell disk wipe (default false; only
-  //                           set true when the disk is known to be wiped already).
+  // Decommission-specific. Passed alongside host_name + datacenter_name.
+  //   decommission_skip_wipe: skip the disk wipe (default false; only set true when the
+  //                           disk is known to be wiped already).
   //   decommission_reason: operator-supplied audit string.
   bool decommission_skip_wipe = 38;
   string decommission_reason = 39;
-  // Clone-specific (kind == "vm_provision" driven by CloneVirtualMachine). When
-  // vm_boot_disk_clone_source is set, the workflow's HydrateInlineBootDisk activity
-  // snapshots that source Disk + clones it into a fresh PVC instead of CDI-importing
-  // from a URL — moving the (previously synchronous-at-API-edge) snapshot/clone/wait off
-  // the HTTP call so CloneVirtualMachine returns an Operation in ~ms like create.
-  //   vm_boot_disk_clone_source: source Disk resource name to snapshot + clone.
-  //   vm_clone_source_vm_name:  source VM resource name — read by the CloneFirewallRules
-  //                             activity to copy the source's custom firewall rules onto
-  //                             the clone after its public IP is allocated.
+  // Clone-specific (VM provisioning driven by CloneVirtualMachine). When
+  // vm_boot_disk_clone_source is set, the boot disk is created by copying that source Disk
+  // instead of importing from a URL, so CloneVirtualMachine returns an Operation quickly.
+  //   vm_boot_disk_clone_source: source Disk resource name to copy.
+  //   vm_clone_source_vm_name:  source VM resource name — used to copy the source's custom
+  //                             firewall rules onto the clone after its public IP is allocated.
   string vm_boot_disk_clone_source = 40;
   string vm_clone_source_vm_name = 41;
-  // Delete-specific (kind == "vm_delete"). When true the VMDeleteWorkflow deletes the VM's
-  // attached disks (boot + data) instead of detaching them back to AVAILABLE.
+  // Delete-specific. When true, deletes the VM's attached disks (boot + data) instead of
+  // detaching them back to AVAILABLE.
   bool vm_delete_attached_disks = 42;
-  // Linux login user (kind == "vm_provision"). Threaded from
-  // compute.CreateVirtualMachineRequest.linux_username so the workflow's
-  // ProvisionVirtualMachine activity persists it onto compute_instances.spec.linux_username
+  // Linux login user (VM provisioning). Threaded from
+  // compute.CreateVirtualMachineRequest.linux_username so it can be persisted and displayed
   // (the Access-panel / `ssh <user>@<ip>` user). The user is ALSO baked into the cloud-config
   // (vm_user_data) at the API edge; this field is purely for the persisted/displayed value.
   // Empty when the VM was created with raw vm_user_data.
   string vm_linux_username = 43;
-  // GPU passthrough for vm_provision (docs/specs/GPU_POOLED_CAPACITY.md). vm_gpu_model selects a GPU
-  // model; vm_gpu_count is the number of whole GPUs. Empty/0 = CPU-only VM.
+  // GPU passthrough for VM provisioning. vm_gpu_model selects a GPU model; vm_gpu_count is
+  // the number of whole GPUs. Empty/0 = CPU-only VM.
   string vm_gpu_model = 44;
   int32 vm_gpu_count = 45;
 }
@@ -212,7 +187,7 @@ message Operation {
   string error_message = 5;
   // Same as CreateOperationRequest.kind; immutable after create.
   string kind = 6;
-  // Populated after a Temporal workflow is started for this operation (if any).
+  // Internal execution-tracking identifiers for this operation (if any). Opaque to clients.
   string temporal_workflow_id = 7;
   string temporal_run_id = 8;
   // Opaque key/value (e.g. vm_project_name on create; virtual_machine_name when provision completes).

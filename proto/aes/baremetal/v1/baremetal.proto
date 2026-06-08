@@ -5,19 +5,19 @@ package aes.baremetal.v1;
 import "aes/compute/v1/compute.proto";
 
 // BareMetalService is the customer-facing API for whole-host leases. Distinct from
-// ComputeService (which serves KubeVirt VMs) because the lifecycle is different: no live
+// ComputeService (which serves VMs) because the lifecycle is different: no live
 // migration, no resize, the customer typically PXE-installs their own OS, and the lease is
 // pinned to a specific physical host until released.
 //
-// Pricing is per-server: an operator sets each host's monthly price (SetHostPrice, admin API)
-// before publishing it to the bare-metal pool. Billing is identical to VMs — HOURLY meters at
-// the host's monthly/730 hourly rate through the usage_events pipeline; MONTHLY_{1,3,6,12}
-// prepays the term at the same tiered discounts, hard non-cancel, optional autorenew.
+// Pricing is per-server: each host has a monthly price set before it's published to the
+// bare-metal pool. Billing is identical to VMs — HOURLY meters at the host's monthly/730
+// hourly rate; MONTHLY_{1,3,6,12} prepays the term at the same tiered discounts, hard
+// non-cancel, optional autorenew.
 //
 // Flow: customer calls ListAvailableBareMetal to browse published hosts (discovered specs +
 // monthly price), then CreateBareMetalInstance(host_name, billing_mode) to lease a specific
-// machine. Metalhost flips the host's role to 'baremetal_leased' and returns access info
-// (Redfish endpoint for OS install). ReleaseBareMetalInstance flips it back to 'baremetal_pool'.
+// machine. Metalhost marks the host leased and returns access info (Redfish endpoint for OS
+// install). ReleaseBareMetalInstance returns it to the available pool.
 service BareMetalService {
   // ListAvailableBareMetal returns published, unleased, priced hosts the caller can lease, with
   // discovered specs + monthly price. No BMC/serial identifiers are exposed.
@@ -34,7 +34,7 @@ service BareMetalService {
   rpc CreateBareMetalInstance(CreateBareMetalInstanceRequest) returns (CreateBareMetalInstanceResponse);
   rpc GetBareMetalInstance(GetBareMetalInstanceRequest) returns (GetBareMetalInstanceResponse);
   rpc ListBareMetalInstances(ListBareMetalInstancesRequest) returns (ListBareMetalInstancesResponse);
-  // ReleaseBareMetalInstance ends the lease; the host's role returns to 'baremetal_pool'. Refused
+  // ReleaseBareMetalInstance ends the lease; the host returns to the available pool. Refused
   // while a MONTHLY_* term is still active (hard non-cancel, same as DeleteVirtualMachine). The
   // customer's data on local disks is not wiped by Metalhost — operator policy decides whether
   // the host is reformatted before re-leasing.
@@ -46,21 +46,19 @@ service BareMetalService {
   // SetBareMetalPower performs a BMC power action (on / off / reboot) via Redfish. Billing is
   // unaffected — a leased host bills whether it's powered on or off.
   rpc SetBareMetalPower(SetBareMetalPowerRequest) returns (SetBareMetalPowerResponse);
-  // ReinstallBareMetal re-runs the OS install (Tinkerbell) + cloud-init seed on a leased host,
-  // wiping the OS disk. Keeps the same lease + IPv4 block. Use to switch image or get a clean slate.
+  // ReinstallBareMetal re-runs the OS install + cloud-init seed on a leased host, wiping the
+  // OS disk. Keeps the same lease + IPv4 block. Use to switch image or get a clean slate.
   rpc ReinstallBareMetal(ReinstallBareMetalRequest) returns (ReinstallBareMetalResponse);
 
   // GetBareMetalConsoleURL returns a short-lived websocket URL for the host's graphical KVM
-  // console, bridged to the BMC's VNC server (iDRAC). The server enables VNC on the BMC with a
-  // fresh per-session password (returned in vnc_password) and disables it again when the session
+  // console, bridged to the BMC's VNC server. The server enables VNC on the BMC with a fresh
+  // per-session password (returned in vnc_password) and disables it again when the session
   // ends — VNC is off at rest. Token expires after 60s; connect promptly.
   rpc GetBareMetalConsoleURL(GetBareMetalConsoleURLRequest) returns (GetBareMetalConsoleURLResponse);
 
-  // EnterRescueMode boots the host into a rescue image via Redfish one-time boot override
-  // followed by a power cycle. The rescue image URL is the operator's responsibility (set
-  // via METALHOST_BM_RESCUE_IMAGE_URL or per-DC annotation `aes.metalhost/bm-rescue-image-url`).
-  // The instance's spec.rescue_mode flag is set so subsequent reads / future workers know
-  // the host is in rescue. ExitRescueMode reverses this — clears the boot override and
+  // EnterRescueMode boots the host into a rescue image via a one-time BMC boot override
+  // followed by a power cycle. The instance's rescue_mode flag is set so subsequent reads
+  // know the host is in rescue. ExitRescueMode reverses this — clears the boot override and
   // power-cycles back to the normal disk boot order.
   rpc EnterBareMetalRescueMode(EnterBareMetalRescueModeRequest) returns (EnterBareMetalRescueModeResponse);
   rpc ExitBareMetalRescueMode(ExitBareMetalRescueModeRequest) returns (ExitBareMetalRescueModeResponse);
@@ -68,19 +66,19 @@ service BareMetalService {
   // --- Bring-your-own-OS virtual media + ISO library (docs/specs/BARE_METAL_BYO_OS.md) ---
   // The ISO library is per-ORG (shared across the org's projects), quota-limited. Upload once,
   // re-use across leases. CreateBareMetalISOUploadURL returns a short-lived presigned PUT URL the
-  // customer uploads their install ISO to (directly to object storage), plus the object key.
+  // customer uploads their install ISO to, plus the object key.
   rpc CreateBareMetalISOUploadURL(CreateBareMetalISOUploadURLRequest) returns (CreateBareMetalISOUploadURLResponse);
   // ListBareMetalISOs lists the org's uploaded install ISOs (the library shown on the mgmt page
   // and the console's ISO picker).
   rpc ListBareMetalISOs(ListBareMetalISOsRequest) returns (ListBareMetalISOsResponse);
-  // CreateBareMetalISOFromURL imports an ISO into the org library by URL — metalhostd fetches it
-  // server-side (datacenter bandwidth) into object storage, so no slow browser upload. Returns
-  // immediately; the ISO appears in ListBareMetalISOs once the fetch completes.
+  // CreateBareMetalISOFromURL imports an ISO into the org library by URL — Metalhost fetches it
+  // server-side, so no slow browser upload. Returns immediately; the ISO appears in
+  // ListBareMetalISOs once the fetch completes.
   rpc CreateBareMetalISOFromURL(CreateBareMetalISOFromURLRequest) returns (CreateBareMetalISOFromURLResponse);
-  // DeleteBareMetalISO removes an ISO from the org library + object storage.
+  // DeleteBareMetalISO removes an ISO from the org library.
   rpc DeleteBareMetalISO(DeleteBareMetalISORequest) returns (DeleteBareMetalISOResponse);
-  // AttachBareMetalISO mounts a library ISO (by object key) as the host's BMC virtual CD: the BMC
-  // fetches it from metalhostd's ISO proxy (/v1/bm-iso/<token>.iso) which streams from the bucket.
+  // AttachBareMetalISO mounts a library ISO (by object key) as the host's BMC virtual CD; the
+  // BMC streams it from Metalhost for the duration of the mount.
   rpc AttachBareMetalISO(AttachBareMetalISORequest) returns (AttachBareMetalISOResponse);
   // GetBareMetalVirtualMedia reports the BMC's current virtual-CD mount state (so the UI shows the
   // real attach/detach state after a refresh, not just optimistic client state).
@@ -103,7 +101,7 @@ message BareMetalInstance {
   string host_name = 5;
   // PROVISIONING / ACTIVE / RELEASING / RELEASED.
   string state = 6;
-  // Redfish endpoint forwarded from the host record. Customer uses this to BMC-control the box
+  // Redfish endpoint for this leased host. Customer uses this to BMC-control the box
   // (PXE install, power cycle, console). Empty when the host has no Redfish configured.
   string redfish_endpoint = 7;
   int64 create_time_unix = 8;
@@ -132,7 +130,7 @@ message BareMetalInstance {
   string power_state = 23;
   // Public network details for the host's NIC, from the DC pool. Surfaced so a bring-your-own-OS
   // customer can hand-configure their network: gateway + the SUBNET prefix length the IPs sit in
-  // (e.g. /24). The managed-install netplan uses these too. Empty/0 when the DC has none set.
+  // (e.g. /24). The managed install uses these too. Empty/0 when the DC has none set.
   string public_gateway = 24;
   int32 public_prefix_len = 25;
 }
@@ -346,15 +344,15 @@ message GetBareMetalConsoleURLResponse {
   string console_url = 1;
   int64 expires_at_unix = 2;
   // Per-session VNC password the noVNC client authenticates with (≤8 chars — RFB limit). The
-  // BMC's VNC server is only reachable from metalhostd on the OOB management network, so this is
-  // defense-in-depth behind the token+cookie gate, not the primary control.
+  // BMC's VNC server is only reachable through Metalhost, so this is defense-in-depth behind
+  // the token+cookie gate, not the primary control.
   string vnc_password = 3;
 }
 
 message EnterBareMetalRescueModeRequest {
   string name = 1;
-  // Optional explicit rescue image URL override; defaults to the per-DC annotation or
-  // METALHOST_BM_RESCUE_IMAGE_URL. Useful for distro-specific rescue tooling.
+  // Optional explicit rescue image URL override; defaults to the datacenter's configured
+  // rescue image. Useful for distro-specific rescue tooling.
   string rescue_image_url = 2;
 }
 

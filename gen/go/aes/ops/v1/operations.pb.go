@@ -81,121 +81,99 @@ func (State) EnumDescriptor() ([]byte, []int) {
 
 type CreateOperationRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Workflow or API kind for audit, e.g. `noop`, `datacenter_provision`, `vm_provision`, `vm_delete`, `vm_resize`, `host_provision`, `host_decommission`.
+	// Operation kind for audit, e.g. `noop`, `vm_provision`, `vm_delete`, `vm_resize`.
 	Kind string `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
-	// When kind is `datacenter_provision` or `datacenter_tier1`: datacenter resource name (`datacenters/...`).
+	// Datacenter resource name (`datacenters/...`) for datacenter-scoped operations.
 	DatacenterName string `protobuf:"bytes,2,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
-	// When kind is `vm_provision`, required: VM placement (see ComputeService.CreateVirtualMachine).
-	// Pricing + shape come from vm_vcpus/vm_ram_gib/vm_cpu_class below — no per-SKU rate lookup.
+	// For VM provisioning, required: VM placement (see ComputeService.CreateVirtualMachine).
+	// Pricing + shape come from vm_vcpus/vm_ram_gib/vm_cpu_class below.
 	VmProjectName    string `protobuf:"bytes,3,opt,name=vm_project_name,json=vmProjectName,proto3" json:"vm_project_name,omitempty"`
 	VmDatacenterName string `protobuf:"bytes,4,opt,name=vm_datacenter_name,json=vmDatacenterName,proto3" json:"vm_datacenter_name,omitempty"`
-	// When kind is `vm_delete`, required: VM resource name to destroy.
+	// For VM deletion, required: VM resource name to destroy.
 	VmName string `protobuf:"bytes,6,opt,name=vm_name,json=vmName,proto3" json:"vm_name,omitempty"`
-	// When kind is `host_provision`, required: inventory host (`hosts/...`) to join as a worker
-	// and the target datacenter the host should join. The host must already be registered in
-	// inventory with SSH metadata; the workflow handles node-prep + kubeadm join + label apply.
+	// For host provisioning, required: the host to add as a worker and the datacenter it joins.
 	HostName string `protobuf:"bytes,7,opt,name=host_name,json=hostName,proto3" json:"host_name,omitempty"`
 	// Optional SSH public key for cloud-init injection. Empty = no inbound SSH on the VM.
 	VmSshPubkey string `protobuf:"bytes,11,opt,name=vm_ssh_pubkey,json=vmSshPubkey,proto3" json:"vm_ssh_pubkey,omitempty"`
 	// Optional raw cloud-config userdata (full `#cloud-config` document). Supersedes ssh_pubkey
 	// when both are set.
 	VmUserData string `protobuf:"bytes,12,opt,name=vm_user_data,json=vmUserData,proto3" json:"vm_user_data,omitempty"`
-	// Billing intent for vm_provision. Customer is charged at API-edge BEFORE the workflow
-	// starts (per the prepaid-on-create model); these fields snapshot the charge so the
-	// workflow can write the vm_reservations row + flip compute_instances columns after VM
-	// insertion without re-querying meter rates (which could have changed since the API call).
+	// Billing intent for VM provisioning. The customer is charged at the API edge BEFORE
+	// provisioning starts (prepaid-on-create); these fields snapshot that charge so the
+	// recorded term doesn't re-query rates that could have changed since the API call.
 	// Empty vm_billing_mode = HOURLY (no upfront charge happened).
 	VmBillingMode        string `protobuf:"bytes,13,opt,name=vm_billing_mode,json=vmBillingMode,proto3" json:"vm_billing_mode,omitempty"` // "HOURLY" | "MONTHLY_1" | "MONTHLY_3" | "MONTHLY_6" | "MONTHLY_12"
 	VmAutorenew          bool   `protobuf:"varint,14,opt,name=vm_autorenew,json=vmAutorenew,proto3" json:"vm_autorenew,omitempty"`
 	VmPrepaidAmountMinor int64  `protobuf:"varint,15,opt,name=vm_prepaid_amount_minor,json=vmPrepaidAmountMinor,proto3" json:"vm_prepaid_amount_minor,omitempty"`
 	VmHourlyRateMinor    int64  `protobuf:"varint,16,opt,name=vm_hourly_rate_minor,json=vmHourlyRateMinor,proto3" json:"vm_hourly_rate_minor,omitempty"`
-	// Journal entry id from the wallet's ChargeVMReservation call. Workflow links the
-	// vm_reservations row to this journal so cancellation/refund flows can locate it.
+	// Wallet journal entry id for the prepayment, so refund/cancellation flows can locate it.
 	VmPrepayJournalEntryId string `protobuf:"bytes,17,opt,name=vm_prepay_journal_entry_id,json=vmPrepayJournalEntryId,proto3" json:"vm_prepay_journal_entry_id,omitempty"`
-	// Term-end timestamp computed at charge time. Workflow writes this to
-	// compute_instances.commitment_end_at and vm_reservations.end_at exactly.
+	// Term-end timestamp computed at charge time.
 	VmCommitmentEndAtUnix int64 `protobuf:"varint,18,opt,name=vm_commitment_end_at_unix,json=vmCommitmentEndAtUnix,proto3" json:"vm_commitment_end_at_unix,omitempty"`
 	// Wallet + billing account snapshots so the workflow doesn't have to re-resolve them.
 	VmWalletName         string `protobuf:"bytes,19,opt,name=vm_wallet_name,json=vmWalletName,proto3" json:"vm_wallet_name,omitempty"`
 	VmBillingAccountName string `protobuf:"bytes,20,opt,name=vm_billing_account_name,json=vmBillingAccountName,proto3" json:"vm_billing_account_name,omitempty"`
-	// Single-NIC redesign: tenant Network the VM attaches to (resource name). Resolved at
-	// CreateVM API edge (default-network ensure runs there); workflow uses it to derive the
-	// k8s namespace + UDN attachment.
+	// Tenant Network the VM attaches to (resource name). Resolved at the CreateVM API edge.
 	VmNetworkName string `protobuf:"bytes,21,opt,name=vm_network_name,json=vmNetworkName,proto3" json:"vm_network_name,omitempty"`
-	// K8s namespace the VM CR + virt-launcher pod should be created in. Equals
-	// `net-<network-id>` for the resolved Network. Workflow does NOT auto-create the namespace
-	// — it must already exist (network reconciler ensures it on Network create).
+	// Internal network-segment identifier the VM is created in, derived from the resolved Network.
 	VmNamespace string `protobuf:"bytes,22,opt,name=vm_namespace,json=vmNamespace,proto3" json:"vm_namespace,omitempty"`
-	// User-facing hostname (DNS-1123 label, ≤63 chars). Used as the VM's k8s object name +
-	// cloud-init set_hostname. When empty, the workflow falls back to the VM's resource id
-	// slug.
+	// User-facing hostname (DNS-1123 label, ≤63 chars). Used as the guest's cloud-init hostname.
+	// When empty, falls back to the VM's resource id slug.
 	VmHostname string `protobuf:"bytes,23,opt,name=vm_hostname,json=vmHostname,proto3" json:"vm_hostname,omitempty"`
 	// Allocate a public IPv4 from the DC's pool for the VM public NIC workflow. Default false;
 	// v6 is always reachable from the network's /64 without burning a public v4.
 	VmAssignPublicIpv4 bool `protobuf:"varint,24,opt,name=vm_assign_public_ipv4,json=vmAssignPublicIpv4,proto3" json:"vm_assign_public_ipv4,omitempty"`
-	// User-facing labels stamped at create time. Workflow writes them into compute_instances.spec
-	// so GetVM/ListVMs surface them. Same merge semantics as UpdateVirtualMachineRequest.labels
-	// for later mutations.
+	// User-facing labels stamped at create time so GetVM/ListVMs surface them. Same merge
+	// semantics as VM label updates for later mutations.
 	VmLabels map[string]string `protobuf:"bytes,25,rep,name=vm_labels,json=vmLabels,proto3" json:"vm_labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Operator notes / non-indexed metadata. Same shape as labels.
 	VmAnnotations map[string]string `protobuf:"bytes,26,rep,name=vm_annotations,json=vmAnnotations,proto3" json:"vm_annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Pre-resolved boot disk for vm_provision (`projects/{p}/disks/{id}`). The compute API edge
-	// resolves boot_disk_name (existing) or BootDiskSpec (inline create + hydration wait) to a
-	// concrete Disk before kicking the workflow. Workflow's CreateKubeVirtVM references the disk's
-	// PVC directly via persistentVolumeClaim.claimName. Empty = ephemeral containerDisk fallback
-	// (lab/CI only). The boot disk is owned by the project, not the VM — DeleteVirtualMachine
-	// detaches it but does not delete it.
+	// Pre-resolved boot disk for VM provisioning (`projects/{p}/disks/{id}`). The compute API
+	// edge resolves boot_disk_name (existing) or BootDiskSpec (inline create + readiness wait)
+	// to a concrete Disk before provisioning begins. Empty = ephemeral boot fallback (lab/CI
+	// only). The boot disk is owned by the project, not the VM — DeleteVirtualMachine detaches
+	// it but does not delete it.
 	VmBootDiskName string `protobuf:"bytes,27,opt,name=vm_boot_disk_name,json=vmBootDiskName,proto3" json:"vm_boot_disk_name,omitempty"`
-	// Configurator shape stamped onto the operation so the workflow's vm-insert activity
-	// writes the same vcpus / ram_gib / cpu_class onto compute_instances. See
-	// services/pricing.Shape.
+	// Configurator shape stamped onto the operation so provisioning records the same
+	// vcpus / ram_gib / cpu_class on the VM.
 	VmVcpus    int32  `protobuf:"varint,29,opt,name=vm_vcpus,json=vmVcpus,proto3" json:"vm_vcpus,omitempty"`
 	VmRamGib   int32  `protobuf:"varint,30,opt,name=vm_ram_gib,json=vmRamGib,proto3" json:"vm_ram_gib,omitempty"`
 	VmCpuClass string `protobuf:"bytes,31,opt,name=vm_cpu_class,json=vmCpuClass,proto3" json:"vm_cpu_class,omitempty"`
-	// Inline boot-disk spec for vm_provision. When set (and vm_boot_disk_name is empty),
-	// the workflow's HydrateInlineBootDisk activity calls Storage.CreateDisk + polls for
-	// AVAILABLE before VM creation proceeds. Replaces the prior synchronous-at-API-edge
-	// pattern that blocked the HTTP call for the entire image-pull window (#120). Mirrors
-	// compute.v1.BootDiskSpec field-for-field.
+	// Inline boot-disk spec for VM provisioning. When set (and vm_boot_disk_name is empty),
+	// provisioning creates the disk and waits for it to become AVAILABLE before the VM is
+	// created. Mirrors compute.v1.BootDiskSpec field-for-field.
 	VmBootDiskSizeGib       int32  `protobuf:"varint,32,opt,name=vm_boot_disk_size_gib,json=vmBootDiskSizeGib,proto3" json:"vm_boot_disk_size_gib,omitempty"`
 	VmBootDiskFromImageUrl  string `protobuf:"bytes,33,opt,name=vm_boot_disk_from_image_url,json=vmBootDiskFromImageUrl,proto3" json:"vm_boot_disk_from_image_url,omitempty"`
 	VmBootDiskFromImageName string `protobuf:"bytes,34,opt,name=vm_boot_disk_from_image_name,json=vmBootDiskFromImageName,proto3" json:"vm_boot_disk_from_image_name,omitempty"`
 	VmBootDiskStorageClass  string `protobuf:"bytes,36,opt,name=vm_boot_disk_storage_class,json=vmBootDiskStorageClass,proto3" json:"vm_boot_disk_storage_class,omitempty"`
 	VmBootDiskDisplayName   string `protobuf:"bytes,37,opt,name=vm_boot_disk_display_name,json=vmBootDiskDisplayName,proto3" json:"vm_boot_disk_display_name,omitempty"`
-	// Decommission-specific. When kind == "host_decommission", these are passed in
-	// the same request as host_name + datacenter_name so the workflow handler reads
-	// them from the request directly (no post-CreateOperation metadata patch round
-	// trip that could race or fail half-way).
+	// Decommission-specific. Passed alongside host_name + datacenter_name.
 	//
-	//	decommission_skip_wipe: skip the Tinkerbell disk wipe (default false; only
-	//	                        set true when the disk is known to be wiped already).
+	//	decommission_skip_wipe: skip the disk wipe (default false; only set true when the
+	//	                        disk is known to be wiped already).
 	//	decommission_reason: operator-supplied audit string.
 	DecommissionSkipWipe bool   `protobuf:"varint,38,opt,name=decommission_skip_wipe,json=decommissionSkipWipe,proto3" json:"decommission_skip_wipe,omitempty"`
 	DecommissionReason   string `protobuf:"bytes,39,opt,name=decommission_reason,json=decommissionReason,proto3" json:"decommission_reason,omitempty"`
-	// Clone-specific (kind == "vm_provision" driven by CloneVirtualMachine). When
-	// vm_boot_disk_clone_source is set, the workflow's HydrateInlineBootDisk activity
-	// snapshots that source Disk + clones it into a fresh PVC instead of CDI-importing
-	// from a URL — moving the (previously synchronous-at-API-edge) snapshot/clone/wait off
-	// the HTTP call so CloneVirtualMachine returns an Operation in ~ms like create.
+	// Clone-specific (VM provisioning driven by CloneVirtualMachine). When
+	// vm_boot_disk_clone_source is set, the boot disk is created by copying that source Disk
+	// instead of importing from a URL, so CloneVirtualMachine returns an Operation quickly.
 	//
-	//	vm_boot_disk_clone_source: source Disk resource name to snapshot + clone.
-	//	vm_clone_source_vm_name:  source VM resource name — read by the CloneFirewallRules
-	//	                          activity to copy the source's custom firewall rules onto
-	//	                          the clone after its public IP is allocated.
+	//	vm_boot_disk_clone_source: source Disk resource name to copy.
+	//	vm_clone_source_vm_name:  source VM resource name — used to copy the source's custom
+	//	                          firewall rules onto the clone after its public IP is allocated.
 	VmBootDiskCloneSource string `protobuf:"bytes,40,opt,name=vm_boot_disk_clone_source,json=vmBootDiskCloneSource,proto3" json:"vm_boot_disk_clone_source,omitempty"`
 	VmCloneSourceVmName   string `protobuf:"bytes,41,opt,name=vm_clone_source_vm_name,json=vmCloneSourceVmName,proto3" json:"vm_clone_source_vm_name,omitempty"`
-	// Delete-specific (kind == "vm_delete"). When true the VMDeleteWorkflow deletes the VM's
-	// attached disks (boot + data) instead of detaching them back to AVAILABLE.
+	// Delete-specific. When true, deletes the VM's attached disks (boot + data) instead of
+	// detaching them back to AVAILABLE.
 	VmDeleteAttachedDisks bool `protobuf:"varint,42,opt,name=vm_delete_attached_disks,json=vmDeleteAttachedDisks,proto3" json:"vm_delete_attached_disks,omitempty"`
-	// Linux login user (kind == "vm_provision"). Threaded from
-	// compute.CreateVirtualMachineRequest.linux_username so the workflow's
-	// ProvisionVirtualMachine activity persists it onto compute_instances.spec.linux_username
+	// Linux login user (VM provisioning). Threaded from
+	// compute.CreateVirtualMachineRequest.linux_username so it can be persisted and displayed
 	// (the Access-panel / `ssh <user>@<ip>` user). The user is ALSO baked into the cloud-config
 	// (vm_user_data) at the API edge; this field is purely for the persisted/displayed value.
 	// Empty when the VM was created with raw vm_user_data.
 	VmLinuxUsername string `protobuf:"bytes,43,opt,name=vm_linux_username,json=vmLinuxUsername,proto3" json:"vm_linux_username,omitempty"`
-	// GPU passthrough for vm_provision (docs/specs/GPU_POOLED_CAPACITY.md). vm_gpu_model selects a GPU
-	// model; vm_gpu_count is the number of whole GPUs. Empty/0 = CPU-only VM.
+	// GPU passthrough for VM provisioning. vm_gpu_model selects a GPU model; vm_gpu_count is
+	// the number of whole GPUs. Empty/0 = CPU-only VM.
 	VmGpuModel    string `protobuf:"bytes,44,opt,name=vm_gpu_model,json=vmGpuModel,proto3" json:"vm_gpu_model,omitempty"`
 	VmGpuCount    int32  `protobuf:"varint,45,opt,name=vm_gpu_count,json=vmGpuCount,proto3" json:"vm_gpu_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -942,7 +920,7 @@ type Operation struct {
 	ErrorMessage string `protobuf:"bytes,5,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	// Same as CreateOperationRequest.kind; immutable after create.
 	Kind string `protobuf:"bytes,6,opt,name=kind,proto3" json:"kind,omitempty"`
-	// Populated after a Temporal workflow is started for this operation (if any).
+	// Internal execution-tracking identifiers for this operation (if any). Opaque to clients.
 	TemporalWorkflowId string `protobuf:"bytes,7,opt,name=temporal_workflow_id,json=temporalWorkflowId,proto3" json:"temporal_workflow_id,omitempty"`
 	TemporalRunId      string `protobuf:"bytes,8,opt,name=temporal_run_id,json=temporalRunId,proto3" json:"temporal_run_id,omitempty"`
 	// Opaque key/value (e.g. vm_project_name on create; virtual_machine_name when provision completes).

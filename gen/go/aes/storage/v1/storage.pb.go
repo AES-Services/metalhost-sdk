@@ -22,8 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Disk is a persistent block volume backed by a PVC in the datacenter cluster's metalhost-vms
-// namespace. State machine:
+// Disk is a persistent block volume that lives in a single datacenter. State machine:
 //
 //	PROVISIONING → AVAILABLE → ATTACHED → AVAILABLE (on detach) → DELETING → DELETED
 //
@@ -50,8 +49,7 @@ type Disk struct {
 	DatacenterName string `protobuf:"bytes,4,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
 	// [IMMUTABLE] 1..1024 GiB at create. Grow via ResizeDisk (one-way), never via UpdateDisk.
 	SizeGib int32 `protobuf:"varint,5,opt,name=size_gib,json=sizeGib,proto3" json:"size_gib,omitempty"`
-	// [IMMUTABLE] Customer-facing storage tier — currently `nvme` only. Translated per-DC to a real
-	// k8s StorageClass at PVC create time — see the DC's `aes.metalhost/storage-class-nvme` annotation.
+	// [IMMUTABLE] Customer-facing storage tier — currently `nvme` only.
 	StorageClass string `protobuf:"bytes,6,opt,name=storage_class,json=storageClass,proto3" json:"storage_class,omitempty"`
 	// [OUTPUT_ONLY] PROVISIONING / AVAILABLE / ATTACHED / DELETING / DELETED.
 	State string `protobuf:"bytes,7,opt,name=state,proto3" json:"state,omitempty"`
@@ -65,9 +63,8 @@ type Disk struct {
 	Labels map[string]string `protobuf:"bytes,11,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// [MUTABLE]
 	Annotations map[string]string `protobuf:"bytes,12,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// [IMMUTABLE] Tenant Network the disk's PVC lives in (`projects/{p}/networks/{id}`). Disks are
-	// namespace-scoped because KubeVirt only mounts PVCs in the same k8s namespace as the VM.
-	// Set at create time; immutable. Disks can only attach to VMs on the same Network.
+	// [IMMUTABLE] Tenant Network the disk lives in (`projects/{p}/networks/{id}`). Set at create
+	// time; immutable. Disks can only attach to VMs on the same Network.
 	NetworkName   string `protobuf:"bytes,13,opt,name=network_name,json=networkName,proto3" json:"network_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -207,9 +204,9 @@ type CreateDiskRequest struct {
 	// Optional client-supplied id; the server assigns one when empty.
 	DiskId string `protobuf:"bytes,3,opt,name=disk_id,json=diskId,proto3" json:"disk_id,omitempty"`
 	// Optional create-only hydration source (not a persisted resource field): stream a raw disk
-	// image from this URL (e.g. an Ubuntu cloud image) into the new PVC during PROVISIONING. CDI's
-	// http source writes the image byte-for-byte; the disk flips to AVAILABLE once import completes.
-	// Billed from AVAILABLE/ATTACHED — the meter loop skips PROVISIONING so no charge during import.
+	// image from this URL (e.g. an Ubuntu cloud image) into the new disk during PROVISIONING.
+	// The image is written byte-for-byte; the disk flips to AVAILABLE once import completes.
+	// Billed from AVAILABLE/ATTACHED — PROVISIONING is not metered, so no charge during import.
 	FromImageUrl  string `protobuf:"bytes,4,opt,name=from_image_url,json=fromImageUrl,proto3" json:"from_image_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -886,7 +883,7 @@ func (x *DetachDiskResponse) GetDisk() *Disk {
 type ResizeDiskRequest struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	DiskName string                 `protobuf:"bytes,1,opt,name=disk_name,json=diskName,proto3" json:"disk_name,omitempty"`
-	// New target size. Must be strictly greater than current size (PVC expansion is one-way).
+	// New target size. Must be strictly greater than current size (expansion is one-way).
 	NewSizeGib    int32 `protobuf:"varint,2,opt,name=new_size_gib,json=newSizeGib,proto3" json:"new_size_gib,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -989,8 +986,7 @@ type FileShare struct {
 	SizeGib        int32  `protobuf:"varint,4,opt,name=size_gib,json=sizeGib,proto3" json:"size_gib,omitempty"`
 	// PROVISIONING / AVAILABLE / DELETING / DELETED.
 	State string `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
-	// Storage tier alias (e.g. "cephfs-rwx"). Today only "cephfs-rwx" is offered; the value
-	// identifies which DC NFS gateway to use, not a k8s StorageClass.
+	// Storage tier alias for the shared filesystem. Today a single RWX tier is offered.
 	StorageClass   string            `protobuf:"bytes,6,opt,name=storage_class,json=storageClass,proto3" json:"storage_class,omitempty"`
 	DisplayName    string            `protobuf:"bytes,8,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	Labels         map[string]string `protobuf:"bytes,9,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -998,17 +994,15 @@ type FileShare struct {
 	CreateTimeUnix int64             `protobuf:"varint,11,opt,name=create_time_unix,json=createTimeUnix,proto3" json:"create_time_unix,omitempty"`
 	UpdateTimeUnix int64             `protobuf:"varint,12,opt,name=update_time_unix,json=updateTimeUnix,proto3" json:"update_time_unix,omitempty"`
 	// NFS server endpoint customers mount over (host[:port]). Same address for every share in
-	// a DC — one Ganesha gateway exposes many exports. Allocated from the DC's
-	// public-ipv4-pool, advertised via MetalLB.
+	// a datacenter.
 	NfsServerEndpoint string `protobuf:"bytes,13,opt,name=nfs_server_endpoint,json=nfsServerEndpoint,proto3" json:"nfs_server_endpoint,omitempty"`
-	// Pseudo path inside the NFS export namespace. Per-share UUID — knowing the path is
-	// necessary but not sufficient for access (Ganesha's per-export ACL whitelists the
-	// tenant network CIDR; mounts from outside that CIDR get permission denied).
+	// Pseudo path inside the NFS export. Per-share UUID — knowing the path is necessary but not
+	// sufficient for access (mounts are restricted to the tenant network; mounts from outside
+	// that network get permission denied).
 	NfsExportPath string `protobuf:"bytes,14,opt,name=nfs_export_path,json=nfsExportPath,proto3" json:"nfs_export_path,omitempty"`
 	// Convenience: the full mount command for a Linux guest. e.g.
-	// `mount -t nfs4 209.135.147.135:/projects/<uuid>/<uuid> /mnt/share`. Customers paste this
-	// into cloud-init or run by hand — any VM on the tenant network is allowed by the
-	// Ganesha export ACL.
+	// `mount -t nfs4 <endpoint>:/projects/<uuid>/<uuid> /mnt/share`. Customers paste this into
+	// cloud-init or run by hand — any VM on the tenant network is allowed.
 	MountCommand  string `protobuf:"bytes,15,opt,name=mount_command,json=mountCommand,proto3" json:"mount_command,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1147,7 +1141,7 @@ type CreateFileShareRequest struct {
 	ProjectName    string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
 	DatacenterName string                 `protobuf:"bytes,2,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
 	SizeGib        int32                  `protobuf:"varint,3,opt,name=size_gib,json=sizeGib,proto3" json:"size_gib,omitempty"`
-	// Storage tier alias. Defaults to "cephfs-rwx" when empty.
+	// Storage tier alias for the shared filesystem. Defaults to the standard RWX tier when empty.
 	StorageClass  string            `protobuf:"bytes,4,opt,name=storage_class,json=storageClass,proto3" json:"storage_class,omitempty"`
 	DisplayName   string            `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	Labels        map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`

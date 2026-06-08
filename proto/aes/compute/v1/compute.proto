@@ -5,37 +5,23 @@ package aes.compute.v1;
 import "aes/ops/v1/operations.proto";
 
 // ComputeService is the control-plane API for VMs.
-//
-// Removed in the v1 rip:
-//   - UpdateVirtualMachine: only patched labels/annotations, no UI surface.
-//   - SuspendVirtualMachine / ResumeVirtualMachine: KubeVirt pause/unpause, niche; deferred.
-//   - GetVMLogs: OpenConsole covers the live-tail use case; this point-in-time snapshot wasn't worth maintaining.
-//   - CreateMachineImage / GetMachineImage / ListMachineImages / DeleteMachineImage:
-//     no customer image upload at launch. System catalog images are managed by
-//     AdminCatalogService.
-//   - PrepareImageUpload / FinalizeImageUpload: deprecated stubs, removed.
-//   - GuestExec: moved to AdminComputeService — privileged backdoor that bypasses guest auth
-//     belongs on the operator surface, not the customer one.
 service ComputeService {
-  // CreateVirtualMachine starts a vm_provision Operation (Temporal when configured + DATABASE_URL);
-  // otherwise inserts a RUNNING VM synchronously. Response carries the Operation when async.
+  // CreateVirtualMachine provisions a new VM. Returns a long-running Operation the client polls
+  // to completion; the synchronous create path returns the VM directly.
   rpc CreateVirtualMachine(CreateVirtualMachineRequest) returns (CreateVirtualMachineResponse);
   rpc GetVirtualMachine(GetVirtualMachineRequest) returns (GetVirtualMachineResponse);
   rpc ListVirtualMachines(ListVirtualMachinesRequest) returns (ListVirtualMachinesResponse);
-  // StartVirtualMachine flips the KubeVirt VM to running. Idempotent on already-running VMs.
+  // StartVirtualMachine starts a stopped VM. Idempotent on already-running VMs.
   rpc StartVirtualMachine(StartVirtualMachineRequest) returns (StartVirtualMachineResponse);
   // StopVirtualMachine halts the VM (graceful shutdown). Disk is preserved.
   rpc StopVirtualMachine(StopVirtualMachineRequest) returns (StopVirtualMachineResponse);
-  // RestartVirtualMachine triggers a guest reboot via the KubeVirt restart subresource.
+  // RestartVirtualMachine reboots the guest OS.
   rpc RestartVirtualMachine(RestartVirtualMachineRequest) returns (RestartVirtualMachineResponse);
-  // ResizeVirtualMachine changes the configurator shape (vcpus / ram_gib / cpu_class).
-  // KubeVirt CPU and memory are immutable on a running VMI in 1.8, so this is a stop →
-  // patch VM spec → start sequence. The whole sequence runs as a vm_resize Operation
-  // (Temporal + DATABASE_URL); the response carries the Operation so the client returns
-  // immediately and polls. Brief downtime — seconds for cirros, longer for graceful Linux
-  // shutdown. Disks, networks, and IP addresses survive. cpu_class changes are allowed
-  // but require a worker host with a matching label; KubeVirt schedules the new VMI
-  // against the updated nodeSelector or the start activity fails the operation.
+  // ResizeVirtualMachine changes the configurator shape (vcpus / ram_gib / cpu_class). CPU and
+  // memory can't change on a running VM, so this is a stop → reshape → start sequence run as a
+  // long-running Operation; the response carries the Operation so the client returns immediately
+  // and polls. Brief downtime. Disks, networks, and IP addresses survive. A cpu_class change
+  // requires capacity for the new class in the datacenter, or the operation fails.
   rpc ResizeVirtualMachine(ResizeVirtualMachineRequest) returns (ResizeVirtualMachineResponse);
   // SetVMAutorenew flips the autorenew flag on a VM in MONTHLY_* billing mode. Returns
   // FailedPrecondition when called on a HOURLY VM (no term to renew).
@@ -47,9 +33,7 @@ service ComputeService {
   rpc RenewVMNow(RenewVMNowRequest) returns (RenewVMNowResponse);
   // ReimageVirtualMachine wipes the OS disk and reinstalls from a (potentially new) image.
   // The VM must be STOPPED — refuses on RUNNING to avoid surprising the customer.
-  // Implementation: delete the existing DataVolume, create a fresh DataVolume from the named
-  // MachineImage (or boot_image_url), restart the VM. Networks, public IPs, and firewall rules
-  // survive — only the disk is replaced.
+  // Networks, public IPs, and firewall rules survive — only the disk is replaced.
   //
   // Use cases: customer wants to start from a clean slate without recreating the VM (preserves
   // resource name, networks, IPs, ssh keys), or wants to upgrade the base image (Ubuntu 24.04
@@ -57,28 +41,26 @@ service ComputeService {
   // existing disk contents.
   rpc ReimageVirtualMachine(ReimageVirtualMachineRequest) returns (ReimageVirtualMachineResponse);
   // OpenConsole returns a short-lived token + WebSocket URL the client uses to connect to the
-  // VM's serial or VNC console. metalhostd proxies the WebSocket so the DC apiserver stays private.
+  // VM's serial or VNC console. The connection is proxied through the Metalhost endpoint.
   rpc OpenConsole(OpenConsoleRequest) returns (OpenConsoleResponse);
   // SnapshotVirtualMachine takes a point-in-time copy of a VM (definition + every disk).
-  // Backed by KubeVirt's VirtualMachineSnapshot CRD which internally creates CSI VolumeSnapshots
-  // for each PVC. NOT a backup — same caveat as disk snapshots.
+  // NOT a backup — same caveat as disk snapshots.
   rpc SnapshotVirtualMachine(SnapshotVirtualMachineRequest) returns (SnapshotVirtualMachineResponse);
   rpc GetVmSnapshot(GetVmSnapshotRequest) returns (GetVmSnapshotResponse);
   rpc ListVmSnapshots(ListVmSnapshotsRequest) returns (ListVmSnapshotsResponse);
   rpc DeleteVmSnapshot(DeleteVmSnapshotRequest) returns (DeleteVmSnapshotResponse);
-  // DeleteVirtualMachine stops billing and removes a VM. Starts a vm_delete Operation when Temporal
-  // is configured; otherwise soft-deletes synchronously.
+  // DeleteVirtualMachine stops billing and removes a VM. Returns a long-running Operation the
+  // client polls; the synchronous path soft-deletes immediately.
   rpc DeleteVirtualMachine(DeleteVirtualMachineRequest) returns (DeleteVirtualMachineResponse);
 
-  // GetVMMetrics returns CPU/memory/disk/network samples for a VM over a time range. Sourced
-  // from the cluster's Prometheus (kube-prometheus-stack), which scrapes virt-handler's
-  // exported metrics. Caller specifies the rollup window (default 1m, max 1h step).
+  // GetVMMetrics returns CPU/memory/disk/network samples for a VM over a time range. Caller
+  // specifies the rollup window (default 1m, max 1h step).
   rpc GetVMMetrics(GetVMMetricsRequest) returns (GetVMMetricsResponse);
 
   // CloneVirtualMachine creates a new VM whose BOOT disk is a copy of an existing VM's boot
-  // disk at the point of clone. Async, disk-first: snapshots the source boot disk, clones it
-  // into a fresh PVC, and provisions the new VM from it inside the vm_provision workflow;
-  // returns an Operation the caller polls like a create. The new VM gets a fresh name +
+  // disk at the point of clone. Async, disk-first: snapshots the source boot disk, copies it,
+  // and provisions the new VM from the copy; returns an Operation the caller polls like a
+  // create. The new VM gets a fresh name +
   // project-scoped resource ID. Custom firewall rules ARE copied; networks are NOT (clone is
   // per-VM, not per-stack). Boot disk only — any attached DATA disks on the source are NOT
   // cloned (tracked as a follow-on, mirrors CreateVirtualMachineFromBackup).
@@ -87,10 +69,8 @@ service ComputeService {
   // CreateVirtualMachineFromBackup spins up a new VM whose boot disk is materialized from
   // a previously-taken VmSnapshot. Same project, same DC as the source backup. Boot disk
   // only in v1 — data disks from the source aren't re-attached (tracked as a follow-on).
-  // The source VM is untouched. Implementation walks the VirtualMachineSnapshot CR's
-  // status.virtualMachineSnapshotContentName → status.volumeBackups[] to find the boot
-  // disk's preserved VolumeSnapshot, materialises a new Disk via the internal
-  // CreateDiskFromVolumeSnapshot path, and chains CreateVirtualMachine(boot_disk_name=…).
+  // The source VM is untouched; the new VM's boot disk is built from the snapshot's
+  // preserved boot volume.
   rpc CreateVirtualMachineFromBackup(CreateVirtualMachineFromBackupRequest) returns (CreateVirtualMachineFromBackupResponse);
 }
 
@@ -99,7 +79,7 @@ service ComputeService {
 // on Create gets the default behavior.
 enum BillingMode {
   BILLING_MODE_UNSPECIFIED = 0;
-  // Per-hour usage events accrue against CUSTOMER_PREPAY_LIABILITY each metering tick.
+  // Per-hour usage events accrue against the wallet's prepay balance each metering tick.
   BILLING_MODE_HOURLY = 1;
   // 1-month prepaid term, ~10% discount. commitment_end_at = create + ~30d.
   BILLING_MODE_MONTHLY_1 = 2;
@@ -117,9 +97,8 @@ message VirtualMachine {
   string datacenter_name = 3;
   reserved 4;
   reserved "instance_type";
-  // Current lifecycle state — RUNNING / STOPPED / SUSPENDED / DELETING / DELETED. Reflects DB;
-  // updated by Start/Stop/Restart/Suspend/Resume RPCs after the underlying KubeVirt subresource
-  // call succeeds.
+  // Current lifecycle state — RUNNING / STOPPED / SUSPENDED / DELETING / DELETED. Updated after
+  // the corresponding lifecycle RPC succeeds.
   string state = 5;
   int64 create_time_unix = 6;
   // User-facing labels (filterable, indexed externally). Merged on Update unless clear_labels.
@@ -141,60 +120,58 @@ message VirtualMachine {
   // For MONTHLY_*: whether the renewal worker should auto-charge for the next term when
   // this one ends. Customer toggles via SetVMAutorenew. Ignored when billing_mode is HOURLY.
   bool autorenew = 13;
-  // ────────────── Runtime-derived fields (populated from KubeVirt at Get/List time) ──────────────
-  // These are NOT stored in the compute_instances row. Get/List handlers query the DC's
-  // KubeVirt apiserver and fill them so the API surface matches reality (private IP from the
-  // tenant UDN, host node, disk size, boot image, KubeVirt status.printableStatus). Empty when
-  // the VM has been deleted or the cluster is unreachable — `state` then reads `DELETED`/`UNKNOWN`.
+  // ────────────── Runtime-derived fields (populated live at Get/List time) ──────────────
+  // These are NOT stored; Get/List handlers read them from the datacenter so the API surface
+  // matches reality (private IP, host node, disk size, boot image, detailed status). Empty when
+  // the VM has been deleted or is unreachable — `state` then reads `DELETED`/`UNKNOWN`.
   //
-  // Tenant-private IPv4 from the project's UserDefinedNetwork. Pinned across stop/start by
-  // OVN-K's IPAMClaim. Routable only inside the tenant network (cross-network requires explicit
-  // peering); for outbound internet egress the VM uses its public NIC when one is allocated.
+  // Tenant-private IPv4 from the project's network. Pinned across stop/start. Routable only
+  // inside the tenant network (cross-network requires explicit peering); for outbound internet
+  // egress the VM uses its public NIC when one is allocated.
   string private_ipv4 = 14;
   reserved 15;
   reserved "external_ip";
-  // K8s Node hosting the virt-launcher pod (e.g. "worker-01"). Useful for capacity reports
-  // and live-migration affinity hints.
+  // Host the VM runs on (e.g. "worker-01"). Useful for capacity reports and migration
+  // affinity hints.
   string host_node = 16;
   // Removed pre-launch — boot disks are now first-class Disk resources. Read the bound boot
   // disk via the boot_disk field below + GetDisk for size + source details.
   reserved 17, 18;
   reserved "disk_size_gib", "boot_image_url";
-  // KubeVirt VirtualMachine.status.printableStatus — finer-grained than `state`. Values:
-  // "Running", "Starting", "Stopping", "Stopped", "Provisioning", "ErrImagePull", "Unknown",
-  // and others. Use for UI surfacing of transient phases that don't map cleanly to `state`.
+  // Finer-grained status than `state`. Values: "Running", "Starting", "Stopping", "Stopped",
+  // "Provisioning", "ErrImagePull", "Unknown", and others. Use for UI surfacing of transient
+  // phases that don't map cleanly to `state`.
   string status_detail = 19;
-  // User-facing hostname (DNS-1123 label, ≤63 chars). Written to the VM's k8s object name and
-  // injected as cloud-init `set_hostname`. Customer chooses; defaults to the resource id if
-  // omitted at create time.
+  // User-facing hostname (DNS-1123 label, ≤63 chars). Injected as the guest's cloud-init
+  // hostname. Customer chooses; defaults to the resource id if omitted at create time.
   string hostname = 20;
   // Tenant network the VM is attached to (`projects/{p}/networks/{id}`). Each VM has exactly
-  // one network — the network's namespace + Primary UDN provide the VM's single NIC and IPv6
-  // address. VMs in the same network can talk freely; cross-network requires explicit peering.
+  // one network, which provides the VM's single NIC and IPv6 address. VMs in the same network
+  // can talk freely; cross-network requires explicit peering.
   string network_name = 21;
   // Public IPv4 address allocated to this VM for the public NIC workflow. Empty when the VM
   // was created without `assign_public_ipv4=true`. When set, this is the same value as the
   // PublicIp resource's ip_address.
   string public_ipv4 = 22;
   // IPv6 address from the tenant Network's /64, on the VM's primary NIC. Pinned across
-  // stop/start by the same IPAMClaim that pins private_ipv4. Note: this is NOT "private"
-  // in the RFC1918 sense — when the DC's tenant prefix is a real GUA /48, this address
-  // is globally routable. The OVN-K UDN provides tenant isolation at the network layer,
-  // not via address scope. Lab DCs using ULA-style /48s see locally-scoped addresses here.
+  // stop/start, same as private_ipv4. Note: this is NOT "private" in the RFC1918 sense —
+  // when the DC's tenant prefix is a real GUA /48, this address is globally routable. Tenant
+  // isolation is enforced at the network layer, not via address scope. Lab DCs using
+  // ULA-style /48s see locally-scoped addresses here.
   string ipv6 = 23;
   // The Disk resource bound as the VM's boot device (`projects/{p}/disks/{id}`). Set on every
-  // persistent VM (containerDisk lab/ephemeral VMs leave it empty). The disk has its own
+  // persistent VM (ephemeral lab VMs leave it empty). The disk has its own
   // lifecycle: DeleteVirtualMachine detaches it but does not delete it, so a customer can bind
   // the same boot_disk to a fresh VM and keep their data. Use GetDisk for size + source URL.
   string boot_disk = 24;
-  // Configurator shape — the (vcpus, ram_gib, cpu_class) the VM was created with. Stored on
-  // compute_instances; drives the per-component usage events the metering loop emits hourly.
+  // Configurator shape — the (vcpus, ram_gib, cpu_class) the VM was created with. Drives the
+  // per-component hourly usage events.
   int32 vcpus = 25;
   int32 ram_gib = 26;
   string cpu_class = 27;
   // Whole-GPU passthrough attached to the VM. gpu_model is the SKU variant (e.g. "rtx4090");
-  // gpu_count is how many physical cards. Empty / 0 for a CPU-only VM. Stored on
-  // compute_instances; drives the compute.gpu.<model>.runtime_hours meter.
+  // gpu_count is how many physical cards. Empty / 0 for a CPU-only VM. Drives the
+  // compute.gpu.<model>.runtime_hours meter.
   string gpu_model = 31;
   int32 gpu_count = 32;
   // ────────────── Live cost fields (computed at Get-time, not persisted) ──────────────
@@ -206,10 +183,9 @@ message VirtualMachine {
   // Why decimal: a small VM's hourly rate is fractional cents — rounding to int64 hides the
   // truth and customers see "$0/hr". The portal displays the decimal value to 4-6 places.
   //
-  // mtd_spend_minor_decimal: month-to-date wallet debits attributed to this VM, summed from
-  // ledger_postings joined to settled usage_events via journal_entry_id. Reflects what the
-  // customer has actually paid for this VM since start-of-month UTC. Sub-cent residue still
-  // sitting in pending_charge_accumulator is NOT counted (it hasn't been charged yet).
+  // mtd_spend_minor_decimal: month-to-date wallet debits attributed to this VM. Reflects what
+  // the customer has actually paid for this VM since start-of-month UTC. Sub-cent residue not
+  // yet charged is NOT counted.
   string current_cost_per_hour_minor_decimal = 28;
   string mtd_spend_minor_decimal = 29;
   // Linux login user cloud-init created for SSH access (`ssh <linux_username>@<public_ipv4>`).
@@ -262,8 +238,7 @@ message VirtualMachineSpec {
 }
 
 message VMComputeSpec {
-  // CPU class — picks the pricing_components.vcpu/<class> row; must have pricing AND scheduler
-  // placement. Required.
+  // CPU class — must have published pricing and capacity in the datacenter. Required.
   string cpu_class = 1;
   int32 vcpus = 2;   // required, validated against the RAM-per-vCPU ratio bounds
   int32 ram_gib = 3; // required
@@ -277,11 +252,11 @@ message GPUSpec {
 }
 
 message VMBootSpec {
-  // Curated catalog image id (e.g. "ubuntu-24-04") — resolved server-side (pkg/osimage.Catalog)
-  // to an image URL + the distro's default login user. Mutually exclusive with image_url/disk_name.
+  // Curated catalog image id (e.g. "ubuntu-24-04") — resolved server-side to an image URL +
+  // the distro's default login user. Mutually exclusive with image_url/disk_name.
   string image = 1;
-  // Raw streamable image URL (CDI http source) — escape hatch for non-catalog images. Mutually
-  // exclusive with image/disk_name.
+  // Raw streamable image URL — escape hatch for non-catalog images. Mutually exclusive with
+  // image/disk_name.
   string image_url = 2;
   // Boot disk size GiB (1..1024). Required when image/image_url is set.
   int32 disk_gib = 3;
@@ -339,24 +314,23 @@ message BootDiskSpec {
   int32 size_gib = 2;
   // Storage tier (`nvme`). Defaults to nvme.
   string storage_class = 3;
-  // Streamable raw disk image URL (CDI http source). Required UNLESS clone_source_disk
-  // is set (clone path supplies the data by snapshotting an existing disk instead).
+  // Streamable raw disk image URL. Required UNLESS clone_source_disk is set (clone path
+  // supplies the data by snapshotting an existing disk instead).
   string from_image_url = 4;
   reserved 5, 6;
   reserved "from_image_name", "from_snapshot";
   map<string, string> labels = 7;
   map<string, string> annotations = 8;
-  // Clone path: when set, this boot disk is created by snapshotting the named source
-  // Disk + cloning it into a fresh PVC (done in the vm_provision workflow, not the RPC),
-  // rather than CDI-importing from from_image_url. Set by CloneVirtualMachine; customers
-  // don't set this directly. size_gib is derived from the source snapshot's restoreSize.
+  // Clone path: when set, this boot disk is created by copying the named source Disk rather
+  // than importing from from_image_url. Set by CloneVirtualMachine; customers don't set this
+  // directly. size_gib is derived from the source.
   string clone_source_disk = 9;
 }
 
 message CreateVirtualMachineResponse {
-  // Set when provisioning is async (Temporal + Postgres): poll GetOperation until SUCCEEDED; metadata may include virtual_machine_name.
+  // Set when provisioning is async: poll GetOperation until SUCCEEDED; metadata may include virtual_machine_name.
   aes.ops.v1.Operation operation = 1;
-  // Set only for synchronous (in-memory or no Temporal) create path.
+  // Set only for the synchronous create path.
   VirtualMachine virtual_machine = 2;
 }
 
@@ -393,7 +367,7 @@ message DeleteVirtualMachineRequest {
 }
 
 message DeleteVirtualMachineResponse {
-  // Set when delete is async (Temporal + Postgres): poll GetOperation until SUCCEEDED.
+  // Set when delete is async: poll GetOperation until SUCCEEDED.
   aes.ops.v1.Operation operation = 1;
 }
 
@@ -430,19 +404,18 @@ message ResizeVirtualMachineRequest {
   // recompute consistently). Same 1–16 GiB RAM-per-vCPU ratio bounds as Create.
   int32 vcpus = 3;
   int32 ram_gib = 4;
-  // CPU class. Required — changing class is allowed but the cluster must have a worker with
-  // a matching `aes.metalhost/cpu-class=<class>` label or the rescheduled VM won't start.
+  // CPU class. Required — changing class is allowed but the datacenter must have capacity for
+  // the new class or the VM won't restart.
   string cpu_class = 5;
 }
 
 message ResizeVirtualMachineResponse {
-  // Set on the sync (in-memory / no-Temporal) path.
+  // Set on the synchronous path.
   VirtualMachine virtual_machine = 1;
-  // Set when the request was dispatched as a vm_resize Operation (Temporal +
-  // DATABASE_URL). Client polls GetOperation until SUCCEEDED, then re-Gets the VM
-  // to see the new shape. The operation runs the full stop → wait-for-VMI →
-  // patch → start → DB update sequence under Temporal's retry envelope so a
-  // mid-flight crash doesn't strand the VM in STOPPED with the old shape.
+  // Set when the resize runs as a long-running Operation. Client polls GetOperation until
+  // SUCCEEDED, then re-Gets the VM to see the new shape. The operation runs the full
+  // stop → reshape → start sequence with retries so a mid-flight failure doesn't strand
+  // the VM in STOPPED with the old shape.
   aes.ops.v1.Operation operation = 2;
 }
 
@@ -472,9 +445,9 @@ message ReimageVirtualMachineRequest {
   string name = 1;
   reserved 2;
   reserved "image_name";
-  // Required: streamable raw disk image URL (CDI http source). Setting this is the
-  // canonical way to upgrade the base OS (Ubuntu 24.04 → 26.04) without recreating
-  // the VM. Empty = reuse the original boot source.
+  // Required: streamable raw disk image URL. Setting this is the canonical way to upgrade
+  // the base OS (Ubuntu 24.04 → 26.04) without recreating the VM. Empty = reuse the original
+  // boot source.
   string boot_image_url = 3;
   // Required confirmation token. Server returns the expected value on a first call and the
   // client echoes it back on the second to acknowledge data loss. Wire format: must equal
@@ -487,7 +460,7 @@ message ReimageVirtualMachineResponse {
   VirtualMachine virtual_machine = 1;
 }
 
-// ConsoleType picks which KubeVirt console subresource the proxy bridges to.
+// ConsoleType picks which console the proxy bridges to.
 enum ConsoleType {
   CONSOLE_TYPE_UNSPECIFIED = 0;
   // Serial console — line-buffered text, attaches to the VM's first virtio-serial port. Best
@@ -505,10 +478,9 @@ message OpenConsoleRequest {
 }
 
 message OpenConsoleResponse {
-  // Relative path the client opens via WebSocket on the metalhostd public endpoint
-  // (e.g. wss://metalhost/v1/console/<token>). metalhostd validates the token, resolves the VM's
-  // datacenter kubeconfig, and bridges to the KubeVirt subresource so the apiserver stays
-  // private.
+  // Relative path the client opens via WebSocket on the Metalhost public endpoint
+  // (e.g. wss://metalhost/v1/console/<token>). The server validates the token and bridges to
+  // the VM's console privately.
   string websocket_path = 1;
   // One-shot token embedded in the websocket_path. Single-use, scoped to (vm, console_type),
   // expires at expires_at_unix.
@@ -518,10 +490,10 @@ message OpenConsoleResponse {
 
 // MachineImage is a registered URL pointing at a streamable raw disk image. Resource name:
 // `projects/{project}/images/{image_id}`. Day-1 images are external URLs (S3/GCS/operator
-// HTTP); a cluster-internal upload endpoint is a future story.
-// VmSnapshot is a point-in-time copy of a VM (definition + every PVC). Backed by KubeVirt's
-// VirtualMachineSnapshot CRD on the DC cluster. State machine: CREATING → READY → DELETING →
-// DELETED. Survives source VM deletion (the snapshot row is independent).
+// HTTP); a managed upload endpoint is a future story.
+// VmSnapshot is a point-in-time copy of a VM (definition + every disk). State machine:
+// CREATING → READY → DELETING → DELETED. Survives source VM deletion (the snapshot row is
+// independent).
 message VmSnapshot {
   // Resource name `projects/{project}/vm-snapshots/{id}`.
   string name = 1;
@@ -539,8 +511,8 @@ message VmSnapshot {
   map<string, string> labels = 10;
   map<string, string> annotations = 11;
   // ────────────── Live cost fields (computed at Get/List-time, not persisted) ──
-  // Hourly rate this snapshot accrues against the wallet at current pricing:
-  //   size_gib × pricing_components(storage_snapshot_gib, standard).unit_price_minor
+  // Hourly rate this snapshot accrues against the wallet at current pricing
+  // (size_gib × the snapshot storage unit price).
   // NUMERIC text so fractional cents survive the wire (a 40 GiB backup costs
   // ~0.55 cents per hour — int64 would round to 1 and overstate by ~80%).
   // Zero ("0") when rates aren't seeded or the snapshot is in a non-billing
@@ -552,8 +524,8 @@ message VmSnapshot {
 }
 
 message SnapshotVirtualMachineRequest {
-  // VM to snapshot (`virtual-machines/{id}`). Can be RUNNING or STOPPED — KubeVirt handles
-  // both (running snapshots use the same CSI VolumeSnapshot mechanism with quiesce=false).
+  // VM to snapshot (`virtual-machines/{id}`). Can be RUNNING or STOPPED — both are supported
+  // (running snapshots are crash-consistent).
   string vm_name = 1;
   string display_name = 2;
   map<string, string> labels = 3;
@@ -635,8 +607,8 @@ message CloneVirtualMachineResponse {
   // The intermediate snapshot the clone was taken from. Useful for retry / audit; the
   // customer can reuse it to clone again or roll back.
   string vm_snapshot_name = 2;
-  // When async provisioning is configured, the long-running operation tracking the actual
-  // VirtualMachineRestore application. Empty in sync mode (row inserted, no cluster apply).
+  // When async provisioning is configured, the long-running operation tracking the clone.
+  // Empty in sync mode.
   aes.ops.v1.Operation operation = 3;
 }
 
@@ -671,9 +643,8 @@ message CreateVirtualMachineFromBackupResponse {
   VirtualMachine virtual_machine = 1;
   // Reserved for a future implementation that materialises an intermediate DiskSnapshot row
   // for the cloned boot disk. Today the server uses an internal storage path that bypasses
-  // the public DiskSnapshot model (the on-cluster VolumeSnapshot already exists, owned by
-  // KubeVirt's VirtualMachineSnapshot controller), so this field is always empty. Kept on
-  // the wire so a later implementation can populate it without a proto change.
+  // the public DiskSnapshot model, so this field is always empty. Kept on the wire so a later
+  // implementation can populate it without a proto change.
   string disk_snapshot_name = 2;
   // When async provisioning is configured, the long-running operation. Empty in sync mode.
   aes.ops.v1.Operation operation = 3;

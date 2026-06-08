@@ -9,9 +9,9 @@ service WalletService {
   rpc ListBillingAccounts(ListBillingAccountsRequest) returns (ListBillingAccountsResponse);
   rpc GetBillingAccount(GetBillingAccountRequest) returns (GetBillingAccountResponse);
   rpc GetWallet(GetWalletRequest) returns (GetWalletResponse);
-  // GetWalletBalance returns the current prepay liability balance computed from
-  // ledger_postings. Separate from GetWallet so the cheap balance-only lookup doesn't drag
-  // the full wallet metadata + permissions check overhead. Caller needs wallet read access.
+  // GetWalletBalance returns the current prepay balance. Separate from GetWallet so the cheap
+  // balance-only lookup doesn't drag the full wallet metadata + permissions check overhead.
+  // Caller needs wallet read access.
   rpc GetWalletBalance(GetWalletBalanceRequest) returns (GetWalletBalanceResponse);
   // ListPublicMeterRates returns the currently-effective rate per (meter, currency). Read-only,
   // un-scoped — meters are public catalog data; pricing is the same for every customer (any
@@ -55,11 +55,11 @@ service WalletService {
   rpc ConfigureWalletAlerts(ConfigureWalletAlertsRequest) returns (ConfigureWalletAlertsResponse);
   rpc GetWalletAlerts(GetWalletAlertsRequest) returns (GetWalletAlertsResponse);
 
-  // Customer-initiated top-ups (PLATFORM_DESIGN §6.11). Two flavors:
-  //   - Stripe payment intent: customer's browser confirms a card charge; on success
-  //     Metalhost's Stripe webhook posts a TOPUP_CLEARING / CUSTOMER_PREPAY_LIABILITY journal.
+  // Customer-initiated top-ups. Two flavors:
+  //   - Stripe payment intent: customer's browser confirms a card charge; the wallet is
+  //     credited on payment success.
   //   - Coinbase checkout: returns a hosted Coinbase URL the customer pays USDC on (any chain
-  //     Coinbase supports); the Coinbase webhook posts the same journal on payment success.
+  //     Coinbase supports); the wallet is credited on payment success.
   rpc CreateStripeTopUpIntent(CreateStripeTopUpIntentRequest) returns (CreateStripeTopUpIntentResponse);
   // CreateCardSetupIntent: Stripe SetupIntent in card mode. Returns the client_secret the
   // browser's <PaymentElement> needs to render + collect card details without charging.
@@ -67,7 +67,7 @@ service WalletService {
   // payment_method_id to persist + add to the customer. Used by onboarding + add-card UI.
   rpc CreateCardSetupIntent(CreateCardSetupIntentRequest) returns (CreateCardSetupIntentResponse);
   // CreateCoinbaseTopUpCheckout: hosted USDC checkout for a wallet top-up. Returns a Coinbase
-  // checkout URL the customer pays on; the /v1/public/coinbase/webhook handler credits the wallet.
+  // checkout URL the customer pays on; the wallet is credited when payment is confirmed.
   rpc CreateCoinbaseTopUpCheckout(CreateCoinbaseTopUpCheckoutRequest) returns (CreateCoinbaseTopUpCheckoutResponse);
   rpc ListTopUps(ListTopUpsRequest) returns (ListTopUpsResponse);
   rpc GetTopUp(GetTopUpRequest) returns (GetTopUpResponse);
@@ -348,9 +348,8 @@ message GetWalletBalanceRequest {
 
 message GetWalletBalanceResponse {
   string wallet_name = 1;
-  // Current prepay liability balance in minor currency units. Positive = customer has credit.
-  // Computed by summing ledger_postings where account_code='CUSTOMER_PREPAY_LIABILITY' and
-  // applying direction (credit = +, debit = -).
+  // Current prepay balance in minor currency units. Positive = customer has credit
+  // (credits add, debits subtract).
   int64 balance_minor = 2;
   string currency = 3;
   // Timestamp of the latest journal entry on this wallet; UI uses this to show "updated 2m ago"
@@ -374,7 +373,7 @@ message RecordJournalEntryResponse {
 }
 
 message RecordUsageEventRequest {
-  // Optional projects/...; when empty, server may use authenticated default project (metalhostd).
+  // Optional projects/...; when empty, the server may use the authenticated default project.
   string project_name = 1;
   string resource_name = 2;
   string meter = 3;
@@ -402,8 +401,8 @@ message SettleUsageToLedgerRequest {
   string idempotency_key = 5;
   // When empty, a short server-generated description is used.
   string description = 6;
-  // When true, amount_minor is ignored; the charge is round(quantity * unit_price_minor) from
-  // usage_meter_rates for the usage row's meter and the wallet currency (Postgres), or in-memory rates (dev).
+  // When true, amount_minor is ignored; the charge is round(quantity * unit_price_minor) using
+  // the registered meter rate for the usage row's meter and the wallet currency.
   bool use_registered_meter_rate = 7;
 }
 
@@ -445,7 +444,7 @@ message GetCostForecastRequest {
 
 message GetCostForecastResponse {
   string currency = 1;
-  // Spend so far in the current period (sum of CUSTOMER_PREPAY_LIABILITY debits).
+  // Spend so far in the current period.
   int64 mtd_spend_minor = 2;
   // Days elapsed since period_start (1 on day 1).
   int32 days_elapsed = 3;
@@ -459,8 +458,7 @@ message GetCostForecastResponse {
 }
 
 // Refunds intentionally not exposed to customers — they open a support ticket and the
-// operator issues the refund via Stripe Dashboard, which our charge.refunded webhook handler
-// turns into the corresponding ledger entry.
+// operator issues the refund, which credits the wallet accordingly.
 
 // -----------------------------------------------------------------------------
 // Top-ups (Stripe / Coinbase)

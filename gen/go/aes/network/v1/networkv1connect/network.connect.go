@@ -54,10 +54,8 @@ const (
 type NetworkServiceClient interface {
 	CreateNetwork(context.Context, *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.CreateNetworkResponse], error)
 	ListNetworks(context.Context, *connect.Request[v1.ListNetworksRequest]) (*connect.Response[v1.ListNetworksResponse], error)
-	// CreateFirewallRule programs OVN ACLs on the public-vlan50 logical switch scoped to the
-	// VM's public IP, permitting the listed ingress ports from the listed source CIDRs.
-	// Egress is unrestricted (blocking it breaks cloud-init / package installs / DNS).
-	// Multi-port rules expand server-side into one ACL per (port, source) leaf.
+	// CreateFirewallRule opens the listed ingress ports on the VM's public IP from the listed
+	// source CIDRs. Egress is unrestricted (blocking it breaks cloud-init / package installs / DNS).
 	CreateFirewallRule(context.Context, *connect.Request[v1.CreateFirewallRuleRequest]) (*connect.Response[v1.CreateFirewallRuleResponse], error)
 	ListFirewallRules(context.Context, *connect.Request[v1.ListFirewallRulesRequest]) (*connect.Response[v1.ListFirewallRulesResponse], error)
 	DeleteFirewallRule(context.Context, *connect.Request[v1.DeleteFirewallRuleRequest]) (*connect.Response[v1.DeleteFirewallRuleResponse], error)
@@ -145,10 +143,8 @@ func (c *networkServiceClient) DeleteFirewallRule(ctx context.Context, req *conn
 type NetworkServiceHandler interface {
 	CreateNetwork(context.Context, *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.CreateNetworkResponse], error)
 	ListNetworks(context.Context, *connect.Request[v1.ListNetworksRequest]) (*connect.Response[v1.ListNetworksResponse], error)
-	// CreateFirewallRule programs OVN ACLs on the public-vlan50 logical switch scoped to the
-	// VM's public IP, permitting the listed ingress ports from the listed source CIDRs.
-	// Egress is unrestricted (blocking it breaks cloud-init / package installs / DNS).
-	// Multi-port rules expand server-side into one ACL per (port, source) leaf.
+	// CreateFirewallRule opens the listed ingress ports on the VM's public IP from the listed
+	// source CIDRs. Egress is unrestricted (blocking it breaks cloud-init / package installs / DNS).
 	CreateFirewallRule(context.Context, *connect.Request[v1.CreateFirewallRuleRequest]) (*connect.Response[v1.CreateFirewallRuleResponse], error)
 	ListFirewallRules(context.Context, *connect.Request[v1.ListFirewallRulesRequest]) (*connect.Response[v1.ListFirewallRulesResponse], error)
 	DeleteFirewallRule(context.Context, *connect.Request[v1.DeleteFirewallRuleRequest]) (*connect.Response[v1.DeleteFirewallRuleResponse], error)

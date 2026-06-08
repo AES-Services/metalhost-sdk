@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package aes.catalog.v1;
 
-// CatalogService exposes datacenters and SKUs per PLATFORM_DESIGN.md §4.
+// CatalogService exposes datacenters, capacity, and pricing.
 service CatalogService {
   rpc ListDatacenters(ListDatacentersRequest) returns (ListDatacentersResponse);
   // GetRegionHealth returns capacity + degraded-component summary for a single DC. Customers
@@ -21,8 +21,8 @@ service CatalogService {
   // the quoted amount.
   rpc QuoteVirtualMachine(QuoteVirtualMachineRequest) returns (QuoteVirtualMachineResponse);
   // GetVMCapacity returns per-datacenter VM capacity in sellable units, broken down by CPU class
-  // (pool) and GPU model. PUBLIC + unauthenticated (see publicMetalhostProcedures) — capacity is
-  // non-sensitive catalog data (same posture as GetRegionHealth). See docs/specs/GPU_POOLED_CAPACITY.md.
+  // and GPU model. Public + unauthenticated — capacity is non-sensitive catalog data (same
+  // posture as GetRegionHealth).
   rpc GetVMCapacity(GetVMCapacityRequest) returns (GetVMCapacityResponse);
 }
 
@@ -105,18 +105,17 @@ message Datacenter {
   string name = 1;
   string display_name = 2;
   DatacenterState state = 3;
-  // Reserved: was `string site_id = 4` — Sites were dropped pre-launch (2026-05-16) and
-  // hosts now reference Datacenter directly. Field tag retired so a future repurpose
-  // doesn't accidentally inherit the old semantics.
+  // Reserved: was `string site_id = 4`, dropped pre-launch. Field tag retired so a future
+  // repurpose doesn't accidentally inherit the old semantics.
   reserved 4;
   reserved "site_id";
-  // Kubernetes API endpoint for the DC control plane (operator-visible).
+  // Operator-visible control-plane endpoint for the datacenter.
   string kubernetes_api_endpoint = 5;
   map<string, string> labels = 6;
   map<string, string> annotations = 7;
   string kubernetes_version = 8;
   string kubevirt_version = 9;
-  // Opaque summary JSON or text for health snapshots (OVN, Rook, etc.).
+  // Opaque summary JSON or text for health snapshots.
   string health_summary = 10;
   // ────────────── Capacity (populated by ListDatacenters / GetDatacenter) ──────────────
   // capacity_pct: % of usable VM CPU capacity currently allocated (0..100). Same number
@@ -151,23 +150,21 @@ message RegionHealth {
   int64 last_updated_unix = 6;
   // Field 7 (vm_cpu_oversubscribe_ratio) intentionally removed: oversubscription is an
   // internal packing detail, not a customer concept. Customers see vm_sellable_vcpu as the
-  // plain "total vCPU" (it already bakes in the ratio). The ratio stays admin-only on
-  // AdminInventoryService.GetDCUtilization.
+  // plain "total vCPU" (it already bakes in the ratio).
   reserved 7;
   reserved "vm_cpu_oversubscribe_ratio";
-  // VM CPU capacity (k8s_vm pool). sellable = total vCPU a customer can buy (physical pool ×
-  // oversubscribe ratio); running = in use; free = available. Presented to customers as
-  // plain vCPU counts — the ratio is not exposed here.
+  // VM CPU capacity. sellable = total vCPU a customer can buy; running = in use;
+  // free = available. Presented to customers as plain vCPU counts.
   int64 vm_sellable_vcpu = 8;
   int64 vm_running_vcpu = 9;
   int64 vm_free_vcpu = 10;
-  // VM RAM capacity (k8s_vm pool). sellable = cached pool allocatable memory × RAM
-  // oversubscribe ratio (default 1:1); running = Σ ram_gib of RUNNING VMs; free = headroom.
+  // VM RAM capacity. sellable = total RAM a customer can buy; running = Σ ram_gib of
+  // RUNNING VMs; free = headroom.
   int64 vm_sellable_ram_gib = 11;
   int64 vm_running_ram_gib = 12;
   int64 vm_free_ram_gib = 13;
-  // Ceph storage (post-replication usable). usable = raw total ÷ replication; free = Rook's
-  // reported usable available. Zero when the DC has no Ceph cache (not deployed / stale).
+  // Block storage capacity (post-replication usable). usable = total after replication;
+  // free = available. Zero when the datacenter has no storage capacity data (stale/unavailable).
   int64 storage_usable_gib = 14;
   int64 storage_free_gib = 15;
 }

@@ -94,25 +94,22 @@ const (
 
 // ComputeServiceClient is a client for the aes.compute.v1.ComputeService service.
 type ComputeServiceClient interface {
-	// CreateVirtualMachine starts a vm_provision Operation (Temporal when configured + DATABASE_URL);
-	// otherwise inserts a RUNNING VM synchronously. Response carries the Operation when async.
+	// CreateVirtualMachine provisions a new VM. Returns a long-running Operation the client polls
+	// to completion; the synchronous create path returns the VM directly.
 	CreateVirtualMachine(context.Context, *connect.Request[v1.CreateVirtualMachineRequest]) (*connect.Response[v1.CreateVirtualMachineResponse], error)
 	GetVirtualMachine(context.Context, *connect.Request[v1.GetVirtualMachineRequest]) (*connect.Response[v1.GetVirtualMachineResponse], error)
 	ListVirtualMachines(context.Context, *connect.Request[v1.ListVirtualMachinesRequest]) (*connect.Response[v1.ListVirtualMachinesResponse], error)
-	// StartVirtualMachine flips the KubeVirt VM to running. Idempotent on already-running VMs.
+	// StartVirtualMachine starts a stopped VM. Idempotent on already-running VMs.
 	StartVirtualMachine(context.Context, *connect.Request[v1.StartVirtualMachineRequest]) (*connect.Response[v1.StartVirtualMachineResponse], error)
 	// StopVirtualMachine halts the VM (graceful shutdown). Disk is preserved.
 	StopVirtualMachine(context.Context, *connect.Request[v1.StopVirtualMachineRequest]) (*connect.Response[v1.StopVirtualMachineResponse], error)
-	// RestartVirtualMachine triggers a guest reboot via the KubeVirt restart subresource.
+	// RestartVirtualMachine reboots the guest OS.
 	RestartVirtualMachine(context.Context, *connect.Request[v1.RestartVirtualMachineRequest]) (*connect.Response[v1.RestartVirtualMachineResponse], error)
-	// ResizeVirtualMachine changes the configurator shape (vcpus / ram_gib / cpu_class).
-	// KubeVirt CPU and memory are immutable on a running VMI in 1.8, so this is a stop →
-	// patch VM spec → start sequence. The whole sequence runs as a vm_resize Operation
-	// (Temporal + DATABASE_URL); the response carries the Operation so the client returns
-	// immediately and polls. Brief downtime — seconds for cirros, longer for graceful Linux
-	// shutdown. Disks, networks, and IP addresses survive. cpu_class changes are allowed
-	// but require a worker host with a matching label; KubeVirt schedules the new VMI
-	// against the updated nodeSelector or the start activity fails the operation.
+	// ResizeVirtualMachine changes the configurator shape (vcpus / ram_gib / cpu_class). CPU and
+	// memory can't change on a running VM, so this is a stop → reshape → start sequence run as a
+	// long-running Operation; the response carries the Operation so the client returns immediately
+	// and polls. Brief downtime. Disks, networks, and IP addresses survive. A cpu_class change
+	// requires capacity for the new class in the datacenter, or the operation fails.
 	ResizeVirtualMachine(context.Context, *connect.Request[v1.ResizeVirtualMachineRequest]) (*connect.Response[v1.ResizeVirtualMachineResponse], error)
 	// SetVMAutorenew flips the autorenew flag on a VM in MONTHLY_* billing mode. Returns
 	// FailedPrecondition when called on a HOURLY VM (no term to renew).
@@ -124,9 +121,7 @@ type ComputeServiceClient interface {
 	RenewVMNow(context.Context, *connect.Request[v1.RenewVMNowRequest]) (*connect.Response[v1.RenewVMNowResponse], error)
 	// ReimageVirtualMachine wipes the OS disk and reinstalls from a (potentially new) image.
 	// The VM must be STOPPED — refuses on RUNNING to avoid surprising the customer.
-	// Implementation: delete the existing DataVolume, create a fresh DataVolume from the named
-	// MachineImage (or boot_image_url), restart the VM. Networks, public IPs, and firewall rules
-	// survive — only the disk is replaced.
+	// Networks, public IPs, and firewall rules survive — only the disk is replaced.
 	//
 	// Use cases: customer wants to start from a clean slate without recreating the VM (preserves
 	// resource name, networks, IPs, ssh keys), or wants to upgrade the base image (Ubuntu 24.04
@@ -134,26 +129,24 @@ type ComputeServiceClient interface {
 	// existing disk contents.
 	ReimageVirtualMachine(context.Context, *connect.Request[v1.ReimageVirtualMachineRequest]) (*connect.Response[v1.ReimageVirtualMachineResponse], error)
 	// OpenConsole returns a short-lived token + WebSocket URL the client uses to connect to the
-	// VM's serial or VNC console. metalhostd proxies the WebSocket so the DC apiserver stays private.
+	// VM's serial or VNC console. The connection is proxied through the Metalhost endpoint.
 	OpenConsole(context.Context, *connect.Request[v1.OpenConsoleRequest]) (*connect.Response[v1.OpenConsoleResponse], error)
 	// SnapshotVirtualMachine takes a point-in-time copy of a VM (definition + every disk).
-	// Backed by KubeVirt's VirtualMachineSnapshot CRD which internally creates CSI VolumeSnapshots
-	// for each PVC. NOT a backup — same caveat as disk snapshots.
+	// NOT a backup — same caveat as disk snapshots.
 	SnapshotVirtualMachine(context.Context, *connect.Request[v1.SnapshotVirtualMachineRequest]) (*connect.Response[v1.SnapshotVirtualMachineResponse], error)
 	GetVmSnapshot(context.Context, *connect.Request[v1.GetVmSnapshotRequest]) (*connect.Response[v1.GetVmSnapshotResponse], error)
 	ListVmSnapshots(context.Context, *connect.Request[v1.ListVmSnapshotsRequest]) (*connect.Response[v1.ListVmSnapshotsResponse], error)
 	DeleteVmSnapshot(context.Context, *connect.Request[v1.DeleteVmSnapshotRequest]) (*connect.Response[v1.DeleteVmSnapshotResponse], error)
-	// DeleteVirtualMachine stops billing and removes a VM. Starts a vm_delete Operation when Temporal
-	// is configured; otherwise soft-deletes synchronously.
+	// DeleteVirtualMachine stops billing and removes a VM. Returns a long-running Operation the
+	// client polls; the synchronous path soft-deletes immediately.
 	DeleteVirtualMachine(context.Context, *connect.Request[v1.DeleteVirtualMachineRequest]) (*connect.Response[v1.DeleteVirtualMachineResponse], error)
-	// GetVMMetrics returns CPU/memory/disk/network samples for a VM over a time range. Sourced
-	// from the cluster's Prometheus (kube-prometheus-stack), which scrapes virt-handler's
-	// exported metrics. Caller specifies the rollup window (default 1m, max 1h step).
+	// GetVMMetrics returns CPU/memory/disk/network samples for a VM over a time range. Caller
+	// specifies the rollup window (default 1m, max 1h step).
 	GetVMMetrics(context.Context, *connect.Request[v1.GetVMMetricsRequest]) (*connect.Response[v1.GetVMMetricsResponse], error)
 	// CloneVirtualMachine creates a new VM whose BOOT disk is a copy of an existing VM's boot
-	// disk at the point of clone. Async, disk-first: snapshots the source boot disk, clones it
-	// into a fresh PVC, and provisions the new VM from it inside the vm_provision workflow;
-	// returns an Operation the caller polls like a create. The new VM gets a fresh name +
+	// disk at the point of clone. Async, disk-first: snapshots the source boot disk, copies it,
+	// and provisions the new VM from the copy; returns an Operation the caller polls like a
+	// create. The new VM gets a fresh name +
 	// project-scoped resource ID. Custom firewall rules ARE copied; networks are NOT (clone is
 	// per-VM, not per-stack). Boot disk only — any attached DATA disks on the source are NOT
 	// cloned (tracked as a follow-on, mirrors CreateVirtualMachineFromBackup).
@@ -161,10 +154,8 @@ type ComputeServiceClient interface {
 	// CreateVirtualMachineFromBackup spins up a new VM whose boot disk is materialized from
 	// a previously-taken VmSnapshot. Same project, same DC as the source backup. Boot disk
 	// only in v1 — data disks from the source aren't re-attached (tracked as a follow-on).
-	// The source VM is untouched. Implementation walks the VirtualMachineSnapshot CR's
-	// status.virtualMachineSnapshotContentName → status.volumeBackups[] to find the boot
-	// disk's preserved VolumeSnapshot, materialises a new Disk via the internal
-	// CreateDiskFromVolumeSnapshot path, and chains CreateVirtualMachine(boot_disk_name=…).
+	// The source VM is untouched; the new VM's boot disk is built from the snapshot's
+	// preserved boot volume.
 	CreateVirtualMachineFromBackup(context.Context, *connect.Request[v1.CreateVirtualMachineFromBackupRequest]) (*connect.Response[v1.CreateVirtualMachineFromBackupResponse], error)
 }
 
@@ -417,25 +408,22 @@ func (c *computeServiceClient) CreateVirtualMachineFromBackup(ctx context.Contex
 
 // ComputeServiceHandler is an implementation of the aes.compute.v1.ComputeService service.
 type ComputeServiceHandler interface {
-	// CreateVirtualMachine starts a vm_provision Operation (Temporal when configured + DATABASE_URL);
-	// otherwise inserts a RUNNING VM synchronously. Response carries the Operation when async.
+	// CreateVirtualMachine provisions a new VM. Returns a long-running Operation the client polls
+	// to completion; the synchronous create path returns the VM directly.
 	CreateVirtualMachine(context.Context, *connect.Request[v1.CreateVirtualMachineRequest]) (*connect.Response[v1.CreateVirtualMachineResponse], error)
 	GetVirtualMachine(context.Context, *connect.Request[v1.GetVirtualMachineRequest]) (*connect.Response[v1.GetVirtualMachineResponse], error)
 	ListVirtualMachines(context.Context, *connect.Request[v1.ListVirtualMachinesRequest]) (*connect.Response[v1.ListVirtualMachinesResponse], error)
-	// StartVirtualMachine flips the KubeVirt VM to running. Idempotent on already-running VMs.
+	// StartVirtualMachine starts a stopped VM. Idempotent on already-running VMs.
 	StartVirtualMachine(context.Context, *connect.Request[v1.StartVirtualMachineRequest]) (*connect.Response[v1.StartVirtualMachineResponse], error)
 	// StopVirtualMachine halts the VM (graceful shutdown). Disk is preserved.
 	StopVirtualMachine(context.Context, *connect.Request[v1.StopVirtualMachineRequest]) (*connect.Response[v1.StopVirtualMachineResponse], error)
-	// RestartVirtualMachine triggers a guest reboot via the KubeVirt restart subresource.
+	// RestartVirtualMachine reboots the guest OS.
 	RestartVirtualMachine(context.Context, *connect.Request[v1.RestartVirtualMachineRequest]) (*connect.Response[v1.RestartVirtualMachineResponse], error)
-	// ResizeVirtualMachine changes the configurator shape (vcpus / ram_gib / cpu_class).
-	// KubeVirt CPU and memory are immutable on a running VMI in 1.8, so this is a stop →
-	// patch VM spec → start sequence. The whole sequence runs as a vm_resize Operation
-	// (Temporal + DATABASE_URL); the response carries the Operation so the client returns
-	// immediately and polls. Brief downtime — seconds for cirros, longer for graceful Linux
-	// shutdown. Disks, networks, and IP addresses survive. cpu_class changes are allowed
-	// but require a worker host with a matching label; KubeVirt schedules the new VMI
-	// against the updated nodeSelector or the start activity fails the operation.
+	// ResizeVirtualMachine changes the configurator shape (vcpus / ram_gib / cpu_class). CPU and
+	// memory can't change on a running VM, so this is a stop → reshape → start sequence run as a
+	// long-running Operation; the response carries the Operation so the client returns immediately
+	// and polls. Brief downtime. Disks, networks, and IP addresses survive. A cpu_class change
+	// requires capacity for the new class in the datacenter, or the operation fails.
 	ResizeVirtualMachine(context.Context, *connect.Request[v1.ResizeVirtualMachineRequest]) (*connect.Response[v1.ResizeVirtualMachineResponse], error)
 	// SetVMAutorenew flips the autorenew flag on a VM in MONTHLY_* billing mode. Returns
 	// FailedPrecondition when called on a HOURLY VM (no term to renew).
@@ -447,9 +435,7 @@ type ComputeServiceHandler interface {
 	RenewVMNow(context.Context, *connect.Request[v1.RenewVMNowRequest]) (*connect.Response[v1.RenewVMNowResponse], error)
 	// ReimageVirtualMachine wipes the OS disk and reinstalls from a (potentially new) image.
 	// The VM must be STOPPED — refuses on RUNNING to avoid surprising the customer.
-	// Implementation: delete the existing DataVolume, create a fresh DataVolume from the named
-	// MachineImage (or boot_image_url), restart the VM. Networks, public IPs, and firewall rules
-	// survive — only the disk is replaced.
+	// Networks, public IPs, and firewall rules survive — only the disk is replaced.
 	//
 	// Use cases: customer wants to start from a clean slate without recreating the VM (preserves
 	// resource name, networks, IPs, ssh keys), or wants to upgrade the base image (Ubuntu 24.04
@@ -457,26 +443,24 @@ type ComputeServiceHandler interface {
 	// existing disk contents.
 	ReimageVirtualMachine(context.Context, *connect.Request[v1.ReimageVirtualMachineRequest]) (*connect.Response[v1.ReimageVirtualMachineResponse], error)
 	// OpenConsole returns a short-lived token + WebSocket URL the client uses to connect to the
-	// VM's serial or VNC console. metalhostd proxies the WebSocket so the DC apiserver stays private.
+	// VM's serial or VNC console. The connection is proxied through the Metalhost endpoint.
 	OpenConsole(context.Context, *connect.Request[v1.OpenConsoleRequest]) (*connect.Response[v1.OpenConsoleResponse], error)
 	// SnapshotVirtualMachine takes a point-in-time copy of a VM (definition + every disk).
-	// Backed by KubeVirt's VirtualMachineSnapshot CRD which internally creates CSI VolumeSnapshots
-	// for each PVC. NOT a backup — same caveat as disk snapshots.
+	// NOT a backup — same caveat as disk snapshots.
 	SnapshotVirtualMachine(context.Context, *connect.Request[v1.SnapshotVirtualMachineRequest]) (*connect.Response[v1.SnapshotVirtualMachineResponse], error)
 	GetVmSnapshot(context.Context, *connect.Request[v1.GetVmSnapshotRequest]) (*connect.Response[v1.GetVmSnapshotResponse], error)
 	ListVmSnapshots(context.Context, *connect.Request[v1.ListVmSnapshotsRequest]) (*connect.Response[v1.ListVmSnapshotsResponse], error)
 	DeleteVmSnapshot(context.Context, *connect.Request[v1.DeleteVmSnapshotRequest]) (*connect.Response[v1.DeleteVmSnapshotResponse], error)
-	// DeleteVirtualMachine stops billing and removes a VM. Starts a vm_delete Operation when Temporal
-	// is configured; otherwise soft-deletes synchronously.
+	// DeleteVirtualMachine stops billing and removes a VM. Returns a long-running Operation the
+	// client polls; the synchronous path soft-deletes immediately.
 	DeleteVirtualMachine(context.Context, *connect.Request[v1.DeleteVirtualMachineRequest]) (*connect.Response[v1.DeleteVirtualMachineResponse], error)
-	// GetVMMetrics returns CPU/memory/disk/network samples for a VM over a time range. Sourced
-	// from the cluster's Prometheus (kube-prometheus-stack), which scrapes virt-handler's
-	// exported metrics. Caller specifies the rollup window (default 1m, max 1h step).
+	// GetVMMetrics returns CPU/memory/disk/network samples for a VM over a time range. Caller
+	// specifies the rollup window (default 1m, max 1h step).
 	GetVMMetrics(context.Context, *connect.Request[v1.GetVMMetricsRequest]) (*connect.Response[v1.GetVMMetricsResponse], error)
 	// CloneVirtualMachine creates a new VM whose BOOT disk is a copy of an existing VM's boot
-	// disk at the point of clone. Async, disk-first: snapshots the source boot disk, clones it
-	// into a fresh PVC, and provisions the new VM from it inside the vm_provision workflow;
-	// returns an Operation the caller polls like a create. The new VM gets a fresh name +
+	// disk at the point of clone. Async, disk-first: snapshots the source boot disk, copies it,
+	// and provisions the new VM from the copy; returns an Operation the caller polls like a
+	// create. The new VM gets a fresh name +
 	// project-scoped resource ID. Custom firewall rules ARE copied; networks are NOT (clone is
 	// per-VM, not per-stack). Boot disk only — any attached DATA disks on the source are NOT
 	// cloned (tracked as a follow-on, mirrors CreateVirtualMachineFromBackup).
@@ -484,10 +468,8 @@ type ComputeServiceHandler interface {
 	// CreateVirtualMachineFromBackup spins up a new VM whose boot disk is materialized from
 	// a previously-taken VmSnapshot. Same project, same DC as the source backup. Boot disk
 	// only in v1 — data disks from the source aren't re-attached (tracked as a follow-on).
-	// The source VM is untouched. Implementation walks the VirtualMachineSnapshot CR's
-	// status.virtualMachineSnapshotContentName → status.volumeBackups[] to find the boot
-	// disk's preserved VolumeSnapshot, materialises a new Disk via the internal
-	// CreateDiskFromVolumeSnapshot path, and chains CreateVirtualMachine(boot_disk_name=…).
+	// The source VM is untouched; the new VM's boot disk is built from the snapshot's
+	// preserved boot volume.
 	CreateVirtualMachineFromBackup(context.Context, *connect.Request[v1.CreateVirtualMachineFromBackupRequest]) (*connect.Response[v1.CreateVirtualMachineFromBackupResponse], error)
 }
 
