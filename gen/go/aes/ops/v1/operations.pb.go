@@ -174,10 +174,18 @@ type CreateOperationRequest struct {
 	VmLinuxUsername string `protobuf:"bytes,43,opt,name=vm_linux_username,json=vmLinuxUsername,proto3" json:"vm_linux_username,omitempty"`
 	// GPU passthrough for VM provisioning. vm_gpu_model selects a GPU model; vm_gpu_count is
 	// the number of whole GPUs. Empty/0 = CPU-only VM.
-	VmGpuModel    string `protobuf:"bytes,44,opt,name=vm_gpu_model,json=vmGpuModel,proto3" json:"vm_gpu_model,omitempty"`
-	VmGpuCount    int32  `protobuf:"varint,45,opt,name=vm_gpu_count,json=vmGpuCount,proto3" json:"vm_gpu_count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	VmGpuModel string `protobuf:"bytes,44,opt,name=vm_gpu_model,json=vmGpuModel,proto3" json:"vm_gpu_model,omitempty"`
+	VmGpuCount int32  `protobuf:"varint,45,opt,name=vm_gpu_count,json=vmGpuCount,proto3" json:"vm_gpu_count,omitempty"`
+	// Bare-metal ISO URL import (kind=bm_iso_import). The org-prefix-confined object key + the
+	// source URL are computed + quota-checked at the BareMetalService API edge, then handed here so
+	// the durable ISOImportWorkflow's activity can stream the bytes into object storage with live
+	// byte-progress (surfaced on the Operation metadata + ListBareMetalISOs).
+	IsoProjectName string `protobuf:"bytes,46,opt,name=iso_project_name,json=isoProjectName,proto3" json:"iso_project_name,omitempty"`
+	IsoSourceUrl   string `protobuf:"bytes,47,opt,name=iso_source_url,json=isoSourceUrl,proto3" json:"iso_source_url,omitempty"`
+	IsoObjectKey   string `protobuf:"bytes,48,opt,name=iso_object_key,json=isoObjectKey,proto3" json:"iso_object_key,omitempty"`
+	IsoFilename    string `protobuf:"bytes,49,opt,name=iso_filename,json=isoFilename,proto3" json:"iso_filename,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *CreateOperationRequest) Reset() {
@@ -481,6 +489,34 @@ func (x *CreateOperationRequest) GetVmGpuCount() int32 {
 		return x.VmGpuCount
 	}
 	return 0
+}
+
+func (x *CreateOperationRequest) GetIsoProjectName() string {
+	if x != nil {
+		return x.IsoProjectName
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetIsoSourceUrl() string {
+	if x != nil {
+		return x.IsoSourceUrl
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetIsoObjectKey() string {
+	if x != nil {
+		return x.IsoObjectKey
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetIsoFilename() string {
+	if x != nil {
+		return x.IsoFilename
+	}
+	return ""
 }
 
 type CreateOperationResponse struct {
@@ -1027,7 +1063,7 @@ var File_aes_ops_v1_operations_proto protoreflect.FileDescriptor
 const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\n" +
 	"\x1baes/ops/v1/operations.proto\x12\n" +
-	"aes.ops.v1\"\xc6\x10\n" +
+	"aes.ops.v1\"\xdf\x11\n" +
 	"\x16CreateOperationRequest\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12'\n" +
 	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12&\n" +
@@ -1073,7 +1109,11 @@ const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\fvm_gpu_model\x18, \x01(\tR\n" +
 	"vmGpuModel\x12 \n" +
 	"\fvm_gpu_count\x18- \x01(\x05R\n" +
-	"vmGpuCount\x1a;\n" +
+	"vmGpuCount\x12(\n" +
+	"\x10iso_project_name\x18. \x01(\tR\x0eisoProjectName\x12$\n" +
+	"\x0eiso_source_url\x18/ \x01(\tR\fisoSourceUrl\x12$\n" +
+	"\x0eiso_object_key\x180 \x01(\tR\fisoObjectKey\x12!\n" +
+	"\fiso_filename\x181 \x01(\tR\visoFilename\x1a;\n" +
 	"\rVmLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a@\n" +

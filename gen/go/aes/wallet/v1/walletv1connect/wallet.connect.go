@@ -103,6 +103,12 @@ const (
 	// WalletServiceExportUsageProcedure is the fully-qualified name of the WalletService's ExportUsage
 	// RPC.
 	WalletServiceExportUsageProcedure = "/aes.wallet.v1.WalletService/ExportUsage"
+	// WalletServiceRedeemPromotionCodeProcedure is the fully-qualified name of the WalletService's
+	// RedeemPromotionCode RPC.
+	WalletServiceRedeemPromotionCodeProcedure = "/aes.wallet.v1.WalletService/RedeemPromotionCode"
+	// WalletServiceGetActivePromotionProcedure is the fully-qualified name of the WalletService's
+	// GetActivePromotion RPC.
+	WalletServiceGetActivePromotionProcedure = "/aes.wallet.v1.WalletService/GetActivePromotion"
 )
 
 // WalletServiceClient is a client for the aes.wallet.v1.WalletService service.
@@ -171,6 +177,12 @@ type WalletServiceClient interface {
 	// a presigned URL (same pattern as AdminAuditService.ExportAuditEvents).
 	QueryUsage(context.Context, *connect.Request[v1.QueryUsageRequest]) (*connect.Response[v1.QueryUsageResponse], error)
 	ExportUsage(context.Context, *connect.Request[v1.ExportUsageRequest]) (*connect.Response[v1.ExportUsageResponse], error)
+	// Promotion coupons (launch founder discount). RedeemPromotionCode consumes a single-use
+	// code and installs a percentage discount window on the caller's org billing account;
+	// GetActivePromotion backs the "Founder 50% · ends {date}" banner. The discount is applied at
+	// settlement / prepaid-quote time — it is not a wallet credit. Spec: docs/specs/LAUNCH_PROMO_COUPONS.md.
+	RedeemPromotionCode(context.Context, *connect.Request[v1.RedeemPromotionCodeRequest]) (*connect.Response[v1.RedeemPromotionCodeResponse], error)
+	GetActivePromotion(context.Context, *connect.Request[v1.GetActivePromotionRequest]) (*connect.Response[v1.GetActivePromotionResponse], error)
 }
 
 // NewWalletServiceClient constructs a client for the aes.wallet.v1.WalletService service. By
@@ -328,6 +340,18 @@ func NewWalletServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(walletServiceMethods.ByName("ExportUsage")),
 			connect.WithClientOptions(opts...),
 		),
+		redeemPromotionCode: connect.NewClient[v1.RedeemPromotionCodeRequest, v1.RedeemPromotionCodeResponse](
+			httpClient,
+			baseURL+WalletServiceRedeemPromotionCodeProcedure,
+			connect.WithSchema(walletServiceMethods.ByName("RedeemPromotionCode")),
+			connect.WithClientOptions(opts...),
+		),
+		getActivePromotion: connect.NewClient[v1.GetActivePromotionRequest, v1.GetActivePromotionResponse](
+			httpClient,
+			baseURL+WalletServiceGetActivePromotionProcedure,
+			connect.WithSchema(walletServiceMethods.ByName("GetActivePromotion")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -357,6 +381,8 @@ type walletServiceClient struct {
 	getTopUp                    *connect.Client[v1.GetTopUpRequest, v1.GetTopUpResponse]
 	queryUsage                  *connect.Client[v1.QueryUsageRequest, v1.QueryUsageResponse]
 	exportUsage                 *connect.Client[v1.ExportUsageRequest, v1.ExportUsageResponse]
+	redeemPromotionCode         *connect.Client[v1.RedeemPromotionCodeRequest, v1.RedeemPromotionCodeResponse]
+	getActivePromotion          *connect.Client[v1.GetActivePromotionRequest, v1.GetActivePromotionResponse]
 }
 
 // ListBillingAccounts calls aes.wallet.v1.WalletService.ListBillingAccounts.
@@ -479,6 +505,16 @@ func (c *walletServiceClient) ExportUsage(ctx context.Context, req *connect.Requ
 	return c.exportUsage.CallUnary(ctx, req)
 }
 
+// RedeemPromotionCode calls aes.wallet.v1.WalletService.RedeemPromotionCode.
+func (c *walletServiceClient) RedeemPromotionCode(ctx context.Context, req *connect.Request[v1.RedeemPromotionCodeRequest]) (*connect.Response[v1.RedeemPromotionCodeResponse], error) {
+	return c.redeemPromotionCode.CallUnary(ctx, req)
+}
+
+// GetActivePromotion calls aes.wallet.v1.WalletService.GetActivePromotion.
+func (c *walletServiceClient) GetActivePromotion(ctx context.Context, req *connect.Request[v1.GetActivePromotionRequest]) (*connect.Response[v1.GetActivePromotionResponse], error) {
+	return c.getActivePromotion.CallUnary(ctx, req)
+}
+
 // WalletServiceHandler is an implementation of the aes.wallet.v1.WalletService service.
 type WalletServiceHandler interface {
 	ListBillingAccounts(context.Context, *connect.Request[v1.ListBillingAccountsRequest]) (*connect.Response[v1.ListBillingAccountsResponse], error)
@@ -545,6 +581,12 @@ type WalletServiceHandler interface {
 	// a presigned URL (same pattern as AdminAuditService.ExportAuditEvents).
 	QueryUsage(context.Context, *connect.Request[v1.QueryUsageRequest]) (*connect.Response[v1.QueryUsageResponse], error)
 	ExportUsage(context.Context, *connect.Request[v1.ExportUsageRequest]) (*connect.Response[v1.ExportUsageResponse], error)
+	// Promotion coupons (launch founder discount). RedeemPromotionCode consumes a single-use
+	// code and installs a percentage discount window on the caller's org billing account;
+	// GetActivePromotion backs the "Founder 50% · ends {date}" banner. The discount is applied at
+	// settlement / prepaid-quote time — it is not a wallet credit. Spec: docs/specs/LAUNCH_PROMO_COUPONS.md.
+	RedeemPromotionCode(context.Context, *connect.Request[v1.RedeemPromotionCodeRequest]) (*connect.Response[v1.RedeemPromotionCodeResponse], error)
+	GetActivePromotion(context.Context, *connect.Request[v1.GetActivePromotionRequest]) (*connect.Response[v1.GetActivePromotionResponse], error)
 }
 
 // NewWalletServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -698,6 +740,18 @@ func NewWalletServiceHandler(svc WalletServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(walletServiceMethods.ByName("ExportUsage")),
 		connect.WithHandlerOptions(opts...),
 	)
+	walletServiceRedeemPromotionCodeHandler := connect.NewUnaryHandler(
+		WalletServiceRedeemPromotionCodeProcedure,
+		svc.RedeemPromotionCode,
+		connect.WithSchema(walletServiceMethods.ByName("RedeemPromotionCode")),
+		connect.WithHandlerOptions(opts...),
+	)
+	walletServiceGetActivePromotionHandler := connect.NewUnaryHandler(
+		WalletServiceGetActivePromotionProcedure,
+		svc.GetActivePromotion,
+		connect.WithSchema(walletServiceMethods.ByName("GetActivePromotion")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/aes.wallet.v1.WalletService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case WalletServiceListBillingAccountsProcedure:
@@ -748,6 +802,10 @@ func NewWalletServiceHandler(svc WalletServiceHandler, opts ...connect.HandlerOp
 			walletServiceQueryUsageHandler.ServeHTTP(w, r)
 		case WalletServiceExportUsageProcedure:
 			walletServiceExportUsageHandler.ServeHTTP(w, r)
+		case WalletServiceRedeemPromotionCodeProcedure:
+			walletServiceRedeemPromotionCodeHandler.ServeHTTP(w, r)
+		case WalletServiceGetActivePromotionProcedure:
+			walletServiceGetActivePromotionHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -851,4 +909,12 @@ func (UnimplementedWalletServiceHandler) QueryUsage(context.Context, *connect.Re
 
 func (UnimplementedWalletServiceHandler) ExportUsage(context.Context, *connect.Request[v1.ExportUsageRequest]) (*connect.Response[v1.ExportUsageResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.wallet.v1.WalletService.ExportUsage is not implemented"))
+}
+
+func (UnimplementedWalletServiceHandler) RedeemPromotionCode(context.Context, *connect.Request[v1.RedeemPromotionCodeRequest]) (*connect.Response[v1.RedeemPromotionCodeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.wallet.v1.WalletService.RedeemPromotionCode is not implemented"))
+}
+
+func (UnimplementedWalletServiceHandler) GetActivePromotion(context.Context, *connect.Request[v1.GetActivePromotionRequest]) (*connect.Response[v1.GetActivePromotionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.wallet.v1.WalletService.GetActivePromotion is not implemented"))
 }
