@@ -5114,6 +5114,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.wallet.v1.ExportUsageResponse'
+  /aes.wallet.v1.WalletService/GetActivePromotion:
+    post:
+      tags:
+        - aes.wallet.v1.WalletService
+      summary: GetActivePromotion
+      operationId: aes.wallet.v1.WalletService.GetActivePromotion
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.wallet.v1.GetActivePromotionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.wallet.v1.GetActivePromotionResponse'
   /aes.wallet.v1.WalletService/GetAutoRechargeConfig:
     post:
       tags:
@@ -5624,6 +5659,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.wallet.v1.QueryUsageResponse'
+  /aes.wallet.v1.WalletService/RedeemPromotionCode:
+    post:
+      tags:
+        - aes.wallet.v1.WalletService
+      summary: RedeemPromotionCode
+      description: |-
+        Promotion coupons (launch founder discount). RedeemPromotionCode consumes a single-use
+         code and installs a percentage discount window on the caller's org billing account;
+         GetActivePromotion backs the "Founder 50% · ends {date}" banner. The discount is applied at
+         settlement / prepaid-quote time — it is not a wallet credit. Spec: docs/specs/LAUNCH_PROMO_COUPONS.md.
+      operationId: aes.wallet.v1.WalletService.RedeemPromotionCode
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.wallet.v1.RedeemPromotionCodeRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.wallet.v1.RedeemPromotionCodeResponse'
   /aes.wallet.v1.WalletService/SetDefaultPaymentMethod:
     post:
       tags:
@@ -6355,6 +6430,13 @@ components:
           type: string
           title: object_key
           description: The object key the import is streaming into; poll ListBareMetalISOs until it appears.
+        operation:
+          title: operation
+          description: |-
+            The durable import Operation (kind=bm_iso_import). Poll GetOperation — or watch the IMPORTING
+             entry in ListBareMetalISOs — for live byte progress; the import survives metalhostd restarts.
+             Null when the server has no Temporal/ops wiring (dev/test fall back to a best-effort fetch).
+          $ref: '#/components/schemas/aes.ops.v1.Operation'
       title: CreateBareMetalISOFromURLResponse
       additionalProperties: false
     aes.baremetal.v1.CreateBareMetalISOUploadURLRequest:
@@ -6659,9 +6741,46 @@ components:
             - string
           title: uploaded_at_unix
           format: int64
+        status:
+          type: string
+          title: status
+          description: |-
+            Lifecycle status: "READY" (object exists, attachable), "IMPORTING" (URL import in flight),
+             or "FAILED" (URL import failed — error_message has the reason). Empty defaults to READY for
+             older clients. Only READY entries can be attached.
+        bytesDownloaded:
+          type:
+            - integer
+            - string
+          title: bytes_downloaded
+          format: int64
+          description: |-
+            For IMPORTING entries: bytes streamed so far and the total (from the source Content-Length;
+             0 when the source didn't advertise a length). UI renders bytes_downloaded/total_bytes as a
+             progress bar; total_bytes==0 → indeterminate spinner.
+        totalBytes:
+          type:
+            - integer
+            - string
+          title: total_bytes
+          format: int64
+        operationName:
+          type: string
+          title: operation_name
+          description: |-
+            The `bm_iso_import` Operation resource name backing an IMPORTING/FAILED entry (poll
+             GetOperation for live progress; empty for READY objects).
+        errorMessage:
+          type: string
+          title: error_message
+          description: 'Set when status == "FAILED": the import error surfaced to the customer.'
       title: ISOFile
       additionalProperties: false
-      description: ISOFile is one entry in the org's install-ISO library.
+      description: |-
+        ISOFile is one entry in the org's install-ISO library. A library entry is either a READY
+         object that physically exists in object storage, or a synthetic IMPORTING/FAILED entry
+         projected from an in-flight `bm_iso_import` Operation (a URL import that hasn't landed yet) so
+         the UI can render a live progress bar inline with the completed ISOs.
     aes.baremetal.v1.ListAvailableBareMetalRequest:
       type: object
       properties:
@@ -11420,6 +11539,23 @@ components:
           type: integer
           title: vm_gpu_count
           format: int32
+        isoProjectName:
+          type: string
+          title: iso_project_name
+          description: |-
+            Bare-metal ISO URL import (kind=bm_iso_import). The org-prefix-confined object key + the
+             source URL are computed + quota-checked at the BareMetalService API edge, then handed here so
+             the durable ISOImportWorkflow's activity can stream the bytes into object storage with live
+             byte-progress (surfaced on the Operation metadata + ListBareMetalISOs).
+        isoSourceUrl:
+          type: string
+          title: iso_source_url
+        isoObjectKey:
+          type: string
+          title: iso_object_key
+        isoFilename:
+          type: string
+          title: iso_filename
       title: CreateOperationRequest
       additionalProperties: false
     aes.ops.v1.CreateOperationRequest.VmAnnotationsEntry:
@@ -12746,6 +12882,41 @@ components:
          (AdminSupportService.ResolveTicket); CLOSED is the terminal state — set when the customer
          confirms or auto-closes after an inactivity window. Customer-side CloseTicket goes
          directly to CLOSED.
+    aes.wallet.v1.ActivePromotion:
+      type: object
+      properties:
+        campaignName:
+          type: string
+          title: campaign_name
+        displayName:
+          type: string
+          title: display_name
+        discountPct:
+          type: integer
+          title: discount_pct
+          format: int32
+        discountStartsAtUnix:
+          type:
+            - integer
+            - string
+          title: discount_starts_at_unix
+          format: int64
+          description: Unix seconds; the discount applies to usage/prepaid before this instant.
+        discountEndsAtUnix:
+          type:
+            - integer
+            - string
+          title: discount_ends_at_unix
+          format: int64
+        appliesToUsage:
+          type: boolean
+          title: applies_to_usage
+        appliesToPrepaid:
+          type: boolean
+          title: applies_to_prepaid
+      title: ActivePromotion
+      additionalProperties: false
+      description: ActivePromotion is the customer-facing view of a live discount on an org's billing account.
     aes.wallet.v1.AttachPaymentMethodRequest:
       type: object
       properties:
@@ -13145,6 +13316,24 @@ components:
           type: string
           title: object_key
       title: ExportUsageResponse
+      additionalProperties: false
+    aes.wallet.v1.GetActivePromotionRequest:
+      type: object
+      properties:
+        organizationName:
+          type: string
+          title: organization_name
+          description: Org whose billing account to look up.
+      title: GetActivePromotionRequest
+      additionalProperties: false
+    aes.wallet.v1.GetActivePromotionResponse:
+      type: object
+      properties:
+        promotion:
+          title: promotion
+          description: Unset when the org has no active promotion.
+          $ref: '#/components/schemas/aes.wallet.v1.ActivePromotion'
+      title: GetActivePromotionResponse
       additionalProperties: false
     aes.wallet.v1.GetAutoRechargeConfigRequest:
       type: object
@@ -13827,6 +14016,29 @@ components:
           type: string
           title: usage_event_id
       title: RecordUsageEventResponse
+      additionalProperties: false
+    aes.wallet.v1.RedeemPromotionCodeRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          title: code
+        organizationName:
+          type: string
+          title: organization_name
+          description: |-
+            REQUIRED. The org (→ its billing account) to apply the promotion to. The platform is
+             multi-org (M:N membership) — there is no implicit "active org" on the session — so the SPA
+             passes the org the user is currently viewing. Reject with InvalidArgument if empty.
+      title: RedeemPromotionCodeRequest
+      additionalProperties: false
+    aes.wallet.v1.RedeemPromotionCodeResponse:
+      type: object
+      properties:
+        promotion:
+          title: promotion
+          $ref: '#/components/schemas/aes.wallet.v1.ActivePromotion'
+      title: RedeemPromotionCodeResponse
       additionalProperties: false
     aes.wallet.v1.SetDefaultPaymentMethodRequest:
       type: object

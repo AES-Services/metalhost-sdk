@@ -3,6 +3,7 @@ syntax = "proto3";
 package aes.baremetal.v1;
 
 import "aes/compute/v1/compute.proto";
+import "aes/ops/v1/operations.proto";
 
 // BareMetalService is the customer-facing API for whole-host leases. Distinct from
 // ComputeService (which serves VMs) because the lifecycle is different: no live
@@ -387,12 +388,29 @@ message CreateBareMetalISOUploadURLResponse {
   int64 expires_at_unix = 3;
 }
 
-// ISOFile is one entry in the org's install-ISO library.
+// ISOFile is one entry in the org's install-ISO library. A library entry is either a READY
+// object that physically exists in object storage, or a synthetic IMPORTING/FAILED entry
+// projected from an in-flight `bm_iso_import` Operation (a URL import that hasn't landed yet) so
+// the UI can render a live progress bar inline with the completed ISOs.
 message ISOFile {
   string object_key = 1;     // opaque key passed to Attach/Delete
   string filename = 2;       // display name (basename)
   int64 size_bytes = 3;
   int64 uploaded_at_unix = 4;
+  // Lifecycle status: "READY" (object exists, attachable), "IMPORTING" (URL import in flight),
+  // or "FAILED" (URL import failed — error_message has the reason). Empty defaults to READY for
+  // older clients. Only READY entries can be attached.
+  string status = 5;
+  // For IMPORTING entries: bytes streamed so far and the total (from the source Content-Length;
+  // 0 when the source didn't advertise a length). UI renders bytes_downloaded/total_bytes as a
+  // progress bar; total_bytes==0 → indeterminate spinner.
+  int64 bytes_downloaded = 6;
+  int64 total_bytes = 7;
+  // The `bm_iso_import` Operation resource name backing an IMPORTING/FAILED entry (poll
+  // GetOperation for live progress; empty for READY objects).
+  string operation_name = 8;
+  // Set when status == "FAILED": the import error surfaced to the customer.
+  string error_message = 9;
 }
 
 message ListBareMetalISOsRequest {
@@ -410,6 +428,10 @@ message CreateBareMetalISOFromURLRequest {
 message CreateBareMetalISOFromURLResponse {
   // The object key the import is streaming into; poll ListBareMetalISOs until it appears.
   string object_key = 1;
+  // The durable import Operation (kind=bm_iso_import). Poll GetOperation — or watch the IMPORTING
+  // entry in ListBareMetalISOs — for live byte progress; the import survives metalhostd restarts.
+  // Null when the server has no Temporal/ops wiring (dev/test fall back to a best-effort fetch).
+  aes.ops.v1.Operation operation = 2;
 }
 
 message ListBareMetalISOsResponse {

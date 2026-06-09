@@ -121,6 +121,14 @@ message CreateOperationRequest {
   // the number of whole GPUs. Empty/0 = CPU-only VM.
   string vm_gpu_model = 44;
   int32 vm_gpu_count = 45;
+  // Bare-metal ISO URL import (kind=bm_iso_import). The org-prefix-confined object key + the
+  // source URL are computed + quota-checked at the BareMetalService API edge, then handed here so
+  // the durable ISOImportWorkflow's activity can stream the bytes into object storage with live
+  // byte-progress (surfaced on the Operation metadata + ListBareMetalISOs).
+  string iso_project_name = 46;
+  string iso_source_url = 47;
+  string iso_object_key = 48;
+  string iso_filename = 49;
 }
 
 message CreateOperationResponse {

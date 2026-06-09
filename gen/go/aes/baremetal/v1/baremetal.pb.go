@@ -8,6 +8,7 @@ package baremetalv1
 
 import (
 	v1 "github.com/AES-Services/metalhost-sdk/gen/go/aes/compute/v1"
+	v11 "github.com/AES-Services/metalhost-sdk/gen/go/aes/ops/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -2371,15 +2372,32 @@ func (x *CreateBareMetalISOUploadURLResponse) GetExpiresAtUnix() int64 {
 	return 0
 }
 
-// ISOFile is one entry in the org's install-ISO library.
+// ISOFile is one entry in the org's install-ISO library. A library entry is either a READY
+// object that physically exists in object storage, or a synthetic IMPORTING/FAILED entry
+// projected from an in-flight `bm_iso_import` Operation (a URL import that hasn't landed yet) so
+// the UI can render a live progress bar inline with the completed ISOs.
 type ISOFile struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	ObjectKey      string                 `protobuf:"bytes,1,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"` // opaque key passed to Attach/Delete
 	Filename       string                 `protobuf:"bytes,2,opt,name=filename,proto3" json:"filename,omitempty"`                    // display name (basename)
 	SizeBytes      int64                  `protobuf:"varint,3,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
 	UploadedAtUnix int64                  `protobuf:"varint,4,opt,name=uploaded_at_unix,json=uploadedAtUnix,proto3" json:"uploaded_at_unix,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Lifecycle status: "READY" (object exists, attachable), "IMPORTING" (URL import in flight),
+	// or "FAILED" (URL import failed — error_message has the reason). Empty defaults to READY for
+	// older clients. Only READY entries can be attached.
+	Status string `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	// For IMPORTING entries: bytes streamed so far and the total (from the source Content-Length;
+	// 0 when the source didn't advertise a length). UI renders bytes_downloaded/total_bytes as a
+	// progress bar; total_bytes==0 → indeterminate spinner.
+	BytesDownloaded int64 `protobuf:"varint,6,opt,name=bytes_downloaded,json=bytesDownloaded,proto3" json:"bytes_downloaded,omitempty"`
+	TotalBytes      int64 `protobuf:"varint,7,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
+	// The `bm_iso_import` Operation resource name backing an IMPORTING/FAILED entry (poll
+	// GetOperation for live progress; empty for READY objects).
+	OperationName string `protobuf:"bytes,8,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	// Set when status == "FAILED": the import error surfaced to the customer.
+	ErrorMessage  string `protobuf:"bytes,9,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ISOFile) Reset() {
@@ -2438,6 +2456,41 @@ func (x *ISOFile) GetUploadedAtUnix() int64 {
 		return x.UploadedAtUnix
 	}
 	return 0
+}
+
+func (x *ISOFile) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ISOFile) GetBytesDownloaded() int64 {
+	if x != nil {
+		return x.BytesDownloaded
+	}
+	return 0
+}
+
+func (x *ISOFile) GetTotalBytes() int64 {
+	if x != nil {
+		return x.TotalBytes
+	}
+	return 0
+}
+
+func (x *ISOFile) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+func (x *ISOFile) GetErrorMessage() string {
+	if x != nil {
+		return x.ErrorMessage
+	}
+	return ""
 }
 
 type ListBareMetalISOsRequest struct {
@@ -2549,7 +2602,11 @@ func (x *CreateBareMetalISOFromURLRequest) GetFilename() string {
 type CreateBareMetalISOFromURLResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The object key the import is streaming into; poll ListBareMetalISOs until it appears.
-	ObjectKey     string `protobuf:"bytes,1,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
+	ObjectKey string `protobuf:"bytes,1,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
+	// The durable import Operation (kind=bm_iso_import). Poll GetOperation — or watch the IMPORTING
+	// entry in ListBareMetalISOs — for live byte progress; the import survives metalhostd restarts.
+	// Null when the server has no Temporal/ops wiring (dev/test fall back to a best-effort fetch).
+	Operation     *v11.Operation `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2589,6 +2646,13 @@ func (x *CreateBareMetalISOFromURLResponse) GetObjectKey() string {
 		return x.ObjectKey
 	}
 	return ""
+}
+
+func (x *CreateBareMetalISOFromURLResponse) GetOperation() *v11.Operation {
+	if x != nil {
+		return x.Operation
+	}
+	return nil
 }
 
 type ListBareMetalISOsResponse struct {
@@ -3123,7 +3187,7 @@ var File_aes_baremetal_v1_baremetal_proto protoreflect.FileDescriptor
 
 const file_aes_baremetal_v1_baremetal_proto_rawDesc = "" +
 	"\n" +
-	" aes/baremetal/v1/baremetal.proto\x12\x10aes.baremetal.v1\x1a\x1caes/compute/v1/compute.proto\"\x8e\t\n" +
+	" aes/baremetal/v1/baremetal.proto\x12\x10aes.baremetal.v1\x1a\x1caes/compute/v1/compute.proto\x1a\x1baes/ops/v1/operations.proto\"\x8e\t\n" +
 	"\x11BareMetalInstance\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12'\n" +
@@ -3311,23 +3375,30 @@ const file_aes_baremetal_v1_baremetal_proto_rawDesc = "" +
 	"upload_url\x18\x01 \x01(\tR\tuploadUrl\x12\x1d\n" +
 	"\n" +
 	"object_key\x18\x02 \x01(\tR\tobjectKey\x12&\n" +
-	"\x0fexpires_at_unix\x18\x03 \x01(\x03R\rexpiresAtUnix\"\x8d\x01\n" +
+	"\x0fexpires_at_unix\x18\x03 \x01(\x03R\rexpiresAtUnix\"\xbd\x02\n" +
 	"\aISOFile\x12\x1d\n" +
 	"\n" +
 	"object_key\x18\x01 \x01(\tR\tobjectKey\x12\x1a\n" +
 	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x1d\n" +
 	"\n" +
 	"size_bytes\x18\x03 \x01(\x03R\tsizeBytes\x12(\n" +
-	"\x10uploaded_at_unix\x18\x04 \x01(\x03R\x0euploadedAtUnix\"=\n" +
+	"\x10uploaded_at_unix\x18\x04 \x01(\x03R\x0euploadedAtUnix\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12)\n" +
+	"\x10bytes_downloaded\x18\x06 \x01(\x03R\x0fbytesDownloaded\x12\x1f\n" +
+	"\vtotal_bytes\x18\a \x01(\x03R\n" +
+	"totalBytes\x12%\n" +
+	"\x0eoperation_name\x18\b \x01(\tR\roperationName\x12#\n" +
+	"\rerror_message\x18\t \x01(\tR\ferrorMessage\"=\n" +
 	"\x18ListBareMetalISOsRequest\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\"s\n" +
 	" CreateBareMetalISOFromURLRequest\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x10\n" +
 	"\x03url\x18\x02 \x01(\tR\x03url\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\"B\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"w\n" +
 	"!CreateBareMetalISOFromURLResponse\x12\x1d\n" +
 	"\n" +
-	"object_key\x18\x01 \x01(\tR\tobjectKey\"e\n" +
+	"object_key\x18\x01 \x01(\tR\tobjectKey\x123\n" +
+	"\toperation\x18\x02 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"e\n" +
 	"\x19ListBareMetalISOsResponse\x12-\n" +
 	"\x04isos\x18\x01 \x03(\v2\x19.aes.baremetal.v1.ISOFileR\x04isos\x12\x19\n" +
 	"\bmax_isos\x18\x02 \x01(\x05R\amaxIsos\"]\n" +
@@ -3465,6 +3536,7 @@ var file_aes_baremetal_v1_baremetal_proto_goTypes = []any{
 	nil,                                         // 51: aes.baremetal.v1.CreateBareMetalInstanceRequest.LabelsEntry
 	nil,                                         // 52: aes.baremetal.v1.CreateBareMetalInstanceRequest.AnnotationsEntry
 	(v1.BillingMode)(0),                         // 53: aes.compute.v1.BillingMode
+	(*v11.Operation)(nil),                       // 54: aes.ops.v1.Operation
 }
 var file_aes_baremetal_v1_baremetal_proto_depIdxs = []int32{
 	49, // 0: aes.baremetal.v1.BareMetalInstance.labels:type_name -> aes.baremetal.v1.BareMetalInstance.LabelsEntry
@@ -3486,58 +3558,59 @@ var file_aes_baremetal_v1_baremetal_proto_depIdxs = []int32{
 	3,  // 16: aes.baremetal.v1.ReinstallBareMetalResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
 	3,  // 17: aes.baremetal.v1.EnterBareMetalRescueModeResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
 	3,  // 18: aes.baremetal.v1.ExitBareMetalRescueModeResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	34, // 19: aes.baremetal.v1.ListBareMetalISOsResponse.isos:type_name -> aes.baremetal.v1.ISOFile
-	3,  // 20: aes.baremetal.v1.AttachBareMetalISOResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	3,  // 21: aes.baremetal.v1.DetachBareMetalISOResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	2,  // 22: aes.baremetal.v1.SetBareMetalBootDeviceRequest.device:type_name -> aes.baremetal.v1.BareMetalBootDevice
-	3,  // 23: aes.baremetal.v1.SetBareMetalBootDeviceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	5,  // 24: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal:input_type -> aes.baremetal.v1.ListAvailableBareMetalRequest
-	8,  // 25: aes.baremetal.v1.BareMetalService.ListBareMetalInventory:input_type -> aes.baremetal.v1.ListBareMetalInventoryRequest
-	10, // 26: aes.baremetal.v1.BareMetalService.QuoteBareMetal:input_type -> aes.baremetal.v1.QuoteBareMetalRequest
-	12, // 27: aes.baremetal.v1.BareMetalService.CreateBareMetalInstance:input_type -> aes.baremetal.v1.CreateBareMetalInstanceRequest
-	14, // 28: aes.baremetal.v1.BareMetalService.GetBareMetalInstance:input_type -> aes.baremetal.v1.GetBareMetalInstanceRequest
-	16, // 29: aes.baremetal.v1.BareMetalService.ListBareMetalInstances:input_type -> aes.baremetal.v1.ListBareMetalInstancesRequest
-	18, // 30: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance:input_type -> aes.baremetal.v1.ReleaseBareMetalInstanceRequest
-	20, // 31: aes.baremetal.v1.BareMetalService.RenewBareMetalNow:input_type -> aes.baremetal.v1.RenewBareMetalNowRequest
-	22, // 32: aes.baremetal.v1.BareMetalService.SetBareMetalPower:input_type -> aes.baremetal.v1.SetBareMetalPowerRequest
-	24, // 33: aes.baremetal.v1.BareMetalService.ReinstallBareMetal:input_type -> aes.baremetal.v1.ReinstallBareMetalRequest
-	26, // 34: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL:input_type -> aes.baremetal.v1.GetBareMetalConsoleURLRequest
-	28, // 35: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode:input_type -> aes.baremetal.v1.EnterBareMetalRescueModeRequest
-	30, // 36: aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode:input_type -> aes.baremetal.v1.ExitBareMetalRescueModeRequest
-	32, // 37: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL:input_type -> aes.baremetal.v1.CreateBareMetalISOUploadURLRequest
-	35, // 38: aes.baremetal.v1.BareMetalService.ListBareMetalISOs:input_type -> aes.baremetal.v1.ListBareMetalISOsRequest
-	36, // 39: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL:input_type -> aes.baremetal.v1.CreateBareMetalISOFromURLRequest
-	39, // 40: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO:input_type -> aes.baremetal.v1.DeleteBareMetalISORequest
-	43, // 41: aes.baremetal.v1.BareMetalService.AttachBareMetalISO:input_type -> aes.baremetal.v1.AttachBareMetalISORequest
-	41, // 42: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia:input_type -> aes.baremetal.v1.GetBareMetalVirtualMediaRequest
-	45, // 43: aes.baremetal.v1.BareMetalService.DetachBareMetalISO:input_type -> aes.baremetal.v1.DetachBareMetalISORequest
-	47, // 44: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice:input_type -> aes.baremetal.v1.SetBareMetalBootDeviceRequest
-	6,  // 45: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal:output_type -> aes.baremetal.v1.ListAvailableBareMetalResponse
-	9,  // 46: aes.baremetal.v1.BareMetalService.ListBareMetalInventory:output_type -> aes.baremetal.v1.ListBareMetalInventoryResponse
-	11, // 47: aes.baremetal.v1.BareMetalService.QuoteBareMetal:output_type -> aes.baremetal.v1.QuoteBareMetalResponse
-	13, // 48: aes.baremetal.v1.BareMetalService.CreateBareMetalInstance:output_type -> aes.baremetal.v1.CreateBareMetalInstanceResponse
-	15, // 49: aes.baremetal.v1.BareMetalService.GetBareMetalInstance:output_type -> aes.baremetal.v1.GetBareMetalInstanceResponse
-	17, // 50: aes.baremetal.v1.BareMetalService.ListBareMetalInstances:output_type -> aes.baremetal.v1.ListBareMetalInstancesResponse
-	19, // 51: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance:output_type -> aes.baremetal.v1.ReleaseBareMetalInstanceResponse
-	21, // 52: aes.baremetal.v1.BareMetalService.RenewBareMetalNow:output_type -> aes.baremetal.v1.RenewBareMetalNowResponse
-	23, // 53: aes.baremetal.v1.BareMetalService.SetBareMetalPower:output_type -> aes.baremetal.v1.SetBareMetalPowerResponse
-	25, // 54: aes.baremetal.v1.BareMetalService.ReinstallBareMetal:output_type -> aes.baremetal.v1.ReinstallBareMetalResponse
-	27, // 55: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL:output_type -> aes.baremetal.v1.GetBareMetalConsoleURLResponse
-	29, // 56: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode:output_type -> aes.baremetal.v1.EnterBareMetalRescueModeResponse
-	31, // 57: aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode:output_type -> aes.baremetal.v1.ExitBareMetalRescueModeResponse
-	33, // 58: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL:output_type -> aes.baremetal.v1.CreateBareMetalISOUploadURLResponse
-	38, // 59: aes.baremetal.v1.BareMetalService.ListBareMetalISOs:output_type -> aes.baremetal.v1.ListBareMetalISOsResponse
-	37, // 60: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL:output_type -> aes.baremetal.v1.CreateBareMetalISOFromURLResponse
-	40, // 61: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO:output_type -> aes.baremetal.v1.DeleteBareMetalISOResponse
-	44, // 62: aes.baremetal.v1.BareMetalService.AttachBareMetalISO:output_type -> aes.baremetal.v1.AttachBareMetalISOResponse
-	42, // 63: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia:output_type -> aes.baremetal.v1.GetBareMetalVirtualMediaResponse
-	46, // 64: aes.baremetal.v1.BareMetalService.DetachBareMetalISO:output_type -> aes.baremetal.v1.DetachBareMetalISOResponse
-	48, // 65: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice:output_type -> aes.baremetal.v1.SetBareMetalBootDeviceResponse
-	45, // [45:66] is the sub-list for method output_type
-	24, // [24:45] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	54, // 19: aes.baremetal.v1.CreateBareMetalISOFromURLResponse.operation:type_name -> aes.ops.v1.Operation
+	34, // 20: aes.baremetal.v1.ListBareMetalISOsResponse.isos:type_name -> aes.baremetal.v1.ISOFile
+	3,  // 21: aes.baremetal.v1.AttachBareMetalISOResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	3,  // 22: aes.baremetal.v1.DetachBareMetalISOResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	2,  // 23: aes.baremetal.v1.SetBareMetalBootDeviceRequest.device:type_name -> aes.baremetal.v1.BareMetalBootDevice
+	3,  // 24: aes.baremetal.v1.SetBareMetalBootDeviceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	5,  // 25: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal:input_type -> aes.baremetal.v1.ListAvailableBareMetalRequest
+	8,  // 26: aes.baremetal.v1.BareMetalService.ListBareMetalInventory:input_type -> aes.baremetal.v1.ListBareMetalInventoryRequest
+	10, // 27: aes.baremetal.v1.BareMetalService.QuoteBareMetal:input_type -> aes.baremetal.v1.QuoteBareMetalRequest
+	12, // 28: aes.baremetal.v1.BareMetalService.CreateBareMetalInstance:input_type -> aes.baremetal.v1.CreateBareMetalInstanceRequest
+	14, // 29: aes.baremetal.v1.BareMetalService.GetBareMetalInstance:input_type -> aes.baremetal.v1.GetBareMetalInstanceRequest
+	16, // 30: aes.baremetal.v1.BareMetalService.ListBareMetalInstances:input_type -> aes.baremetal.v1.ListBareMetalInstancesRequest
+	18, // 31: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance:input_type -> aes.baremetal.v1.ReleaseBareMetalInstanceRequest
+	20, // 32: aes.baremetal.v1.BareMetalService.RenewBareMetalNow:input_type -> aes.baremetal.v1.RenewBareMetalNowRequest
+	22, // 33: aes.baremetal.v1.BareMetalService.SetBareMetalPower:input_type -> aes.baremetal.v1.SetBareMetalPowerRequest
+	24, // 34: aes.baremetal.v1.BareMetalService.ReinstallBareMetal:input_type -> aes.baremetal.v1.ReinstallBareMetalRequest
+	26, // 35: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL:input_type -> aes.baremetal.v1.GetBareMetalConsoleURLRequest
+	28, // 36: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode:input_type -> aes.baremetal.v1.EnterBareMetalRescueModeRequest
+	30, // 37: aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode:input_type -> aes.baremetal.v1.ExitBareMetalRescueModeRequest
+	32, // 38: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL:input_type -> aes.baremetal.v1.CreateBareMetalISOUploadURLRequest
+	35, // 39: aes.baremetal.v1.BareMetalService.ListBareMetalISOs:input_type -> aes.baremetal.v1.ListBareMetalISOsRequest
+	36, // 40: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL:input_type -> aes.baremetal.v1.CreateBareMetalISOFromURLRequest
+	39, // 41: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO:input_type -> aes.baremetal.v1.DeleteBareMetalISORequest
+	43, // 42: aes.baremetal.v1.BareMetalService.AttachBareMetalISO:input_type -> aes.baremetal.v1.AttachBareMetalISORequest
+	41, // 43: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia:input_type -> aes.baremetal.v1.GetBareMetalVirtualMediaRequest
+	45, // 44: aes.baremetal.v1.BareMetalService.DetachBareMetalISO:input_type -> aes.baremetal.v1.DetachBareMetalISORequest
+	47, // 45: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice:input_type -> aes.baremetal.v1.SetBareMetalBootDeviceRequest
+	6,  // 46: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal:output_type -> aes.baremetal.v1.ListAvailableBareMetalResponse
+	9,  // 47: aes.baremetal.v1.BareMetalService.ListBareMetalInventory:output_type -> aes.baremetal.v1.ListBareMetalInventoryResponse
+	11, // 48: aes.baremetal.v1.BareMetalService.QuoteBareMetal:output_type -> aes.baremetal.v1.QuoteBareMetalResponse
+	13, // 49: aes.baremetal.v1.BareMetalService.CreateBareMetalInstance:output_type -> aes.baremetal.v1.CreateBareMetalInstanceResponse
+	15, // 50: aes.baremetal.v1.BareMetalService.GetBareMetalInstance:output_type -> aes.baremetal.v1.GetBareMetalInstanceResponse
+	17, // 51: aes.baremetal.v1.BareMetalService.ListBareMetalInstances:output_type -> aes.baremetal.v1.ListBareMetalInstancesResponse
+	19, // 52: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance:output_type -> aes.baremetal.v1.ReleaseBareMetalInstanceResponse
+	21, // 53: aes.baremetal.v1.BareMetalService.RenewBareMetalNow:output_type -> aes.baremetal.v1.RenewBareMetalNowResponse
+	23, // 54: aes.baremetal.v1.BareMetalService.SetBareMetalPower:output_type -> aes.baremetal.v1.SetBareMetalPowerResponse
+	25, // 55: aes.baremetal.v1.BareMetalService.ReinstallBareMetal:output_type -> aes.baremetal.v1.ReinstallBareMetalResponse
+	27, // 56: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL:output_type -> aes.baremetal.v1.GetBareMetalConsoleURLResponse
+	29, // 57: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode:output_type -> aes.baremetal.v1.EnterBareMetalRescueModeResponse
+	31, // 58: aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode:output_type -> aes.baremetal.v1.ExitBareMetalRescueModeResponse
+	33, // 59: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL:output_type -> aes.baremetal.v1.CreateBareMetalISOUploadURLResponse
+	38, // 60: aes.baremetal.v1.BareMetalService.ListBareMetalISOs:output_type -> aes.baremetal.v1.ListBareMetalISOsResponse
+	37, // 61: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL:output_type -> aes.baremetal.v1.CreateBareMetalISOFromURLResponse
+	40, // 62: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO:output_type -> aes.baremetal.v1.DeleteBareMetalISOResponse
+	44, // 63: aes.baremetal.v1.BareMetalService.AttachBareMetalISO:output_type -> aes.baremetal.v1.AttachBareMetalISOResponse
+	42, // 64: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia:output_type -> aes.baremetal.v1.GetBareMetalVirtualMediaResponse
+	46, // 65: aes.baremetal.v1.BareMetalService.DetachBareMetalISO:output_type -> aes.baremetal.v1.DetachBareMetalISOResponse
+	48, // 66: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice:output_type -> aes.baremetal.v1.SetBareMetalBootDeviceResponse
+	46, // [46:67] is the sub-list for method output_type
+	25, // [25:46] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_aes_baremetal_v1_baremetal_proto_init() }
