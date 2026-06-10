@@ -279,7 +279,7 @@ message GetBareMetalInstanceResponse {
 }
 
 message ListBareMetalInstancesRequest {
-  // Required for non-admin callers (project-scoped). Same scoping pattern as audit/ops.
+  // Required. Scopes results to the given project (`projects/{slug}`).
   string project_name = 1;
   int32 page_size = 2;
   string page_token = 3;
@@ -429,8 +429,8 @@ message CreateBareMetalISOFromURLResponse {
   // The object key the import is streaming into; poll ListBareMetalISOs until it appears.
   string object_key = 1;
   // The durable import Operation (kind=bm_iso_import). Poll GetOperation — or watch the IMPORTING
-  // entry in ListBareMetalISOs — for live byte progress; the import survives metalhostd restarts.
-  // Null when the server has no Temporal/ops wiring (dev/test fall back to a best-effort fetch).
+  // entry in ListBareMetalISOs — for live byte progress; the import survives control-plane restarts.
+  // Null when the import completes synchronously without a trackable operation.
   aes.ops.v1.Operation operation = 2;
 }
 

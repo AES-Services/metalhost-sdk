@@ -1335,6 +1335,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.compute.v1.GetVmSnapshotResponse'
+  /aes.compute.v1.ComputeService/ListVMUtilization:
+    post:
+      tags:
+        - aes.compute.v1.ComputeService
+      summary: ListVMUtilization
+      description: |-
+        ListVMUtilization returns point-in-time CPU / memory / GPU utilization for every VM in
+         a project, plus an idle-days counter for cost hygiene. Backs the dashboard's workloads
+         table; poll at a few-second cadence.
+      operationId: aes.compute.v1.ComputeService.ListVMUtilization
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.compute.v1.ListVMUtilizationRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.compute.v1.ListVMUtilizationResponse'
   /aes.compute.v1.ComputeService/ListVirtualMachines:
     post:
       tags:
@@ -2823,6 +2862,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.iam.v1.MarkNotificationsReadResponse'
+  /aes.iam.v1.IamService/RegenerateRecoveryCodes:
+    post:
+      tags:
+        - aes.iam.v1.IamService
+      summary: RegenerateRecoveryCodes
+      description: |-
+        RegenerateRecoveryCodes replaces the caller's recovery-code set with a fresh one.
+         Requires a current TOTP code. Returned ONCE — store immediately.
+      operationId: aes.iam.v1.IamService.RegenerateRecoveryCodes
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.RegenerateRecoveryCodesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.RegenerateRecoveryCodesResponse'
   /aes.iam.v1.IamService/RemoveOrgMember:
     post:
       tags:
@@ -4009,8 +4086,8 @@ paths:
       description: |-
         ListOrgActivity returns a humanized stream of recent events across the org — VM created,
          disk resized, payment processed, firewall rule added, etc. Backed by audit_events but
-         filtered + reshaped for end-user consumption (raw audit log lives at admin's
-         ListAuditEvents). Sorted newest-first.
+         filtered + reshaped for end-user consumption (raw audit log is available via
+         AuditService.SearchEvents). Sorted newest-first.
       operationId: aes.project.v1.ProjectService.ListOrgActivity
       parameters:
         - name: Connect-Protocol-Version
@@ -4181,6 +4258,80 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.quota.v1.GetMyQuotasResponse'
+  /aes.quota.v1.QuotaService/ListMyQuotaRequests:
+    post:
+      tags:
+        - aes.quota.v1.QuotaService
+      summary: ListMyQuotaRequests
+      description: ListMyQuotaRequests returns the organization's quota requests, newest first.
+      operationId: aes.quota.v1.QuotaService.ListMyQuotaRequests
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.quota.v1.ListMyQuotaRequestsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.quota.v1.ListMyQuotaRequestsResponse'
+  /aes.quota.v1.QuotaService/RequestQuotaIncrease:
+    post:
+      tags:
+        - aes.quota.v1.QuotaService
+      summary: RequestQuotaIncrease
+      description: |-
+        RequestQuotaIncrease files a request to raise an organization-level quota. Requests are
+         reviewed by the platform team; track status via ListMyQuotaRequests.
+      operationId: aes.quota.v1.QuotaService.RequestQuotaIncrease
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.quota.v1.RequestQuotaIncreaseRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.quota.v1.RequestQuotaIncreaseResponse'
   /aes.storage.v1.StorageService/AttachDisk:
     post:
       tags:
@@ -4586,8 +4737,7 @@ paths:
       summary: CloseTicket
       description: |-
         CloseTicket transitions the ticket to CLOSED. Customer can close from any non-CLOSED
-         status; staff-side resolution uses AdminSupportService.ResolveTicket which records a
-         resolution note.
+         status. Staff may mark a ticket RESOLVED before the customer closes it.
       operationId: aes.support.v1.SupportService.CloseTicket
       parameters:
         - name: Connect-Protocol-Version
@@ -5628,7 +5778,7 @@ paths:
       description: |-
         Usage query / export. QueryUsage aggregates usage_events by meter / project / time-bucket
          and returns rows; ExportUsage materializes a CSV/NDJSON file in object storage and returns
-         a presigned URL (same pattern as AdminAuditService.ExportAuditEvents).
+         a time-limited presigned download URL.
       operationId: aes.wallet.v1.WalletService.QueryUsage
       parameters:
         - name: Connect-Protocol-Version
@@ -5949,6 +6099,23 @@ paths:
                 $ref: '#/components/schemas/aes.webhooks.v1.UpdateSubscriptionResponse'
 components:
   schemas:
+    aes.audit.v1.AuditChange:
+      type: object
+      properties:
+        field:
+          type: string
+          title: field
+          description: e.g. "role", "state", "unit_price_minor", "limit_value", "balance_minor"
+        before:
+          type: string
+          title: before
+          description: stringified — display only
+        after:
+          type: string
+          title: after
+      title: AuditChange
+      additionalProperties: false
+      description: AuditChange is a single-field before→after diff attached to a mutation's audit event.
     aes.audit.v1.AuditEvent:
       type: object
       properties:
@@ -5994,6 +6161,13 @@ components:
         severity:
           type: string
           title: severity
+        change:
+          title: change
+          description: |-
+            Structured before→after diff for state-changing mutations (role flips, rate changes,
+             suspensions, quota bumps). Recorded server-side at mutation time; null when the event
+             carries no structured diff. Display-only — values are stringified.
+          $ref: '#/components/schemas/aes.audit.v1.AuditChange'
       title: AuditEvent
       additionalProperties: false
     aes.audit.v1.AuditEvent.MetadataEntry:
@@ -6040,6 +6214,10 @@ components:
         severity:
           type: string
           title: severity
+        change:
+          title: change
+          description: Optional structured diff (see AuditEvent.change).
+          $ref: '#/components/schemas/aes.audit.v1.AuditChange'
       title: LogEventRequest
       additionalProperties: false
     aes.audit.v1.LogEventRequest.MetadataEntry:
@@ -6083,8 +6261,8 @@ components:
           type: string
           title: project_name
           description: |-
-            Project filter (`projects/{slug}`). Customer callers must set either this OR
-             organization_name; platform admins may omit both for fleet-wide queries (B34).
+            Project filter (`projects/{slug}`). Caller must set either this or organization_name
+             to scope the query.
         minTimestampUnix:
           type:
             - integer
@@ -6434,8 +6612,8 @@ components:
           title: operation
           description: |-
             The durable import Operation (kind=bm_iso_import). Poll GetOperation — or watch the IMPORTING
-             entry in ListBareMetalISOs — for live byte progress; the import survives metalhostd restarts.
-             Null when the server has no Temporal/ops wiring (dev/test fall back to a best-effort fetch).
+             entry in ListBareMetalISOs — for live byte progress; the import survives control-plane restarts.
+             Null when the import completes synchronously without a trackable operation.
           $ref: '#/components/schemas/aes.ops.v1.Operation'
       title: CreateBareMetalISOFromURLResponse
       additionalProperties: false
@@ -6839,7 +7017,7 @@ components:
         projectName:
           type: string
           title: project_name
-          description: Required for non-admin callers (project-scoped). Same scoping pattern as audit/ops.
+          description: Required. Scopes results to the given project (`projects/{slug}`).
         pageSize:
           type: integer
           title: page_size
@@ -7867,7 +8045,7 @@ components:
         projectName:
           type: string
           title: project_name
-          description: Full resource name `projects/{slug}` (B38). Slug-only is also accepted.
+          description: Full resource name `projects/{slug}`. Slug-only is also accepted.
         sshKeyId:
           type: string
           title: ssh_key_id
@@ -8200,7 +8378,7 @@ components:
         projectName:
           type: string
           title: project_name
-          description: Full resource name `projects/{slug}` (B38). Slug-only is also accepted.
+          description: Full resource name `projects/{slug}`. Slug-only is also accepted.
         pageSize:
           type: integer
           title: page_size
@@ -8222,6 +8400,36 @@ components:
           type: string
           title: next_page_token
       title: ListSSHKeysResponse
+      additionalProperties: false
+    aes.compute.v1.ListVMUtilizationRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+      title: ListVMUtilizationRequest
+      additionalProperties: false
+    aes.compute.v1.ListVMUtilizationResponse:
+      type: object
+      properties:
+        vms:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.compute.v1.VMUtilization'
+          title: vms
+        available:
+          type: boolean
+          title: available
+          description: |-
+            false when utilization telemetry is temporarily unavailable for the project's region —
+             render shapes without bars rather than zeros.
+        polledAtUnix:
+          type:
+            - integer
+            - string
+          title: polled_at_unix
+          format: int64
+      title: ListVMUtilizationResponse
       additionalProperties: false
     aes.compute.v1.ListVirtualMachinesRequest:
       type: object
@@ -8764,6 +8972,39 @@ components:
             Allocate a public IPv4 from the DC pool for the VM's public NIC. Default false — VMs are
              reachable over IPv6 (always allocated from the network's /64) without burning a public v4.
       title: VMNetworkSpec
+      additionalProperties: false
+    aes.compute.v1.VMUtilization:
+      type: object
+      properties:
+        virtualMachineName:
+          type: string
+          title: virtual_machine_name
+        cpuPct:
+          type: number
+          title: cpu_pct
+          format: double
+          description: 0-100, normalized to the VM's vCPU count.
+        memPct:
+          type: number
+          title: mem_pct
+          format: double
+          description: 0-100 of guest-visible memory in use.
+        gpuPct:
+          type: number
+          title: gpu_pct
+          format: double
+          description: |-
+            0-100 averaged across the VM's GPUs. 0 for CPU-only VMs or when GPU telemetry
+             isn't reporting.
+        idleDays:
+          type: integer
+          title: idle_days
+          format: int32
+          description: |-
+            Consecutive days the VM has stayed under the idle threshold (CPU and, when present,
+             GPU averaging below 10%). 0 = active. Stopping idle workloads is the dashboard's
+             first cost-hygiene suggestion.
+      title: VMUtilization
       additionalProperties: false
     aes.compute.v1.VirtualMachine:
       type: object
@@ -10178,6 +10419,26 @@ components:
         PendingInvite is the unaccepted-invite shape surfaced to org admins. accept_token is
          intentionally omitted — the original recipient of InviteOrgMember has it; the list view
          is for resend (re-invite) + revoke, not token disclosure.
+    aes.iam.v1.RegenerateRecoveryCodesRequest:
+      type: object
+      properties:
+        totpCode:
+          type: string
+          title: totp_code
+          description: 6-digit TOTP code from the caller's authenticator (proves possession before rotating codes).
+      title: RegenerateRecoveryCodesRequest
+      additionalProperties: false
+    aes.iam.v1.RegenerateRecoveryCodesResponse:
+      type: object
+      properties:
+        recoveryCodes:
+          type: array
+          items:
+            type: string
+          title: recovery_codes
+          description: Fresh single-use recovery codes; the previous set is invalidated.
+      title: RegenerateRecoveryCodesResponse
+      additionalProperties: false
     aes.iam.v1.RemoveOrgMemberRequest:
       type: object
       properties:
@@ -10506,7 +10767,7 @@ components:
         providerName:
           type: string
           title: provider_name
-          description: Provider name (`oidc-providers/{slug}`) — admins register these via AdminIamService.
+          description: Provider name (`oidc-providers/{slug}`) — a platform-configured OIDC provider slug.
         redirectUri:
           type: string
           title: redirect_uri
@@ -10854,7 +11115,7 @@ components:
         projectName:
           type: string
           title: project_name
-          description: Required project name. Full resource form `projects/{slug}` (slug-only also accepted). Full resource name `projects/{slug}` (B38). Slug-only is also accepted.
+          description: Required project name. Full resource form `projects/{slug}` (slug-only also accepted). Full resource name `projects/{slug}`. Slug-only is also accepted.
         networkId:
           type: string
           title: network_id
@@ -11080,7 +11341,7 @@ components:
         projectName:
           type: string
           title: project_name
-          description: Filter to a single project. Required for now (cross-project list is admin-only / future). Full resource name `projects/{slug}` (B38). Slug-only is also accepted.
+          description: Filter to a single project. Required — cross-project list is not supported in v1. Full resource name `projects/{slug}`. Slug-only is also accepted.
         pageSize:
           type: integer
           title: page_size
@@ -11635,9 +11896,8 @@ components:
           type: string
           title: project_name
           description: |-
-            Required for non-admin callers: filters to ops whose metadata.vm_project_name (or related
-             project key) matches. Admin (admin.platform) callers may omit to see all ops fleet-wide.
-             Resource name like `projects/metalhost-demo`.
+            Required. Filters to operations whose metadata.vm_project_name (or related project key)
+             matches. Resource name like `projects/my-project`.
       title: ListOperationsRequest
       additionalProperties: false
     aes.ops.v1.ListOperationsResponse:
@@ -11685,7 +11945,7 @@ components:
         temporalWorkflowId:
           type: string
           title: temporal_workflow_id
-          description: Internal execution-tracking identifiers for this operation (if any). Opaque to clients.
+          description: Opaque workflow correlation identifiers for this operation (if any).
         temporalRunId:
           type: string
           title: temporal_run_id
@@ -11696,6 +11956,10 @@ components:
             type: string
             title: value
           description: Opaque key/value (e.g. vm_project_name on create; virtual_machine_name when provision completes).
+        principal:
+          type: string
+          title: principal
+          description: Caller principal that started the operation ('' for platform-started ops).
       title: Operation
       additionalProperties: false
     aes.ops.v1.Operation.MetadataEntry:
@@ -12089,6 +12353,28 @@ components:
           title: quotas
       title: GetMyQuotasResponse
       additionalProperties: false
+    aes.quota.v1.ListMyQuotaRequestsRequest:
+      type: object
+      properties:
+        organizationName:
+          type: string
+          title: organization_name
+        status:
+          type: string
+          title: status
+          description: 'Optional status filter: PENDING | APPROVED | DENIED. Empty = all.'
+      title: ListMyQuotaRequestsRequest
+      additionalProperties: false
+    aes.quota.v1.ListMyQuotaRequestsResponse:
+      type: object
+      properties:
+        requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.quota.v1.QuotaRequest'
+          title: requests
+      title: ListMyQuotaRequestsResponse
+      additionalProperties: false
     aes.quota.v1.ProjectQuotaUsage:
       type: object
       properties:
@@ -12116,6 +12402,105 @@ components:
           title: limit_source
           description: 'Source of the limiting row: "project" | "org" | "unlimited".'
       title: ProjectQuotaUsage
+      additionalProperties: false
+    aes.quota.v1.QuotaRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          description: Resource name, e.g. `quotaRequests/qr-7f3a91c2`.
+        organizationName:
+          type: string
+          title: organization_name
+        quotaKey:
+          type: string
+          title: quota_key
+          description: Quota key being raised, e.g. `compute.vm.vcpus`.
+        fromValue:
+          type:
+            - integer
+            - string
+          title: from_value
+          format: int64
+          description: Limit at request time.
+        toValue:
+          type:
+            - integer
+            - string
+          title: to_value
+          format: int64
+          description: Requested new limit.
+        reason:
+          type: string
+          title: reason
+          description: Requester-provided justification.
+        requestedBy:
+          type: string
+          title: requested_by
+        requestedAtUnix:
+          type:
+            - integer
+            - string
+          title: requested_at_unix
+          format: int64
+        status:
+          type: string
+          title: status
+          description: PENDING | APPROVED | DENIED.
+        decidedAtUnix:
+          type:
+            - integer
+            - string
+          title: decided_at_unix
+          format: int64
+        decisionNote:
+          type: string
+          title: decision_note
+          description: Reviewer note explaining the decision (set when decided).
+        linkedTicket:
+          type: string
+          title: linked_ticket
+          description: Optional `tickets/{id}` cross-reference.
+        decidedBy:
+          type: string
+          title: decided_by
+          description: Reviewer principal. Omitted on customer reads.
+      title: QuotaRequest
+      additionalProperties: false
+      description: QuotaRequest is a request to raise one organization-level quota limit.
+    aes.quota.v1.RequestQuotaIncreaseRequest:
+      type: object
+      properties:
+        organizationName:
+          type: string
+          title: organization_name
+        quotaKey:
+          type: string
+          title: quota_key
+        toValue:
+          type:
+            - integer
+            - string
+          title: to_value
+          format: int64
+          description: Requested new limit. Must be greater than the current limit.
+        reason:
+          type: string
+          title: reason
+          description: Justification shown to the reviewer. Required.
+        idempotencyKey:
+          type: string
+          title: idempotency_key
+      title: RequestQuotaIncreaseRequest
+      additionalProperties: false
+    aes.quota.v1.RequestQuotaIncreaseResponse:
+      type: object
+      properties:
+        request:
+          title: request
+          $ref: '#/components/schemas/aes.quota.v1.QuotaRequest'
+      title: RequestQuotaIncreaseResponse
       additionalProperties: false
     aes.storage.v1.AttachDiskRequest:
       type: object
@@ -12800,7 +13185,7 @@ components:
         assignee:
           type: string
           title: assignee
-          description: Assigned staff user (admin RPC sets this). Empty when unassigned.
+          description: Assigned support staff member. Empty when unassigned.
         createdAt:
           title: created_at
           $ref: '#/components/schemas/google.protobuf.Timestamp'
@@ -12813,9 +13198,14 @@ components:
         resolvedAt:
           title: resolved_at
           $ref: '#/components/schemas/google.protobuf.Timestamp'
+        messageCount:
+          type: integer
+          title: message_count
+          format: int32
+          description: Message count in the thread. Populated on list responses; GetTicket returns the full thread.
         slaDueAt:
           title: sla_due_at
-          description: Set on creation per plan tier; null = no SLA. Phase 2 worker sweeps for breach.
+          description: Set on creation per plan tier; null = no SLA. Breach monitoring is applied automatically.
           $ref: '#/components/schemas/google.protobuf.Timestamp'
         escalatedAt:
           title: escalated_at
@@ -12892,8 +13282,8 @@ components:
         - TICKET_STATUS_CLOSED
       description: |-
         Lifecycle states. PENDING_CUSTOMER means staff replied and we're waiting on the user;
-         PENDING_STAFF means the user replied and we owe them a response. RESOLVED is set by staff
-         (AdminSupportService.ResolveTicket); CLOSED is the terminal state — set when the customer
+         PENDING_STAFF means the user replied and we owe them a response. RESOLVED is set by staff;
+         CLOSED is the terminal state — set when the customer
          confirms or auto-closes after an inactivity window. Customer-side CloseTicket goes
          directly to CLOSED.
     aes.wallet.v1.ActivePromotion:
@@ -14939,19 +15329,11 @@ tags:
     description: Liveness/readiness for load balancers and ops.
   - name: aes.iam.v1.IamService
     description: |-
-      IamService holds identity primitives.
+      IamService holds identity primitives for customer orgs and projects.
 
-       Customer-facing surface intentionally excludes:
-         - ValidateApiKey, ValidateOidcToken — internal-only (the HTTP auth middleware uses
-           pkg-private Go helpers `ValidateAPIKeyRaw` / `validateOidcTokenRaw`); exposing the
-           RPCs would let external callers test arbitrary key/token validity, a real enum vector.
-         - CheckPermission — pre-flight per-button perm checks aren't worth wiring; UI lets
-           the action fail with PermissionDenied at request time.
-         - GetAuthMetadata — exposes which auth providers are configured; only matters for
-           self-hosts without OIDC, which we don't ship.
-         - GetOrgMember — single-getter ripped per platform pattern; ListOrgMembers covers it.
-
-       The Go methods for these stay callable internally where needed.
+       The public API intentionally omits token-validation helpers, per-button permission
+       pre-checks, and deployment-metadata endpoints — callers rely on request-time
+       PermissionDenied instead. ListOrgMembers covers single-member lookups.
   - name: aes.network.v1.NetworkService
     description: |-
       NetworkService manages tenant-facing networks for tenant-private connectivity. Each Network
@@ -14964,20 +15346,16 @@ tags:
     description: |-
       ProjectService is the tenancy slice of the control plane.
 
-       Removed surfaces (folded into AdminProjectService or dropped entirely):
+       Removed surfaces (not exposed on the customer API):
          - ListOrganizations: every customer has exactly one org; multi-org switcher is v2.
          - TransferProject / TransferResources: per-org isolation is the v1 product invariant.
          - Folders (List/Get/Create/Update/Delete): nesting was a v2 idea, nothing used it.
          - GetDashboardSummary: SPA builds its own tile aggregation via parallel queries.
-         - RecoverProject / RecoverOrganization: moved to AdminProjectService (operator-only).
+         - RecoverProject / RecoverOrganization: operator-only recovery, not customer-callable.
   - name: aes.quota.v1.QuotaService
     description: |-
-      QuotaService is the customer-facing read API for quotas. AdminQuotaService (in aes.admin.v1)
-       remains the management surface — admins set limits, customers see effective caps.
-
-       Pre-launch surface is read-only — quota-increase requests go through the support ticket
-       flow (SupportService.CreateTicket) rather than a parallel quota-request workflow. The
-       previous Request/ListQuotaIncreaseRequests RPCs were removed along with their tickets table.
+      QuotaService is the customer-facing quota API: read effective limits and usage, and file
+       quota-increase requests for review.
 
        Effective limit semantics: when both an org-level and project-level quota row exist for the
        same key, the effective ceiling is min(org, project). Missing rows = unlimited (closed-beta
@@ -14995,15 +15373,15 @@ tags:
     description: |-
       SupportService is the customer-facing ticket API. Tickets are organization-scoped — every
        member of the org can see every ticket the org has opened. Staff-side management (assign,
-       escalate, internal notes, cross-org list) lives in aes.admin.v1.AdminSupportService.
+       escalate, internal notes) is not exposed on this API.
 
        v1 is API + DB only. Email gateway, Slack relay, and SLA breach worker land in phase 2;
        the schema already carries channel + sla_due_at so phase 2 is pure business logic.
   - name: aes.wallet.v1.WalletService
     description: |-
       WalletService is the customer-facing billing surface: org's single billing account + wallet,
-       payment methods, invoices, top-ups, alerts. Admin/internal ledger operations live on
-       AdminBillingService. One billing account per org; one wallet per billing account.
+       payment methods, invoices, top-ups, and alerts. One billing account per org; one wallet per
+       billing account.
   - name: aes.webhooks.v1.WebhooksService
     description: |-
       WebhooksService manages customer-defined HTTP callbacks for resource events. Customers

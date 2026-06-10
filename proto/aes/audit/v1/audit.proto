@@ -26,6 +26,17 @@ message AuditEvent {
   string organization_name = 9;
   string project_name = 10;
   string severity = 11;
+  // Structured before→after diff for state-changing mutations (role flips, rate changes,
+  // suspensions, quota bumps). Recorded server-side at mutation time; null when the event
+  // carries no structured diff. Display-only — values are stringified.
+  AuditChange change = 12;
+}
+
+// AuditChange is a single-field before→after diff attached to a mutation's audit event.
+message AuditChange {
+  string field = 1;   // e.g. "role", "state", "unit_price_minor", "limit_value", "balance_minor"
+  string before = 2;  // stringified — display only
+  string after = 3;
 }
 
 message LogEventRequest {
@@ -38,6 +49,8 @@ message LogEventRequest {
   string organization_name = 7;
   string project_name = 8;
   string severity = 9;
+  // Optional structured diff (see AuditEvent.change).
+  AuditChange change = 10;
 }
 
 message LogEventResponse {
@@ -51,8 +64,8 @@ message SearchEventsRequest {
   // If set, action must have this prefix (SQL LIKE prefix match).
   string action_prefix = 3;
   string principal_prefix = 4;
-  // Project filter (`projects/{slug}`). Customer callers must set either this OR
-  // organization_name; platform admins may omit both for fleet-wide queries (B34).
+  // Project filter (`projects/{slug}`). Caller must set either this or organization_name
+  // to scope the query.
   string project_name = 5;
   // Minimum event time (inclusive), Unix seconds; 0 = no lower bound.
   int64 min_timestamp_unix = 6;

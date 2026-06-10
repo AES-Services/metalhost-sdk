@@ -1412,7 +1412,7 @@ func (x *GetBareMetalInstanceResponse) GetInstance() *BareMetalInstance {
 
 type ListBareMetalInstancesRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Required for non-admin callers (project-scoped). Same scoping pattern as audit/ops.
+	// Required. Scopes results to the given project (`projects/{slug}`).
 	ProjectName   string `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
 	PageSize      int32  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	PageToken     string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
@@ -2604,8 +2604,8 @@ type CreateBareMetalISOFromURLResponse struct {
 	// The object key the import is streaming into; poll ListBareMetalISOs until it appears.
 	ObjectKey string `protobuf:"bytes,1,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
 	// The durable import Operation (kind=bm_iso_import). Poll GetOperation — or watch the IMPORTING
-	// entry in ListBareMetalISOs — for live byte progress; the import survives metalhostd restarts.
-	// Null when the server has no Temporal/ops wiring (dev/test fall back to a best-effort fetch).
+	// entry in ListBareMetalISOs — for live byte progress; the import survives control-plane restarts.
+	// Null when the import completes synchronously without a trackable operation.
 	Operation     *v11.Operation `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

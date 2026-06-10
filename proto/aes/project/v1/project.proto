@@ -4,12 +4,12 @@ package aes.project.v1;
 
 // ProjectService is the tenancy slice of the control plane.
 //
-// Removed surfaces (folded into AdminProjectService or dropped entirely):
+// Removed surfaces (not exposed on the customer API):
 //   - ListOrganizations: every customer has exactly one org; multi-org switcher is v2.
 //   - TransferProject / TransferResources: per-org isolation is the v1 product invariant.
 //   - Folders (List/Get/Create/Update/Delete): nesting was a v2 idea, nothing used it.
 //   - GetDashboardSummary: SPA builds its own tile aggregation via parallel queries.
-//   - RecoverProject / RecoverOrganization: moved to AdminProjectService (operator-only).
+//   - RecoverProject / RecoverOrganization: operator-only recovery, not customer-callable.
 service ProjectService {
   rpc GetOrganization(GetOrganizationRequest) returns (GetOrganizationResponse);
   rpc CreateOrganization(CreateOrganizationRequest) returns (CreateOrganizationResponse);
@@ -28,8 +28,8 @@ service ProjectService {
 
   // ListOrgActivity returns a humanized stream of recent events across the org — VM created,
   // disk resized, payment processed, firewall rule added, etc. Backed by audit_events but
-  // filtered + reshaped for end-user consumption (raw audit log lives at admin's
-  // ListAuditEvents). Sorted newest-first.
+  // filtered + reshaped for end-user consumption (raw audit log is available via
+  // AuditService.SearchEvents). Sorted newest-first.
   rpc ListOrgActivity(ListOrgActivityRequest) returns (ListOrgActivityResponse);
 
   // CheckSlugAvailable reports whether a workspace (org) or project slug can be claimed, for the

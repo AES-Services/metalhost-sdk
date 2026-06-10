@@ -21,6 +21,375 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// QuotaRequest is a request to raise one organization-level quota limit.
+type QuotaRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Resource name, e.g. `quotaRequests/qr-7f3a91c2`.
+	Name             string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	OrganizationName string `protobuf:"bytes,2,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	// Quota key being raised, e.g. `compute.vm.vcpus`.
+	QuotaKey string `protobuf:"bytes,3,opt,name=quota_key,json=quotaKey,proto3" json:"quota_key,omitempty"`
+	// Limit at request time.
+	FromValue int64 `protobuf:"varint,4,opt,name=from_value,json=fromValue,proto3" json:"from_value,omitempty"`
+	// Requested new limit.
+	ToValue int64 `protobuf:"varint,5,opt,name=to_value,json=toValue,proto3" json:"to_value,omitempty"`
+	// Requester-provided justification.
+	Reason          string `protobuf:"bytes,6,opt,name=reason,proto3" json:"reason,omitempty"`
+	RequestedBy     string `protobuf:"bytes,7,opt,name=requested_by,json=requestedBy,proto3" json:"requested_by,omitempty"`
+	RequestedAtUnix int64  `protobuf:"varint,8,opt,name=requested_at_unix,json=requestedAtUnix,proto3" json:"requested_at_unix,omitempty"`
+	// PENDING | APPROVED | DENIED.
+	Status        string `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
+	DecidedAtUnix int64  `protobuf:"varint,10,opt,name=decided_at_unix,json=decidedAtUnix,proto3" json:"decided_at_unix,omitempty"`
+	// Reviewer note explaining the decision (set when decided).
+	DecisionNote string `protobuf:"bytes,11,opt,name=decision_note,json=decisionNote,proto3" json:"decision_note,omitempty"`
+	// Optional `tickets/{id}` cross-reference.
+	LinkedTicket string `protobuf:"bytes,12,opt,name=linked_ticket,json=linkedTicket,proto3" json:"linked_ticket,omitempty"`
+	// Reviewer principal. Omitted on customer reads.
+	DecidedBy     string `protobuf:"bytes,13,opt,name=decided_by,json=decidedBy,proto3" json:"decided_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *QuotaRequest) Reset() {
+	*x = QuotaRequest{}
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QuotaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QuotaRequest) ProtoMessage() {}
+
+func (x *QuotaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QuotaRequest.ProtoReflect.Descriptor instead.
+func (*QuotaRequest) Descriptor() ([]byte, []int) {
+	return file_aes_quota_v1_quota_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *QuotaRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *QuotaRequest) GetOrganizationName() string {
+	if x != nil {
+		return x.OrganizationName
+	}
+	return ""
+}
+
+func (x *QuotaRequest) GetQuotaKey() string {
+	if x != nil {
+		return x.QuotaKey
+	}
+	return ""
+}
+
+func (x *QuotaRequest) GetFromValue() int64 {
+	if x != nil {
+		return x.FromValue
+	}
+	return 0
+}
+
+func (x *QuotaRequest) GetToValue() int64 {
+	if x != nil {
+		return x.ToValue
+	}
+	return 0
+}
+
+func (x *QuotaRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *QuotaRequest) GetRequestedBy() string {
+	if x != nil {
+		return x.RequestedBy
+	}
+	return ""
+}
+
+func (x *QuotaRequest) GetRequestedAtUnix() int64 {
+	if x != nil {
+		return x.RequestedAtUnix
+	}
+	return 0
+}
+
+func (x *QuotaRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *QuotaRequest) GetDecidedAtUnix() int64 {
+	if x != nil {
+		return x.DecidedAtUnix
+	}
+	return 0
+}
+
+func (x *QuotaRequest) GetDecisionNote() string {
+	if x != nil {
+		return x.DecisionNote
+	}
+	return ""
+}
+
+func (x *QuotaRequest) GetLinkedTicket() string {
+	if x != nil {
+		return x.LinkedTicket
+	}
+	return ""
+}
+
+func (x *QuotaRequest) GetDecidedBy() string {
+	if x != nil {
+		return x.DecidedBy
+	}
+	return ""
+}
+
+type RequestQuotaIncreaseRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	OrganizationName string                 `protobuf:"bytes,1,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	QuotaKey         string                 `protobuf:"bytes,2,opt,name=quota_key,json=quotaKey,proto3" json:"quota_key,omitempty"`
+	// Requested new limit. Must be greater than the current limit.
+	ToValue int64 `protobuf:"varint,3,opt,name=to_value,json=toValue,proto3" json:"to_value,omitempty"`
+	// Justification shown to the reviewer. Required.
+	Reason         string `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	IdempotencyKey string `protobuf:"bytes,5,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *RequestQuotaIncreaseRequest) Reset() {
+	*x = RequestQuotaIncreaseRequest{}
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestQuotaIncreaseRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestQuotaIncreaseRequest) ProtoMessage() {}
+
+func (x *RequestQuotaIncreaseRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestQuotaIncreaseRequest.ProtoReflect.Descriptor instead.
+func (*RequestQuotaIncreaseRequest) Descriptor() ([]byte, []int) {
+	return file_aes_quota_v1_quota_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *RequestQuotaIncreaseRequest) GetOrganizationName() string {
+	if x != nil {
+		return x.OrganizationName
+	}
+	return ""
+}
+
+func (x *RequestQuotaIncreaseRequest) GetQuotaKey() string {
+	if x != nil {
+		return x.QuotaKey
+	}
+	return ""
+}
+
+func (x *RequestQuotaIncreaseRequest) GetToValue() int64 {
+	if x != nil {
+		return x.ToValue
+	}
+	return 0
+}
+
+func (x *RequestQuotaIncreaseRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *RequestQuotaIncreaseRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+type RequestQuotaIncreaseResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Request       *QuotaRequest          `protobuf:"bytes,1,opt,name=request,proto3" json:"request,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequestQuotaIncreaseResponse) Reset() {
+	*x = RequestQuotaIncreaseResponse{}
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestQuotaIncreaseResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestQuotaIncreaseResponse) ProtoMessage() {}
+
+func (x *RequestQuotaIncreaseResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestQuotaIncreaseResponse.ProtoReflect.Descriptor instead.
+func (*RequestQuotaIncreaseResponse) Descriptor() ([]byte, []int) {
+	return file_aes_quota_v1_quota_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RequestQuotaIncreaseResponse) GetRequest() *QuotaRequest {
+	if x != nil {
+		return x.Request
+	}
+	return nil
+}
+
+type ListMyQuotaRequestsRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	OrganizationName string                 `protobuf:"bytes,1,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	// Optional status filter: PENDING | APPROVED | DENIED. Empty = all.
+	Status        string `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyQuotaRequestsRequest) Reset() {
+	*x = ListMyQuotaRequestsRequest{}
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyQuotaRequestsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyQuotaRequestsRequest) ProtoMessage() {}
+
+func (x *ListMyQuotaRequestsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyQuotaRequestsRequest.ProtoReflect.Descriptor instead.
+func (*ListMyQuotaRequestsRequest) Descriptor() ([]byte, []int) {
+	return file_aes_quota_v1_quota_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ListMyQuotaRequestsRequest) GetOrganizationName() string {
+	if x != nil {
+		return x.OrganizationName
+	}
+	return ""
+}
+
+func (x *ListMyQuotaRequestsRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type ListMyQuotaRequestsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Requests      []*QuotaRequest        `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyQuotaRequestsResponse) Reset() {
+	*x = ListMyQuotaRequestsResponse{}
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyQuotaRequestsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyQuotaRequestsResponse) ProtoMessage() {}
+
+func (x *ListMyQuotaRequestsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyQuotaRequestsResponse.ProtoReflect.Descriptor instead.
+func (*ListMyQuotaRequestsResponse) Descriptor() ([]byte, []int) {
+	return file_aes_quota_v1_quota_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ListMyQuotaRequestsResponse) GetRequests() []*QuotaRequest {
+	if x != nil {
+		return x.Requests
+	}
+	return nil
+}
+
 type ProjectQuotaUsage struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	QuotaKey string                 `protobuf:"bytes,1,opt,name=quota_key,json=quotaKey,proto3" json:"quota_key,omitempty"`
@@ -37,7 +406,7 @@ type ProjectQuotaUsage struct {
 
 func (x *ProjectQuotaUsage) Reset() {
 	*x = ProjectQuotaUsage{}
-	mi := &file_aes_quota_v1_quota_proto_msgTypes[0]
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -49,7 +418,7 @@ func (x *ProjectQuotaUsage) String() string {
 func (*ProjectQuotaUsage) ProtoMessage() {}
 
 func (x *ProjectQuotaUsage) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_quota_v1_quota_proto_msgTypes[0]
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -62,7 +431,7 @@ func (x *ProjectQuotaUsage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProjectQuotaUsage.ProtoReflect.Descriptor instead.
 func (*ProjectQuotaUsage) Descriptor() ([]byte, []int) {
-	return file_aes_quota_v1_quota_proto_rawDescGZIP(), []int{0}
+	return file_aes_quota_v1_quota_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ProjectQuotaUsage) GetQuotaKey() string {
@@ -102,7 +471,7 @@ type GetMyQuotasRequest struct {
 
 func (x *GetMyQuotasRequest) Reset() {
 	*x = GetMyQuotasRequest{}
-	mi := &file_aes_quota_v1_quota_proto_msgTypes[1]
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -114,7 +483,7 @@ func (x *GetMyQuotasRequest) String() string {
 func (*GetMyQuotasRequest) ProtoMessage() {}
 
 func (x *GetMyQuotasRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_quota_v1_quota_proto_msgTypes[1]
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -127,7 +496,7 @@ func (x *GetMyQuotasRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMyQuotasRequest.ProtoReflect.Descriptor instead.
 func (*GetMyQuotasRequest) Descriptor() ([]byte, []int) {
-	return file_aes_quota_v1_quota_proto_rawDescGZIP(), []int{1}
+	return file_aes_quota_v1_quota_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetMyQuotasRequest) GetProjectName() string {
@@ -148,7 +517,7 @@ type GetMyQuotasResponse struct {
 
 func (x *GetMyQuotasResponse) Reset() {
 	*x = GetMyQuotasResponse{}
-	mi := &file_aes_quota_v1_quota_proto_msgTypes[2]
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -160,7 +529,7 @@ func (x *GetMyQuotasResponse) String() string {
 func (*GetMyQuotasResponse) ProtoMessage() {}
 
 func (x *GetMyQuotasResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_quota_v1_quota_proto_msgTypes[2]
+	mi := &file_aes_quota_v1_quota_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -173,7 +542,7 @@ func (x *GetMyQuotasResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMyQuotasResponse.ProtoReflect.Descriptor instead.
 func (*GetMyQuotasResponse) Descriptor() ([]byte, []int) {
-	return file_aes_quota_v1_quota_proto_rawDescGZIP(), []int{2}
+	return file_aes_quota_v1_quota_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetMyQuotasResponse) GetProjectName() string {
@@ -201,7 +570,37 @@ var File_aes_quota_v1_quota_proto protoreflect.FileDescriptor
 
 const file_aes_quota_v1_quota_proto_rawDesc = "" +
 	"\n" +
-	"\x18aes/quota/v1/quota.proto\x12\faes.quota.v1\"\xa1\x01\n" +
+	"\x18aes/quota/v1/quota.proto\x12\faes.quota.v1\"\xb6\x03\n" +
+	"\fQuotaRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12+\n" +
+	"\x11organization_name\x18\x02 \x01(\tR\x10organizationName\x12\x1b\n" +
+	"\tquota_key\x18\x03 \x01(\tR\bquotaKey\x12\x1d\n" +
+	"\n" +
+	"from_value\x18\x04 \x01(\x03R\tfromValue\x12\x19\n" +
+	"\bto_value\x18\x05 \x01(\x03R\atoValue\x12\x16\n" +
+	"\x06reason\x18\x06 \x01(\tR\x06reason\x12!\n" +
+	"\frequested_by\x18\a \x01(\tR\vrequestedBy\x12*\n" +
+	"\x11requested_at_unix\x18\b \x01(\x03R\x0frequestedAtUnix\x12\x16\n" +
+	"\x06status\x18\t \x01(\tR\x06status\x12&\n" +
+	"\x0fdecided_at_unix\x18\n" +
+	" \x01(\x03R\rdecidedAtUnix\x12#\n" +
+	"\rdecision_note\x18\v \x01(\tR\fdecisionNote\x12#\n" +
+	"\rlinked_ticket\x18\f \x01(\tR\flinkedTicket\x12\x1d\n" +
+	"\n" +
+	"decided_by\x18\r \x01(\tR\tdecidedBy\"\xc3\x01\n" +
+	"\x1bRequestQuotaIncreaseRequest\x12+\n" +
+	"\x11organization_name\x18\x01 \x01(\tR\x10organizationName\x12\x1b\n" +
+	"\tquota_key\x18\x02 \x01(\tR\bquotaKey\x12\x19\n" +
+	"\bto_value\x18\x03 \x01(\x03R\atoValue\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\x12'\n" +
+	"\x0fidempotency_key\x18\x05 \x01(\tR\x0eidempotencyKey\"T\n" +
+	"\x1cRequestQuotaIncreaseResponse\x124\n" +
+	"\arequest\x18\x01 \x01(\v2\x1a.aes.quota.v1.QuotaRequestR\arequest\"a\n" +
+	"\x1aListMyQuotaRequestsRequest\x12+\n" +
+	"\x11organization_name\x18\x01 \x01(\tR\x10organizationName\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\"U\n" +
+	"\x1bListMyQuotaRequestsResponse\x126\n" +
+	"\brequests\x18\x01 \x03(\v2\x1a.aes.quota.v1.QuotaRequestR\brequests\"\xa1\x01\n" +
 	"\x11ProjectQuotaUsage\x12\x1b\n" +
 	"\tquota_key\x18\x01 \x01(\tR\bquotaKey\x12'\n" +
 	"\x0feffective_limit\x18\x02 \x01(\x03R\x0eeffectiveLimit\x12#\n" +
@@ -212,9 +611,11 @@ const file_aes_quota_v1_quota_proto_rawDesc = "" +
 	"\x13GetMyQuotasResponse\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12+\n" +
 	"\x11organization_name\x18\x02 \x01(\tR\x10organizationName\x127\n" +
-	"\x06quotas\x18\x03 \x03(\v2\x1f.aes.quota.v1.ProjectQuotaUsageR\x06quotas2b\n" +
+	"\x06quotas\x18\x03 \x03(\v2\x1f.aes.quota.v1.ProjectQuotaUsageR\x06quotas2\xbd\x02\n" +
 	"\fQuotaService\x12R\n" +
-	"\vGetMyQuotas\x12 .aes.quota.v1.GetMyQuotasRequest\x1a!.aes.quota.v1.GetMyQuotasResponseB\xb3\x01\n" +
+	"\vGetMyQuotas\x12 .aes.quota.v1.GetMyQuotasRequest\x1a!.aes.quota.v1.GetMyQuotasResponse\x12m\n" +
+	"\x14RequestQuotaIncrease\x12).aes.quota.v1.RequestQuotaIncreaseRequest\x1a*.aes.quota.v1.RequestQuotaIncreaseResponse\x12j\n" +
+	"\x13ListMyQuotaRequests\x12(.aes.quota.v1.ListMyQuotaRequestsRequest\x1a).aes.quota.v1.ListMyQuotaRequestsResponseB\xb3\x01\n" +
 	"\x10com.aes.quota.v1B\n" +
 	"QuotaProtoP\x01ZAgithub.com/AES-Services/metalhost-sdk/gen/go/aes/quota/v1;quotav1\xa2\x02\x03AQX\xaa\x02\fAes.Quota.V1\xca\x02\fAes\\Quota\\V1\xe2\x02\x18Aes\\Quota\\V1\\GPBMetadata\xea\x02\x0eAes::Quota::V1b\x06proto3"
 
@@ -230,21 +631,32 @@ func file_aes_quota_v1_quota_proto_rawDescGZIP() []byte {
 	return file_aes_quota_v1_quota_proto_rawDescData
 }
 
-var file_aes_quota_v1_quota_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_aes_quota_v1_quota_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_aes_quota_v1_quota_proto_goTypes = []any{
-	(*ProjectQuotaUsage)(nil),   // 0: aes.quota.v1.ProjectQuotaUsage
-	(*GetMyQuotasRequest)(nil),  // 1: aes.quota.v1.GetMyQuotasRequest
-	(*GetMyQuotasResponse)(nil), // 2: aes.quota.v1.GetMyQuotasResponse
+	(*QuotaRequest)(nil),                 // 0: aes.quota.v1.QuotaRequest
+	(*RequestQuotaIncreaseRequest)(nil),  // 1: aes.quota.v1.RequestQuotaIncreaseRequest
+	(*RequestQuotaIncreaseResponse)(nil), // 2: aes.quota.v1.RequestQuotaIncreaseResponse
+	(*ListMyQuotaRequestsRequest)(nil),   // 3: aes.quota.v1.ListMyQuotaRequestsRequest
+	(*ListMyQuotaRequestsResponse)(nil),  // 4: aes.quota.v1.ListMyQuotaRequestsResponse
+	(*ProjectQuotaUsage)(nil),            // 5: aes.quota.v1.ProjectQuotaUsage
+	(*GetMyQuotasRequest)(nil),           // 6: aes.quota.v1.GetMyQuotasRequest
+	(*GetMyQuotasResponse)(nil),          // 7: aes.quota.v1.GetMyQuotasResponse
 }
 var file_aes_quota_v1_quota_proto_depIdxs = []int32{
-	0, // 0: aes.quota.v1.GetMyQuotasResponse.quotas:type_name -> aes.quota.v1.ProjectQuotaUsage
-	1, // 1: aes.quota.v1.QuotaService.GetMyQuotas:input_type -> aes.quota.v1.GetMyQuotasRequest
-	2, // 2: aes.quota.v1.QuotaService.GetMyQuotas:output_type -> aes.quota.v1.GetMyQuotasResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0, // 0: aes.quota.v1.RequestQuotaIncreaseResponse.request:type_name -> aes.quota.v1.QuotaRequest
+	0, // 1: aes.quota.v1.ListMyQuotaRequestsResponse.requests:type_name -> aes.quota.v1.QuotaRequest
+	5, // 2: aes.quota.v1.GetMyQuotasResponse.quotas:type_name -> aes.quota.v1.ProjectQuotaUsage
+	6, // 3: aes.quota.v1.QuotaService.GetMyQuotas:input_type -> aes.quota.v1.GetMyQuotasRequest
+	1, // 4: aes.quota.v1.QuotaService.RequestQuotaIncrease:input_type -> aes.quota.v1.RequestQuotaIncreaseRequest
+	3, // 5: aes.quota.v1.QuotaService.ListMyQuotaRequests:input_type -> aes.quota.v1.ListMyQuotaRequestsRequest
+	7, // 6: aes.quota.v1.QuotaService.GetMyQuotas:output_type -> aes.quota.v1.GetMyQuotasResponse
+	2, // 7: aes.quota.v1.QuotaService.RequestQuotaIncrease:output_type -> aes.quota.v1.RequestQuotaIncreaseResponse
+	4, // 8: aes.quota.v1.QuotaService.ListMyQuotaRequests:output_type -> aes.quota.v1.ListMyQuotaRequestsResponse
+	6, // [6:9] is the sub-list for method output_type
+	3, // [3:6] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_aes_quota_v1_quota_proto_init() }
@@ -258,7 +670,7 @@ func file_aes_quota_v1_quota_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_quota_v1_quota_proto_rawDesc), len(file_aes_quota_v1_quota_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

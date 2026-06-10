@@ -3294,7 +3294,7 @@ func (x *RotateApiKeyResponse) GetRevokedKeyPrefix() string {
 
 type StartOidcLoginRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Provider name (`oidc-providers/{slug}`) — admins register these via AdminIamService.
+	// Provider name (`oidc-providers/{slug}`) — a platform-configured OIDC provider slug.
 	ProviderName string `protobuf:"bytes,1,opt,name=provider_name,json=providerName,proto3" json:"provider_name,omitempty"`
 	// Where the IdP should redirect after auth — typically the gateway's /oauth/callback.
 	RedirectUri   string `protobuf:"bytes,2,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
@@ -5862,6 +5862,96 @@ func (x *MarkNotificationsReadResponse) GetMarkedCount() int32 {
 	return 0
 }
 
+type RegenerateRecoveryCodesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 6-digit TOTP code from the caller's authenticator (proves possession before rotating codes).
+	TotpCode      string `protobuf:"bytes,1,opt,name=totp_code,json=totpCode,proto3" json:"totp_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegenerateRecoveryCodesRequest) Reset() {
+	*x = RegenerateRecoveryCodesRequest{}
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[105]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegenerateRecoveryCodesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegenerateRecoveryCodesRequest) ProtoMessage() {}
+
+func (x *RegenerateRecoveryCodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[105]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegenerateRecoveryCodesRequest.ProtoReflect.Descriptor instead.
+func (*RegenerateRecoveryCodesRequest) Descriptor() ([]byte, []int) {
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{105}
+}
+
+func (x *RegenerateRecoveryCodesRequest) GetTotpCode() string {
+	if x != nil {
+		return x.TotpCode
+	}
+	return ""
+}
+
+type RegenerateRecoveryCodesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Fresh single-use recovery codes; the previous set is invalidated.
+	RecoveryCodes []string `protobuf:"bytes,1,rep,name=recovery_codes,json=recoveryCodes,proto3" json:"recovery_codes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegenerateRecoveryCodesResponse) Reset() {
+	*x = RegenerateRecoveryCodesResponse{}
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[106]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegenerateRecoveryCodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegenerateRecoveryCodesResponse) ProtoMessage() {}
+
+func (x *RegenerateRecoveryCodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[106]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegenerateRecoveryCodesResponse.ProtoReflect.Descriptor instead.
+func (*RegenerateRecoveryCodesResponse) Descriptor() ([]byte, []int) {
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{106}
+}
+
+func (x *RegenerateRecoveryCodesResponse) GetRecoveryCodes() []string {
+	if x != nil {
+		return x.RecoveryCodes
+	}
+	return nil
+}
+
 var File_aes_iam_v1_iam_proto protoreflect.FileDescriptor
 
 const file_aes_iam_v1_iam_proto_rawDesc = "" +
@@ -6227,7 +6317,11 @@ const file_aes_iam_v1_iam_proto_rawDesc = "" +
 	"\x10notification_ids\x18\x02 \x03(\tR\x0fnotificationIds\x12\x19\n" +
 	"\bmark_all\x18\x03 \x01(\bR\amarkAll\"B\n" +
 	"\x1dMarkNotificationsReadResponse\x12!\n" +
-	"\fmarked_count\x18\x01 \x01(\x05R\vmarkedCount2\xc7\x1d\n" +
+	"\fmarked_count\x18\x01 \x01(\x05R\vmarkedCount\"=\n" +
+	"\x1eRegenerateRecoveryCodesRequest\x12\x1b\n" +
+	"\ttotp_code\x18\x01 \x01(\tR\btotpCode\"H\n" +
+	"\x1fRegenerateRecoveryCodesResponse\x12%\n" +
+	"\x0erecovery_codes\x18\x01 \x03(\tR\rrecoveryCodes2\xbb\x1e\n" +
 	"\n" +
 	"IamService\x12`\n" +
 	"\x11GetCallerIdentity\x12$.aes.iam.v1.GetCallerIdentityRequest\x1a%.aes.iam.v1.GetCallerIdentityResponse\x12Q\n" +
@@ -6258,7 +6352,8 @@ const file_aes_iam_v1_iam_proto_rawDesc = "" +
 	"\tEnrollMFA\x12\x1c.aes.iam.v1.EnrollMFARequest\x1a\x1d.aes.iam.v1.EnrollMFAResponse\x12f\n" +
 	"\x13VerifyMFAEnrollment\x12&.aes.iam.v1.VerifyMFAEnrollmentRequest\x1a'.aes.iam.v1.VerifyMFAEnrollmentResponse\x12W\n" +
 	"\x0eListMFADevices\x12!.aes.iam.v1.ListMFADevicesRequest\x1a\".aes.iam.v1.ListMFADevicesResponse\x12Z\n" +
-	"\x0fRevokeMFADevice\x12\".aes.iam.v1.RevokeMFADeviceRequest\x1a#.aes.iam.v1.RevokeMFADeviceResponse\x12Q\n" +
+	"\x0fRevokeMFADevice\x12\".aes.iam.v1.RevokeMFADeviceRequest\x1a#.aes.iam.v1.RevokeMFADeviceResponse\x12r\n" +
+	"\x17RegenerateRecoveryCodes\x12*.aes.iam.v1.RegenerateRecoveryCodesRequest\x1a+.aes.iam.v1.RegenerateRecoveryCodesResponse\x12Q\n" +
 	"\fListSessions\x12\x1f.aes.iam.v1.ListSessionsRequest\x1a .aes.iam.v1.ListSessionsResponse\x12T\n" +
 	"\rRevokeSession\x12 .aes.iam.v1.RevokeSessionRequest\x1a!.aes.iam.v1.RevokeSessionResponse\x12o\n" +
 	"\x16RevokeAllOtherSessions\x12).aes.iam.v1.RevokeAllOtherSessionsRequest\x1a*.aes.iam.v1.RevokeAllOtherSessionsResponse\x12?\n" +
@@ -6289,7 +6384,7 @@ func file_aes_iam_v1_iam_proto_rawDescGZIP() []byte {
 	return file_aes_iam_v1_iam_proto_rawDescData
 }
 
-var file_aes_iam_v1_iam_proto_msgTypes = make([]protoimpl.MessageInfo, 106)
+var file_aes_iam_v1_iam_proto_msgTypes = make([]protoimpl.MessageInfo, 108)
 var file_aes_iam_v1_iam_proto_goTypes = []any{
 	(*ValidateApiKeyRequest)(nil),            // 0: aes.iam.v1.ValidateApiKeyRequest
 	(*ValidateApiKeyResponse)(nil),           // 1: aes.iam.v1.ValidateApiKeyResponse
@@ -6396,10 +6491,12 @@ var file_aes_iam_v1_iam_proto_goTypes = []any{
 	(*ListNotificationsResponse)(nil),        // 102: aes.iam.v1.ListNotificationsResponse
 	(*MarkNotificationsReadRequest)(nil),     // 103: aes.iam.v1.MarkNotificationsReadRequest
 	(*MarkNotificationsReadResponse)(nil),    // 104: aes.iam.v1.MarkNotificationsReadResponse
-	nil,                                      // 105: aes.iam.v1.ValidateOidcTokenResponse.ClaimsEntry
+	(*RegenerateRecoveryCodesRequest)(nil),   // 105: aes.iam.v1.RegenerateRecoveryCodesRequest
+	(*RegenerateRecoveryCodesResponse)(nil),  // 106: aes.iam.v1.RegenerateRecoveryCodesResponse
+	nil,                                      // 107: aes.iam.v1.ValidateOidcTokenResponse.ClaimsEntry
 }
 var file_aes_iam_v1_iam_proto_depIdxs = []int32{
-	105, // 0: aes.iam.v1.ValidateOidcTokenResponse.claims:type_name -> aes.iam.v1.ValidateOidcTokenResponse.ClaimsEntry
+	107, // 0: aes.iam.v1.ValidateOidcTokenResponse.claims:type_name -> aes.iam.v1.ValidateOidcTokenResponse.ClaimsEntry
 	10,  // 1: aes.iam.v1.CreateApiKeyResponse.api_key:type_name -> aes.iam.v1.ApiKey
 	10,  // 2: aes.iam.v1.ListApiKeysResponse.api_keys:type_name -> aes.iam.v1.ApiKey
 	10,  // 3: aes.iam.v1.SignUpResponse.api_key:type_name -> aes.iam.v1.ApiKey
@@ -6451,63 +6548,65 @@ var file_aes_iam_v1_iam_proto_depIdxs = []int32{
 	66,  // 49: aes.iam.v1.IamService.VerifyMFAEnrollment:input_type -> aes.iam.v1.VerifyMFAEnrollmentRequest
 	68,  // 50: aes.iam.v1.IamService.ListMFADevices:input_type -> aes.iam.v1.ListMFADevicesRequest
 	70,  // 51: aes.iam.v1.IamService.RevokeMFADevice:input_type -> aes.iam.v1.RevokeMFADeviceRequest
-	73,  // 52: aes.iam.v1.IamService.ListSessions:input_type -> aes.iam.v1.ListSessionsRequest
-	75,  // 53: aes.iam.v1.IamService.RevokeSession:input_type -> aes.iam.v1.RevokeSessionRequest
-	77,  // 54: aes.iam.v1.IamService.RevokeAllOtherSessions:input_type -> aes.iam.v1.RevokeAllOtherSessionsRequest
-	92,  // 55: aes.iam.v1.IamService.Logout:input_type -> aes.iam.v1.LogoutRequest
-	80,  // 56: aes.iam.v1.IamService.RequestPasswordReset:input_type -> aes.iam.v1.RequestPasswordResetRequest
-	82,  // 57: aes.iam.v1.IamService.ResetPassword:input_type -> aes.iam.v1.ResetPasswordRequest
-	84,  // 58: aes.iam.v1.IamService.GetUser:input_type -> aes.iam.v1.GetUserRequest
-	86,  // 59: aes.iam.v1.IamService.UpdateUser:input_type -> aes.iam.v1.UpdateUserRequest
-	88,  // 60: aes.iam.v1.IamService.ChangePassword:input_type -> aes.iam.v1.ChangePasswordRequest
-	90,  // 61: aes.iam.v1.IamService.RequestEmailChange:input_type -> aes.iam.v1.RequestEmailChangeRequest
-	96,  // 62: aes.iam.v1.IamService.ImportGitHubSshKeys:input_type -> aes.iam.v1.ImportGitHubSshKeysRequest
-	100, // 63: aes.iam.v1.IamService.ListNotifications:input_type -> aes.iam.v1.ListNotificationsRequest
-	103, // 64: aes.iam.v1.IamService.MarkNotificationsRead:input_type -> aes.iam.v1.MarkNotificationsReadRequest
-	5,   // 65: aes.iam.v1.IamService.GetCallerIdentity:output_type -> aes.iam.v1.GetCallerIdentityResponse
-	12,  // 66: aes.iam.v1.IamService.CreateApiKey:output_type -> aes.iam.v1.CreateApiKeyResponse
-	14,  // 67: aes.iam.v1.IamService.ListApiKeys:output_type -> aes.iam.v1.ListApiKeysResponse
-	16,  // 68: aes.iam.v1.IamService.RevokeApiKey:output_type -> aes.iam.v1.RevokeApiKeyResponse
-	18,  // 69: aes.iam.v1.IamService.SignUp:output_type -> aes.iam.v1.SignUpResponse
-	20,  // 70: aes.iam.v1.IamService.VerifyEmail:output_type -> aes.iam.v1.VerifyEmailResponse
-	22,  // 71: aes.iam.v1.IamService.Login:output_type -> aes.iam.v1.LoginResponse
-	24,  // 72: aes.iam.v1.IamService.SubmitMFAChallenge:output_type -> aes.iam.v1.SubmitMFAChallengeResponse
-	26,  // 73: aes.iam.v1.IamService.LinkOidcProvider:output_type -> aes.iam.v1.LinkOidcProviderResponse
-	28,  // 74: aes.iam.v1.IamService.InviteOrgMember:output_type -> aes.iam.v1.InviteOrgMemberResponse
-	32,  // 75: aes.iam.v1.IamService.AcceptInvite:output_type -> aes.iam.v1.AcceptInviteResponse
-	31,  // 76: aes.iam.v1.IamService.SetInitialPassword:output_type -> aes.iam.v1.SetInitialPasswordResponse
-	35,  // 77: aes.iam.v1.IamService.ListOrgMembers:output_type -> aes.iam.v1.ListOrgMembersResponse
-	37,  // 78: aes.iam.v1.IamService.RemoveOrgMember:output_type -> aes.iam.v1.RemoveOrgMemberResponse
-	39,  // 79: aes.iam.v1.IamService.UpdateOrgMemberRole:output_type -> aes.iam.v1.UpdateOrgMemberRoleResponse
-	42,  // 80: aes.iam.v1.IamService.ListPendingInvites:output_type -> aes.iam.v1.ListPendingInvitesResponse
-	54,  // 81: aes.iam.v1.IamService.RevokeInvite:output_type -> aes.iam.v1.RevokeInviteResponse
-	45,  // 82: aes.iam.v1.IamService.ListMyOrganizations:output_type -> aes.iam.v1.ListMyOrganizationsResponse
-	48,  // 83: aes.iam.v1.IamService.ListMyInvites:output_type -> aes.iam.v1.ListMyInvitesResponse
-	50,  // 84: aes.iam.v1.IamService.AcceptMyInvite:output_type -> aes.iam.v1.AcceptMyInviteResponse
-	52,  // 85: aes.iam.v1.IamService.DeclineMyInvite:output_type -> aes.iam.v1.DeclineMyInviteResponse
-	56,  // 86: aes.iam.v1.IamService.RotateApiKey:output_type -> aes.iam.v1.RotateApiKeyResponse
-	58,  // 87: aes.iam.v1.IamService.StartOidcLogin:output_type -> aes.iam.v1.StartOidcLoginResponse
-	60,  // 88: aes.iam.v1.IamService.CompleteOidcLogin:output_type -> aes.iam.v1.CompleteOidcLoginResponse
-	62,  // 89: aes.iam.v1.IamService.CreateWorkspace:output_type -> aes.iam.v1.CreateWorkspaceResponse
-	65,  // 90: aes.iam.v1.IamService.EnrollMFA:output_type -> aes.iam.v1.EnrollMFAResponse
-	67,  // 91: aes.iam.v1.IamService.VerifyMFAEnrollment:output_type -> aes.iam.v1.VerifyMFAEnrollmentResponse
-	69,  // 92: aes.iam.v1.IamService.ListMFADevices:output_type -> aes.iam.v1.ListMFADevicesResponse
-	71,  // 93: aes.iam.v1.IamService.RevokeMFADevice:output_type -> aes.iam.v1.RevokeMFADeviceResponse
-	74,  // 94: aes.iam.v1.IamService.ListSessions:output_type -> aes.iam.v1.ListSessionsResponse
-	76,  // 95: aes.iam.v1.IamService.RevokeSession:output_type -> aes.iam.v1.RevokeSessionResponse
-	78,  // 96: aes.iam.v1.IamService.RevokeAllOtherSessions:output_type -> aes.iam.v1.RevokeAllOtherSessionsResponse
-	93,  // 97: aes.iam.v1.IamService.Logout:output_type -> aes.iam.v1.LogoutResponse
-	81,  // 98: aes.iam.v1.IamService.RequestPasswordReset:output_type -> aes.iam.v1.RequestPasswordResetResponse
-	83,  // 99: aes.iam.v1.IamService.ResetPassword:output_type -> aes.iam.v1.ResetPasswordResponse
-	85,  // 100: aes.iam.v1.IamService.GetUser:output_type -> aes.iam.v1.GetUserResponse
-	87,  // 101: aes.iam.v1.IamService.UpdateUser:output_type -> aes.iam.v1.UpdateUserResponse
-	89,  // 102: aes.iam.v1.IamService.ChangePassword:output_type -> aes.iam.v1.ChangePasswordResponse
-	91,  // 103: aes.iam.v1.IamService.RequestEmailChange:output_type -> aes.iam.v1.RequestEmailChangeResponse
-	97,  // 104: aes.iam.v1.IamService.ImportGitHubSshKeys:output_type -> aes.iam.v1.ImportGitHubSshKeysResponse
-	102, // 105: aes.iam.v1.IamService.ListNotifications:output_type -> aes.iam.v1.ListNotificationsResponse
-	104, // 106: aes.iam.v1.IamService.MarkNotificationsRead:output_type -> aes.iam.v1.MarkNotificationsReadResponse
-	65,  // [65:107] is the sub-list for method output_type
-	23,  // [23:65] is the sub-list for method input_type
+	105, // 52: aes.iam.v1.IamService.RegenerateRecoveryCodes:input_type -> aes.iam.v1.RegenerateRecoveryCodesRequest
+	73,  // 53: aes.iam.v1.IamService.ListSessions:input_type -> aes.iam.v1.ListSessionsRequest
+	75,  // 54: aes.iam.v1.IamService.RevokeSession:input_type -> aes.iam.v1.RevokeSessionRequest
+	77,  // 55: aes.iam.v1.IamService.RevokeAllOtherSessions:input_type -> aes.iam.v1.RevokeAllOtherSessionsRequest
+	92,  // 56: aes.iam.v1.IamService.Logout:input_type -> aes.iam.v1.LogoutRequest
+	80,  // 57: aes.iam.v1.IamService.RequestPasswordReset:input_type -> aes.iam.v1.RequestPasswordResetRequest
+	82,  // 58: aes.iam.v1.IamService.ResetPassword:input_type -> aes.iam.v1.ResetPasswordRequest
+	84,  // 59: aes.iam.v1.IamService.GetUser:input_type -> aes.iam.v1.GetUserRequest
+	86,  // 60: aes.iam.v1.IamService.UpdateUser:input_type -> aes.iam.v1.UpdateUserRequest
+	88,  // 61: aes.iam.v1.IamService.ChangePassword:input_type -> aes.iam.v1.ChangePasswordRequest
+	90,  // 62: aes.iam.v1.IamService.RequestEmailChange:input_type -> aes.iam.v1.RequestEmailChangeRequest
+	96,  // 63: aes.iam.v1.IamService.ImportGitHubSshKeys:input_type -> aes.iam.v1.ImportGitHubSshKeysRequest
+	100, // 64: aes.iam.v1.IamService.ListNotifications:input_type -> aes.iam.v1.ListNotificationsRequest
+	103, // 65: aes.iam.v1.IamService.MarkNotificationsRead:input_type -> aes.iam.v1.MarkNotificationsReadRequest
+	5,   // 66: aes.iam.v1.IamService.GetCallerIdentity:output_type -> aes.iam.v1.GetCallerIdentityResponse
+	12,  // 67: aes.iam.v1.IamService.CreateApiKey:output_type -> aes.iam.v1.CreateApiKeyResponse
+	14,  // 68: aes.iam.v1.IamService.ListApiKeys:output_type -> aes.iam.v1.ListApiKeysResponse
+	16,  // 69: aes.iam.v1.IamService.RevokeApiKey:output_type -> aes.iam.v1.RevokeApiKeyResponse
+	18,  // 70: aes.iam.v1.IamService.SignUp:output_type -> aes.iam.v1.SignUpResponse
+	20,  // 71: aes.iam.v1.IamService.VerifyEmail:output_type -> aes.iam.v1.VerifyEmailResponse
+	22,  // 72: aes.iam.v1.IamService.Login:output_type -> aes.iam.v1.LoginResponse
+	24,  // 73: aes.iam.v1.IamService.SubmitMFAChallenge:output_type -> aes.iam.v1.SubmitMFAChallengeResponse
+	26,  // 74: aes.iam.v1.IamService.LinkOidcProvider:output_type -> aes.iam.v1.LinkOidcProviderResponse
+	28,  // 75: aes.iam.v1.IamService.InviteOrgMember:output_type -> aes.iam.v1.InviteOrgMemberResponse
+	32,  // 76: aes.iam.v1.IamService.AcceptInvite:output_type -> aes.iam.v1.AcceptInviteResponse
+	31,  // 77: aes.iam.v1.IamService.SetInitialPassword:output_type -> aes.iam.v1.SetInitialPasswordResponse
+	35,  // 78: aes.iam.v1.IamService.ListOrgMembers:output_type -> aes.iam.v1.ListOrgMembersResponse
+	37,  // 79: aes.iam.v1.IamService.RemoveOrgMember:output_type -> aes.iam.v1.RemoveOrgMemberResponse
+	39,  // 80: aes.iam.v1.IamService.UpdateOrgMemberRole:output_type -> aes.iam.v1.UpdateOrgMemberRoleResponse
+	42,  // 81: aes.iam.v1.IamService.ListPendingInvites:output_type -> aes.iam.v1.ListPendingInvitesResponse
+	54,  // 82: aes.iam.v1.IamService.RevokeInvite:output_type -> aes.iam.v1.RevokeInviteResponse
+	45,  // 83: aes.iam.v1.IamService.ListMyOrganizations:output_type -> aes.iam.v1.ListMyOrganizationsResponse
+	48,  // 84: aes.iam.v1.IamService.ListMyInvites:output_type -> aes.iam.v1.ListMyInvitesResponse
+	50,  // 85: aes.iam.v1.IamService.AcceptMyInvite:output_type -> aes.iam.v1.AcceptMyInviteResponse
+	52,  // 86: aes.iam.v1.IamService.DeclineMyInvite:output_type -> aes.iam.v1.DeclineMyInviteResponse
+	56,  // 87: aes.iam.v1.IamService.RotateApiKey:output_type -> aes.iam.v1.RotateApiKeyResponse
+	58,  // 88: aes.iam.v1.IamService.StartOidcLogin:output_type -> aes.iam.v1.StartOidcLoginResponse
+	60,  // 89: aes.iam.v1.IamService.CompleteOidcLogin:output_type -> aes.iam.v1.CompleteOidcLoginResponse
+	62,  // 90: aes.iam.v1.IamService.CreateWorkspace:output_type -> aes.iam.v1.CreateWorkspaceResponse
+	65,  // 91: aes.iam.v1.IamService.EnrollMFA:output_type -> aes.iam.v1.EnrollMFAResponse
+	67,  // 92: aes.iam.v1.IamService.VerifyMFAEnrollment:output_type -> aes.iam.v1.VerifyMFAEnrollmentResponse
+	69,  // 93: aes.iam.v1.IamService.ListMFADevices:output_type -> aes.iam.v1.ListMFADevicesResponse
+	71,  // 94: aes.iam.v1.IamService.RevokeMFADevice:output_type -> aes.iam.v1.RevokeMFADeviceResponse
+	106, // 95: aes.iam.v1.IamService.RegenerateRecoveryCodes:output_type -> aes.iam.v1.RegenerateRecoveryCodesResponse
+	74,  // 96: aes.iam.v1.IamService.ListSessions:output_type -> aes.iam.v1.ListSessionsResponse
+	76,  // 97: aes.iam.v1.IamService.RevokeSession:output_type -> aes.iam.v1.RevokeSessionResponse
+	78,  // 98: aes.iam.v1.IamService.RevokeAllOtherSessions:output_type -> aes.iam.v1.RevokeAllOtherSessionsResponse
+	93,  // 99: aes.iam.v1.IamService.Logout:output_type -> aes.iam.v1.LogoutResponse
+	81,  // 100: aes.iam.v1.IamService.RequestPasswordReset:output_type -> aes.iam.v1.RequestPasswordResetResponse
+	83,  // 101: aes.iam.v1.IamService.ResetPassword:output_type -> aes.iam.v1.ResetPasswordResponse
+	85,  // 102: aes.iam.v1.IamService.GetUser:output_type -> aes.iam.v1.GetUserResponse
+	87,  // 103: aes.iam.v1.IamService.UpdateUser:output_type -> aes.iam.v1.UpdateUserResponse
+	89,  // 104: aes.iam.v1.IamService.ChangePassword:output_type -> aes.iam.v1.ChangePasswordResponse
+	91,  // 105: aes.iam.v1.IamService.RequestEmailChange:output_type -> aes.iam.v1.RequestEmailChangeResponse
+	97,  // 106: aes.iam.v1.IamService.ImportGitHubSshKeys:output_type -> aes.iam.v1.ImportGitHubSshKeysResponse
+	102, // 107: aes.iam.v1.IamService.ListNotifications:output_type -> aes.iam.v1.ListNotificationsResponse
+	104, // 108: aes.iam.v1.IamService.MarkNotificationsRead:output_type -> aes.iam.v1.MarkNotificationsReadResponse
+	66,  // [66:109] is the sub-list for method output_type
+	23,  // [23:66] is the sub-list for method input_type
 	23,  // [23:23] is the sub-list for extension type_name
 	23,  // [23:23] is the sub-list for extension extendee
 	0,   // [0:23] is the sub-list for field type_name
@@ -6525,7 +6624,7 @@ func file_aes_iam_v1_iam_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_iam_v1_iam_proto_rawDesc), len(file_aes_iam_v1_iam_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   106,
+			NumMessages:   108,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

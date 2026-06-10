@@ -84,6 +84,9 @@ const (
 	// ComputeServiceGetVMMetricsProcedure is the fully-qualified name of the ComputeService's
 	// GetVMMetrics RPC.
 	ComputeServiceGetVMMetricsProcedure = "/aes.compute.v1.ComputeService/GetVMMetrics"
+	// ComputeServiceListVMUtilizationProcedure is the fully-qualified name of the ComputeService's
+	// ListVMUtilization RPC.
+	ComputeServiceListVMUtilizationProcedure = "/aes.compute.v1.ComputeService/ListVMUtilization"
 	// ComputeServiceCloneVirtualMachineProcedure is the fully-qualified name of the ComputeService's
 	// CloneVirtualMachine RPC.
 	ComputeServiceCloneVirtualMachineProcedure = "/aes.compute.v1.ComputeService/CloneVirtualMachine"
@@ -143,6 +146,10 @@ type ComputeServiceClient interface {
 	// GetVMMetrics returns CPU/memory/disk/network samples for a VM over a time range. Caller
 	// specifies the rollup window (default 1m, max 1h step).
 	GetVMMetrics(context.Context, *connect.Request[v1.GetVMMetricsRequest]) (*connect.Response[v1.GetVMMetricsResponse], error)
+	// ListVMUtilization returns point-in-time CPU / memory / GPU utilization for every VM in
+	// a project, plus an idle-days counter for cost hygiene. Backs the dashboard's workloads
+	// table; poll at a few-second cadence.
+	ListVMUtilization(context.Context, *connect.Request[v1.ListVMUtilizationRequest]) (*connect.Response[v1.ListVMUtilizationResponse], error)
 	// CloneVirtualMachine creates a new VM whose BOOT disk is a copy of an existing VM's boot
 	// disk at the point of clone. Async, disk-first: snapshots the source boot disk, copies it,
 	// and provisions the new VM from the copy; returns an Operation the caller polls like a
@@ -272,6 +279,12 @@ func NewComputeServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(computeServiceMethods.ByName("GetVMMetrics")),
 			connect.WithClientOptions(opts...),
 		),
+		listVMUtilization: connect.NewClient[v1.ListVMUtilizationRequest, v1.ListVMUtilizationResponse](
+			httpClient,
+			baseURL+ComputeServiceListVMUtilizationProcedure,
+			connect.WithSchema(computeServiceMethods.ByName("ListVMUtilization")),
+			connect.WithClientOptions(opts...),
+		),
 		cloneVirtualMachine: connect.NewClient[v1.CloneVirtualMachineRequest, v1.CloneVirtualMachineResponse](
 			httpClient,
 			baseURL+ComputeServiceCloneVirtualMachineProcedure,
@@ -306,6 +319,7 @@ type computeServiceClient struct {
 	deleteVmSnapshot               *connect.Client[v1.DeleteVmSnapshotRequest, v1.DeleteVmSnapshotResponse]
 	deleteVirtualMachine           *connect.Client[v1.DeleteVirtualMachineRequest, v1.DeleteVirtualMachineResponse]
 	getVMMetrics                   *connect.Client[v1.GetVMMetricsRequest, v1.GetVMMetricsResponse]
+	listVMUtilization              *connect.Client[v1.ListVMUtilizationRequest, v1.ListVMUtilizationResponse]
 	cloneVirtualMachine            *connect.Client[v1.CloneVirtualMachineRequest, v1.CloneVirtualMachineResponse]
 	createVirtualMachineFromBackup *connect.Client[v1.CreateVirtualMachineFromBackupRequest, v1.CreateVirtualMachineFromBackupResponse]
 }
@@ -395,6 +409,11 @@ func (c *computeServiceClient) GetVMMetrics(ctx context.Context, req *connect.Re
 	return c.getVMMetrics.CallUnary(ctx, req)
 }
 
+// ListVMUtilization calls aes.compute.v1.ComputeService.ListVMUtilization.
+func (c *computeServiceClient) ListVMUtilization(ctx context.Context, req *connect.Request[v1.ListVMUtilizationRequest]) (*connect.Response[v1.ListVMUtilizationResponse], error) {
+	return c.listVMUtilization.CallUnary(ctx, req)
+}
+
 // CloneVirtualMachine calls aes.compute.v1.ComputeService.CloneVirtualMachine.
 func (c *computeServiceClient) CloneVirtualMachine(ctx context.Context, req *connect.Request[v1.CloneVirtualMachineRequest]) (*connect.Response[v1.CloneVirtualMachineResponse], error) {
 	return c.cloneVirtualMachine.CallUnary(ctx, req)
@@ -457,6 +476,10 @@ type ComputeServiceHandler interface {
 	// GetVMMetrics returns CPU/memory/disk/network samples for a VM over a time range. Caller
 	// specifies the rollup window (default 1m, max 1h step).
 	GetVMMetrics(context.Context, *connect.Request[v1.GetVMMetricsRequest]) (*connect.Response[v1.GetVMMetricsResponse], error)
+	// ListVMUtilization returns point-in-time CPU / memory / GPU utilization for every VM in
+	// a project, plus an idle-days counter for cost hygiene. Backs the dashboard's workloads
+	// table; poll at a few-second cadence.
+	ListVMUtilization(context.Context, *connect.Request[v1.ListVMUtilizationRequest]) (*connect.Response[v1.ListVMUtilizationResponse], error)
 	// CloneVirtualMachine creates a new VM whose BOOT disk is a copy of an existing VM's boot
 	// disk at the point of clone. Async, disk-first: snapshots the source boot disk, copies it,
 	// and provisions the new VM from the copy; returns an Operation the caller polls like a
@@ -582,6 +605,12 @@ func NewComputeServiceHandler(svc ComputeServiceHandler, opts ...connect.Handler
 		connect.WithSchema(computeServiceMethods.ByName("GetVMMetrics")),
 		connect.WithHandlerOptions(opts...),
 	)
+	computeServiceListVMUtilizationHandler := connect.NewUnaryHandler(
+		ComputeServiceListVMUtilizationProcedure,
+		svc.ListVMUtilization,
+		connect.WithSchema(computeServiceMethods.ByName("ListVMUtilization")),
+		connect.WithHandlerOptions(opts...),
+	)
 	computeServiceCloneVirtualMachineHandler := connect.NewUnaryHandler(
 		ComputeServiceCloneVirtualMachineProcedure,
 		svc.CloneVirtualMachine,
@@ -630,6 +659,8 @@ func NewComputeServiceHandler(svc ComputeServiceHandler, opts ...connect.Handler
 			computeServiceDeleteVirtualMachineHandler.ServeHTTP(w, r)
 		case ComputeServiceGetVMMetricsProcedure:
 			computeServiceGetVMMetricsHandler.ServeHTTP(w, r)
+		case ComputeServiceListVMUtilizationProcedure:
+			computeServiceListVMUtilizationHandler.ServeHTTP(w, r)
 		case ComputeServiceCloneVirtualMachineProcedure:
 			computeServiceCloneVirtualMachineHandler.ServeHTTP(w, r)
 		case ComputeServiceCreateVirtualMachineFromBackupProcedure:
@@ -709,6 +740,10 @@ func (UnimplementedComputeServiceHandler) DeleteVirtualMachine(context.Context, 
 
 func (UnimplementedComputeServiceHandler) GetVMMetrics(context.Context, *connect.Request[v1.GetVMMetricsRequest]) (*connect.Response[v1.GetVMMetricsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.compute.v1.ComputeService.GetVMMetrics is not implemented"))
+}
+
+func (UnimplementedComputeServiceHandler) ListVMUtilization(context.Context, *connect.Request[v1.ListVMUtilizationRequest]) (*connect.Response[v1.ListVMUtilizationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.compute.v1.ComputeService.ListVMUtilization is not implemented"))
 }
 
 func (UnimplementedComputeServiceHandler) CloneVirtualMachine(context.Context, *connect.Request[v1.CloneVirtualMachineRequest]) (*connect.Response[v1.CloneVirtualMachineResponse], error) {

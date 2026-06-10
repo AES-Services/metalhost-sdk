@@ -149,9 +149,8 @@ message ListOperationsRequest {
   int32 page_size = 1;
   // Opaque cursor from a prior ListOperationsResponse.next_page_token.
   string page_token = 2;
-  // Required for non-admin callers: filters to ops whose metadata.vm_project_name (or related
-  // project key) matches. Admin (admin.platform) callers may omit to see all ops fleet-wide.
-  // Resource name like `projects/metalhost-demo`.
+  // Required. Filters to operations whose metadata.vm_project_name (or related project key)
+  // matches. Resource name like `projects/my-project`.
   string project_name = 3;
 }
 
@@ -195,9 +194,11 @@ message Operation {
   string error_message = 5;
   // Same as CreateOperationRequest.kind; immutable after create.
   string kind = 6;
-  // Internal execution-tracking identifiers for this operation (if any). Opaque to clients.
+  // Opaque workflow correlation identifiers for this operation (if any).
   string temporal_workflow_id = 7;
   string temporal_run_id = 8;
   // Opaque key/value (e.g. vm_project_name on create; virtual_machine_name when provision completes).
   map<string, string> metadata = 9;
+  // Caller principal that started the operation ('' for platform-started ops).
+  string principal = 10;
 }

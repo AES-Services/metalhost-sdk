@@ -36,11 +36,22 @@ const (
 	// QuotaServiceGetMyQuotasProcedure is the fully-qualified name of the QuotaService's GetMyQuotas
 	// RPC.
 	QuotaServiceGetMyQuotasProcedure = "/aes.quota.v1.QuotaService/GetMyQuotas"
+	// QuotaServiceRequestQuotaIncreaseProcedure is the fully-qualified name of the QuotaService's
+	// RequestQuotaIncrease RPC.
+	QuotaServiceRequestQuotaIncreaseProcedure = "/aes.quota.v1.QuotaService/RequestQuotaIncrease"
+	// QuotaServiceListMyQuotaRequestsProcedure is the fully-qualified name of the QuotaService's
+	// ListMyQuotaRequests RPC.
+	QuotaServiceListMyQuotaRequestsProcedure = "/aes.quota.v1.QuotaService/ListMyQuotaRequests"
 )
 
 // QuotaServiceClient is a client for the aes.quota.v1.QuotaService service.
 type QuotaServiceClient interface {
 	GetMyQuotas(context.Context, *connect.Request[v1.GetMyQuotasRequest]) (*connect.Response[v1.GetMyQuotasResponse], error)
+	// RequestQuotaIncrease files a request to raise an organization-level quota. Requests are
+	// reviewed by the platform team; track status via ListMyQuotaRequests.
+	RequestQuotaIncrease(context.Context, *connect.Request[v1.RequestQuotaIncreaseRequest]) (*connect.Response[v1.RequestQuotaIncreaseResponse], error)
+	// ListMyQuotaRequests returns the organization's quota requests, newest first.
+	ListMyQuotaRequests(context.Context, *connect.Request[v1.ListMyQuotaRequestsRequest]) (*connect.Response[v1.ListMyQuotaRequestsResponse], error)
 }
 
 // NewQuotaServiceClient constructs a client for the aes.quota.v1.QuotaService service. By default,
@@ -60,12 +71,26 @@ func NewQuotaServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(quotaServiceMethods.ByName("GetMyQuotas")),
 			connect.WithClientOptions(opts...),
 		),
+		requestQuotaIncrease: connect.NewClient[v1.RequestQuotaIncreaseRequest, v1.RequestQuotaIncreaseResponse](
+			httpClient,
+			baseURL+QuotaServiceRequestQuotaIncreaseProcedure,
+			connect.WithSchema(quotaServiceMethods.ByName("RequestQuotaIncrease")),
+			connect.WithClientOptions(opts...),
+		),
+		listMyQuotaRequests: connect.NewClient[v1.ListMyQuotaRequestsRequest, v1.ListMyQuotaRequestsResponse](
+			httpClient,
+			baseURL+QuotaServiceListMyQuotaRequestsProcedure,
+			connect.WithSchema(quotaServiceMethods.ByName("ListMyQuotaRequests")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // quotaServiceClient implements QuotaServiceClient.
 type quotaServiceClient struct {
-	getMyQuotas *connect.Client[v1.GetMyQuotasRequest, v1.GetMyQuotasResponse]
+	getMyQuotas          *connect.Client[v1.GetMyQuotasRequest, v1.GetMyQuotasResponse]
+	requestQuotaIncrease *connect.Client[v1.RequestQuotaIncreaseRequest, v1.RequestQuotaIncreaseResponse]
+	listMyQuotaRequests  *connect.Client[v1.ListMyQuotaRequestsRequest, v1.ListMyQuotaRequestsResponse]
 }
 
 // GetMyQuotas calls aes.quota.v1.QuotaService.GetMyQuotas.
@@ -73,9 +98,24 @@ func (c *quotaServiceClient) GetMyQuotas(ctx context.Context, req *connect.Reque
 	return c.getMyQuotas.CallUnary(ctx, req)
 }
 
+// RequestQuotaIncrease calls aes.quota.v1.QuotaService.RequestQuotaIncrease.
+func (c *quotaServiceClient) RequestQuotaIncrease(ctx context.Context, req *connect.Request[v1.RequestQuotaIncreaseRequest]) (*connect.Response[v1.RequestQuotaIncreaseResponse], error) {
+	return c.requestQuotaIncrease.CallUnary(ctx, req)
+}
+
+// ListMyQuotaRequests calls aes.quota.v1.QuotaService.ListMyQuotaRequests.
+func (c *quotaServiceClient) ListMyQuotaRequests(ctx context.Context, req *connect.Request[v1.ListMyQuotaRequestsRequest]) (*connect.Response[v1.ListMyQuotaRequestsResponse], error) {
+	return c.listMyQuotaRequests.CallUnary(ctx, req)
+}
+
 // QuotaServiceHandler is an implementation of the aes.quota.v1.QuotaService service.
 type QuotaServiceHandler interface {
 	GetMyQuotas(context.Context, *connect.Request[v1.GetMyQuotasRequest]) (*connect.Response[v1.GetMyQuotasResponse], error)
+	// RequestQuotaIncrease files a request to raise an organization-level quota. Requests are
+	// reviewed by the platform team; track status via ListMyQuotaRequests.
+	RequestQuotaIncrease(context.Context, *connect.Request[v1.RequestQuotaIncreaseRequest]) (*connect.Response[v1.RequestQuotaIncreaseResponse], error)
+	// ListMyQuotaRequests returns the organization's quota requests, newest first.
+	ListMyQuotaRequests(context.Context, *connect.Request[v1.ListMyQuotaRequestsRequest]) (*connect.Response[v1.ListMyQuotaRequestsResponse], error)
 }
 
 // NewQuotaServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -91,10 +131,26 @@ func NewQuotaServiceHandler(svc QuotaServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(quotaServiceMethods.ByName("GetMyQuotas")),
 		connect.WithHandlerOptions(opts...),
 	)
+	quotaServiceRequestQuotaIncreaseHandler := connect.NewUnaryHandler(
+		QuotaServiceRequestQuotaIncreaseProcedure,
+		svc.RequestQuotaIncrease,
+		connect.WithSchema(quotaServiceMethods.ByName("RequestQuotaIncrease")),
+		connect.WithHandlerOptions(opts...),
+	)
+	quotaServiceListMyQuotaRequestsHandler := connect.NewUnaryHandler(
+		QuotaServiceListMyQuotaRequestsProcedure,
+		svc.ListMyQuotaRequests,
+		connect.WithSchema(quotaServiceMethods.ByName("ListMyQuotaRequests")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/aes.quota.v1.QuotaService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case QuotaServiceGetMyQuotasProcedure:
 			quotaServiceGetMyQuotasHandler.ServeHTTP(w, r)
+		case QuotaServiceRequestQuotaIncreaseProcedure:
+			quotaServiceRequestQuotaIncreaseHandler.ServeHTTP(w, r)
+		case QuotaServiceListMyQuotaRequestsProcedure:
+			quotaServiceListMyQuotaRequestsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -106,4 +162,12 @@ type UnimplementedQuotaServiceHandler struct{}
 
 func (UnimplementedQuotaServiceHandler) GetMyQuotas(context.Context, *connect.Request[v1.GetMyQuotasRequest]) (*connect.Response[v1.GetMyQuotasResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.quota.v1.QuotaService.GetMyQuotas is not implemented"))
+}
+
+func (UnimplementedQuotaServiceHandler) RequestQuotaIncrease(context.Context, *connect.Request[v1.RequestQuotaIncreaseRequest]) (*connect.Response[v1.RequestQuotaIncreaseResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.quota.v1.QuotaService.RequestQuotaIncrease is not implemented"))
+}
+
+func (UnimplementedQuotaServiceHandler) ListMyQuotaRequests(context.Context, *connect.Request[v1.ListMyQuotaRequestsRequest]) (*connect.Response[v1.ListMyQuotaRequestsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.quota.v1.QuotaService.ListMyQuotaRequests is not implemented"))
 }

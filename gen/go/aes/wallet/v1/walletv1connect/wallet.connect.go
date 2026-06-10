@@ -174,7 +174,7 @@ type WalletServiceClient interface {
 	GetTopUp(context.Context, *connect.Request[v1.GetTopUpRequest]) (*connect.Response[v1.GetTopUpResponse], error)
 	// Usage query / export. QueryUsage aggregates usage_events by meter / project / time-bucket
 	// and returns rows; ExportUsage materializes a CSV/NDJSON file in object storage and returns
-	// a presigned URL (same pattern as AdminAuditService.ExportAuditEvents).
+	// a time-limited presigned download URL.
 	QueryUsage(context.Context, *connect.Request[v1.QueryUsageRequest]) (*connect.Response[v1.QueryUsageResponse], error)
 	ExportUsage(context.Context, *connect.Request[v1.ExportUsageRequest]) (*connect.Response[v1.ExportUsageResponse], error)
 	// Promotion coupons (launch founder discount). RedeemPromotionCode consumes a single-use
@@ -578,7 +578,7 @@ type WalletServiceHandler interface {
 	GetTopUp(context.Context, *connect.Request[v1.GetTopUpRequest]) (*connect.Response[v1.GetTopUpResponse], error)
 	// Usage query / export. QueryUsage aggregates usage_events by meter / project / time-bucket
 	// and returns rows; ExportUsage materializes a CSV/NDJSON file in object storage and returns
-	// a presigned URL (same pattern as AdminAuditService.ExportAuditEvents).
+	// a time-limited presigned download URL.
 	QueryUsage(context.Context, *connect.Request[v1.QueryUsageRequest]) (*connect.Response[v1.QueryUsageResponse], error)
 	ExportUsage(context.Context, *connect.Request[v1.ExportUsageRequest]) (*connect.Response[v1.ExportUsageResponse], error)
 	// Promotion coupons (launch founder discount). RedeemPromotionCode consumes a single-use

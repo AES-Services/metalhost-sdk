@@ -57,6 +57,11 @@ service ComputeService {
   // specifies the rollup window (default 1m, max 1h step).
   rpc GetVMMetrics(GetVMMetricsRequest) returns (GetVMMetricsResponse);
 
+  // ListVMUtilization returns point-in-time CPU / memory / GPU utilization for every VM in
+  // a project, plus an idle-days counter for cost hygiene. Backs the dashboard's workloads
+  // table; poll at a few-second cadence.
+  rpc ListVMUtilization(ListVMUtilizationRequest) returns (ListVMUtilizationResponse);
+
   // CloneVirtualMachine creates a new VM whose BOOT disk is a copy of an existing VM's boot
   // disk at the point of clone. Async, disk-first: snapshots the source boot disk, copies it,
   // and provisions the new VM from the copy; returns an Operation the caller polls like a
@@ -562,6 +567,33 @@ message DeleteVmSnapshotRequest {
 }
 
 message DeleteVmSnapshotResponse {}
+
+message ListVMUtilizationRequest {
+  string project_name = 1;
+}
+
+message VMUtilization {
+  string virtual_machine_name = 1;
+  // 0-100, normalized to the VM's vCPU count.
+  double cpu_pct = 2;
+  // 0-100 of guest-visible memory in use.
+  double mem_pct = 3;
+  // 0-100 averaged across the VM's GPUs. 0 for CPU-only VMs or when GPU telemetry
+  // isn't reporting.
+  double gpu_pct = 4;
+  // Consecutive days the VM has stayed under the idle threshold (CPU and, when present,
+  // GPU averaging below 10%). 0 = active. Stopping idle workloads is the dashboard's
+  // first cost-hygiene suggestion.
+  int32 idle_days = 5;
+}
+
+message ListVMUtilizationResponse {
+  repeated VMUtilization vms = 1;
+  // false when utilization telemetry is temporarily unavailable for the project's region —
+  // render shapes without bars rather than zeros.
+  bool available = 2;
+  int64 polled_at_unix = 3;
+}
 
 message GetVMMetricsRequest {
   string name = 1;

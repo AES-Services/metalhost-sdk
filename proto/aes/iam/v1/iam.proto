@@ -2,19 +2,11 @@ syntax = "proto3";
 
 package aes.iam.v1;
 
-// IamService holds identity primitives.
+// IamService holds identity primitives for customer orgs and projects.
 //
-// Customer-facing surface intentionally excludes:
-//   - ValidateApiKey, ValidateOidcToken — internal-only (the HTTP auth middleware uses
-//     pkg-private Go helpers `ValidateAPIKeyRaw` / `validateOidcTokenRaw`); exposing the
-//     RPCs would let external callers test arbitrary key/token validity, a real enum vector.
-//   - CheckPermission — pre-flight per-button perm checks aren't worth wiring; UI lets
-//     the action fail with PermissionDenied at request time.
-//   - GetAuthMetadata — exposes which auth providers are configured; only matters for
-//     self-hosts without OIDC, which we don't ship.
-//   - GetOrgMember — single-getter ripped per platform pattern; ListOrgMembers covers it.
-//
-// The Go methods for these stay callable internally where needed.
+// The public API intentionally omits token-validation helpers, per-button permission
+// pre-checks, and deployment-metadata endpoints — callers rely on request-time
+// PermissionDenied instead. ListOrgMembers covers single-member lookups.
 service IamService {
   // GetCallerIdentity returns the principal, default project, and project scope (if any) of
   // the calling key/token. Useful for clients (CLI / web) that want to display "logged in as"
@@ -127,6 +119,9 @@ service IamService {
   rpc VerifyMFAEnrollment(VerifyMFAEnrollmentRequest) returns (VerifyMFAEnrollmentResponse);
   rpc ListMFADevices(ListMFADevicesRequest) returns (ListMFADevicesResponse);
   rpc RevokeMFADevice(RevokeMFADeviceRequest) returns (RevokeMFADeviceResponse);
+  // RegenerateRecoveryCodes replaces the caller's recovery-code set with a fresh one.
+  // Requires a current TOTP code. Returned ONCE — store immediately.
+  rpc RegenerateRecoveryCodes(RegenerateRecoveryCodesRequest) returns (RegenerateRecoveryCodesResponse);
 
   // Session management. Sessions are the metadata around interactive logins (OIDC, signup,
   // invite-accept) — each one is linked to an API key. ListSessions shows the caller their
@@ -593,7 +588,7 @@ message RotateApiKeyResponse {
 }
 
 message StartOidcLoginRequest {
-  // Provider name (`oidc-providers/{slug}`) — admins register these via AdminIamService.
+  // Provider name (`oidc-providers/{slug}`) — a platform-configured OIDC provider slug.
   string provider_name = 1;
   // Where the IdP should redirect after auth — typically the gateway's /oauth/callback.
   string redirect_uri = 2;
@@ -912,4 +907,14 @@ message MarkNotificationsReadRequest {
 
 message MarkNotificationsReadResponse {
   int32 marked_count = 1;
+}
+
+message RegenerateRecoveryCodesRequest {
+  // 6-digit TOTP code from the caller's authenticator (proves possession before rotating codes).
+  string totp_code = 1;
+}
+
+message RegenerateRecoveryCodesResponse {
+  // Fresh single-use recovery codes; the previous set is invalidated.
+  repeated string recovery_codes = 1;
 }

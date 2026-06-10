@@ -658,9 +658,8 @@ type ListOperationsRequest struct {
 	PageSize int32 `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	// Opaque cursor from a prior ListOperationsResponse.next_page_token.
 	PageToken string `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	// Required for non-admin callers: filters to ops whose metadata.vm_project_name (or related
-	// project key) matches. Admin (admin.platform) callers may omit to see all ops fleet-wide.
-	// Resource name like `projects/metalhost-demo`.
+	// Required. Filters to operations whose metadata.vm_project_name (or related project key)
+	// matches. Resource name like `projects/my-project`.
 	ProjectName   string `protobuf:"bytes,3,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -956,11 +955,13 @@ type Operation struct {
 	ErrorMessage string `protobuf:"bytes,5,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	// Same as CreateOperationRequest.kind; immutable after create.
 	Kind string `protobuf:"bytes,6,opt,name=kind,proto3" json:"kind,omitempty"`
-	// Internal execution-tracking identifiers for this operation (if any). Opaque to clients.
+	// Opaque workflow correlation identifiers for this operation (if any).
 	TemporalWorkflowId string `protobuf:"bytes,7,opt,name=temporal_workflow_id,json=temporalWorkflowId,proto3" json:"temporal_workflow_id,omitempty"`
 	TemporalRunId      string `protobuf:"bytes,8,opt,name=temporal_run_id,json=temporalRunId,proto3" json:"temporal_run_id,omitempty"`
 	// Opaque key/value (e.g. vm_project_name on create; virtual_machine_name when provision completes).
-	Metadata      map[string]string `protobuf:"bytes,9,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Metadata map[string]string `protobuf:"bytes,9,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Caller principal that started the operation (” for platform-started ops).
+	Principal     string `protobuf:"bytes,10,opt,name=principal,proto3" json:"principal,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1058,6 +1059,13 @@ func (x *Operation) GetMetadata() map[string]string {
 	return nil
 }
 
+func (x *Operation) GetPrincipal() string {
+	if x != nil {
+		return x.Principal
+	}
+	return ""
+}
+
 var File_aes_ops_v1_operations_proto protoreflect.FileDescriptor
 
 const file_aes_ops_v1_operations_proto_rawDesc = "" +
@@ -1145,7 +1153,7 @@ const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\x15WatchOperationRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"M\n" +
 	"\x16WatchOperationResponse\x123\n" +
-	"\toperation\x18\x01 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"\xad\x03\n" +
+	"\toperation\x18\x01 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"\xcb\x03\n" +
 	"\tOperation\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12'\n" +
 	"\x05state\x18\x02 \x01(\x0e2\x11.aes.ops.v1.StateR\x05state\x12(\n" +
@@ -1155,7 +1163,9 @@ const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\x04kind\x18\x06 \x01(\tR\x04kind\x120\n" +
 	"\x14temporal_workflow_id\x18\a \x01(\tR\x12temporalWorkflowId\x12&\n" +
 	"\x0ftemporal_run_id\x18\b \x01(\tR\rtemporalRunId\x12?\n" +
-	"\bmetadata\x18\t \x03(\v2#.aes.ops.v1.Operation.MetadataEntryR\bmetadata\x1a;\n" +
+	"\bmetadata\x18\t \x03(\v2#.aes.ops.v1.Operation.MetadataEntryR\bmetadata\x12\x1c\n" +
+	"\tprincipal\x18\n" +
+	" \x01(\tR\tprincipal\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*\x80\x01\n" +

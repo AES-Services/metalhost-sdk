@@ -2,18 +2,69 @@ syntax = "proto3";
 
 package aes.quota.v1;
 
-// QuotaService is the customer-facing read API for quotas. AdminQuotaService (in aes.admin.v1)
-// remains the management surface — admins set limits, customers see effective caps.
-//
-// Pre-launch surface is read-only — quota-increase requests go through the support ticket
-// flow (SupportService.CreateTicket) rather than a parallel quota-request workflow. The
-// previous Request/ListQuotaIncreaseRequests RPCs were removed along with their tickets table.
+// QuotaService is the customer-facing quota API: read effective limits and usage, and file
+// quota-increase requests for review.
 //
 // Effective limit semantics: when both an org-level and project-level quota row exist for the
 // same key, the effective ceiling is min(org, project). Missing rows = unlimited (closed-beta
 // default).
 service QuotaService {
   rpc GetMyQuotas(GetMyQuotasRequest) returns (GetMyQuotasResponse);
+  // RequestQuotaIncrease files a request to raise an organization-level quota. Requests are
+  // reviewed by the platform team; track status via ListMyQuotaRequests.
+  rpc RequestQuotaIncrease(RequestQuotaIncreaseRequest) returns (RequestQuotaIncreaseResponse);
+  // ListMyQuotaRequests returns the organization's quota requests, newest first.
+  rpc ListMyQuotaRequests(ListMyQuotaRequestsRequest) returns (ListMyQuotaRequestsResponse);
+}
+
+// QuotaRequest is a request to raise one organization-level quota limit.
+message QuotaRequest {
+  // Resource name, e.g. `quotaRequests/qr-7f3a91c2`.
+  string name = 1;
+  string organization_name = 2;
+  // Quota key being raised, e.g. `compute.vm.vcpus`.
+  string quota_key = 3;
+  // Limit at request time.
+  int64 from_value = 4;
+  // Requested new limit.
+  int64 to_value = 5;
+  // Requester-provided justification.
+  string reason = 6;
+  string requested_by = 7;
+  int64 requested_at_unix = 8;
+  // PENDING | APPROVED | DENIED.
+  string status = 9;
+  int64 decided_at_unix = 10;
+  // Reviewer note explaining the decision (set when decided).
+  string decision_note = 11;
+  // Optional `tickets/{id}` cross-reference.
+  string linked_ticket = 12;
+  // Reviewer principal. Omitted on customer reads.
+  string decided_by = 13;
+}
+
+message RequestQuotaIncreaseRequest {
+  string organization_name = 1;
+  string quota_key = 2;
+  // Requested new limit. Must be greater than the current limit.
+  int64 to_value = 3;
+  // Justification shown to the reviewer. Required.
+  string reason = 4;
+  string idempotency_key = 5;
+}
+
+message RequestQuotaIncreaseResponse {
+  QuotaRequest request = 1;
+}
+
+message ListMyQuotaRequestsRequest {
+  string organization_name = 1;
+  // Optional status filter: PENDING | APPROVED | DENIED. Empty = all.
+  string status = 2;
+}
+
+message ListMyQuotaRequestsResponse {
+  repeated QuotaRequest requests = 1;
 }
 
 message ProjectQuotaUsage {

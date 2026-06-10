@@ -110,6 +110,9 @@ const (
 	// IamServiceRevokeMFADeviceProcedure is the fully-qualified name of the IamService's
 	// RevokeMFADevice RPC.
 	IamServiceRevokeMFADeviceProcedure = "/aes.iam.v1.IamService/RevokeMFADevice"
+	// IamServiceRegenerateRecoveryCodesProcedure is the fully-qualified name of the IamService's
+	// RegenerateRecoveryCodes RPC.
+	IamServiceRegenerateRecoveryCodesProcedure = "/aes.iam.v1.IamService/RegenerateRecoveryCodes"
 	// IamServiceListSessionsProcedure is the fully-qualified name of the IamService's ListSessions RPC.
 	IamServiceListSessionsProcedure = "/aes.iam.v1.IamService/ListSessions"
 	// IamServiceRevokeSessionProcedure is the fully-qualified name of the IamService's RevokeSession
@@ -250,6 +253,9 @@ type IamServiceClient interface {
 	VerifyMFAEnrollment(context.Context, *connect.Request[v1.VerifyMFAEnrollmentRequest]) (*connect.Response[v1.VerifyMFAEnrollmentResponse], error)
 	ListMFADevices(context.Context, *connect.Request[v1.ListMFADevicesRequest]) (*connect.Response[v1.ListMFADevicesResponse], error)
 	RevokeMFADevice(context.Context, *connect.Request[v1.RevokeMFADeviceRequest]) (*connect.Response[v1.RevokeMFADeviceResponse], error)
+	// RegenerateRecoveryCodes replaces the caller's recovery-code set with a fresh one.
+	// Requires a current TOTP code. Returned ONCE — store immediately.
+	RegenerateRecoveryCodes(context.Context, *connect.Request[v1.RegenerateRecoveryCodesRequest]) (*connect.Response[v1.RegenerateRecoveryCodesResponse], error)
 	// Session management. Sessions are the metadata around interactive logins (OIDC, signup,
 	// invite-accept) — each one is linked to an API key. ListSessions shows the caller their
 	// active sessions; RevokeSession invalidates one (revokes the linked API key); RevokeAll
@@ -484,6 +490,12 @@ func NewIamServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(iamServiceMethods.ByName("RevokeMFADevice")),
 			connect.WithClientOptions(opts...),
 		),
+		regenerateRecoveryCodes: connect.NewClient[v1.RegenerateRecoveryCodesRequest, v1.RegenerateRecoveryCodesResponse](
+			httpClient,
+			baseURL+IamServiceRegenerateRecoveryCodesProcedure,
+			connect.WithSchema(iamServiceMethods.ByName("RegenerateRecoveryCodes")),
+			connect.WithClientOptions(opts...),
+		),
 		listSessions: connect.NewClient[v1.ListSessionsRequest, v1.ListSessionsResponse](
 			httpClient,
 			baseURL+IamServiceListSessionsProcedure,
@@ -567,48 +579,49 @@ func NewIamServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 
 // iamServiceClient implements IamServiceClient.
 type iamServiceClient struct {
-	getCallerIdentity      *connect.Client[v1.GetCallerIdentityRequest, v1.GetCallerIdentityResponse]
-	createApiKey           *connect.Client[v1.CreateApiKeyRequest, v1.CreateApiKeyResponse]
-	listApiKeys            *connect.Client[v1.ListApiKeysRequest, v1.ListApiKeysResponse]
-	revokeApiKey           *connect.Client[v1.RevokeApiKeyRequest, v1.RevokeApiKeyResponse]
-	signUp                 *connect.Client[v1.SignUpRequest, v1.SignUpResponse]
-	verifyEmail            *connect.Client[v1.VerifyEmailRequest, v1.VerifyEmailResponse]
-	login                  *connect.Client[v1.LoginRequest, v1.LoginResponse]
-	submitMFAChallenge     *connect.Client[v1.SubmitMFAChallengeRequest, v1.SubmitMFAChallengeResponse]
-	linkOidcProvider       *connect.Client[v1.LinkOidcProviderRequest, v1.LinkOidcProviderResponse]
-	inviteOrgMember        *connect.Client[v1.InviteOrgMemberRequest, v1.InviteOrgMemberResponse]
-	acceptInvite           *connect.Client[v1.AcceptInviteRequest, v1.AcceptInviteResponse]
-	setInitialPassword     *connect.Client[v1.SetInitialPasswordRequest, v1.SetInitialPasswordResponse]
-	listOrgMembers         *connect.Client[v1.ListOrgMembersRequest, v1.ListOrgMembersResponse]
-	removeOrgMember        *connect.Client[v1.RemoveOrgMemberRequest, v1.RemoveOrgMemberResponse]
-	updateOrgMemberRole    *connect.Client[v1.UpdateOrgMemberRoleRequest, v1.UpdateOrgMemberRoleResponse]
-	listPendingInvites     *connect.Client[v1.ListPendingInvitesRequest, v1.ListPendingInvitesResponse]
-	revokeInvite           *connect.Client[v1.RevokeInviteRequest, v1.RevokeInviteResponse]
-	listMyOrganizations    *connect.Client[v1.ListMyOrganizationsRequest, v1.ListMyOrganizationsResponse]
-	listMyInvites          *connect.Client[v1.ListMyInvitesRequest, v1.ListMyInvitesResponse]
-	acceptMyInvite         *connect.Client[v1.AcceptMyInviteRequest, v1.AcceptMyInviteResponse]
-	declineMyInvite        *connect.Client[v1.DeclineMyInviteRequest, v1.DeclineMyInviteResponse]
-	rotateApiKey           *connect.Client[v1.RotateApiKeyRequest, v1.RotateApiKeyResponse]
-	startOidcLogin         *connect.Client[v1.StartOidcLoginRequest, v1.StartOidcLoginResponse]
-	completeOidcLogin      *connect.Client[v1.CompleteOidcLoginRequest, v1.CompleteOidcLoginResponse]
-	createWorkspace        *connect.Client[v1.CreateWorkspaceRequest, v1.CreateWorkspaceResponse]
-	enrollMFA              *connect.Client[v1.EnrollMFARequest, v1.EnrollMFAResponse]
-	verifyMFAEnrollment    *connect.Client[v1.VerifyMFAEnrollmentRequest, v1.VerifyMFAEnrollmentResponse]
-	listMFADevices         *connect.Client[v1.ListMFADevicesRequest, v1.ListMFADevicesResponse]
-	revokeMFADevice        *connect.Client[v1.RevokeMFADeviceRequest, v1.RevokeMFADeviceResponse]
-	listSessions           *connect.Client[v1.ListSessionsRequest, v1.ListSessionsResponse]
-	revokeSession          *connect.Client[v1.RevokeSessionRequest, v1.RevokeSessionResponse]
-	revokeAllOtherSessions *connect.Client[v1.RevokeAllOtherSessionsRequest, v1.RevokeAllOtherSessionsResponse]
-	logout                 *connect.Client[v1.LogoutRequest, v1.LogoutResponse]
-	requestPasswordReset   *connect.Client[v1.RequestPasswordResetRequest, v1.RequestPasswordResetResponse]
-	resetPassword          *connect.Client[v1.ResetPasswordRequest, v1.ResetPasswordResponse]
-	getUser                *connect.Client[v1.GetUserRequest, v1.GetUserResponse]
-	updateUser             *connect.Client[v1.UpdateUserRequest, v1.UpdateUserResponse]
-	changePassword         *connect.Client[v1.ChangePasswordRequest, v1.ChangePasswordResponse]
-	requestEmailChange     *connect.Client[v1.RequestEmailChangeRequest, v1.RequestEmailChangeResponse]
-	importGitHubSshKeys    *connect.Client[v1.ImportGitHubSshKeysRequest, v1.ImportGitHubSshKeysResponse]
-	listNotifications      *connect.Client[v1.ListNotificationsRequest, v1.ListNotificationsResponse]
-	markNotificationsRead  *connect.Client[v1.MarkNotificationsReadRequest, v1.MarkNotificationsReadResponse]
+	getCallerIdentity       *connect.Client[v1.GetCallerIdentityRequest, v1.GetCallerIdentityResponse]
+	createApiKey            *connect.Client[v1.CreateApiKeyRequest, v1.CreateApiKeyResponse]
+	listApiKeys             *connect.Client[v1.ListApiKeysRequest, v1.ListApiKeysResponse]
+	revokeApiKey            *connect.Client[v1.RevokeApiKeyRequest, v1.RevokeApiKeyResponse]
+	signUp                  *connect.Client[v1.SignUpRequest, v1.SignUpResponse]
+	verifyEmail             *connect.Client[v1.VerifyEmailRequest, v1.VerifyEmailResponse]
+	login                   *connect.Client[v1.LoginRequest, v1.LoginResponse]
+	submitMFAChallenge      *connect.Client[v1.SubmitMFAChallengeRequest, v1.SubmitMFAChallengeResponse]
+	linkOidcProvider        *connect.Client[v1.LinkOidcProviderRequest, v1.LinkOidcProviderResponse]
+	inviteOrgMember         *connect.Client[v1.InviteOrgMemberRequest, v1.InviteOrgMemberResponse]
+	acceptInvite            *connect.Client[v1.AcceptInviteRequest, v1.AcceptInviteResponse]
+	setInitialPassword      *connect.Client[v1.SetInitialPasswordRequest, v1.SetInitialPasswordResponse]
+	listOrgMembers          *connect.Client[v1.ListOrgMembersRequest, v1.ListOrgMembersResponse]
+	removeOrgMember         *connect.Client[v1.RemoveOrgMemberRequest, v1.RemoveOrgMemberResponse]
+	updateOrgMemberRole     *connect.Client[v1.UpdateOrgMemberRoleRequest, v1.UpdateOrgMemberRoleResponse]
+	listPendingInvites      *connect.Client[v1.ListPendingInvitesRequest, v1.ListPendingInvitesResponse]
+	revokeInvite            *connect.Client[v1.RevokeInviteRequest, v1.RevokeInviteResponse]
+	listMyOrganizations     *connect.Client[v1.ListMyOrganizationsRequest, v1.ListMyOrganizationsResponse]
+	listMyInvites           *connect.Client[v1.ListMyInvitesRequest, v1.ListMyInvitesResponse]
+	acceptMyInvite          *connect.Client[v1.AcceptMyInviteRequest, v1.AcceptMyInviteResponse]
+	declineMyInvite         *connect.Client[v1.DeclineMyInviteRequest, v1.DeclineMyInviteResponse]
+	rotateApiKey            *connect.Client[v1.RotateApiKeyRequest, v1.RotateApiKeyResponse]
+	startOidcLogin          *connect.Client[v1.StartOidcLoginRequest, v1.StartOidcLoginResponse]
+	completeOidcLogin       *connect.Client[v1.CompleteOidcLoginRequest, v1.CompleteOidcLoginResponse]
+	createWorkspace         *connect.Client[v1.CreateWorkspaceRequest, v1.CreateWorkspaceResponse]
+	enrollMFA               *connect.Client[v1.EnrollMFARequest, v1.EnrollMFAResponse]
+	verifyMFAEnrollment     *connect.Client[v1.VerifyMFAEnrollmentRequest, v1.VerifyMFAEnrollmentResponse]
+	listMFADevices          *connect.Client[v1.ListMFADevicesRequest, v1.ListMFADevicesResponse]
+	revokeMFADevice         *connect.Client[v1.RevokeMFADeviceRequest, v1.RevokeMFADeviceResponse]
+	regenerateRecoveryCodes *connect.Client[v1.RegenerateRecoveryCodesRequest, v1.RegenerateRecoveryCodesResponse]
+	listSessions            *connect.Client[v1.ListSessionsRequest, v1.ListSessionsResponse]
+	revokeSession           *connect.Client[v1.RevokeSessionRequest, v1.RevokeSessionResponse]
+	revokeAllOtherSessions  *connect.Client[v1.RevokeAllOtherSessionsRequest, v1.RevokeAllOtherSessionsResponse]
+	logout                  *connect.Client[v1.LogoutRequest, v1.LogoutResponse]
+	requestPasswordReset    *connect.Client[v1.RequestPasswordResetRequest, v1.RequestPasswordResetResponse]
+	resetPassword           *connect.Client[v1.ResetPasswordRequest, v1.ResetPasswordResponse]
+	getUser                 *connect.Client[v1.GetUserRequest, v1.GetUserResponse]
+	updateUser              *connect.Client[v1.UpdateUserRequest, v1.UpdateUserResponse]
+	changePassword          *connect.Client[v1.ChangePasswordRequest, v1.ChangePasswordResponse]
+	requestEmailChange      *connect.Client[v1.RequestEmailChangeRequest, v1.RequestEmailChangeResponse]
+	importGitHubSshKeys     *connect.Client[v1.ImportGitHubSshKeysRequest, v1.ImportGitHubSshKeysResponse]
+	listNotifications       *connect.Client[v1.ListNotificationsRequest, v1.ListNotificationsResponse]
+	markNotificationsRead   *connect.Client[v1.MarkNotificationsReadRequest, v1.MarkNotificationsReadResponse]
 }
 
 // GetCallerIdentity calls aes.iam.v1.IamService.GetCallerIdentity.
@@ -754,6 +767,11 @@ func (c *iamServiceClient) ListMFADevices(ctx context.Context, req *connect.Requ
 // RevokeMFADevice calls aes.iam.v1.IamService.RevokeMFADevice.
 func (c *iamServiceClient) RevokeMFADevice(ctx context.Context, req *connect.Request[v1.RevokeMFADeviceRequest]) (*connect.Response[v1.RevokeMFADeviceResponse], error) {
 	return c.revokeMFADevice.CallUnary(ctx, req)
+}
+
+// RegenerateRecoveryCodes calls aes.iam.v1.IamService.RegenerateRecoveryCodes.
+func (c *iamServiceClient) RegenerateRecoveryCodes(ctx context.Context, req *connect.Request[v1.RegenerateRecoveryCodesRequest]) (*connect.Response[v1.RegenerateRecoveryCodesResponse], error) {
+	return c.regenerateRecoveryCodes.CallUnary(ctx, req)
 }
 
 // ListSessions calls aes.iam.v1.IamService.ListSessions.
@@ -924,6 +942,9 @@ type IamServiceHandler interface {
 	VerifyMFAEnrollment(context.Context, *connect.Request[v1.VerifyMFAEnrollmentRequest]) (*connect.Response[v1.VerifyMFAEnrollmentResponse], error)
 	ListMFADevices(context.Context, *connect.Request[v1.ListMFADevicesRequest]) (*connect.Response[v1.ListMFADevicesResponse], error)
 	RevokeMFADevice(context.Context, *connect.Request[v1.RevokeMFADeviceRequest]) (*connect.Response[v1.RevokeMFADeviceResponse], error)
+	// RegenerateRecoveryCodes replaces the caller's recovery-code set with a fresh one.
+	// Requires a current TOTP code. Returned ONCE — store immediately.
+	RegenerateRecoveryCodes(context.Context, *connect.Request[v1.RegenerateRecoveryCodesRequest]) (*connect.Response[v1.RegenerateRecoveryCodesResponse], error)
 	// Session management. Sessions are the metadata around interactive logins (OIDC, signup,
 	// invite-accept) — each one is linked to an API key. ListSessions shows the caller their
 	// active sessions; RevokeSession invalidates one (revokes the linked API key); RevokeAll
@@ -1154,6 +1175,12 @@ func NewIamServiceHandler(svc IamServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(iamServiceMethods.ByName("RevokeMFADevice")),
 		connect.WithHandlerOptions(opts...),
 	)
+	iamServiceRegenerateRecoveryCodesHandler := connect.NewUnaryHandler(
+		IamServiceRegenerateRecoveryCodesProcedure,
+		svc.RegenerateRecoveryCodes,
+		connect.WithSchema(iamServiceMethods.ByName("RegenerateRecoveryCodes")),
+		connect.WithHandlerOptions(opts...),
+	)
 	iamServiceListSessionsHandler := connect.NewUnaryHandler(
 		IamServiceListSessionsProcedure,
 		svc.ListSessions,
@@ -1292,6 +1319,8 @@ func NewIamServiceHandler(svc IamServiceHandler, opts ...connect.HandlerOption) 
 			iamServiceListMFADevicesHandler.ServeHTTP(w, r)
 		case IamServiceRevokeMFADeviceProcedure:
 			iamServiceRevokeMFADeviceHandler.ServeHTTP(w, r)
+		case IamServiceRegenerateRecoveryCodesProcedure:
+			iamServiceRegenerateRecoveryCodesHandler.ServeHTTP(w, r)
 		case IamServiceListSessionsProcedure:
 			iamServiceListSessionsHandler.ServeHTTP(w, r)
 		case IamServiceRevokeSessionProcedure:
@@ -1441,6 +1470,10 @@ func (UnimplementedIamServiceHandler) ListMFADevices(context.Context, *connect.R
 
 func (UnimplementedIamServiceHandler) RevokeMFADevice(context.Context, *connect.Request[v1.RevokeMFADeviceRequest]) (*connect.Response[v1.RevokeMFADeviceResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.iam.v1.IamService.RevokeMFADevice is not implemented"))
+}
+
+func (UnimplementedIamServiceHandler) RegenerateRecoveryCodes(context.Context, *connect.Request[v1.RegenerateRecoveryCodesRequest]) (*connect.Response[v1.RegenerateRecoveryCodesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.iam.v1.IamService.RegenerateRecoveryCodes is not implemented"))
 }
 
 func (UnimplementedIamServiceHandler) ListSessions(context.Context, *connect.Request[v1.ListSessionsRequest]) (*connect.Response[v1.ListSessionsResponse], error) {

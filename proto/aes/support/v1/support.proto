@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 
 // SupportService is the customer-facing ticket API. Tickets are organization-scoped — every
 // member of the org can see every ticket the org has opened. Staff-side management (assign,
-// escalate, internal notes, cross-org list) lives in aes.admin.v1.AdminSupportService.
+// escalate, internal notes) is not exposed on this API.
 //
 // v1 is API + DB only. Email gateway, Slack relay, and SLA breach worker land in phase 2;
 // the schema already carries channel + sla_due_at so phase 2 is pure business logic.
@@ -23,14 +23,13 @@ service SupportService {
   // ticket was previously PENDING_CUSTOMER. No-op transition otherwise.
   rpc ReplyTicket(ReplyTicketRequest) returns (ReplyTicketResponse);
   // CloseTicket transitions the ticket to CLOSED. Customer can close from any non-CLOSED
-  // status; staff-side resolution uses AdminSupportService.ResolveTicket which records a
-  // resolution note.
+  // status. Staff may mark a ticket RESOLVED before the customer closes it.
   rpc CloseTicket(CloseTicketRequest) returns (CloseTicketResponse);
 }
 
 // Lifecycle states. PENDING_CUSTOMER means staff replied and we're waiting on the user;
-// PENDING_STAFF means the user replied and we owe them a response. RESOLVED is set by staff
-// (AdminSupportService.ResolveTicket); CLOSED is the terminal state — set when the customer
+// PENDING_STAFF means the user replied and we owe them a response. RESOLVED is set by staff;
+// CLOSED is the terminal state — set when the customer
 // confirms or auto-closes after an inactivity window. Customer-side CloseTicket goes
 // directly to CLOSED.
 enum TicketStatus {
@@ -94,13 +93,15 @@ message Ticket {
   TicketCategory category = 7;
   TicketChannel channel = 8;
   repeated ResourceRef resource_refs = 9;
-  // Assigned staff user (admin RPC sets this). Empty when unassigned.
+  // Assigned support staff member. Empty when unassigned.
   string assignee = 10;
   google.protobuf.Timestamp created_at = 11;
   google.protobuf.Timestamp updated_at = 12;
   google.protobuf.Timestamp last_activity_at = 13;
   google.protobuf.Timestamp resolved_at = 14;
-  // Set on creation per plan tier; null = no SLA. Phase 2 worker sweeps for breach.
+  // Message count in the thread. Populated on list responses; GetTicket returns the full thread.
+  int32 message_count = 18;
+  // Set on creation per plan tier; null = no SLA. Breach monitoring is applied automatically.
   google.protobuf.Timestamp sla_due_at = 15;
   google.protobuf.Timestamp escalated_at = 16;
 }
