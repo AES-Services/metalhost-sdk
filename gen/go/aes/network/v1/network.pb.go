@@ -197,7 +197,7 @@ func (x *Network) GetNamespace() string {
 type CreateNetworkRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Required project name. Full resource form `projects/{slug}` (slug-only also accepted).
-	ProjectName string `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"` // Full resource name `projects/{slug}` (B38). Slug-only is also accepted.
+	ProjectName string `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"` // Full resource name `projects/{slug}`. Slug-only is also accepted.
 	// Optional network ID. When empty the server mints a UUIDv7-based slug. Resulting resource
 	// name is `projects/{project_slug}/networks/{network_id}`.
 	NetworkId      string `protobuf:"bytes,2,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
@@ -354,8 +354,8 @@ func (x *CreateNetworkResponse) GetNetwork() *Network {
 
 type ListNetworksRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Filter to a single project. Required for now (cross-project list is admin-only / future).
-	ProjectName   string `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"` // Full resource name `projects/{slug}` (B38). Slug-only is also accepted.
+	// Filter to a single project. Required — cross-project list is not supported in v1.
+	ProjectName   string `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"` // Full resource name `projects/{slug}`. Slug-only is also accepted.
 	PageSize      int32  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	PageToken     string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields

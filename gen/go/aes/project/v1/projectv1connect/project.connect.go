@@ -86,8 +86,8 @@ type ProjectServiceClient interface {
 	DeleteProject(context.Context, *connect.Request[v1.DeleteProjectRequest]) (*connect.Response[v1.DeleteProjectResponse], error)
 	// ListOrgActivity returns a humanized stream of recent events across the org — VM created,
 	// disk resized, payment processed, firewall rule added, etc. Backed by audit_events but
-	// filtered + reshaped for end-user consumption (raw audit log lives at admin's
-	// ListAuditEvents). Sorted newest-first.
+	// filtered + reshaped for end-user consumption (raw audit log is available via
+	// AuditService.SearchEvents). Sorted newest-first.
 	ListOrgActivity(context.Context, *connect.Request[v1.ListOrgActivityRequest]) (*connect.Response[v1.ListOrgActivityResponse], error)
 	// CheckSlugAvailable reports whether a workspace (org) or project slug can be claimed, for the
 	// onboarding wizard's live availability check. ORG/user slugs are global; PROJECT slugs are
@@ -265,8 +265,8 @@ type ProjectServiceHandler interface {
 	DeleteProject(context.Context, *connect.Request[v1.DeleteProjectRequest]) (*connect.Response[v1.DeleteProjectResponse], error)
 	// ListOrgActivity returns a humanized stream of recent events across the org — VM created,
 	// disk resized, payment processed, firewall rule added, etc. Backed by audit_events but
-	// filtered + reshaped for end-user consumption (raw audit log lives at admin's
-	// ListAuditEvents). Sorted newest-first.
+	// filtered + reshaped for end-user consumption (raw audit log is available via
+	// AuditService.SearchEvents). Sorted newest-first.
 	ListOrgActivity(context.Context, *connect.Request[v1.ListOrgActivityRequest]) (*connect.Response[v1.ListOrgActivityResponse], error)
 	// CheckSlugAvailable reports whether a workspace (org) or project slug can be claimed, for the
 	// onboarding wizard's live availability check. ORG/user slugs are global; PROJECT slugs are

@@ -23,8 +23,8 @@ const (
 )
 
 // Lifecycle states. PENDING_CUSTOMER means staff replied and we're waiting on the user;
-// PENDING_STAFF means the user replied and we owe them a response. RESOLVED is set by staff
-// (AdminSupportService.ResolveTicket); CLOSED is the terminal state — set when the customer
+// PENDING_STAFF means the user replied and we owe them a response. RESOLVED is set by staff;
+// CLOSED is the terminal state — set when the customer
 // confirms or auto-closes after an inactivity window. Customer-side CloseTicket goes
 // directly to CLOSED.
 type TicketStatus int32
@@ -331,13 +331,15 @@ type Ticket struct {
 	Category     TicketCategory `protobuf:"varint,7,opt,name=category,proto3,enum=aes.support.v1.TicketCategory" json:"category,omitempty"`
 	Channel      TicketChannel  `protobuf:"varint,8,opt,name=channel,proto3,enum=aes.support.v1.TicketChannel" json:"channel,omitempty"`
 	ResourceRefs []*ResourceRef `protobuf:"bytes,9,rep,name=resource_refs,json=resourceRefs,proto3" json:"resource_refs,omitempty"`
-	// Assigned staff user (admin RPC sets this). Empty when unassigned.
+	// Assigned support staff member. Empty when unassigned.
 	Assignee       string                 `protobuf:"bytes,10,opt,name=assignee,proto3" json:"assignee,omitempty"`
 	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt      *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	LastActivityAt *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=last_activity_at,json=lastActivityAt,proto3" json:"last_activity_at,omitempty"`
 	ResolvedAt     *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=resolved_at,json=resolvedAt,proto3" json:"resolved_at,omitempty"`
-	// Set on creation per plan tier; null = no SLA. Phase 2 worker sweeps for breach.
+	// Message count in the thread. Populated on list responses; GetTicket returns the full thread.
+	MessageCount int32 `protobuf:"varint,18,opt,name=message_count,json=messageCount,proto3" json:"message_count,omitempty"`
+	// Set on creation per plan tier; null = no SLA. Breach monitoring is applied automatically.
 	SlaDueAt      *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=sla_due_at,json=slaDueAt,proto3" json:"sla_due_at,omitempty"`
 	EscalatedAt   *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=escalated_at,json=escalatedAt,proto3" json:"escalated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -470,6 +472,13 @@ func (x *Ticket) GetResolvedAt() *timestamppb.Timestamp {
 		return x.ResolvedAt
 	}
 	return nil
+}
+
+func (x *Ticket) GetMessageCount() int32 {
+	if x != nil {
+		return x.MessageCount
+	}
+	return 0
 }
 
 func (x *Ticket) GetSlaDueAt() *timestamppb.Timestamp {
@@ -1147,7 +1156,7 @@ const file_aes_support_v1_support_proto_rawDesc = "" +
 	"\vResourceRef\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x18\n" +
-	"\adisplay\x18\x03 \x01(\tR\adisplay\"\xc1\x06\n" +
+	"\adisplay\x18\x03 \x01(\tR\adisplay\"\xe6\x06\n" +
 	"\x06Ticket\x12\x12\n" +
 	"\x04name\x18\x11 \x01(\tR\x04name\x12+\n" +
 	"\x11organization_name\x18\x02 \x01(\tR\x10organizationName\x12\x1b\n" +
@@ -1166,7 +1175,8 @@ const file_aes_support_v1_support_proto_rawDesc = "" +
 	"updated_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12D\n" +
 	"\x10last_activity_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\x0elastActivityAt\x12;\n" +
 	"\vresolved_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"resolvedAt\x128\n" +
+	"resolvedAt\x12#\n" +
+	"\rmessage_count\x18\x12 \x01(\x05R\fmessageCount\x128\n" +
 	"\n" +
 	"sla_due_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\bslaDueAt\x12=\n" +
 	"\fescalated_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\vescalatedAtJ\x04\b\x01\x10\x02R\x02id\"\xee\x01\n" +

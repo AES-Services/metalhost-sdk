@@ -144,7 +144,7 @@ func (x *SSHKey) GetAnnotations() map[string]string {
 
 type CreateSSHKeyRequest struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
-	ProjectName string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"` // Full resource name `projects/{slug}` (B38). Slug-only is also accepted.
+	ProjectName string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"` // Full resource name `projects/{slug}`. Slug-only is also accepted.
 	// DNS-safe slug. Resource name becomes `projects/{project_name}/ssh-keys/{ssh_key_id}`.
 	SshKeyId    string `protobuf:"bytes,2,opt,name=ssh_key_id,json=sshKeyId,proto3" json:"ssh_key_id,omitempty"`
 	DisplayName string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
@@ -282,7 +282,7 @@ func (x *CreateSSHKeyResponse) GetSshKey() *SSHKey {
 
 type ListSSHKeysRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"` // Full resource name `projects/{slug}` (B38). Slug-only is also accepted.
+	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"` // Full resource name `projects/{slug}`. Slug-only is also accepted.
 	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	PageToken     string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields

@@ -35,7 +35,7 @@ message SSHKey {
 }
 
 message CreateSSHKeyRequest {
-  string project_name = 1;  // Full resource name `projects/{slug}` (B38). Slug-only is also accepted.
+  string project_name = 1;  // Full resource name `projects/{slug}`. Slug-only is also accepted.
   // DNS-safe slug. Resource name becomes `projects/{project_name}/ssh-keys/{ssh_key_id}`.
   string ssh_key_id = 2;
   string display_name = 3;
@@ -51,7 +51,7 @@ message CreateSSHKeyResponse {
 }
 
 message ListSSHKeysRequest {
-  string project_name = 1;  // Full resource name `projects/{slug}` (B38). Slug-only is also accepted.
+  string project_name = 1;  // Full resource name `projects/{slug}`. Slug-only is also accepted.
   int32 page_size = 2;
   string page_token = 3;
 }

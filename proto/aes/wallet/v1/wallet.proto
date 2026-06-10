@@ -3,8 +3,8 @@ syntax = "proto3";
 package aes.wallet.v1;
 
 // WalletService is the customer-facing billing surface: org's single billing account + wallet,
-// payment methods, invoices, top-ups, alerts. Admin/internal ledger operations live on
-// AdminBillingService. One billing account per org; one wallet per billing account.
+// payment methods, invoices, top-ups, and alerts. One billing account per org; one wallet per
+// billing account.
 service WalletService {
   rpc ListBillingAccounts(ListBillingAccountsRequest) returns (ListBillingAccountsResponse);
   rpc GetBillingAccount(GetBillingAccountRequest) returns (GetBillingAccountResponse);
@@ -78,7 +78,7 @@ service WalletService {
 
   // Usage query / export. QueryUsage aggregates usage_events by meter / project / time-bucket
   // and returns rows; ExportUsage materializes a CSV/NDJSON file in object storage and returns
-  // a presigned URL (same pattern as AdminAuditService.ExportAuditEvents).
+  // a time-limited presigned download URL.
   rpc QueryUsage(QueryUsageRequest) returns (QueryUsageResponse);
   rpc ExportUsage(ExportUsageRequest) returns (ExportUsageResponse);
 
@@ -398,9 +398,7 @@ message GetWalletBalanceResponse {
   int64 last_journal_unix = 4;
 }
 
-// Ledger / usage / wallet-lifecycle messages — admin-only RPCs, but the message types stay
-// in the wallet package because they describe wallet-shaped data. AdminBillingService
-// references them by qualified type name.
+// Ledger posting shapes used by usage query responses and internal settlement paths.
 
 message RecordJournalEntryRequest {
   string wallet_name = 1;

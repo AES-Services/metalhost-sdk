@@ -65,7 +65,7 @@ message Network {
 
 message CreateNetworkRequest {
   // Required project name. Full resource form `projects/{slug}` (slug-only also accepted).
-  string project_name = 1;  // Full resource name `projects/{slug}` (B38). Slug-only is also accepted.
+  string project_name = 1;  // Full resource name `projects/{slug}`. Slug-only is also accepted.
   // Optional network ID. When empty the server mints a UUIDv7-based slug. Resulting resource
   // name is `projects/{project_slug}/networks/{network_id}`.
   string network_id = 2;
@@ -93,8 +93,8 @@ message CreateNetworkResponse {
 }
 
 message ListNetworksRequest {
-  // Filter to a single project. Required for now (cross-project list is admin-only / future).
-  string project_name = 1;  // Full resource name `projects/{slug}` (B38). Slug-only is also accepted.
+  // Filter to a single project. Required — cross-project list is not supported in v1.
+  string project_name = 1;  // Full resource name `projects/{slug}`. Slug-only is also accepted.
   int32 page_size = 2;
   string page_token = 3;
 }
