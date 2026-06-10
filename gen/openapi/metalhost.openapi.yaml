@@ -7614,6 +7614,20 @@ components:
             - string
           title: storage_free_gib
           format: int64
+        reachable:
+          type: boolean
+          title: reachable
+          description: |-
+            Whether this region's control plane is currently reachable. When false the region is
+             temporarily offline: new VM creates are paused and capacity figures are last-known.
+             Defaults true.
+        unreachableSinceUnix:
+          type:
+            - integer
+            - string
+          title: unreachable_since_unix
+          format: int64
+          description: Unix seconds the region became unreachable (0 when reachable).
       title: RegionHealth
       additionalProperties: false
       description: |-

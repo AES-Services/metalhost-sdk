@@ -167,6 +167,12 @@ message RegionHealth {
   // free = available. Zero when the datacenter has no storage capacity data (stale/unavailable).
   int64 storage_usable_gib = 14;
   int64 storage_free_gib = 15;
+  // Whether this region's control plane is currently reachable. When false the region is
+  // temporarily offline: new VM creates are paused and capacity figures are last-known.
+  // Defaults true.
+  bool reachable = 16;
+  // Unix seconds the region became unreachable (0 when reachable).
+  int64 unreachable_since_unix = 17;
 }
 
 message GetRegionHealthRequest {
