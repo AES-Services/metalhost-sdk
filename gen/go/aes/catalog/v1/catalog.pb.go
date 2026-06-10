@@ -770,8 +770,14 @@ type RegionHealth struct {
 	// free = available. Zero when the datacenter has no storage capacity data (stale/unavailable).
 	StorageUsableGib int64 `protobuf:"varint,14,opt,name=storage_usable_gib,json=storageUsableGib,proto3" json:"storage_usable_gib,omitempty"`
 	StorageFreeGib   int64 `protobuf:"varint,15,opt,name=storage_free_gib,json=storageFreeGib,proto3" json:"storage_free_gib,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// Whether this region's control plane is currently reachable. When false the region is
+	// temporarily offline: new VM creates are paused and capacity figures are last-known.
+	// Defaults true.
+	Reachable bool `protobuf:"varint,16,opt,name=reachable,proto3" json:"reachable,omitempty"`
+	// Unix seconds the region became unreachable (0 when reachable).
+	UnreachableSinceUnix int64 `protobuf:"varint,17,opt,name=unreachable_since_unix,json=unreachableSinceUnix,proto3" json:"unreachable_since_unix,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *RegionHealth) Reset() {
@@ -898,6 +904,20 @@ func (x *RegionHealth) GetStorageUsableGib() int64 {
 func (x *RegionHealth) GetStorageFreeGib() int64 {
 	if x != nil {
 		return x.StorageFreeGib
+	}
+	return 0
+}
+
+func (x *RegionHealth) GetReachable() bool {
+	if x != nil {
+		return x.Reachable
+	}
+	return false
+}
+
+func (x *RegionHealth) GetUnreachableSinceUnix() int64 {
+	if x != nil {
+		return x.UnreachableSinceUnix
 	}
 	return 0
 }
@@ -1518,7 +1538,7 @@ const file_aes_catalog_v1_catalog_proto_rawDesc = "" +
 	"\x06filter\x18\x03 \x01(\tR\x06filter\"\x7f\n" +
 	"\x17ListDatacentersResponse\x12<\n" +
 	"\vdatacenters\x18\x01 \x03(\v2\x1a.aes.catalog.v1.DatacenterR\vdatacenters\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xe7\x04\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xbb\x05\n" +
 	"\fRegionHealth\x12'\n" +
 	"\x0fdatacenter_name\x18\x01 \x01(\tR\x0edatacenterName\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12!\n" +
@@ -1535,7 +1555,9 @@ const file_aes_catalog_v1_catalog_proto_rawDesc = "" +
 	"\x12vm_running_ram_gib\x18\f \x01(\x03R\x0fvmRunningRamGib\x12%\n" +
 	"\x0fvm_free_ram_gib\x18\r \x01(\x03R\fvmFreeRamGib\x12,\n" +
 	"\x12storage_usable_gib\x18\x0e \x01(\x03R\x10storageUsableGib\x12(\n" +
-	"\x10storage_free_gib\x18\x0f \x01(\x03R\x0estorageFreeGibJ\x04\b\a\x10\bR\x1avm_cpu_oversubscribe_ratio\"A\n" +
+	"\x10storage_free_gib\x18\x0f \x01(\x03R\x0estorageFreeGib\x12\x1c\n" +
+	"\treachable\x18\x10 \x01(\bR\treachable\x124\n" +
+	"\x16unreachable_since_unix\x18\x11 \x01(\x03R\x14unreachableSinceUnixJ\x04\b\a\x10\bR\x1avm_cpu_oversubscribe_ratio\"A\n" +
 	"\x16GetRegionHealthRequest\x12'\n" +
 	"\x0fdatacenter_name\x18\x01 \x01(\tR\x0edatacenterName\"O\n" +
 	"\x17GetRegionHealthResponse\x124\n" +
