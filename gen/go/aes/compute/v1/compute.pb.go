@@ -147,8 +147,11 @@ type VirtualMachine struct {
 	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	ProjectName    string                 `protobuf:"bytes,2,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
 	DatacenterName string                 `protobuf:"bytes,3,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
-	// Current lifecycle state — RUNNING / STOPPED / SUSPENDED / DELETING / DELETED. Updated after
-	// the corresponding lifecycle RPC succeeds.
+	// Current lifecycle state — PROVISIONING / BOOTING / RUNNING / RESTARTING / STOPPING /
+	// STOPPED / STOPPED_FOR_NONPAYMENT / FAILED / ORPHANED / DELETING / DELETED. Updated after
+	// the corresponding lifecycle RPC succeeds. A VM that can no longer be found on its host
+	// surfaces as ORPHANED (and is restored automatically if it reappears); reads may reflect
+	// that transition.
 	State          string `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
 	CreateTimeUnix int64  `protobuf:"varint,6,opt,name=create_time_unix,json=createTimeUnix,proto3" json:"create_time_unix,omitempty"`
 	// User-facing labels (filterable, indexed externally). Merged on Update unless clear_labels.
@@ -197,12 +200,11 @@ type VirtualMachine struct {
 	// was created without `assign_public_ipv4=true`. When set, this is the same value as the
 	// PublicIp resource's ip_address.
 	PublicIpv4 string `protobuf:"bytes,22,opt,name=public_ipv4,json=publicIpv4,proto3" json:"public_ipv4,omitempty"`
-	// IPv6 address from the tenant Network's /64, on the VM's primary NIC. Pinned across
-	// stop/start, same as private_ipv4. Note: this is NOT "private" in the RFC1918 sense —
-	// when the DC's tenant prefix is a real GUA /48, this address is globally routable. Tenant
-	// isolation is enforced at the network layer, not via address scope. Lab DCs using
-	// ULA-style /48s see locally-scoped addresses here.
-	Ipv6 string `protobuf:"bytes,23,opt,name=ipv6,proto3" json:"ipv6,omitempty"`
+	// Public IPv6 address on the same public NIC as public_ipv4. Included automatically with
+	// the public IP in IPv6-enabled datacenters — no extra request flag and no extra charge.
+	// Statically configured and pinned for the VM's lifetime. Empty when the VM has no public
+	// IP or the datacenter doesn't offer IPv6 yet.
+	PublicIpv6 string `protobuf:"bytes,23,opt,name=public_ipv6,json=publicIpv6,proto3" json:"public_ipv6,omitempty"`
 	// The Disk resource bound as the VM's boot device (`projects/{p}/disks/{id}`). Set on every
 	// persistent VM (ephemeral lab VMs leave it empty). The disk has its own
 	// lifecycle: DeleteVirtualMachine detaches it but does not delete it, so a customer can bind
@@ -396,9 +398,9 @@ func (x *VirtualMachine) GetPublicIpv4() string {
 	return ""
 }
 
-func (x *VirtualMachine) GetIpv6() string {
+func (x *VirtualMachine) GetPublicIpv6() string {
 	if x != nil {
-		return x.Ipv6
+		return x.PublicIpv6
 	}
 	return ""
 }
@@ -915,8 +917,9 @@ type VMNetworkSpec struct {
 	// Tenant network `projects/{p}/networks/{id}`. Empty → the project's default network
 	// (auto-created lazily on first VM in the project + DC).
 	Network string `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
-	// Allocate a public IPv4 from the DC pool for the VM's public NIC. Default false — VMs are
-	// reachable over IPv6 (always allocated from the network's /64) without burning a public v4.
+	// Allocate a public IPv4 for the VM's public NIC. In IPv6-enabled datacenters a public
+	// IPv6 is included automatically on the same NIC at no extra charge (see
+	// VirtualMachine.public_ipv6). Default false.
 	PublicIpv4    bool `protobuf:"varint,2,opt,name=public_ipv4,json=publicIpv4,proto3" json:"public_ipv4,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -3777,7 +3780,7 @@ var File_aes_compute_v1_compute_proto protoreflect.FileDescriptor
 
 const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\x8d\n" +
+	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\x9a\n" +
 	"\n" +
 	"\x0eVirtualMachine\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
@@ -3799,8 +3802,9 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\bhostname\x18\x14 \x01(\tR\bhostname\x12!\n" +
 	"\fnetwork_name\x18\x15 \x01(\tR\vnetworkName\x12\x1f\n" +
 	"\vpublic_ipv4\x18\x16 \x01(\tR\n" +
-	"publicIpv4\x12\x12\n" +
-	"\x04ipv6\x18\x17 \x01(\tR\x04ipv6\x12\x1b\n" +
+	"publicIpv4\x12\x1f\n" +
+	"\vpublic_ipv6\x18\x17 \x01(\tR\n" +
+	"publicIpv6\x12\x1b\n" +
 	"\tboot_disk\x18\x18 \x01(\tR\bbootDisk\x12\x14\n" +
 	"\x05vcpus\x18\x19 \x01(\x05R\x05vcpus\x12\x17\n" +
 	"\aram_gib\x18\x1a \x01(\x05R\x06ramGib\x12\x1b\n" +
