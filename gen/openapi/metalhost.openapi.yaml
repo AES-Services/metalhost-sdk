@@ -3571,6 +3571,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.iam.v1.VerifyMFAEnrollmentResponse'
+  /aes.network.v1.NetworkService/AddVmToSecurityGroup:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: AddVmToSecurityGroup
+      description: Membership is editable post-provision (no VM restart — only ACLs/address-sets change).
+      operationId: aes.network.v1.NetworkService.AddVmToSecurityGroup
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.AddVmToSecurityGroupRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.AddVmToSecurityGroupResponse'
   /aes.network.v1.NetworkService/CreateFirewallRule:
     post:
       tags:
@@ -3644,6 +3680,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.CreateNetworkResponse'
+  /aes.network.v1.NetworkService/CreateSecurityGroup:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: CreateSecurityGroup
+      description: |-
+        Security groups — INTERNAL (east-west) network policy on the private NIC, distinct from
+         the public firewall above. A group is a reusable ruleset attached to >=0 VMs; rules allow
+         traffic from/to a CIDR or another security group. VMs talk freely by default — attaching
+         a group locks that VM down to its rules.
+      operationId: aes.network.v1.NetworkService.CreateSecurityGroup
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.CreateSecurityGroupRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.CreateSecurityGroupResponse'
   /aes.network.v1.NetworkService/DeleteFirewallRule:
     post:
       tags:
@@ -3679,6 +3755,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.DeleteFirewallRuleResponse'
+  /aes.network.v1.NetworkService/DeleteSecurityGroup:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: DeleteSecurityGroup
+      operationId: aes.network.v1.NetworkService.DeleteSecurityGroup
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.DeleteSecurityGroupRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.DeleteSecurityGroupResponse'
+  /aes.network.v1.NetworkService/GetSecurityGroup:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: GetSecurityGroup
+      operationId: aes.network.v1.NetworkService.GetSecurityGroup
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.GetSecurityGroupRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.GetSecurityGroupResponse'
   /aes.network.v1.NetworkService/ListFirewallRules:
     post:
       tags:
@@ -3749,6 +3895,111 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.ListNetworksResponse'
+  /aes.network.v1.NetworkService/ListSecurityGroups:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: ListSecurityGroups
+      operationId: aes.network.v1.NetworkService.ListSecurityGroups
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.ListSecurityGroupsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.ListSecurityGroupsResponse'
+  /aes.network.v1.NetworkService/RemoveVmFromSecurityGroup:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: RemoveVmFromSecurityGroup
+      operationId: aes.network.v1.NetworkService.RemoveVmFromSecurityGroup
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.RemoveVmFromSecurityGroupRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.RemoveVmFromSecurityGroupResponse'
+  /aes.network.v1.NetworkService/UpdateSecurityGroup:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: UpdateSecurityGroup
+      operationId: aes.network.v1.NetworkService.UpdateSecurityGroup
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.UpdateSecurityGroupRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.UpdateSecurityGroupResponse'
   /aes.ops.v1.OperationsService/GetOperation:
     post:
       tags:
@@ -8969,9 +9220,24 @@ components:
           type: boolean
           title: public_ipv4
           description: |-
-            Allocate a public IPv4 for the VM's public NIC. In IPv6-enabled datacenters a public
-             IPv6 is included automatically on the same NIC at no extra charge (see
-             VirtualMachine.public_ipv6). Default false.
+            Allocate a public IPv4 for the VM's public NIC (the scarce, billed extra). IPv6 comes
+             free on the public NIC regardless (see VirtualMachine.public_ipv6) unless private_only.
+             Default false.
+        securityGroups:
+          type: array
+          items:
+            type: string
+          title: security_groups
+          description: |-
+            Internal security groups to attach to the VM's private NIC at create
+             (`organizations/{org}/projects/{p}/securityGroups/{id}`). Empty = open within the VPC.
+        privateOnly:
+          type: boolean
+          title: private_only
+          description: |-
+            private_only attaches NO public NIC at all — no public IPv4, no public IPv6, no inbound
+             internet surface. The VM still has outbound internet via the private NIC's NAT. Default
+             false: every VM gets a public NIC with a free IPv6 GUA. Use for air-gapped-ish workloads.
       title: VMNetworkSpec
       additionalProperties: false
     aes.compute.v1.VMUtilization:
@@ -9194,6 +9460,15 @@ components:
             Linux login user cloud-init created for SSH access (`ssh <linux_username>@<public_ipv4>`).
              Set from CreateVirtualMachineRequest.linux_username. Empty on VMs created with a raw
              user_data cloud-config (the customer's YAML owns user creation) or on pre-feature rows.
+        securityGroups:
+          type: array
+          items:
+            type: string
+          title: security_groups
+          description: |-
+            Internal security groups attached to this VM's private NIC
+             (`organizations/{org}/projects/{p}/securityGroups/{id}`). Empty = the VM is open to the
+             rest of the VPC (default). Editable post-create via Add/RemoveVmFromSecurityGroup.
       title: VirtualMachine
       additionalProperties: false
     aes.compute.v1.VirtualMachine.AnnotationsEntry:
@@ -11035,6 +11310,25 @@ components:
              these somewhere safe; each can be used once if the authenticator is lost.
       title: VerifyMFAEnrollmentResponse
       additionalProperties: false
+    aes.network.v1.AddVmToSecurityGroupRequest:
+      type: object
+      properties:
+        securityGroup:
+          type: string
+          title: security_group
+        vm:
+          type: string
+          title: vm
+      title: AddVmToSecurityGroupRequest
+      additionalProperties: false
+    aes.network.v1.AddVmToSecurityGroupResponse:
+      type: object
+      properties:
+        securityGroup:
+          title: security_group
+          $ref: '#/components/schemas/aes.network.v1.SecurityGroup'
+      title: AddVmToSecurityGroupResponse
+      additionalProperties: false
     aes.network.v1.CreateFirewallRuleRequest:
       type: object
       properties:
@@ -11188,6 +11482,67 @@ components:
           $ref: '#/components/schemas/aes.network.v1.Network'
       title: CreateNetworkResponse
       additionalProperties: false
+    aes.network.v1.CreateSecurityGroupRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        datacenterName:
+          type: string
+          title: datacenter_name
+        displayName:
+          type: string
+          title: display_name
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.SecurityGroupRule'
+          title: rules
+        labels:
+          type: object
+          title: labels
+          additionalProperties:
+            type: string
+            title: value
+        annotations:
+          type: object
+          title: annotations
+          additionalProperties:
+            type: string
+            title: value
+      title: CreateSecurityGroupRequest
+      additionalProperties: false
+    aes.network.v1.CreateSecurityGroupRequest.AnnotationsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: AnnotationsEntry
+      additionalProperties: false
+    aes.network.v1.CreateSecurityGroupRequest.LabelsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: LabelsEntry
+      additionalProperties: false
+    aes.network.v1.CreateSecurityGroupResponse:
+      type: object
+      properties:
+        securityGroup:
+          title: security_group
+          $ref: '#/components/schemas/aes.network.v1.SecurityGroup'
+      title: CreateSecurityGroupResponse
+      additionalProperties: false
     aes.network.v1.DeleteFirewallRuleRequest:
       type: object
       properties:
@@ -11199,6 +11554,18 @@ components:
     aes.network.v1.DeleteFirewallRuleResponse:
       type: object
       title: DeleteFirewallRuleResponse
+      additionalProperties: false
+    aes.network.v1.DeleteSecurityGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: DeleteSecurityGroupRequest
+      additionalProperties: false
+    aes.network.v1.DeleteSecurityGroupResponse:
+      type: object
+      title: DeleteSecurityGroupResponse
       additionalProperties: false
     aes.network.v1.FirewallRule:
       type: object
@@ -11306,6 +11673,22 @@ components:
           title: value
       title: LabelsEntry
       additionalProperties: false
+    aes.network.v1.GetSecurityGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: GetSecurityGroupRequest
+      additionalProperties: false
+    aes.network.v1.GetSecurityGroupResponse:
+      type: object
+      properties:
+        securityGroup:
+          title: security_group
+          $ref: '#/components/schemas/aes.network.v1.SecurityGroup'
+      title: GetSecurityGroupResponse
+      additionalProperties: false
     aes.network.v1.ListFirewallRulesRequest:
       type: object
       properties:
@@ -11366,6 +11749,34 @@ components:
           type: string
           title: next_page_token
       title: ListNetworksResponse
+      additionalProperties: false
+    aes.network.v1.ListSecurityGroupsRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListSecurityGroupsRequest
+      additionalProperties: false
+    aes.network.v1.ListSecurityGroupsResponse:
+      type: object
+      properties:
+        securityGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.SecurityGroup'
+          title: security_groups
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListSecurityGroupsResponse
       additionalProperties: false
     aes.network.v1.Network:
       type: object
@@ -11480,11 +11891,13 @@ components:
           type: integer
           title: port
           format: int32
-          description: External port (the one customers connect to), or the lower bound of a range. 1..65535.
+          description: |-
+            External port (the one customers connect to), or the lower bound of a range. 1..65535.
+             Ignored when protocol is ICMP (which is portless).
         protocol:
           type: string
           title: protocol
-          description: 'L4 protocol: TCP or UDP.'
+          description: 'Protocol: TCP, UDP, or ICMP. ICMP rules carry no port.'
         targetPort:
           type: integer
           title: target_port
@@ -11593,6 +12006,191 @@ components:
           type: string
           title: value
       title: LabelsEntry
+      additionalProperties: false
+    aes.network.v1.RemoveVmFromSecurityGroupRequest:
+      type: object
+      properties:
+        securityGroup:
+          type: string
+          title: security_group
+        vm:
+          type: string
+          title: vm
+      title: RemoveVmFromSecurityGroupRequest
+      additionalProperties: false
+    aes.network.v1.RemoveVmFromSecurityGroupResponse:
+      type: object
+      properties:
+        securityGroup:
+          title: security_group
+          $ref: '#/components/schemas/aes.network.v1.SecurityGroup'
+      title: RemoveVmFromSecurityGroupResponse
+      additionalProperties: false
+    aes.network.v1.SecurityGroup:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        displayName:
+          type: string
+          title: display_name
+        projectName:
+          type: string
+          title: project_name
+        datacenterName:
+          type: string
+          title: datacenter_name
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.SecurityGroupRule'
+          title: rules
+        memberVms:
+          type: array
+          items:
+            type: string
+          title: member_vms
+          description: |-
+            VMs currently in this group (`virtual-machines/{id}`). Output-only — set/changed via
+             AddVmToSecurityGroup / RemoveVmFromSecurityGroup or the VM's security_groups field.
+        state:
+          type: string
+          title: state
+          description: ACTIVE / DELETED. Read-only.
+        createTimeUnix:
+          type:
+            - integer
+            - string
+          title: create_time_unix
+          format: int64
+        updateTimeUnix:
+          type:
+            - integer
+            - string
+          title: update_time_unix
+          format: int64
+        labels:
+          type: object
+          title: labels
+          additionalProperties:
+            type: string
+            title: value
+        annotations:
+          type: object
+          title: annotations
+          additionalProperties:
+            type: string
+            title: value
+        etag:
+          type: string
+          title: etag
+          description: Optimistic-concurrency token for UpdateSecurityGroup. Read-only.
+      title: SecurityGroup
+      additionalProperties: false
+      description: |-
+        SecurityGroup is a reusable, project-scoped internal-firewall ruleset enforced on the
+         private NIC of every VM that joins it. Resource name:
+         `organizations/{org}/projects/{project}/securityGroups/{id}`.
+    aes.network.v1.SecurityGroup.AnnotationsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: AnnotationsEntry
+      additionalProperties: false
+    aes.network.v1.SecurityGroup.LabelsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: LabelsEntry
+      additionalProperties: false
+    aes.network.v1.SecurityGroupRule:
+      type: object
+      allOf:
+        - properties:
+            id:
+              type: string
+              title: id
+              description: Stable id within the group (server-assigned if empty on create). Used for diffing.
+            direction:
+              type: string
+              title: direction
+              description: '''ingress'' (peer = source) | ''egress'' (peer = destination). Default ingress.'
+            protocol:
+              type: string
+              title: protocol
+              description: '''tcp'' | ''udp'' | ''icmp''. ICMP ignores port/end_port (allows all ICMP + ICMPv6 — "ping").'
+            port:
+              type: integer
+              title: port
+              format: int32
+              description: Single port, or lower bound of a range. 1..65535. Ignored for icmp.
+            endPort:
+              type: integer
+              title: end_port
+              format: int32
+              description: Upper bound of a port range; 0 = single port. Ignored for icmp.
+        - oneOf:
+            - type: object
+              properties:
+                cidr:
+                  type: string
+                  title: cidr
+              title: cidr
+              required:
+                - cidr
+            - type: object
+              properties:
+                securityGroup:
+                  type: string
+                  title: security_group
+              title: security_group
+              required:
+                - securityGroup
+      title: SecurityGroupRule
+      additionalProperties: false
+      description: |-
+        SecurityGroupRule allows traffic in one direction on the private NIC. A rule with no peer
+         set means "any" (the whole VPC for that direction).
+    aes.network.v1.UpdateSecurityGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        displayName:
+          type: string
+          title: display_name
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.SecurityGroupRule'
+          title: rules
+        etag:
+          type: string
+          title: etag
+      title: UpdateSecurityGroupRequest
+      additionalProperties: false
+      description: |-
+        UpdateSecurityGroup replaces the whole ruleset (and optionally display_name). Provide etag
+         from a prior Get to guard against lost updates; empty etag skips the check.
+    aes.network.v1.UpdateSecurityGroupResponse:
+      type: object
+      properties:
+        securityGroup:
+          title: security_group
+          $ref: '#/components/schemas/aes.network.v1.SecurityGroup'
+      title: UpdateSecurityGroupResponse
       additionalProperties: false
     aes.ops.v1.CancelOperationRequest:
       type: object

@@ -199,6 +199,10 @@ message VirtualMachine {
   // Set from CreateVirtualMachineRequest.linux_username. Empty on VMs created with a raw
   // user_data cloud-config (the customer's YAML owns user creation) or on pre-feature rows.
   string linux_username = 30;
+  // Internal security groups attached to this VM's private NIC
+  // (`organizations/{org}/projects/{p}/securityGroups/{id}`). Empty = the VM is open to the
+  // rest of the VPC (default). Editable post-create via Add/RemoveVmFromSecurityGroup.
+  repeated string security_groups = 33;
 }
 
 // ───────────────────────────── Declarative VM manifest ─────────────────────────────
@@ -276,10 +280,17 @@ message VMNetworkSpec {
   // Tenant network `projects/{p}/networks/{id}`. Empty → the project's default network
   // (auto-created lazily on first VM in the project + DC).
   string network = 1;
-  // Allocate a public IPv4 for the VM's public NIC. In IPv6-enabled datacenters a public
-  // IPv6 is included automatically on the same NIC at no extra charge (see
-  // VirtualMachine.public_ipv6). Default false.
+  // Allocate a public IPv4 for the VM's public NIC (the scarce, billed extra). IPv6 comes
+  // free on the public NIC regardless (see VirtualMachine.public_ipv6) unless private_only.
+  // Default false.
   bool public_ipv4 = 2;
+  // Internal security groups to attach to the VM's private NIC at create
+  // (`organizations/{org}/projects/{p}/securityGroups/{id}`). Empty = open within the VPC.
+  repeated string security_groups = 3;
+  // private_only attaches NO public NIC at all — no public IPv4, no public IPv6, no inbound
+  // internet surface. The VM still has outbound internet via the private NIC's NAT. Default
+  // false: every VM gets a public NIC with a free IPv6 GUA. Use for air-gapped-ish workloads.
+  bool private_only = 4;
 }
 
 message UserSpec {
