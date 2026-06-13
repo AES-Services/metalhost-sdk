@@ -8969,8 +8969,9 @@ components:
           type: boolean
           title: public_ipv4
           description: |-
-            Allocate a public IPv4 from the DC pool for the VM's public NIC. Default false — VMs are
-             reachable over IPv6 (always allocated from the network's /64) without burning a public v4.
+            Allocate a public IPv4 for the VM's public NIC. In IPv6-enabled datacenters a public
+             IPv6 is included automatically on the same NIC at no extra charge (see
+             VirtualMachine.public_ipv6). Default false.
       title: VMNetworkSpec
       additionalProperties: false
     aes.compute.v1.VMUtilization:
@@ -9022,8 +9023,11 @@ components:
           type: string
           title: state
           description: |-
-            Current lifecycle state — RUNNING / STOPPED / SUSPENDED / DELETING / DELETED. Updated after
-             the corresponding lifecycle RPC succeeds.
+            Current lifecycle state — PROVISIONING / BOOTING / RUNNING / RESTARTING / STOPPING /
+             STOPPED / STOPPED_FOR_NONPAYMENT / FAILED / ORPHANED / DELETING / DELETED. Updated after
+             the corresponding lifecycle RPC succeeds. A VM that can no longer be found on its host
+             surfaces as ORPHANED (and is restored automatically if it reappears); reads may reflect
+             that transition.
         createTimeUnix:
           type:
             - integer
@@ -9123,15 +9127,14 @@ components:
             Public IPv4 address allocated to this VM for the public NIC workflow. Empty when the VM
              was created without `assign_public_ipv4=true`. When set, this is the same value as the
              PublicIp resource's ip_address.
-        ipv6:
+        publicIpv6:
           type: string
-          title: ipv6
+          title: public_ipv6
           description: |-
-            IPv6 address from the tenant Network's /64, on the VM's primary NIC. Pinned across
-             stop/start, same as private_ipv4. Note: this is NOT "private" in the RFC1918 sense —
-             when the DC's tenant prefix is a real GUA /48, this address is globally routable. Tenant
-             isolation is enforced at the network layer, not via address scope. Lab DCs using
-             ULA-style /48s see locally-scoped addresses here.
+            Public IPv6 address on the same public NIC as public_ipv4. Included automatically with
+             the public IP in IPv6-enabled datacenters — no extra request flag and no extra charge.
+             Statically configured and pinned for the VM's lifetime. Empty when the VM has no public
+             IP or the datacenter doesn't offer IPv6 yet.
         bootDisk:
           type: string
           title: boot_disk

@@ -102,8 +102,11 @@ message VirtualMachine {
   string datacenter_name = 3;
   reserved 4;
   reserved "instance_type";
-  // Current lifecycle state — RUNNING / STOPPED / SUSPENDED / DELETING / DELETED. Updated after
-  // the corresponding lifecycle RPC succeeds.
+  // Current lifecycle state — PROVISIONING / BOOTING / RUNNING / RESTARTING / STOPPING /
+  // STOPPED / STOPPED_FOR_NONPAYMENT / FAILED / ORPHANED / DELETING / DELETED. Updated after
+  // the corresponding lifecycle RPC succeeds. A VM that can no longer be found on its host
+  // surfaces as ORPHANED (and is restored automatically if it reappears); reads may reflect
+  // that transition.
   string state = 5;
   int64 create_time_unix = 6;
   // User-facing labels (filterable, indexed externally). Merged on Update unless clear_labels.
@@ -158,12 +161,11 @@ message VirtualMachine {
   // was created without `assign_public_ipv4=true`. When set, this is the same value as the
   // PublicIp resource's ip_address.
   string public_ipv4 = 22;
-  // IPv6 address from the tenant Network's /64, on the VM's primary NIC. Pinned across
-  // stop/start, same as private_ipv4. Note: this is NOT "private" in the RFC1918 sense —
-  // when the DC's tenant prefix is a real GUA /48, this address is globally routable. Tenant
-  // isolation is enforced at the network layer, not via address scope. Lab DCs using
-  // ULA-style /48s see locally-scoped addresses here.
-  string ipv6 = 23;
+  // Public IPv6 address on the same public NIC as public_ipv4. Included automatically with
+  // the public IP in IPv6-enabled datacenters — no extra request flag and no extra charge.
+  // Statically configured and pinned for the VM's lifetime. Empty when the VM has no public
+  // IP or the datacenter doesn't offer IPv6 yet.
+  string public_ipv6 = 23;
   // The Disk resource bound as the VM's boot device (`projects/{p}/disks/{id}`). Set on every
   // persistent VM (ephemeral lab VMs leave it empty). The disk has its own
   // lifecycle: DeleteVirtualMachine detaches it but does not delete it, so a customer can bind
@@ -274,8 +276,9 @@ message VMNetworkSpec {
   // Tenant network `projects/{p}/networks/{id}`. Empty → the project's default network
   // (auto-created lazily on first VM in the project + DC).
   string network = 1;
-  // Allocate a public IPv4 from the DC pool for the VM's public NIC. Default false — VMs are
-  // reachable over IPv6 (always allocated from the network's /64) without burning a public v4.
+  // Allocate a public IPv4 for the VM's public NIC. In IPv6-enabled datacenters a public
+  // IPv6 is included automatically on the same NIC at no extra charge (see
+  // VirtualMachine.public_ipv6). Default false.
   bool public_ipv4 = 2;
 }
 
