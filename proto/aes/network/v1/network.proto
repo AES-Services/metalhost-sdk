@@ -17,6 +17,19 @@ service NetworkService {
   rpc ListFirewallRules(ListFirewallRulesRequest) returns (ListFirewallRulesResponse);
   rpc DeleteFirewallRule(DeleteFirewallRuleRequest) returns (DeleteFirewallRuleResponse);
 
+  // Security groups — INTERNAL (east-west) network policy on the private NIC, distinct from
+  // the public firewall above. A group is a reusable ruleset attached to >=0 VMs; rules allow
+  // traffic from/to a CIDR or another security group. VMs talk freely by default — attaching
+  // a group locks that VM down to its rules.
+  rpc CreateSecurityGroup(CreateSecurityGroupRequest) returns (CreateSecurityGroupResponse);
+  rpc GetSecurityGroup(GetSecurityGroupRequest) returns (GetSecurityGroupResponse);
+  rpc ListSecurityGroups(ListSecurityGroupsRequest) returns (ListSecurityGroupsResponse);
+  rpc UpdateSecurityGroup(UpdateSecurityGroupRequest) returns (UpdateSecurityGroupResponse);
+  rpc DeleteSecurityGroup(DeleteSecurityGroupRequest) returns (DeleteSecurityGroupResponse);
+  // Membership is editable post-provision (no VM restart — only ACLs/address-sets change).
+  rpc AddVmToSecurityGroup(AddVmToSecurityGroupRequest) returns (AddVmToSecurityGroupResponse);
+  rpc RemoveVmFromSecurityGroup(RemoveVmFromSecurityGroupRequest) returns (RemoveVmFromSecurityGroupResponse);
+
   // DNS and managed-zone APIs are not offered: Metalhost does not manage DNS as a control-plane
   // concern. Customers bring their own DNS (Route53, Cloudflare, self-hosted, etc.) and point
   // records at the public IPs Metalhost allocates.
@@ -113,8 +126,9 @@ message ListNetworksResponse {
 // RTMP/SIP, or any service that listens on a window.
 message PortMapping {
   // External port (the one customers connect to), or the lower bound of a range. 1..65535.
+  // Ignored when protocol is ICMP (which is portless).
   int32 port = 1;
-  // L4 protocol: TCP or UDP.
+  // Protocol: TCP, UDP, or ICMP. ICMP rules carry no port.
   string protocol = 2;
   // Internal port on the VM (where the service listens). Defaults to `port` when 0. Ignored
   // on firewall rules — applies only to PublicIp port-forwarding (which we don't currently
@@ -212,4 +226,112 @@ message DeleteFirewallRuleRequest {
 }
 
 message DeleteFirewallRuleResponse {}
+
+// ── Security groups ────────────────────────────────────────────────────────────────────────
+
+// SecurityGroup is a reusable, project-scoped internal-firewall ruleset enforced on the
+// private NIC of every VM that joins it. Resource name:
+// `organizations/{org}/projects/{project}/securityGroups/{id}`.
+message SecurityGroup {
+  string name = 1;
+  string display_name = 2;
+  string project_name = 3;
+  string datacenter_name = 4;
+  repeated SecurityGroupRule rules = 5;
+  // VMs currently in this group (`virtual-machines/{id}`). Output-only — set/changed via
+  // AddVmToSecurityGroup / RemoveVmFromSecurityGroup or the VM's security_groups field.
+  repeated string member_vms = 6;
+  // ACTIVE / DELETED. Read-only.
+  string state = 7;
+  int64 create_time_unix = 8;
+  int64 update_time_unix = 9;
+  map<string, string> labels = 10;
+  map<string, string> annotations = 11;
+  // Optimistic-concurrency token for UpdateSecurityGroup. Read-only.
+  string etag = 12;
+}
+
+// SecurityGroupRule allows traffic in one direction on the private NIC. A rule with no peer
+// set means "any" (the whole VPC for that direction).
+message SecurityGroupRule {
+  // Stable id within the group (server-assigned if empty on create). Used for diffing.
+  string id = 1;
+  // 'ingress' (peer = source) | 'egress' (peer = destination). Default ingress.
+  string direction = 2;
+  // 'tcp' | 'udp' | 'icmp'. ICMP ignores port/end_port (allows all ICMP + ICMPv6 — "ping").
+  string protocol = 3;
+  // Single port, or lower bound of a range. 1..65535. Ignored for icmp.
+  int32 port = 4;
+  // Upper bound of a port range; 0 = single port. Ignored for icmp.
+  int32 end_port = 5;
+  // The peer: a CIDR (v4 or v6) OR another security group (resolved to its live member IPs).
+  // Unset = any. A v4 CIDR only constrains v4 traffic and a v6 CIDR only v6 (the other family
+  // is unaffected by that rule).
+  oneof peer {
+    string cidr = 6;
+    string security_group = 7;
+  }
+}
+
+message CreateSecurityGroupRequest {
+  string project_name = 1;
+  string datacenter_name = 2;
+  string display_name = 3;
+  repeated SecurityGroupRule rules = 4;
+  map<string, string> labels = 5;
+  map<string, string> annotations = 6;
+}
+message CreateSecurityGroupResponse {
+  SecurityGroup security_group = 1;
+}
+
+message GetSecurityGroupRequest {
+  string name = 1;
+}
+message GetSecurityGroupResponse {
+  SecurityGroup security_group = 1;
+}
+
+message ListSecurityGroupsRequest {
+  string project_name = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+message ListSecurityGroupsResponse {
+  repeated SecurityGroup security_groups = 1;
+  string next_page_token = 2;
+}
+
+// UpdateSecurityGroup replaces the whole ruleset (and optionally display_name). Provide etag
+// from a prior Get to guard against lost updates; empty etag skips the check.
+message UpdateSecurityGroupRequest {
+  string name = 1;
+  string display_name = 2;
+  repeated SecurityGroupRule rules = 3;
+  string etag = 4;
+}
+message UpdateSecurityGroupResponse {
+  SecurityGroup security_group = 1;
+}
+
+message DeleteSecurityGroupRequest {
+  string name = 1;
+}
+message DeleteSecurityGroupResponse {}
+
+message AddVmToSecurityGroupRequest {
+  string security_group = 1;
+  string vm = 2;
+}
+message AddVmToSecurityGroupResponse {
+  SecurityGroup security_group = 1;
+}
+
+message RemoveVmFromSecurityGroupRequest {
+  string security_group = 1;
+  string vm = 2;
+}
+message RemoveVmFromSecurityGroupResponse {
+  SecurityGroup security_group = 1;
+}
 

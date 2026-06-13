@@ -48,6 +48,27 @@ const (
 	// NetworkServiceDeleteFirewallRuleProcedure is the fully-qualified name of the NetworkService's
 	// DeleteFirewallRule RPC.
 	NetworkServiceDeleteFirewallRuleProcedure = "/aes.network.v1.NetworkService/DeleteFirewallRule"
+	// NetworkServiceCreateSecurityGroupProcedure is the fully-qualified name of the NetworkService's
+	// CreateSecurityGroup RPC.
+	NetworkServiceCreateSecurityGroupProcedure = "/aes.network.v1.NetworkService/CreateSecurityGroup"
+	// NetworkServiceGetSecurityGroupProcedure is the fully-qualified name of the NetworkService's
+	// GetSecurityGroup RPC.
+	NetworkServiceGetSecurityGroupProcedure = "/aes.network.v1.NetworkService/GetSecurityGroup"
+	// NetworkServiceListSecurityGroupsProcedure is the fully-qualified name of the NetworkService's
+	// ListSecurityGroups RPC.
+	NetworkServiceListSecurityGroupsProcedure = "/aes.network.v1.NetworkService/ListSecurityGroups"
+	// NetworkServiceUpdateSecurityGroupProcedure is the fully-qualified name of the NetworkService's
+	// UpdateSecurityGroup RPC.
+	NetworkServiceUpdateSecurityGroupProcedure = "/aes.network.v1.NetworkService/UpdateSecurityGroup"
+	// NetworkServiceDeleteSecurityGroupProcedure is the fully-qualified name of the NetworkService's
+	// DeleteSecurityGroup RPC.
+	NetworkServiceDeleteSecurityGroupProcedure = "/aes.network.v1.NetworkService/DeleteSecurityGroup"
+	// NetworkServiceAddVmToSecurityGroupProcedure is the fully-qualified name of the NetworkService's
+	// AddVmToSecurityGroup RPC.
+	NetworkServiceAddVmToSecurityGroupProcedure = "/aes.network.v1.NetworkService/AddVmToSecurityGroup"
+	// NetworkServiceRemoveVmFromSecurityGroupProcedure is the fully-qualified name of the
+	// NetworkService's RemoveVmFromSecurityGroup RPC.
+	NetworkServiceRemoveVmFromSecurityGroupProcedure = "/aes.network.v1.NetworkService/RemoveVmFromSecurityGroup"
 )
 
 // NetworkServiceClient is a client for the aes.network.v1.NetworkService service.
@@ -59,6 +80,18 @@ type NetworkServiceClient interface {
 	CreateFirewallRule(context.Context, *connect.Request[v1.CreateFirewallRuleRequest]) (*connect.Response[v1.CreateFirewallRuleResponse], error)
 	ListFirewallRules(context.Context, *connect.Request[v1.ListFirewallRulesRequest]) (*connect.Response[v1.ListFirewallRulesResponse], error)
 	DeleteFirewallRule(context.Context, *connect.Request[v1.DeleteFirewallRuleRequest]) (*connect.Response[v1.DeleteFirewallRuleResponse], error)
+	// Security groups — INTERNAL (east-west) network policy on the private NIC, distinct from
+	// the public firewall above. A group is a reusable ruleset attached to >=0 VMs; rules allow
+	// traffic from/to a CIDR or another security group. VMs talk freely by default — attaching
+	// a group locks that VM down to its rules.
+	CreateSecurityGroup(context.Context, *connect.Request[v1.CreateSecurityGroupRequest]) (*connect.Response[v1.CreateSecurityGroupResponse], error)
+	GetSecurityGroup(context.Context, *connect.Request[v1.GetSecurityGroupRequest]) (*connect.Response[v1.GetSecurityGroupResponse], error)
+	ListSecurityGroups(context.Context, *connect.Request[v1.ListSecurityGroupsRequest]) (*connect.Response[v1.ListSecurityGroupsResponse], error)
+	UpdateSecurityGroup(context.Context, *connect.Request[v1.UpdateSecurityGroupRequest]) (*connect.Response[v1.UpdateSecurityGroupResponse], error)
+	DeleteSecurityGroup(context.Context, *connect.Request[v1.DeleteSecurityGroupRequest]) (*connect.Response[v1.DeleteSecurityGroupResponse], error)
+	// Membership is editable post-provision (no VM restart — only ACLs/address-sets change).
+	AddVmToSecurityGroup(context.Context, *connect.Request[v1.AddVmToSecurityGroupRequest]) (*connect.Response[v1.AddVmToSecurityGroupResponse], error)
+	RemoveVmFromSecurityGroup(context.Context, *connect.Request[v1.RemoveVmFromSecurityGroupRequest]) (*connect.Response[v1.RemoveVmFromSecurityGroupResponse], error)
 }
 
 // NewNetworkServiceClient constructs a client for the aes.network.v1.NetworkService service. By
@@ -102,16 +135,65 @@ func NewNetworkServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(networkServiceMethods.ByName("DeleteFirewallRule")),
 			connect.WithClientOptions(opts...),
 		),
+		createSecurityGroup: connect.NewClient[v1.CreateSecurityGroupRequest, v1.CreateSecurityGroupResponse](
+			httpClient,
+			baseURL+NetworkServiceCreateSecurityGroupProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("CreateSecurityGroup")),
+			connect.WithClientOptions(opts...),
+		),
+		getSecurityGroup: connect.NewClient[v1.GetSecurityGroupRequest, v1.GetSecurityGroupResponse](
+			httpClient,
+			baseURL+NetworkServiceGetSecurityGroupProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("GetSecurityGroup")),
+			connect.WithClientOptions(opts...),
+		),
+		listSecurityGroups: connect.NewClient[v1.ListSecurityGroupsRequest, v1.ListSecurityGroupsResponse](
+			httpClient,
+			baseURL+NetworkServiceListSecurityGroupsProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("ListSecurityGroups")),
+			connect.WithClientOptions(opts...),
+		),
+		updateSecurityGroup: connect.NewClient[v1.UpdateSecurityGroupRequest, v1.UpdateSecurityGroupResponse](
+			httpClient,
+			baseURL+NetworkServiceUpdateSecurityGroupProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("UpdateSecurityGroup")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteSecurityGroup: connect.NewClient[v1.DeleteSecurityGroupRequest, v1.DeleteSecurityGroupResponse](
+			httpClient,
+			baseURL+NetworkServiceDeleteSecurityGroupProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("DeleteSecurityGroup")),
+			connect.WithClientOptions(opts...),
+		),
+		addVmToSecurityGroup: connect.NewClient[v1.AddVmToSecurityGroupRequest, v1.AddVmToSecurityGroupResponse](
+			httpClient,
+			baseURL+NetworkServiceAddVmToSecurityGroupProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("AddVmToSecurityGroup")),
+			connect.WithClientOptions(opts...),
+		),
+		removeVmFromSecurityGroup: connect.NewClient[v1.RemoveVmFromSecurityGroupRequest, v1.RemoveVmFromSecurityGroupResponse](
+			httpClient,
+			baseURL+NetworkServiceRemoveVmFromSecurityGroupProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("RemoveVmFromSecurityGroup")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // networkServiceClient implements NetworkServiceClient.
 type networkServiceClient struct {
-	createNetwork      *connect.Client[v1.CreateNetworkRequest, v1.CreateNetworkResponse]
-	listNetworks       *connect.Client[v1.ListNetworksRequest, v1.ListNetworksResponse]
-	createFirewallRule *connect.Client[v1.CreateFirewallRuleRequest, v1.CreateFirewallRuleResponse]
-	listFirewallRules  *connect.Client[v1.ListFirewallRulesRequest, v1.ListFirewallRulesResponse]
-	deleteFirewallRule *connect.Client[v1.DeleteFirewallRuleRequest, v1.DeleteFirewallRuleResponse]
+	createNetwork             *connect.Client[v1.CreateNetworkRequest, v1.CreateNetworkResponse]
+	listNetworks              *connect.Client[v1.ListNetworksRequest, v1.ListNetworksResponse]
+	createFirewallRule        *connect.Client[v1.CreateFirewallRuleRequest, v1.CreateFirewallRuleResponse]
+	listFirewallRules         *connect.Client[v1.ListFirewallRulesRequest, v1.ListFirewallRulesResponse]
+	deleteFirewallRule        *connect.Client[v1.DeleteFirewallRuleRequest, v1.DeleteFirewallRuleResponse]
+	createSecurityGroup       *connect.Client[v1.CreateSecurityGroupRequest, v1.CreateSecurityGroupResponse]
+	getSecurityGroup          *connect.Client[v1.GetSecurityGroupRequest, v1.GetSecurityGroupResponse]
+	listSecurityGroups        *connect.Client[v1.ListSecurityGroupsRequest, v1.ListSecurityGroupsResponse]
+	updateSecurityGroup       *connect.Client[v1.UpdateSecurityGroupRequest, v1.UpdateSecurityGroupResponse]
+	deleteSecurityGroup       *connect.Client[v1.DeleteSecurityGroupRequest, v1.DeleteSecurityGroupResponse]
+	addVmToSecurityGroup      *connect.Client[v1.AddVmToSecurityGroupRequest, v1.AddVmToSecurityGroupResponse]
+	removeVmFromSecurityGroup *connect.Client[v1.RemoveVmFromSecurityGroupRequest, v1.RemoveVmFromSecurityGroupResponse]
 }
 
 // CreateNetwork calls aes.network.v1.NetworkService.CreateNetwork.
@@ -139,6 +221,41 @@ func (c *networkServiceClient) DeleteFirewallRule(ctx context.Context, req *conn
 	return c.deleteFirewallRule.CallUnary(ctx, req)
 }
 
+// CreateSecurityGroup calls aes.network.v1.NetworkService.CreateSecurityGroup.
+func (c *networkServiceClient) CreateSecurityGroup(ctx context.Context, req *connect.Request[v1.CreateSecurityGroupRequest]) (*connect.Response[v1.CreateSecurityGroupResponse], error) {
+	return c.createSecurityGroup.CallUnary(ctx, req)
+}
+
+// GetSecurityGroup calls aes.network.v1.NetworkService.GetSecurityGroup.
+func (c *networkServiceClient) GetSecurityGroup(ctx context.Context, req *connect.Request[v1.GetSecurityGroupRequest]) (*connect.Response[v1.GetSecurityGroupResponse], error) {
+	return c.getSecurityGroup.CallUnary(ctx, req)
+}
+
+// ListSecurityGroups calls aes.network.v1.NetworkService.ListSecurityGroups.
+func (c *networkServiceClient) ListSecurityGroups(ctx context.Context, req *connect.Request[v1.ListSecurityGroupsRequest]) (*connect.Response[v1.ListSecurityGroupsResponse], error) {
+	return c.listSecurityGroups.CallUnary(ctx, req)
+}
+
+// UpdateSecurityGroup calls aes.network.v1.NetworkService.UpdateSecurityGroup.
+func (c *networkServiceClient) UpdateSecurityGroup(ctx context.Context, req *connect.Request[v1.UpdateSecurityGroupRequest]) (*connect.Response[v1.UpdateSecurityGroupResponse], error) {
+	return c.updateSecurityGroup.CallUnary(ctx, req)
+}
+
+// DeleteSecurityGroup calls aes.network.v1.NetworkService.DeleteSecurityGroup.
+func (c *networkServiceClient) DeleteSecurityGroup(ctx context.Context, req *connect.Request[v1.DeleteSecurityGroupRequest]) (*connect.Response[v1.DeleteSecurityGroupResponse], error) {
+	return c.deleteSecurityGroup.CallUnary(ctx, req)
+}
+
+// AddVmToSecurityGroup calls aes.network.v1.NetworkService.AddVmToSecurityGroup.
+func (c *networkServiceClient) AddVmToSecurityGroup(ctx context.Context, req *connect.Request[v1.AddVmToSecurityGroupRequest]) (*connect.Response[v1.AddVmToSecurityGroupResponse], error) {
+	return c.addVmToSecurityGroup.CallUnary(ctx, req)
+}
+
+// RemoveVmFromSecurityGroup calls aes.network.v1.NetworkService.RemoveVmFromSecurityGroup.
+func (c *networkServiceClient) RemoveVmFromSecurityGroup(ctx context.Context, req *connect.Request[v1.RemoveVmFromSecurityGroupRequest]) (*connect.Response[v1.RemoveVmFromSecurityGroupResponse], error) {
+	return c.removeVmFromSecurityGroup.CallUnary(ctx, req)
+}
+
 // NetworkServiceHandler is an implementation of the aes.network.v1.NetworkService service.
 type NetworkServiceHandler interface {
 	CreateNetwork(context.Context, *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.CreateNetworkResponse], error)
@@ -148,6 +265,18 @@ type NetworkServiceHandler interface {
 	CreateFirewallRule(context.Context, *connect.Request[v1.CreateFirewallRuleRequest]) (*connect.Response[v1.CreateFirewallRuleResponse], error)
 	ListFirewallRules(context.Context, *connect.Request[v1.ListFirewallRulesRequest]) (*connect.Response[v1.ListFirewallRulesResponse], error)
 	DeleteFirewallRule(context.Context, *connect.Request[v1.DeleteFirewallRuleRequest]) (*connect.Response[v1.DeleteFirewallRuleResponse], error)
+	// Security groups — INTERNAL (east-west) network policy on the private NIC, distinct from
+	// the public firewall above. A group is a reusable ruleset attached to >=0 VMs; rules allow
+	// traffic from/to a CIDR or another security group. VMs talk freely by default — attaching
+	// a group locks that VM down to its rules.
+	CreateSecurityGroup(context.Context, *connect.Request[v1.CreateSecurityGroupRequest]) (*connect.Response[v1.CreateSecurityGroupResponse], error)
+	GetSecurityGroup(context.Context, *connect.Request[v1.GetSecurityGroupRequest]) (*connect.Response[v1.GetSecurityGroupResponse], error)
+	ListSecurityGroups(context.Context, *connect.Request[v1.ListSecurityGroupsRequest]) (*connect.Response[v1.ListSecurityGroupsResponse], error)
+	UpdateSecurityGroup(context.Context, *connect.Request[v1.UpdateSecurityGroupRequest]) (*connect.Response[v1.UpdateSecurityGroupResponse], error)
+	DeleteSecurityGroup(context.Context, *connect.Request[v1.DeleteSecurityGroupRequest]) (*connect.Response[v1.DeleteSecurityGroupResponse], error)
+	// Membership is editable post-provision (no VM restart — only ACLs/address-sets change).
+	AddVmToSecurityGroup(context.Context, *connect.Request[v1.AddVmToSecurityGroupRequest]) (*connect.Response[v1.AddVmToSecurityGroupResponse], error)
+	RemoveVmFromSecurityGroup(context.Context, *connect.Request[v1.RemoveVmFromSecurityGroupRequest]) (*connect.Response[v1.RemoveVmFromSecurityGroupResponse], error)
 }
 
 // NewNetworkServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -187,6 +316,48 @@ func NewNetworkServiceHandler(svc NetworkServiceHandler, opts ...connect.Handler
 		connect.WithSchema(networkServiceMethods.ByName("DeleteFirewallRule")),
 		connect.WithHandlerOptions(opts...),
 	)
+	networkServiceCreateSecurityGroupHandler := connect.NewUnaryHandler(
+		NetworkServiceCreateSecurityGroupProcedure,
+		svc.CreateSecurityGroup,
+		connect.WithSchema(networkServiceMethods.ByName("CreateSecurityGroup")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceGetSecurityGroupHandler := connect.NewUnaryHandler(
+		NetworkServiceGetSecurityGroupProcedure,
+		svc.GetSecurityGroup,
+		connect.WithSchema(networkServiceMethods.ByName("GetSecurityGroup")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceListSecurityGroupsHandler := connect.NewUnaryHandler(
+		NetworkServiceListSecurityGroupsProcedure,
+		svc.ListSecurityGroups,
+		connect.WithSchema(networkServiceMethods.ByName("ListSecurityGroups")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceUpdateSecurityGroupHandler := connect.NewUnaryHandler(
+		NetworkServiceUpdateSecurityGroupProcedure,
+		svc.UpdateSecurityGroup,
+		connect.WithSchema(networkServiceMethods.ByName("UpdateSecurityGroup")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceDeleteSecurityGroupHandler := connect.NewUnaryHandler(
+		NetworkServiceDeleteSecurityGroupProcedure,
+		svc.DeleteSecurityGroup,
+		connect.WithSchema(networkServiceMethods.ByName("DeleteSecurityGroup")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceAddVmToSecurityGroupHandler := connect.NewUnaryHandler(
+		NetworkServiceAddVmToSecurityGroupProcedure,
+		svc.AddVmToSecurityGroup,
+		connect.WithSchema(networkServiceMethods.ByName("AddVmToSecurityGroup")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceRemoveVmFromSecurityGroupHandler := connect.NewUnaryHandler(
+		NetworkServiceRemoveVmFromSecurityGroupProcedure,
+		svc.RemoveVmFromSecurityGroup,
+		connect.WithSchema(networkServiceMethods.ByName("RemoveVmFromSecurityGroup")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/aes.network.v1.NetworkService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case NetworkServiceCreateNetworkProcedure:
@@ -199,6 +370,20 @@ func NewNetworkServiceHandler(svc NetworkServiceHandler, opts ...connect.Handler
 			networkServiceListFirewallRulesHandler.ServeHTTP(w, r)
 		case NetworkServiceDeleteFirewallRuleProcedure:
 			networkServiceDeleteFirewallRuleHandler.ServeHTTP(w, r)
+		case NetworkServiceCreateSecurityGroupProcedure:
+			networkServiceCreateSecurityGroupHandler.ServeHTTP(w, r)
+		case NetworkServiceGetSecurityGroupProcedure:
+			networkServiceGetSecurityGroupHandler.ServeHTTP(w, r)
+		case NetworkServiceListSecurityGroupsProcedure:
+			networkServiceListSecurityGroupsHandler.ServeHTTP(w, r)
+		case NetworkServiceUpdateSecurityGroupProcedure:
+			networkServiceUpdateSecurityGroupHandler.ServeHTTP(w, r)
+		case NetworkServiceDeleteSecurityGroupProcedure:
+			networkServiceDeleteSecurityGroupHandler.ServeHTTP(w, r)
+		case NetworkServiceAddVmToSecurityGroupProcedure:
+			networkServiceAddVmToSecurityGroupHandler.ServeHTTP(w, r)
+		case NetworkServiceRemoveVmFromSecurityGroupProcedure:
+			networkServiceRemoveVmFromSecurityGroupHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -226,4 +411,32 @@ func (UnimplementedNetworkServiceHandler) ListFirewallRules(context.Context, *co
 
 func (UnimplementedNetworkServiceHandler) DeleteFirewallRule(context.Context, *connect.Request[v1.DeleteFirewallRuleRequest]) (*connect.Response[v1.DeleteFirewallRuleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.DeleteFirewallRule is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) CreateSecurityGroup(context.Context, *connect.Request[v1.CreateSecurityGroupRequest]) (*connect.Response[v1.CreateSecurityGroupResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.CreateSecurityGroup is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) GetSecurityGroup(context.Context, *connect.Request[v1.GetSecurityGroupRequest]) (*connect.Response[v1.GetSecurityGroupResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.GetSecurityGroup is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) ListSecurityGroups(context.Context, *connect.Request[v1.ListSecurityGroupsRequest]) (*connect.Response[v1.ListSecurityGroupsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.ListSecurityGroups is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) UpdateSecurityGroup(context.Context, *connect.Request[v1.UpdateSecurityGroupRequest]) (*connect.Response[v1.UpdateSecurityGroupResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.UpdateSecurityGroup is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) DeleteSecurityGroup(context.Context, *connect.Request[v1.DeleteSecurityGroupRequest]) (*connect.Response[v1.DeleteSecurityGroupResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.DeleteSecurityGroup is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) AddVmToSecurityGroup(context.Context, *connect.Request[v1.AddVmToSecurityGroupRequest]) (*connect.Response[v1.AddVmToSecurityGroupResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.AddVmToSecurityGroup is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) RemoveVmFromSecurityGroup(context.Context, *connect.Request[v1.RemoveVmFromSecurityGroupRequest]) (*connect.Response[v1.RemoveVmFromSecurityGroupResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.RemoveVmFromSecurityGroup is not implemented"))
 }

@@ -238,8 +238,12 @@ type VirtualMachine struct {
 	// Set from CreateVirtualMachineRequest.linux_username. Empty on VMs created with a raw
 	// user_data cloud-config (the customer's YAML owns user creation) or on pre-feature rows.
 	LinuxUsername string `protobuf:"bytes,30,opt,name=linux_username,json=linuxUsername,proto3" json:"linux_username,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Internal security groups attached to this VM's private NIC
+	// (`organizations/{org}/projects/{p}/securityGroups/{id}`). Empty = the VM is open to the
+	// rest of the VPC (default). Editable post-create via Add/RemoveVmFromSecurityGroup.
+	SecurityGroups []string `protobuf:"bytes,33,rep,name=security_groups,json=securityGroups,proto3" json:"security_groups,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *VirtualMachine) Reset() {
@@ -466,6 +470,13 @@ func (x *VirtualMachine) GetLinuxUsername() string {
 		return x.LinuxUsername
 	}
 	return ""
+}
+
+func (x *VirtualMachine) GetSecurityGroups() []string {
+	if x != nil {
+		return x.SecurityGroups
+	}
+	return nil
 }
 
 // ───────────────────────────── Declarative VM manifest ─────────────────────────────
@@ -917,10 +928,17 @@ type VMNetworkSpec struct {
 	// Tenant network `projects/{p}/networks/{id}`. Empty → the project's default network
 	// (auto-created lazily on first VM in the project + DC).
 	Network string `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
-	// Allocate a public IPv4 for the VM's public NIC. In IPv6-enabled datacenters a public
-	// IPv6 is included automatically on the same NIC at no extra charge (see
-	// VirtualMachine.public_ipv6). Default false.
-	PublicIpv4    bool `protobuf:"varint,2,opt,name=public_ipv4,json=publicIpv4,proto3" json:"public_ipv4,omitempty"`
+	// Allocate a public IPv4 for the VM's public NIC (the scarce, billed extra). IPv6 comes
+	// free on the public NIC regardless (see VirtualMachine.public_ipv6) unless private_only.
+	// Default false.
+	PublicIpv4 bool `protobuf:"varint,2,opt,name=public_ipv4,json=publicIpv4,proto3" json:"public_ipv4,omitempty"`
+	// Internal security groups to attach to the VM's private NIC at create
+	// (`organizations/{org}/projects/{p}/securityGroups/{id}`). Empty = open within the VPC.
+	SecurityGroups []string `protobuf:"bytes,3,rep,name=security_groups,json=securityGroups,proto3" json:"security_groups,omitempty"`
+	// private_only attaches NO public NIC at all — no public IPv4, no public IPv6, no inbound
+	// internet surface. The VM still has outbound internet via the private NIC's NAT. Default
+	// false: every VM gets a public NIC with a free IPv6 GUA. Use for air-gapped-ish workloads.
+	PrivateOnly   bool `protobuf:"varint,4,opt,name=private_only,json=privateOnly,proto3" json:"private_only,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -965,6 +983,20 @@ func (x *VMNetworkSpec) GetNetwork() string {
 func (x *VMNetworkSpec) GetPublicIpv4() bool {
 	if x != nil {
 		return x.PublicIpv4
+	}
+	return false
+}
+
+func (x *VMNetworkSpec) GetSecurityGroups() []string {
+	if x != nil {
+		return x.SecurityGroups
+	}
+	return nil
+}
+
+func (x *VMNetworkSpec) GetPrivateOnly() bool {
+	if x != nil {
+		return x.PrivateOnly
 	}
 	return false
 }
@@ -3780,7 +3812,7 @@ var File_aes_compute_v1_compute_proto protoreflect.FileDescriptor
 
 const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\x9a\n" +
+	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\xc3\n" +
 	"\n" +
 	"\x0eVirtualMachine\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
@@ -3813,7 +3845,8 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\tgpu_count\x18  \x01(\x05R\bgpuCount\x12K\n" +
 	"#current_cost_per_hour_minor_decimal\x18\x1c \x01(\tR\x1ecurrentCostPerHourMinorDecimal\x125\n" +
 	"\x17mtd_spend_minor_decimal\x18\x1d \x01(\tR\x14mtdSpendMinorDecimal\x12%\n" +
-	"\x0elinux_username\x18\x1e \x01(\tR\rlinuxUsername\x1a9\n" +
+	"\x0elinux_username\x18\x1e \x01(\tR\rlinuxUsername\x12'\n" +
+	"\x0fsecurity_groups\x18! \x03(\tR\x0esecurityGroups\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
@@ -3859,11 +3892,13 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x05image\x18\x01 \x01(\tR\x05image\x12\x1b\n" +
 	"\timage_url\x18\x02 \x01(\tR\bimageUrl\x12\x19\n" +
 	"\bdisk_gib\x18\x03 \x01(\x05R\adiskGib\x12\x1b\n" +
-	"\tdisk_name\x18\x04 \x01(\tR\bdiskName\"J\n" +
+	"\tdisk_name\x18\x04 \x01(\tR\bdiskName\"\x96\x01\n" +
 	"\rVMNetworkSpec\x12\x18\n" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x1f\n" +
 	"\vpublic_ipv4\x18\x02 \x01(\bR\n" +
-	"publicIpv4\"\x88\x01\n" +
+	"publicIpv4\x12'\n" +
+	"\x0fsecurity_groups\x18\x03 \x03(\tR\x0esecurityGroups\x12!\n" +
+	"\fprivate_only\x18\x04 \x01(\bR\vprivateOnly\"\x88\x01\n" +
 	"\bUserSpec\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x12\n" +

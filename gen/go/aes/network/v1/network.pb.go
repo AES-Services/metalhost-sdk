@@ -475,8 +475,9 @@ func (x *ListNetworksResponse) GetNextPageToken() string {
 type PortMapping struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// External port (the one customers connect to), or the lower bound of a range. 1..65535.
+	// Ignored when protocol is ICMP (which is portless).
 	Port int32 `protobuf:"varint,1,opt,name=port,proto3" json:"port,omitempty"`
-	// L4 protocol: TCP or UDP.
+	// Protocol: TCP, UDP, or ICMP. ICMP rules carry no port.
 	Protocol string `protobuf:"bytes,2,opt,name=protocol,proto3" json:"protocol,omitempty"`
 	// Internal port on the VM (where the service listens). Defaults to `port` when 0. Ignored
 	// on firewall rules — applies only to PublicIp port-forwarding (which we don't currently
@@ -1215,6 +1216,992 @@ func (*DeleteFirewallRuleResponse) Descriptor() ([]byte, []int) {
 	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{13}
 }
 
+// SecurityGroup is a reusable, project-scoped internal-firewall ruleset enforced on the
+// private NIC of every VM that joins it. Resource name:
+// `organizations/{org}/projects/{project}/securityGroups/{id}`.
+type SecurityGroup struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	DisplayName    string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	ProjectName    string                 `protobuf:"bytes,3,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	DatacenterName string                 `protobuf:"bytes,4,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	Rules          []*SecurityGroupRule   `protobuf:"bytes,5,rep,name=rules,proto3" json:"rules,omitempty"`
+	// VMs currently in this group (`virtual-machines/{id}`). Output-only — set/changed via
+	// AddVmToSecurityGroup / RemoveVmFromSecurityGroup or the VM's security_groups field.
+	MemberVms []string `protobuf:"bytes,6,rep,name=member_vms,json=memberVms,proto3" json:"member_vms,omitempty"`
+	// ACTIVE / DELETED. Read-only.
+	State          string            `protobuf:"bytes,7,opt,name=state,proto3" json:"state,omitempty"`
+	CreateTimeUnix int64             `protobuf:"varint,8,opt,name=create_time_unix,json=createTimeUnix,proto3" json:"create_time_unix,omitempty"`
+	UpdateTimeUnix int64             `protobuf:"varint,9,opt,name=update_time_unix,json=updateTimeUnix,proto3" json:"update_time_unix,omitempty"`
+	Labels         map[string]string `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Annotations    map[string]string `protobuf:"bytes,11,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Optimistic-concurrency token for UpdateSecurityGroup. Read-only.
+	Etag          string `protobuf:"bytes,12,opt,name=etag,proto3" json:"etag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SecurityGroup) Reset() {
+	*x = SecurityGroup{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SecurityGroup) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SecurityGroup) ProtoMessage() {}
+
+func (x *SecurityGroup) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SecurityGroup.ProtoReflect.Descriptor instead.
+func (*SecurityGroup) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *SecurityGroup) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SecurityGroup) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *SecurityGroup) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *SecurityGroup) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *SecurityGroup) GetRules() []*SecurityGroupRule {
+	if x != nil {
+		return x.Rules
+	}
+	return nil
+}
+
+func (x *SecurityGroup) GetMemberVms() []string {
+	if x != nil {
+		return x.MemberVms
+	}
+	return nil
+}
+
+func (x *SecurityGroup) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *SecurityGroup) GetCreateTimeUnix() int64 {
+	if x != nil {
+		return x.CreateTimeUnix
+	}
+	return 0
+}
+
+func (x *SecurityGroup) GetUpdateTimeUnix() int64 {
+	if x != nil {
+		return x.UpdateTimeUnix
+	}
+	return 0
+}
+
+func (x *SecurityGroup) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *SecurityGroup) GetAnnotations() map[string]string {
+	if x != nil {
+		return x.Annotations
+	}
+	return nil
+}
+
+func (x *SecurityGroup) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
+// SecurityGroupRule allows traffic in one direction on the private NIC. A rule with no peer
+// set means "any" (the whole VPC for that direction).
+type SecurityGroupRule struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Stable id within the group (server-assigned if empty on create). Used for diffing.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 'ingress' (peer = source) | 'egress' (peer = destination). Default ingress.
+	Direction string `protobuf:"bytes,2,opt,name=direction,proto3" json:"direction,omitempty"`
+	// 'tcp' | 'udp' | 'icmp'. ICMP ignores port/end_port (allows all ICMP + ICMPv6 — "ping").
+	Protocol string `protobuf:"bytes,3,opt,name=protocol,proto3" json:"protocol,omitempty"`
+	// Single port, or lower bound of a range. 1..65535. Ignored for icmp.
+	Port int32 `protobuf:"varint,4,opt,name=port,proto3" json:"port,omitempty"`
+	// Upper bound of a port range; 0 = single port. Ignored for icmp.
+	EndPort int32 `protobuf:"varint,5,opt,name=end_port,json=endPort,proto3" json:"end_port,omitempty"`
+	// The peer: a CIDR (v4 or v6) OR another security group (resolved to its live member IPs).
+	// Unset = any. A v4 CIDR only constrains v4 traffic and a v6 CIDR only v6 (the other family
+	// is unaffected by that rule).
+	//
+	// Types that are valid to be assigned to Peer:
+	//
+	//	*SecurityGroupRule_Cidr
+	//	*SecurityGroupRule_SecurityGroup
+	Peer          isSecurityGroupRule_Peer `protobuf_oneof:"peer"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SecurityGroupRule) Reset() {
+	*x = SecurityGroupRule{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SecurityGroupRule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SecurityGroupRule) ProtoMessage() {}
+
+func (x *SecurityGroupRule) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SecurityGroupRule.ProtoReflect.Descriptor instead.
+func (*SecurityGroupRule) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *SecurityGroupRule) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SecurityGroupRule) GetDirection() string {
+	if x != nil {
+		return x.Direction
+	}
+	return ""
+}
+
+func (x *SecurityGroupRule) GetProtocol() string {
+	if x != nil {
+		return x.Protocol
+	}
+	return ""
+}
+
+func (x *SecurityGroupRule) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *SecurityGroupRule) GetEndPort() int32 {
+	if x != nil {
+		return x.EndPort
+	}
+	return 0
+}
+
+func (x *SecurityGroupRule) GetPeer() isSecurityGroupRule_Peer {
+	if x != nil {
+		return x.Peer
+	}
+	return nil
+}
+
+func (x *SecurityGroupRule) GetCidr() string {
+	if x != nil {
+		if x, ok := x.Peer.(*SecurityGroupRule_Cidr); ok {
+			return x.Cidr
+		}
+	}
+	return ""
+}
+
+func (x *SecurityGroupRule) GetSecurityGroup() string {
+	if x != nil {
+		if x, ok := x.Peer.(*SecurityGroupRule_SecurityGroup); ok {
+			return x.SecurityGroup
+		}
+	}
+	return ""
+}
+
+type isSecurityGroupRule_Peer interface {
+	isSecurityGroupRule_Peer()
+}
+
+type SecurityGroupRule_Cidr struct {
+	Cidr string `protobuf:"bytes,6,opt,name=cidr,proto3,oneof"`
+}
+
+type SecurityGroupRule_SecurityGroup struct {
+	SecurityGroup string `protobuf:"bytes,7,opt,name=security_group,json=securityGroup,proto3,oneof"`
+}
+
+func (*SecurityGroupRule_Cidr) isSecurityGroupRule_Peer() {}
+
+func (*SecurityGroupRule_SecurityGroup) isSecurityGroupRule_Peer() {}
+
+type CreateSecurityGroupRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName    string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	DatacenterName string                 `protobuf:"bytes,2,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	DisplayName    string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Rules          []*SecurityGroupRule   `protobuf:"bytes,4,rep,name=rules,proto3" json:"rules,omitempty"`
+	Labels         map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Annotations    map[string]string      `protobuf:"bytes,6,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CreateSecurityGroupRequest) Reset() {
+	*x = CreateSecurityGroupRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSecurityGroupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSecurityGroupRequest) ProtoMessage() {}
+
+func (x *CreateSecurityGroupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSecurityGroupRequest.ProtoReflect.Descriptor instead.
+func (*CreateSecurityGroupRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *CreateSecurityGroupRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *CreateSecurityGroupRequest) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *CreateSecurityGroupRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *CreateSecurityGroupRequest) GetRules() []*SecurityGroupRule {
+	if x != nil {
+		return x.Rules
+	}
+	return nil
+}
+
+func (x *CreateSecurityGroupRequest) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *CreateSecurityGroupRequest) GetAnnotations() map[string]string {
+	if x != nil {
+		return x.Annotations
+	}
+	return nil
+}
+
+type CreateSecurityGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SecurityGroup *SecurityGroup         `protobuf:"bytes,1,opt,name=security_group,json=securityGroup,proto3" json:"security_group,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSecurityGroupResponse) Reset() {
+	*x = CreateSecurityGroupResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSecurityGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSecurityGroupResponse) ProtoMessage() {}
+
+func (x *CreateSecurityGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSecurityGroupResponse.ProtoReflect.Descriptor instead.
+func (*CreateSecurityGroupResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *CreateSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
+	if x != nil {
+		return x.SecurityGroup
+	}
+	return nil
+}
+
+type GetSecurityGroupRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSecurityGroupRequest) Reset() {
+	*x = GetSecurityGroupRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSecurityGroupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSecurityGroupRequest) ProtoMessage() {}
+
+func (x *GetSecurityGroupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSecurityGroupRequest.ProtoReflect.Descriptor instead.
+func (*GetSecurityGroupRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *GetSecurityGroupRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetSecurityGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SecurityGroup *SecurityGroup         `protobuf:"bytes,1,opt,name=security_group,json=securityGroup,proto3" json:"security_group,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSecurityGroupResponse) Reset() {
+	*x = GetSecurityGroupResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSecurityGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSecurityGroupResponse) ProtoMessage() {}
+
+func (x *GetSecurityGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSecurityGroupResponse.ProtoReflect.Descriptor instead.
+func (*GetSecurityGroupResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *GetSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
+	if x != nil {
+		return x.SecurityGroup
+	}
+	return nil
+}
+
+type ListSecurityGroupsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSecurityGroupsRequest) Reset() {
+	*x = ListSecurityGroupsRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSecurityGroupsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSecurityGroupsRequest) ProtoMessage() {}
+
+func (x *ListSecurityGroupsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSecurityGroupsRequest.ProtoReflect.Descriptor instead.
+func (*ListSecurityGroupsRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ListSecurityGroupsRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *ListSecurityGroupsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListSecurityGroupsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListSecurityGroupsResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	SecurityGroups []*SecurityGroup       `protobuf:"bytes,1,rep,name=security_groups,json=securityGroups,proto3" json:"security_groups,omitempty"`
+	NextPageToken  string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ListSecurityGroupsResponse) Reset() {
+	*x = ListSecurityGroupsResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSecurityGroupsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSecurityGroupsResponse) ProtoMessage() {}
+
+func (x *ListSecurityGroupsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSecurityGroupsResponse.ProtoReflect.Descriptor instead.
+func (*ListSecurityGroupsResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ListSecurityGroupsResponse) GetSecurityGroups() []*SecurityGroup {
+	if x != nil {
+		return x.SecurityGroups
+	}
+	return nil
+}
+
+func (x *ListSecurityGroupsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+// UpdateSecurityGroup replaces the whole ruleset (and optionally display_name). Provide etag
+// from a prior Get to guard against lost updates; empty etag skips the check.
+type UpdateSecurityGroupRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Rules         []*SecurityGroupRule   `protobuf:"bytes,3,rep,name=rules,proto3" json:"rules,omitempty"`
+	Etag          string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSecurityGroupRequest) Reset() {
+	*x = UpdateSecurityGroupRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSecurityGroupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSecurityGroupRequest) ProtoMessage() {}
+
+func (x *UpdateSecurityGroupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSecurityGroupRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSecurityGroupRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *UpdateSecurityGroupRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateSecurityGroupRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *UpdateSecurityGroupRequest) GetRules() []*SecurityGroupRule {
+	if x != nil {
+		return x.Rules
+	}
+	return nil
+}
+
+func (x *UpdateSecurityGroupRequest) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
+type UpdateSecurityGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SecurityGroup *SecurityGroup         `protobuf:"bytes,1,opt,name=security_group,json=securityGroup,proto3" json:"security_group,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSecurityGroupResponse) Reset() {
+	*x = UpdateSecurityGroupResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSecurityGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSecurityGroupResponse) ProtoMessage() {}
+
+func (x *UpdateSecurityGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSecurityGroupResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSecurityGroupResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *UpdateSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
+	if x != nil {
+		return x.SecurityGroup
+	}
+	return nil
+}
+
+type DeleteSecurityGroupRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSecurityGroupRequest) Reset() {
+	*x = DeleteSecurityGroupRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSecurityGroupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSecurityGroupRequest) ProtoMessage() {}
+
+func (x *DeleteSecurityGroupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSecurityGroupRequest.ProtoReflect.Descriptor instead.
+func (*DeleteSecurityGroupRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *DeleteSecurityGroupRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type DeleteSecurityGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSecurityGroupResponse) Reset() {
+	*x = DeleteSecurityGroupResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSecurityGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSecurityGroupResponse) ProtoMessage() {}
+
+func (x *DeleteSecurityGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSecurityGroupResponse.ProtoReflect.Descriptor instead.
+func (*DeleteSecurityGroupResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{25}
+}
+
+type AddVmToSecurityGroupRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SecurityGroup string                 `protobuf:"bytes,1,opt,name=security_group,json=securityGroup,proto3" json:"security_group,omitempty"`
+	Vm            string                 `protobuf:"bytes,2,opt,name=vm,proto3" json:"vm,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddVmToSecurityGroupRequest) Reset() {
+	*x = AddVmToSecurityGroupRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddVmToSecurityGroupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddVmToSecurityGroupRequest) ProtoMessage() {}
+
+func (x *AddVmToSecurityGroupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddVmToSecurityGroupRequest.ProtoReflect.Descriptor instead.
+func (*AddVmToSecurityGroupRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *AddVmToSecurityGroupRequest) GetSecurityGroup() string {
+	if x != nil {
+		return x.SecurityGroup
+	}
+	return ""
+}
+
+func (x *AddVmToSecurityGroupRequest) GetVm() string {
+	if x != nil {
+		return x.Vm
+	}
+	return ""
+}
+
+type AddVmToSecurityGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SecurityGroup *SecurityGroup         `protobuf:"bytes,1,opt,name=security_group,json=securityGroup,proto3" json:"security_group,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddVmToSecurityGroupResponse) Reset() {
+	*x = AddVmToSecurityGroupResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddVmToSecurityGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddVmToSecurityGroupResponse) ProtoMessage() {}
+
+func (x *AddVmToSecurityGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddVmToSecurityGroupResponse.ProtoReflect.Descriptor instead.
+func (*AddVmToSecurityGroupResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *AddVmToSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
+	if x != nil {
+		return x.SecurityGroup
+	}
+	return nil
+}
+
+type RemoveVmFromSecurityGroupRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SecurityGroup string                 `protobuf:"bytes,1,opt,name=security_group,json=securityGroup,proto3" json:"security_group,omitempty"`
+	Vm            string                 `protobuf:"bytes,2,opt,name=vm,proto3" json:"vm,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveVmFromSecurityGroupRequest) Reset() {
+	*x = RemoveVmFromSecurityGroupRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveVmFromSecurityGroupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveVmFromSecurityGroupRequest) ProtoMessage() {}
+
+func (x *RemoveVmFromSecurityGroupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveVmFromSecurityGroupRequest.ProtoReflect.Descriptor instead.
+func (*RemoveVmFromSecurityGroupRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *RemoveVmFromSecurityGroupRequest) GetSecurityGroup() string {
+	if x != nil {
+		return x.SecurityGroup
+	}
+	return ""
+}
+
+func (x *RemoveVmFromSecurityGroupRequest) GetVm() string {
+	if x != nil {
+		return x.Vm
+	}
+	return ""
+}
+
+type RemoveVmFromSecurityGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SecurityGroup *SecurityGroup         `protobuf:"bytes,1,opt,name=security_group,json=securityGroup,proto3" json:"security_group,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveVmFromSecurityGroupResponse) Reset() {
+	*x = RemoveVmFromSecurityGroupResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveVmFromSecurityGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveVmFromSecurityGroupResponse) ProtoMessage() {}
+
+func (x *RemoveVmFromSecurityGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveVmFromSecurityGroupResponse.ProtoReflect.Descriptor instead.
+func (*RemoveVmFromSecurityGroupResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *RemoveVmFromSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
+	if x != nil {
+		return x.SecurityGroup
+	}
+	return nil
+}
+
 var File_aes_network_v1_network_proto protoreflect.FileDescriptor
 
 const file_aes_network_v1_network_proto_rawDesc = "" +
@@ -1355,13 +2342,98 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"/\n" +
 	"\x19DeleteFirewallRuleRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"\x1c\n" +
-	"\x1aDeleteFirewallRuleResponse2\x8d\x04\n" +
+	"\x1aDeleteFirewallRuleResponse\"\xf8\x04\n" +
+	"\rSecurityGroup\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12!\n" +
+	"\fproject_name\x18\x03 \x01(\tR\vprojectName\x12'\n" +
+	"\x0fdatacenter_name\x18\x04 \x01(\tR\x0edatacenterName\x127\n" +
+	"\x05rules\x18\x05 \x03(\v2!.aes.network.v1.SecurityGroupRuleR\x05rules\x12\x1d\n" +
+	"\n" +
+	"member_vms\x18\x06 \x03(\tR\tmemberVms\x12\x14\n" +
+	"\x05state\x18\a \x01(\tR\x05state\x12(\n" +
+	"\x10create_time_unix\x18\b \x01(\x03R\x0ecreateTimeUnix\x12(\n" +
+	"\x10update_time_unix\x18\t \x01(\x03R\x0eupdateTimeUnix\x12A\n" +
+	"\x06labels\x18\n" +
+	" \x03(\v2).aes.network.v1.SecurityGroup.LabelsEntryR\x06labels\x12P\n" +
+	"\vannotations\x18\v \x03(\v2..aes.network.v1.SecurityGroup.AnnotationsEntryR\vannotations\x12\x12\n" +
+	"\x04etag\x18\f \x01(\tR\x04etag\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
+	"\x10AnnotationsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xd3\x01\n" +
+	"\x11SecurityGroupRule\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1c\n" +
+	"\tdirection\x18\x02 \x01(\tR\tdirection\x12\x1a\n" +
+	"\bprotocol\x18\x03 \x01(\tR\bprotocol\x12\x12\n" +
+	"\x04port\x18\x04 \x01(\x05R\x04port\x12\x19\n" +
+	"\bend_port\x18\x05 \x01(\x05R\aendPort\x12\x14\n" +
+	"\x04cidr\x18\x06 \x01(\tH\x00R\x04cidr\x12'\n" +
+	"\x0esecurity_group\x18\a \x01(\tH\x00R\rsecurityGroupB\x06\n" +
+	"\x04peer\"\xee\x03\n" +
+	"\x1aCreateSecurityGroupRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12'\n" +
+	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12!\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x127\n" +
+	"\x05rules\x18\x04 \x03(\v2!.aes.network.v1.SecurityGroupRuleR\x05rules\x12N\n" +
+	"\x06labels\x18\x05 \x03(\v26.aes.network.v1.CreateSecurityGroupRequest.LabelsEntryR\x06labels\x12]\n" +
+	"\vannotations\x18\x06 \x03(\v2;.aes.network.v1.CreateSecurityGroupRequest.AnnotationsEntryR\vannotations\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
+	"\x10AnnotationsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"c\n" +
+	"\x1bCreateSecurityGroupResponse\x12D\n" +
+	"\x0esecurity_group\x18\x01 \x01(\v2\x1d.aes.network.v1.SecurityGroupR\rsecurityGroup\"-\n" +
+	"\x17GetSecurityGroupRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"`\n" +
+	"\x18GetSecurityGroupResponse\x12D\n" +
+	"\x0esecurity_group\x18\x01 \x01(\v2\x1d.aes.network.v1.SecurityGroupR\rsecurityGroup\"z\n" +
+	"\x19ListSecurityGroupsRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\"\x8c\x01\n" +
+	"\x1aListSecurityGroupsResponse\x12F\n" +
+	"\x0fsecurity_groups\x18\x01 \x03(\v2\x1d.aes.network.v1.SecurityGroupR\x0esecurityGroups\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xa0\x01\n" +
+	"\x1aUpdateSecurityGroupRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x127\n" +
+	"\x05rules\x18\x03 \x03(\v2!.aes.network.v1.SecurityGroupRuleR\x05rules\x12\x12\n" +
+	"\x04etag\x18\x04 \x01(\tR\x04etag\"c\n" +
+	"\x1bUpdateSecurityGroupResponse\x12D\n" +
+	"\x0esecurity_group\x18\x01 \x01(\v2\x1d.aes.network.v1.SecurityGroupR\rsecurityGroup\"0\n" +
+	"\x1aDeleteSecurityGroupRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"\x1d\n" +
+	"\x1bDeleteSecurityGroupResponse\"T\n" +
+	"\x1bAddVmToSecurityGroupRequest\x12%\n" +
+	"\x0esecurity_group\x18\x01 \x01(\tR\rsecurityGroup\x12\x0e\n" +
+	"\x02vm\x18\x02 \x01(\tR\x02vm\"d\n" +
+	"\x1cAddVmToSecurityGroupResponse\x12D\n" +
+	"\x0esecurity_group\x18\x01 \x01(\v2\x1d.aes.network.v1.SecurityGroupR\rsecurityGroup\"Y\n" +
+	" RemoveVmFromSecurityGroupRequest\x12%\n" +
+	"\x0esecurity_group\x18\x01 \x01(\tR\rsecurityGroup\x12\x0e\n" +
+	"\x02vm\x18\x02 \x01(\tR\x02vm\"i\n" +
+	"!RemoveVmFromSecurityGroupResponse\x12D\n" +
+	"\x0esecurity_group\x18\x01 \x01(\v2\x1d.aes.network.v1.SecurityGroupR\rsecurityGroup2\xa7\n" +
+	"\n" +
 	"\x0eNetworkService\x12\\\n" +
 	"\rCreateNetwork\x12$.aes.network.v1.CreateNetworkRequest\x1a%.aes.network.v1.CreateNetworkResponse\x12Y\n" +
 	"\fListNetworks\x12#.aes.network.v1.ListNetworksRequest\x1a$.aes.network.v1.ListNetworksResponse\x12k\n" +
 	"\x12CreateFirewallRule\x12).aes.network.v1.CreateFirewallRuleRequest\x1a*.aes.network.v1.CreateFirewallRuleResponse\x12h\n" +
 	"\x11ListFirewallRules\x12(.aes.network.v1.ListFirewallRulesRequest\x1a).aes.network.v1.ListFirewallRulesResponse\x12k\n" +
-	"\x12DeleteFirewallRule\x12).aes.network.v1.DeleteFirewallRuleRequest\x1a*.aes.network.v1.DeleteFirewallRuleResponseB\xc3\x01\n" +
+	"\x12DeleteFirewallRule\x12).aes.network.v1.DeleteFirewallRuleRequest\x1a*.aes.network.v1.DeleteFirewallRuleResponse\x12n\n" +
+	"\x13CreateSecurityGroup\x12*.aes.network.v1.CreateSecurityGroupRequest\x1a+.aes.network.v1.CreateSecurityGroupResponse\x12e\n" +
+	"\x10GetSecurityGroup\x12'.aes.network.v1.GetSecurityGroupRequest\x1a(.aes.network.v1.GetSecurityGroupResponse\x12k\n" +
+	"\x12ListSecurityGroups\x12).aes.network.v1.ListSecurityGroupsRequest\x1a*.aes.network.v1.ListSecurityGroupsResponse\x12n\n" +
+	"\x13UpdateSecurityGroup\x12*.aes.network.v1.UpdateSecurityGroupRequest\x1a+.aes.network.v1.UpdateSecurityGroupResponse\x12n\n" +
+	"\x13DeleteSecurityGroup\x12*.aes.network.v1.DeleteSecurityGroupRequest\x1a+.aes.network.v1.DeleteSecurityGroupResponse\x12q\n" +
+	"\x14AddVmToSecurityGroup\x12+.aes.network.v1.AddVmToSecurityGroupRequest\x1a,.aes.network.v1.AddVmToSecurityGroupResponse\x12\x80\x01\n" +
+	"\x19RemoveVmFromSecurityGroup\x120.aes.network.v1.RemoveVmFromSecurityGroupRequest\x1a1.aes.network.v1.RemoveVmFromSecurityGroupResponseB\xc3\x01\n" +
 	"\x12com.aes.network.v1B\fNetworkProtoP\x01ZEgithub.com/AES-Services/metalhost-sdk/gen/go/aes/network/v1;networkv1\xa2\x02\x03ANX\xaa\x02\x0eAes.Network.V1\xca\x02\x0eAes\\Network\\V1\xe2\x02\x1aAes\\Network\\V1\\GPBMetadata\xea\x02\x10Aes::Network::V1b\x06proto3"
 
 var (
@@ -1376,66 +2448,113 @@ func file_aes_network_v1_network_proto_rawDescGZIP() []byte {
 	return file_aes_network_v1_network_proto_rawDescData
 }
 
-var file_aes_network_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_aes_network_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
 var file_aes_network_v1_network_proto_goTypes = []any{
-	(*Network)(nil),                    // 0: aes.network.v1.Network
-	(*CreateNetworkRequest)(nil),       // 1: aes.network.v1.CreateNetworkRequest
-	(*CreateNetworkResponse)(nil),      // 2: aes.network.v1.CreateNetworkResponse
-	(*ListNetworksRequest)(nil),        // 3: aes.network.v1.ListNetworksRequest
-	(*ListNetworksResponse)(nil),       // 4: aes.network.v1.ListNetworksResponse
-	(*PortMapping)(nil),                // 5: aes.network.v1.PortMapping
-	(*PublicIp)(nil),                   // 6: aes.network.v1.PublicIp
-	(*FirewallRule)(nil),               // 7: aes.network.v1.FirewallRule
-	(*CreateFirewallRuleRequest)(nil),  // 8: aes.network.v1.CreateFirewallRuleRequest
-	(*CreateFirewallRuleResponse)(nil), // 9: aes.network.v1.CreateFirewallRuleResponse
-	(*ListFirewallRulesRequest)(nil),   // 10: aes.network.v1.ListFirewallRulesRequest
-	(*ListFirewallRulesResponse)(nil),  // 11: aes.network.v1.ListFirewallRulesResponse
-	(*DeleteFirewallRuleRequest)(nil),  // 12: aes.network.v1.DeleteFirewallRuleRequest
-	(*DeleteFirewallRuleResponse)(nil), // 13: aes.network.v1.DeleteFirewallRuleResponse
-	nil,                                // 14: aes.network.v1.Network.LabelsEntry
-	nil,                                // 15: aes.network.v1.Network.AnnotationsEntry
-	nil,                                // 16: aes.network.v1.CreateNetworkRequest.LabelsEntry
-	nil,                                // 17: aes.network.v1.CreateNetworkRequest.AnnotationsEntry
-	nil,                                // 18: aes.network.v1.PublicIp.LabelsEntry
-	nil,                                // 19: aes.network.v1.PublicIp.AnnotationsEntry
-	nil,                                // 20: aes.network.v1.FirewallRule.LabelsEntry
-	nil,                                // 21: aes.network.v1.FirewallRule.AnnotationsEntry
-	nil,                                // 22: aes.network.v1.CreateFirewallRuleRequest.LabelsEntry
-	nil,                                // 23: aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry
+	(*Network)(nil),                           // 0: aes.network.v1.Network
+	(*CreateNetworkRequest)(nil),              // 1: aes.network.v1.CreateNetworkRequest
+	(*CreateNetworkResponse)(nil),             // 2: aes.network.v1.CreateNetworkResponse
+	(*ListNetworksRequest)(nil),               // 3: aes.network.v1.ListNetworksRequest
+	(*ListNetworksResponse)(nil),              // 4: aes.network.v1.ListNetworksResponse
+	(*PortMapping)(nil),                       // 5: aes.network.v1.PortMapping
+	(*PublicIp)(nil),                          // 6: aes.network.v1.PublicIp
+	(*FirewallRule)(nil),                      // 7: aes.network.v1.FirewallRule
+	(*CreateFirewallRuleRequest)(nil),         // 8: aes.network.v1.CreateFirewallRuleRequest
+	(*CreateFirewallRuleResponse)(nil),        // 9: aes.network.v1.CreateFirewallRuleResponse
+	(*ListFirewallRulesRequest)(nil),          // 10: aes.network.v1.ListFirewallRulesRequest
+	(*ListFirewallRulesResponse)(nil),         // 11: aes.network.v1.ListFirewallRulesResponse
+	(*DeleteFirewallRuleRequest)(nil),         // 12: aes.network.v1.DeleteFirewallRuleRequest
+	(*DeleteFirewallRuleResponse)(nil),        // 13: aes.network.v1.DeleteFirewallRuleResponse
+	(*SecurityGroup)(nil),                     // 14: aes.network.v1.SecurityGroup
+	(*SecurityGroupRule)(nil),                 // 15: aes.network.v1.SecurityGroupRule
+	(*CreateSecurityGroupRequest)(nil),        // 16: aes.network.v1.CreateSecurityGroupRequest
+	(*CreateSecurityGroupResponse)(nil),       // 17: aes.network.v1.CreateSecurityGroupResponse
+	(*GetSecurityGroupRequest)(nil),           // 18: aes.network.v1.GetSecurityGroupRequest
+	(*GetSecurityGroupResponse)(nil),          // 19: aes.network.v1.GetSecurityGroupResponse
+	(*ListSecurityGroupsRequest)(nil),         // 20: aes.network.v1.ListSecurityGroupsRequest
+	(*ListSecurityGroupsResponse)(nil),        // 21: aes.network.v1.ListSecurityGroupsResponse
+	(*UpdateSecurityGroupRequest)(nil),        // 22: aes.network.v1.UpdateSecurityGroupRequest
+	(*UpdateSecurityGroupResponse)(nil),       // 23: aes.network.v1.UpdateSecurityGroupResponse
+	(*DeleteSecurityGroupRequest)(nil),        // 24: aes.network.v1.DeleteSecurityGroupRequest
+	(*DeleteSecurityGroupResponse)(nil),       // 25: aes.network.v1.DeleteSecurityGroupResponse
+	(*AddVmToSecurityGroupRequest)(nil),       // 26: aes.network.v1.AddVmToSecurityGroupRequest
+	(*AddVmToSecurityGroupResponse)(nil),      // 27: aes.network.v1.AddVmToSecurityGroupResponse
+	(*RemoveVmFromSecurityGroupRequest)(nil),  // 28: aes.network.v1.RemoveVmFromSecurityGroupRequest
+	(*RemoveVmFromSecurityGroupResponse)(nil), // 29: aes.network.v1.RemoveVmFromSecurityGroupResponse
+	nil, // 30: aes.network.v1.Network.LabelsEntry
+	nil, // 31: aes.network.v1.Network.AnnotationsEntry
+	nil, // 32: aes.network.v1.CreateNetworkRequest.LabelsEntry
+	nil, // 33: aes.network.v1.CreateNetworkRequest.AnnotationsEntry
+	nil, // 34: aes.network.v1.PublicIp.LabelsEntry
+	nil, // 35: aes.network.v1.PublicIp.AnnotationsEntry
+	nil, // 36: aes.network.v1.FirewallRule.LabelsEntry
+	nil, // 37: aes.network.v1.FirewallRule.AnnotationsEntry
+	nil, // 38: aes.network.v1.CreateFirewallRuleRequest.LabelsEntry
+	nil, // 39: aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry
+	nil, // 40: aes.network.v1.SecurityGroup.LabelsEntry
+	nil, // 41: aes.network.v1.SecurityGroup.AnnotationsEntry
+	nil, // 42: aes.network.v1.CreateSecurityGroupRequest.LabelsEntry
+	nil, // 43: aes.network.v1.CreateSecurityGroupRequest.AnnotationsEntry
 }
 var file_aes_network_v1_network_proto_depIdxs = []int32{
-	14, // 0: aes.network.v1.Network.labels:type_name -> aes.network.v1.Network.LabelsEntry
-	15, // 1: aes.network.v1.Network.annotations:type_name -> aes.network.v1.Network.AnnotationsEntry
-	16, // 2: aes.network.v1.CreateNetworkRequest.labels:type_name -> aes.network.v1.CreateNetworkRequest.LabelsEntry
-	17, // 3: aes.network.v1.CreateNetworkRequest.annotations:type_name -> aes.network.v1.CreateNetworkRequest.AnnotationsEntry
+	30, // 0: aes.network.v1.Network.labels:type_name -> aes.network.v1.Network.LabelsEntry
+	31, // 1: aes.network.v1.Network.annotations:type_name -> aes.network.v1.Network.AnnotationsEntry
+	32, // 2: aes.network.v1.CreateNetworkRequest.labels:type_name -> aes.network.v1.CreateNetworkRequest.LabelsEntry
+	33, // 3: aes.network.v1.CreateNetworkRequest.annotations:type_name -> aes.network.v1.CreateNetworkRequest.AnnotationsEntry
 	0,  // 4: aes.network.v1.CreateNetworkResponse.network:type_name -> aes.network.v1.Network
 	0,  // 5: aes.network.v1.ListNetworksResponse.networks:type_name -> aes.network.v1.Network
 	5,  // 6: aes.network.v1.PublicIp.ports:type_name -> aes.network.v1.PortMapping
-	18, // 7: aes.network.v1.PublicIp.labels:type_name -> aes.network.v1.PublicIp.LabelsEntry
-	19, // 8: aes.network.v1.PublicIp.annotations:type_name -> aes.network.v1.PublicIp.AnnotationsEntry
+	34, // 7: aes.network.v1.PublicIp.labels:type_name -> aes.network.v1.PublicIp.LabelsEntry
+	35, // 8: aes.network.v1.PublicIp.annotations:type_name -> aes.network.v1.PublicIp.AnnotationsEntry
 	5,  // 9: aes.network.v1.FirewallRule.ports:type_name -> aes.network.v1.PortMapping
-	20, // 10: aes.network.v1.FirewallRule.labels:type_name -> aes.network.v1.FirewallRule.LabelsEntry
-	21, // 11: aes.network.v1.FirewallRule.annotations:type_name -> aes.network.v1.FirewallRule.AnnotationsEntry
+	36, // 10: aes.network.v1.FirewallRule.labels:type_name -> aes.network.v1.FirewallRule.LabelsEntry
+	37, // 11: aes.network.v1.FirewallRule.annotations:type_name -> aes.network.v1.FirewallRule.AnnotationsEntry
 	5,  // 12: aes.network.v1.CreateFirewallRuleRequest.ports:type_name -> aes.network.v1.PortMapping
-	22, // 13: aes.network.v1.CreateFirewallRuleRequest.labels:type_name -> aes.network.v1.CreateFirewallRuleRequest.LabelsEntry
-	23, // 14: aes.network.v1.CreateFirewallRuleRequest.annotations:type_name -> aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry
+	38, // 13: aes.network.v1.CreateFirewallRuleRequest.labels:type_name -> aes.network.v1.CreateFirewallRuleRequest.LabelsEntry
+	39, // 14: aes.network.v1.CreateFirewallRuleRequest.annotations:type_name -> aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry
 	7,  // 15: aes.network.v1.CreateFirewallRuleResponse.rule:type_name -> aes.network.v1.FirewallRule
 	7,  // 16: aes.network.v1.ListFirewallRulesResponse.firewall_rules:type_name -> aes.network.v1.FirewallRule
-	1,  // 17: aes.network.v1.NetworkService.CreateNetwork:input_type -> aes.network.v1.CreateNetworkRequest
-	3,  // 18: aes.network.v1.NetworkService.ListNetworks:input_type -> aes.network.v1.ListNetworksRequest
-	8,  // 19: aes.network.v1.NetworkService.CreateFirewallRule:input_type -> aes.network.v1.CreateFirewallRuleRequest
-	10, // 20: aes.network.v1.NetworkService.ListFirewallRules:input_type -> aes.network.v1.ListFirewallRulesRequest
-	12, // 21: aes.network.v1.NetworkService.DeleteFirewallRule:input_type -> aes.network.v1.DeleteFirewallRuleRequest
-	2,  // 22: aes.network.v1.NetworkService.CreateNetwork:output_type -> aes.network.v1.CreateNetworkResponse
-	4,  // 23: aes.network.v1.NetworkService.ListNetworks:output_type -> aes.network.v1.ListNetworksResponse
-	9,  // 24: aes.network.v1.NetworkService.CreateFirewallRule:output_type -> aes.network.v1.CreateFirewallRuleResponse
-	11, // 25: aes.network.v1.NetworkService.ListFirewallRules:output_type -> aes.network.v1.ListFirewallRulesResponse
-	13, // 26: aes.network.v1.NetworkService.DeleteFirewallRule:output_type -> aes.network.v1.DeleteFirewallRuleResponse
-	22, // [22:27] is the sub-list for method output_type
-	17, // [17:22] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	15, // 17: aes.network.v1.SecurityGroup.rules:type_name -> aes.network.v1.SecurityGroupRule
+	40, // 18: aes.network.v1.SecurityGroup.labels:type_name -> aes.network.v1.SecurityGroup.LabelsEntry
+	41, // 19: aes.network.v1.SecurityGroup.annotations:type_name -> aes.network.v1.SecurityGroup.AnnotationsEntry
+	15, // 20: aes.network.v1.CreateSecurityGroupRequest.rules:type_name -> aes.network.v1.SecurityGroupRule
+	42, // 21: aes.network.v1.CreateSecurityGroupRequest.labels:type_name -> aes.network.v1.CreateSecurityGroupRequest.LabelsEntry
+	43, // 22: aes.network.v1.CreateSecurityGroupRequest.annotations:type_name -> aes.network.v1.CreateSecurityGroupRequest.AnnotationsEntry
+	14, // 23: aes.network.v1.CreateSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	14, // 24: aes.network.v1.GetSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	14, // 25: aes.network.v1.ListSecurityGroupsResponse.security_groups:type_name -> aes.network.v1.SecurityGroup
+	15, // 26: aes.network.v1.UpdateSecurityGroupRequest.rules:type_name -> aes.network.v1.SecurityGroupRule
+	14, // 27: aes.network.v1.UpdateSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	14, // 28: aes.network.v1.AddVmToSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	14, // 29: aes.network.v1.RemoveVmFromSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	1,  // 30: aes.network.v1.NetworkService.CreateNetwork:input_type -> aes.network.v1.CreateNetworkRequest
+	3,  // 31: aes.network.v1.NetworkService.ListNetworks:input_type -> aes.network.v1.ListNetworksRequest
+	8,  // 32: aes.network.v1.NetworkService.CreateFirewallRule:input_type -> aes.network.v1.CreateFirewallRuleRequest
+	10, // 33: aes.network.v1.NetworkService.ListFirewallRules:input_type -> aes.network.v1.ListFirewallRulesRequest
+	12, // 34: aes.network.v1.NetworkService.DeleteFirewallRule:input_type -> aes.network.v1.DeleteFirewallRuleRequest
+	16, // 35: aes.network.v1.NetworkService.CreateSecurityGroup:input_type -> aes.network.v1.CreateSecurityGroupRequest
+	18, // 36: aes.network.v1.NetworkService.GetSecurityGroup:input_type -> aes.network.v1.GetSecurityGroupRequest
+	20, // 37: aes.network.v1.NetworkService.ListSecurityGroups:input_type -> aes.network.v1.ListSecurityGroupsRequest
+	22, // 38: aes.network.v1.NetworkService.UpdateSecurityGroup:input_type -> aes.network.v1.UpdateSecurityGroupRequest
+	24, // 39: aes.network.v1.NetworkService.DeleteSecurityGroup:input_type -> aes.network.v1.DeleteSecurityGroupRequest
+	26, // 40: aes.network.v1.NetworkService.AddVmToSecurityGroup:input_type -> aes.network.v1.AddVmToSecurityGroupRequest
+	28, // 41: aes.network.v1.NetworkService.RemoveVmFromSecurityGroup:input_type -> aes.network.v1.RemoveVmFromSecurityGroupRequest
+	2,  // 42: aes.network.v1.NetworkService.CreateNetwork:output_type -> aes.network.v1.CreateNetworkResponse
+	4,  // 43: aes.network.v1.NetworkService.ListNetworks:output_type -> aes.network.v1.ListNetworksResponse
+	9,  // 44: aes.network.v1.NetworkService.CreateFirewallRule:output_type -> aes.network.v1.CreateFirewallRuleResponse
+	11, // 45: aes.network.v1.NetworkService.ListFirewallRules:output_type -> aes.network.v1.ListFirewallRulesResponse
+	13, // 46: aes.network.v1.NetworkService.DeleteFirewallRule:output_type -> aes.network.v1.DeleteFirewallRuleResponse
+	17, // 47: aes.network.v1.NetworkService.CreateSecurityGroup:output_type -> aes.network.v1.CreateSecurityGroupResponse
+	19, // 48: aes.network.v1.NetworkService.GetSecurityGroup:output_type -> aes.network.v1.GetSecurityGroupResponse
+	21, // 49: aes.network.v1.NetworkService.ListSecurityGroups:output_type -> aes.network.v1.ListSecurityGroupsResponse
+	23, // 50: aes.network.v1.NetworkService.UpdateSecurityGroup:output_type -> aes.network.v1.UpdateSecurityGroupResponse
+	25, // 51: aes.network.v1.NetworkService.DeleteSecurityGroup:output_type -> aes.network.v1.DeleteSecurityGroupResponse
+	27, // 52: aes.network.v1.NetworkService.AddVmToSecurityGroup:output_type -> aes.network.v1.AddVmToSecurityGroupResponse
+	29, // 53: aes.network.v1.NetworkService.RemoveVmFromSecurityGroup:output_type -> aes.network.v1.RemoveVmFromSecurityGroupResponse
+	42, // [42:54] is the sub-list for method output_type
+	30, // [30:42] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_aes_network_v1_network_proto_init() }
@@ -1443,13 +2562,17 @@ func file_aes_network_v1_network_proto_init() {
 	if File_aes_network_v1_network_proto != nil {
 		return
 	}
+	file_aes_network_v1_network_proto_msgTypes[15].OneofWrappers = []any{
+		(*SecurityGroupRule_Cidr)(nil),
+		(*SecurityGroupRule_SecurityGroup)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_network_v1_network_proto_rawDesc), len(file_aes_network_v1_network_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   24,
+			NumMessages:   44,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
