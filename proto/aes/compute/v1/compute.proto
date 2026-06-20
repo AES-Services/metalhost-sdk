@@ -203,6 +203,14 @@ message VirtualMachine {
   // (`organizations/{org}/projects/{p}/securityGroups/{id}`). Empty = the VM is open to the
   // rest of the VPC (default). Editable post-create via Add/RemoveVmFromSecurityGroup.
   repeated string security_groups = 33;
+  // Whether this VM's datacenter is currently reachable from the control plane. Computed live at
+  // Get/List time (not stored). When false, the datacenter is temporarily offline: `state` and the
+  // other runtime-derived fields above are LAST-KNOWN (as of the last successful sync, not live),
+  // and lifecycle actions are paused until it reconnects. Defaults true.
+  bool datacenter_reachable = 34;
+  // Unix seconds the VM's datacenter became unreachable (0 when reachable). Lets the UI show how
+  // long the outage has lasted ("offline 3m").
+  int64 datacenter_unreachable_since_unix = 35;
 }
 
 // ───────────────────────────── Declarative VM manifest ─────────────────────────────

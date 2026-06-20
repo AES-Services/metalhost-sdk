@@ -129,6 +129,11 @@ message CreateOperationRequest {
   string iso_source_url = 47;
   string iso_object_key = 48;
   string iso_filename = 49;
+  // Customer-networking-v1 (VM provisioning). Threaded so async-provisioned VMs persist the
+  // same networking the sync path writes. vm_security_groups: internal security groups to
+  // attach at create; vm_private_only: no public NIC at all (no public v4/v6).
+  repeated string vm_security_groups = 50;
+  bool vm_private_only = 51;
 }
 
 message CreateOperationResponse {

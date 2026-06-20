@@ -242,8 +242,16 @@ type VirtualMachine struct {
 	// (`organizations/{org}/projects/{p}/securityGroups/{id}`). Empty = the VM is open to the
 	// rest of the VPC (default). Editable post-create via Add/RemoveVmFromSecurityGroup.
 	SecurityGroups []string `protobuf:"bytes,33,rep,name=security_groups,json=securityGroups,proto3" json:"security_groups,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Whether this VM's datacenter is currently reachable from the control plane. Computed live at
+	// Get/List time (not stored). When false, the datacenter is temporarily offline: `state` and the
+	// other runtime-derived fields above are LAST-KNOWN (as of the last successful sync, not live),
+	// and lifecycle actions are paused until it reconnects. Defaults true.
+	DatacenterReachable bool `protobuf:"varint,34,opt,name=datacenter_reachable,json=datacenterReachable,proto3" json:"datacenter_reachable,omitempty"`
+	// Unix seconds the VM's datacenter became unreachable (0 when reachable). Lets the UI show how
+	// long the outage has lasted ("offline 3m").
+	DatacenterUnreachableSinceUnix int64 `protobuf:"varint,35,opt,name=datacenter_unreachable_since_unix,json=datacenterUnreachableSinceUnix,proto3" json:"datacenter_unreachable_since_unix,omitempty"`
+	unknownFields                  protoimpl.UnknownFields
+	sizeCache                      protoimpl.SizeCache
 }
 
 func (x *VirtualMachine) Reset() {
@@ -477,6 +485,20 @@ func (x *VirtualMachine) GetSecurityGroups() []string {
 		return x.SecurityGroups
 	}
 	return nil
+}
+
+func (x *VirtualMachine) GetDatacenterReachable() bool {
+	if x != nil {
+		return x.DatacenterReachable
+	}
+	return false
+}
+
+func (x *VirtualMachine) GetDatacenterUnreachableSinceUnix() int64 {
+	if x != nil {
+		return x.DatacenterUnreachableSinceUnix
+	}
+	return 0
 }
 
 // ───────────────────────────── Declarative VM manifest ─────────────────────────────
@@ -3812,8 +3834,7 @@ var File_aes_compute_v1_compute_proto protoreflect.FileDescriptor
 
 const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\xc3\n" +
-	"\n" +
+	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\xc1\v\n" +
 	"\x0eVirtualMachine\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12'\n" +
@@ -3846,7 +3867,9 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"#current_cost_per_hour_minor_decimal\x18\x1c \x01(\tR\x1ecurrentCostPerHourMinorDecimal\x125\n" +
 	"\x17mtd_spend_minor_decimal\x18\x1d \x01(\tR\x14mtdSpendMinorDecimal\x12%\n" +
 	"\x0elinux_username\x18\x1e \x01(\tR\rlinuxUsername\x12'\n" +
-	"\x0fsecurity_groups\x18! \x03(\tR\x0esecurityGroups\x1a9\n" +
+	"\x0fsecurity_groups\x18! \x03(\tR\x0esecurityGroups\x121\n" +
+	"\x14datacenter_reachable\x18\" \x01(\bR\x13datacenterReachable\x12I\n" +
+	"!datacenter_unreachable_since_unix\x18# \x01(\x03R\x1edatacenterUnreachableSinceUnix\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +

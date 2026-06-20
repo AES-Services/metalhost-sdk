@@ -9469,6 +9469,23 @@ components:
             Internal security groups attached to this VM's private NIC
              (`organizations/{org}/projects/{p}/securityGroups/{id}`). Empty = the VM is open to the
              rest of the VPC (default). Editable post-create via Add/RemoveVmFromSecurityGroup.
+        datacenterReachable:
+          type: boolean
+          title: datacenter_reachable
+          description: |-
+            Whether this VM's datacenter is currently reachable from the control plane. Computed live at
+             Get/List time (not stored). When false, the datacenter is temporarily offline: `state` and the
+             other runtime-derived fields above are LAST-KNOWN (as of the last successful sync, not live),
+             and lifecycle actions are paused until it reconnects. Defaults true.
+        datacenterUnreachableSinceUnix:
+          type:
+            - integer
+            - string
+          title: datacenter_unreachable_since_unix
+          format: int64
+          description: |-
+            Unix seconds the VM's datacenter became unreachable (0 when reachable). Lets the UI show how
+             long the outage has lasted ("offline 3m").
       title: VirtualMachine
       additionalProperties: false
     aes.compute.v1.VirtualMachine.AnnotationsEntry:
@@ -12432,6 +12449,18 @@ components:
         isoFilename:
           type: string
           title: iso_filename
+        vmSecurityGroups:
+          type: array
+          items:
+            type: string
+          title: vm_security_groups
+          description: |-
+            Customer-networking-v1 (VM provisioning). Threaded so async-provisioned VMs persist the
+             same networking the sync path writes. vm_security_groups: internal security groups to
+             attach at create; vm_private_only: no public NIC at all (no public v4/v6).
+        vmPrivateOnly:
+          type: boolean
+          title: vm_private_only
       title: CreateOperationRequest
       additionalProperties: false
     aes.ops.v1.CreateOperationRequest.VmAnnotationsEntry:

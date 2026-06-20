@@ -184,8 +184,13 @@ type CreateOperationRequest struct {
 	IsoSourceUrl   string `protobuf:"bytes,47,opt,name=iso_source_url,json=isoSourceUrl,proto3" json:"iso_source_url,omitempty"`
 	IsoObjectKey   string `protobuf:"bytes,48,opt,name=iso_object_key,json=isoObjectKey,proto3" json:"iso_object_key,omitempty"`
 	IsoFilename    string `protobuf:"bytes,49,opt,name=iso_filename,json=isoFilename,proto3" json:"iso_filename,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Customer-networking-v1 (VM provisioning). Threaded so async-provisioned VMs persist the
+	// same networking the sync path writes. vm_security_groups: internal security groups to
+	// attach at create; vm_private_only: no public NIC at all (no public v4/v6).
+	VmSecurityGroups []string `protobuf:"bytes,50,rep,name=vm_security_groups,json=vmSecurityGroups,proto3" json:"vm_security_groups,omitempty"`
+	VmPrivateOnly    bool     `protobuf:"varint,51,opt,name=vm_private_only,json=vmPrivateOnly,proto3" json:"vm_private_only,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *CreateOperationRequest) Reset() {
@@ -517,6 +522,20 @@ func (x *CreateOperationRequest) GetIsoFilename() string {
 		return x.IsoFilename
 	}
 	return ""
+}
+
+func (x *CreateOperationRequest) GetVmSecurityGroups() []string {
+	if x != nil {
+		return x.VmSecurityGroups
+	}
+	return nil
+}
+
+func (x *CreateOperationRequest) GetVmPrivateOnly() bool {
+	if x != nil {
+		return x.VmPrivateOnly
+	}
+	return false
 }
 
 type CreateOperationResponse struct {
@@ -1071,7 +1090,7 @@ var File_aes_ops_v1_operations_proto protoreflect.FileDescriptor
 const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\n" +
 	"\x1baes/ops/v1/operations.proto\x12\n" +
-	"aes.ops.v1\"\xdf\x11\n" +
+	"aes.ops.v1\"\xb5\x12\n" +
 	"\x16CreateOperationRequest\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12'\n" +
 	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12&\n" +
@@ -1121,7 +1140,9 @@ const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\x10iso_project_name\x18. \x01(\tR\x0eisoProjectName\x12$\n" +
 	"\x0eiso_source_url\x18/ \x01(\tR\fisoSourceUrl\x12$\n" +
 	"\x0eiso_object_key\x180 \x01(\tR\fisoObjectKey\x12!\n" +
-	"\fiso_filename\x181 \x01(\tR\visoFilename\x1a;\n" +
+	"\fiso_filename\x181 \x01(\tR\visoFilename\x12,\n" +
+	"\x12vm_security_groups\x182 \x03(\tR\x10vmSecurityGroups\x12&\n" +
+	"\x0fvm_private_only\x183 \x01(\bR\rvmPrivateOnly\x1a;\n" +
 	"\rVmLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a@\n" +
