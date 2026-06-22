@@ -82,7 +82,12 @@ type Organization struct {
 	// device must complete SubmitMFAChallenge after Login / CompleteOidcLogin before a session
 	// API key is minted. Defaults FALSE so per-user MFA enrollment remains opt-in until the org
 	// owner flips this flag. Flip via UpdateOrganization.
-	RequireMfa    bool `protobuf:"varint,3,opt,name=require_mfa,json=requireMfa,proto3" json:"require_mfa,omitempty"`
+	RequireMfa bool `protobuf:"varint,3,opt,name=require_mfa,json=requireMfa,proto3" json:"require_mfa,omitempty"`
+	// Lifecycle state — 'ACTIVE' | 'SUSPENDED'. SUSPENDED is the admin total-lockout (an operator
+	// ran SuspendOrganization): members are denied every action and the org's VMs are stopped.
+	// Distinct from billing-account suspension (non-payment). Read-only here; admins flip it via
+	// the admin Suspend/ResumeOrganization RPCs.
+	State         string `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -136,6 +141,13 @@ func (x *Organization) GetRequireMfa() bool {
 		return x.RequireMfa
 	}
 	return false
+}
+
+func (x *Organization) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
 }
 
 type GetOrganizationRequest struct {
@@ -1404,12 +1416,13 @@ var File_aes_project_v1_project_proto protoreflect.FileDescriptor
 
 const file_aes_project_v1_project_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/project/v1/project.proto\x12\x0eaes.project.v1\"f\n" +
+	"\x1caes/project/v1/project.proto\x12\x0eaes.project.v1\"|\n" +
 	"\fOrganization\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1f\n" +
 	"\vrequire_mfa\x18\x03 \x01(\bR\n" +
-	"requireMfa\",\n" +
+	"requireMfa\x12\x14\n" +
+	"\x05state\x18\x04 \x01(\tR\x05state\",\n" +
 	"\x16GetOrganizationRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"[\n" +
 	"\x17GetOrganizationResponse\x12@\n" +

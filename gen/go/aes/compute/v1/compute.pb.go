@@ -148,7 +148,9 @@ type VirtualMachine struct {
 	ProjectName    string                 `protobuf:"bytes,2,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
 	DatacenterName string                 `protobuf:"bytes,3,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
 	// Current lifecycle state — PROVISIONING / BOOTING / RUNNING / RESTARTING / STOPPING /
-	// STOPPED / STOPPED_FOR_NONPAYMENT / FAILED / ORPHANED / DELETING / DELETED. Updated after
+	// STOPPED / STOPPED_FOR_NONPAYMENT / STOPPED_FOR_SUSPENSION / FAILED / ORPHANED / DELETING /
+	// DELETED. STOPPED_FOR_SUSPENSION means an admin suspended the owning organization; the VM's
+	// disks are preserved and it returns to STOPPED when the org is reinstated. Updated after
 	// the corresponding lifecycle RPC succeeds. A VM that can no longer be found on its host
 	// surfaces as ORPHANED (and is restored automatically if it reappears); reads may reflect
 	// that transition.

@@ -83,6 +83,10 @@ const (
 	BareMetalAvailability_BARE_METAL_AVAILABILITY_UNSPECIFIED BareMetalAvailability = 0
 	BareMetalAvailability_BARE_METAL_AVAILABILITY_AVAILABLE   BareMetalAvailability = 1 // in the bookable pool (leasable now)
 	BareMetalAvailability_BARE_METAL_AVAILABILITY_LEASED      BareMetalAvailability = 2 // currently leased to a customer
+	// In the pool but the control plane can't currently reach its BMC, so it's not leasable until
+	// it recovers. The browse view shows it as unavailable (not bookable); ListAvailableBareMetal
+	// omits it entirely.
+	BareMetalAvailability_BARE_METAL_AVAILABILITY_UNAVAILABLE BareMetalAvailability = 3
 )
 
 // Enum value maps for BareMetalAvailability.
@@ -91,11 +95,13 @@ var (
 		0: "BARE_METAL_AVAILABILITY_UNSPECIFIED",
 		1: "BARE_METAL_AVAILABILITY_AVAILABLE",
 		2: "BARE_METAL_AVAILABILITY_LEASED",
+		3: "BARE_METAL_AVAILABILITY_UNAVAILABLE",
 	}
 	BareMetalAvailability_value = map[string]int32{
 		"BARE_METAL_AVAILABILITY_UNSPECIFIED": 0,
 		"BARE_METAL_AVAILABILITY_AVAILABLE":   1,
 		"BARE_METAL_AVAILABILITY_LEASED":      2,
+		"BARE_METAL_AVAILABILITY_UNAVAILABLE": 3,
 	}
 )
 
@@ -3433,11 +3439,12 @@ const file_aes_baremetal_v1_baremetal_proto_rawDesc = "" +
 	"#BARE_METAL_POWER_ACTION_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aBARE_METAL_POWER_ACTION_ON\x10\x01\x12\x1f\n" +
 	"\x1bBARE_METAL_POWER_ACTION_OFF\x10\x02\x12\"\n" +
-	"\x1eBARE_METAL_POWER_ACTION_REBOOT\x10\x03*\x8b\x01\n" +
+	"\x1eBARE_METAL_POWER_ACTION_REBOOT\x10\x03*\xb4\x01\n" +
 	"\x15BareMetalAvailability\x12'\n" +
 	"#BARE_METAL_AVAILABILITY_UNSPECIFIED\x10\x00\x12%\n" +
 	"!BARE_METAL_AVAILABILITY_AVAILABLE\x10\x01\x12\"\n" +
-	"\x1eBARE_METAL_AVAILABILITY_LEASED\x10\x02*\xa0\x01\n" +
+	"\x1eBARE_METAL_AVAILABILITY_LEASED\x10\x02\x12'\n" +
+	"#BARE_METAL_AVAILABILITY_UNAVAILABLE\x10\x03*\xa0\x01\n" +
 	"\x13BareMetalBootDevice\x12&\n" +
 	"\"BARE_METAL_BOOT_DEVICE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bBARE_METAL_BOOT_DEVICE_DISK\x10\x01\x12 \n" +

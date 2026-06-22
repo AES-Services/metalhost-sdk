@@ -103,7 +103,9 @@ message VirtualMachine {
   reserved 4;
   reserved "instance_type";
   // Current lifecycle state — PROVISIONING / BOOTING / RUNNING / RESTARTING / STOPPING /
-  // STOPPED / STOPPED_FOR_NONPAYMENT / FAILED / ORPHANED / DELETING / DELETED. Updated after
+  // STOPPED / STOPPED_FOR_NONPAYMENT / STOPPED_FOR_SUSPENSION / FAILED / ORPHANED / DELETING /
+  // DELETED. STOPPED_FOR_SUSPENSION means an admin suspended the owning organization; the VM's
+  // disks are preserved and it returns to STOPPED when the org is reinstated. Updated after
   // the corresponding lifecycle RPC succeeds. A VM that can no longer be found on its host
   // surfaces as ORPHANED (and is restored automatically if it reappears); reads may reflect
   // that transition.

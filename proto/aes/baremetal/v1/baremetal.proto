@@ -177,6 +177,10 @@ enum BareMetalAvailability {
   BARE_METAL_AVAILABILITY_UNSPECIFIED = 0;
   BARE_METAL_AVAILABILITY_AVAILABLE = 1;  // in the bookable pool (leasable now)
   BARE_METAL_AVAILABILITY_LEASED = 2;     // currently leased to a customer
+  // In the pool but the control plane can't currently reach its BMC, so it's not leasable until
+  // it recovers. The browse view shows it as unavailable (not bookable); ListAvailableBareMetal
+  // omits it entirely.
+  BARE_METAL_AVAILABILITY_UNAVAILABLE = 3;
 }
 
 // BareMetalNode is one published host in the public inventory: the same spec fields as

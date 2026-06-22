@@ -49,6 +49,11 @@ message Organization {
   // API key is minted. Defaults FALSE so per-user MFA enrollment remains opt-in until the org
   // owner flips this flag. Flip via UpdateOrganization.
   bool require_mfa = 3;
+  // Lifecycle state — 'ACTIVE' | 'SUSPENDED'. SUSPENDED is the admin total-lockout (an operator
+  // ran SuspendOrganization): members are denied every action and the org's VMs are stopped.
+  // Distinct from billing-account suspension (non-payment). Read-only here; admins flip it via
+  // the admin Suspend/ResumeOrganization RPCs.
+  string state = 4;
 }
 
 message GetOrganizationRequest {

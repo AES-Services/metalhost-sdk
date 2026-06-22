@@ -6614,6 +6614,7 @@ components:
         - BARE_METAL_AVAILABILITY_UNSPECIFIED
         - BARE_METAL_AVAILABILITY_AVAILABLE
         - BARE_METAL_AVAILABILITY_LEASED
+        - BARE_METAL_AVAILABILITY_UNAVAILABLE
       description: Availability of a published bare-metal host in the public inventory.
     aes.baremetal.v1.BareMetalBootDevice:
       type: string
@@ -9290,7 +9291,9 @@ components:
           title: state
           description: |-
             Current lifecycle state — PROVISIONING / BOOTING / RUNNING / RESTARTING / STOPPING /
-             STOPPED / STOPPED_FOR_NONPAYMENT / FAILED / ORPHANED / DELETING / DELETED. Updated after
+             STOPPED / STOPPED_FOR_NONPAYMENT / STOPPED_FOR_SUSPENSION / FAILED / ORPHANED / DELETING /
+             DELETED. STOPPED_FOR_SUSPENSION means an admin suspended the owning organization; the VM's
+             disks are preserved and it returns to STOPPED when the org is reinstated. Updated after
              the corresponding lifecycle RPC succeeds. A VM that can no longer be found on its host
              surfaces as ORPHANED (and is restored automatically if it reappears); reads may reflect
              that transition.
@@ -12876,6 +12879,14 @@ components:
              device must complete SubmitMFAChallenge after Login / CompleteOidcLogin before a session
              API key is minted. Defaults FALSE so per-user MFA enrollment remains opt-in until the org
              owner flips this flag. Flip via UpdateOrganization.
+        state:
+          type: string
+          title: state
+          description: |-
+            Lifecycle state — 'ACTIVE' | 'SUSPENDED'. SUSPENDED is the admin total-lockout (an operator
+             ran SuspendOrganization): members are denied every action and the org's VMs are stopped.
+             Distinct from billing-account suspension (non-payment). Read-only here; admins flip it via
+             the admin Suspend/ResumeOrganization RPCs.
       title: Organization
       additionalProperties: false
     aes.project.v1.Project:
