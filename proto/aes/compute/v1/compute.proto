@@ -23,6 +23,10 @@ service ComputeService {
   // and polls. Brief downtime. Disks, networks, and IP addresses survive. A cpu_class change
   // requires capacity for the new class in the datacenter, or the operation fails.
   rpc ResizeVirtualMachine(ResizeVirtualMachineRequest) returns (ResizeVirtualMachineResponse);
+  // QuoteVirtualMachineResize prices a resize before it is applied. For a VM inside a monthly
+  // term, growing the shape is allowed (never shrinking) and the difference for the remaining
+  // term is charged immediately on resize — due_now_minor is that amount. 0 for hourly VMs.
+  rpc QuoteVirtualMachineResize(QuoteVirtualMachineResizeRequest) returns (QuoteVirtualMachineResizeResponse);
   // SetVMAutorenew flips the autorenew flag on a VM in MONTHLY_* billing mode. Returns
   // FailedPrecondition when called on a HOURLY VM (no term to renew).
   rpc SetVMAutorenew(SetVMAutorenewRequest) returns (SetVMAutorenewResponse);
@@ -168,6 +172,11 @@ message VirtualMachine {
   // Statically configured and pinned for the VM's lifetime. Empty when the VM has no public
   // IP or the datacenter doesn't offer IPv6 yet.
   string public_ipv6 = 23;
+  // Routed IPv6 /64 (CIDR form) dedicated to this VM, included free with the public NIC in
+  // supported datacenters. The whole prefix routes to the VM: the first address
+  // (<prefix>::1) is preconfigured in the guest; bind any others directly. Pinned for the
+  // VM's lifetime. Empty when the datacenter doesn't offer routed prefixes yet.
+  string public_ipv6_prefix = 37;
   // The Disk resource bound as the VM's boot device (`projects/{p}/disks/{id}`). Set on every
   // persistent VM (ephemeral lab VMs leave it empty). The disk has its own
   // lifecycle: DeleteVirtualMachine detaches it but does not delete it, so a customer can bind
@@ -213,6 +222,14 @@ message VirtualMachine {
   // Unix seconds the VM's datacenter became unreachable (0 when reachable). Lets the UI show how
   // long the outage has lasted ("offline 3m").
   int64 datacenter_unreachable_since_unix = 35;
+  // Principal that created the VM (e.g. `users/jane`). '' for legacy rows / system-created.
+  string created_by = 36;
+  // For a VM inside a monthly term: the full-shape hourly rate at current prices — what the
+  // next renewal (or the fallback to hourly billing at term end) will effectively cost.
+  // current_cost_per_hour_minor_decimal reads "0" during the term (the shape is prepaid);
+  // this field lets burn-rate and balance projections still account for the commitment.
+  // Empty for hourly-billed VMs.
+  string renewal_cost_per_hour_minor_decimal = 38;
 }
 
 // ───────────────────────────── Declarative VM manifest ─────────────────────────────
@@ -406,6 +423,8 @@ message StartVirtualMachineRequest {
 
 message StartVirtualMachineResponse {
   VirtualMachine virtual_machine = 1;
+  // The operation tracking this request. Poll until terminal, then fetch the VM.
+  aes.ops.v1.Operation operation = 2;
 }
 
 message StopVirtualMachineRequest {
@@ -414,6 +433,8 @@ message StopVirtualMachineRequest {
 
 message StopVirtualMachineResponse {
   VirtualMachine virtual_machine = 1;
+  // The operation tracking this request. Poll until terminal, then fetch the VM.
+  aes.ops.v1.Operation operation = 2;
 }
 
 message RestartVirtualMachineRequest {
@@ -436,6 +457,24 @@ message ResizeVirtualMachineRequest {
   // CPU class. Required — changing class is allowed but the datacenter must have capacity for
   // the new class or the VM won't restart.
   string cpu_class = 5;
+}
+
+message QuoteVirtualMachineResizeRequest {
+  string name = 1;
+  // Target shape, same semantics as ResizeVirtualMachineRequest. cpu_class cannot change
+  // while a monthly term is active.
+  int32 vcpus = 2;
+  int32 ram_gib = 3;
+}
+
+message QuoteVirtualMachineResizeResponse {
+  // True when the VM is inside an active monthly term (resize = paid one-way upgrade).
+  bool reserved = 1;
+  // Charged immediately when the resize is applied. Always 0 when reserved is false.
+  int64 due_now_minor = 2;
+  string currency = 3;
+  // End of the current term the upgrade is prorated to. 0 when reserved is false.
+  int64 term_end_unix = 4;
 }
 
 message ResizeVirtualMachineResponse {
@@ -705,4 +744,3 @@ message CreateVirtualMachineFromBackupResponse {
   // When async provisioning is configured, the long-running operation. Empty in sync mode.
   aes.ops.v1.Operation operation = 3;
 }
-

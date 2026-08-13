@@ -511,6 +511,370 @@ func (x *GetProjectResponse) GetProject() *Project {
 	return nil
 }
 
+// ProjectMember is an explicit per-project access grant. Org owners/admins have access to every
+// project implicitly and are not returned here.
+type ProjectMember struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// User principal, e.g. `users/jane`.
+	Principal string `protobuf:"bytes,1,opt,name=principal,proto3" json:"principal,omitempty"`
+	// Project role: "owner" | "editor" | "viewer".
+	Role           string `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
+	CreateTimeUnix int64  `protobuf:"varint,3,opt,name=create_time_unix,json=createTimeUnix,proto3" json:"create_time_unix,omitempty"`
+	// Resolved from the user record for display; may be empty.
+	Email         string `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	DisplayName   string `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProjectMember) Reset() {
+	*x = ProjectMember{}
+	mi := &file_aes_project_v1_project_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProjectMember) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProjectMember) ProtoMessage() {}
+
+func (x *ProjectMember) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_project_v1_project_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProjectMember.ProtoReflect.Descriptor instead.
+func (*ProjectMember) Descriptor() ([]byte, []int) {
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ProjectMember) GetPrincipal() string {
+	if x != nil {
+		return x.Principal
+	}
+	return ""
+}
+
+func (x *ProjectMember) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *ProjectMember) GetCreateTimeUnix() int64 {
+	if x != nil {
+		return x.CreateTimeUnix
+	}
+	return 0
+}
+
+func (x *ProjectMember) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *ProjectMember) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+type ListProjectMembersRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Project resource name, `organizations/{org}/projects/{slug}`.
+	ProjectName   string `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListProjectMembersRequest) Reset() {
+	*x = ListProjectMembersRequest{}
+	mi := &file_aes_project_v1_project_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListProjectMembersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListProjectMembersRequest) ProtoMessage() {}
+
+func (x *ListProjectMembersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_project_v1_project_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListProjectMembersRequest.ProtoReflect.Descriptor instead.
+func (*ListProjectMembersRequest) Descriptor() ([]byte, []int) {
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ListProjectMembersRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+type ListProjectMembersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Members       []*ProjectMember       `protobuf:"bytes,1,rep,name=members,proto3" json:"members,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListProjectMembersResponse) Reset() {
+	*x = ListProjectMembersResponse{}
+	mi := &file_aes_project_v1_project_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListProjectMembersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListProjectMembersResponse) ProtoMessage() {}
+
+func (x *ListProjectMembersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_project_v1_project_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListProjectMembersResponse.ProtoReflect.Descriptor instead.
+func (*ListProjectMembersResponse) Descriptor() ([]byte, []int) {
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ListProjectMembersResponse) GetMembers() []*ProjectMember {
+	if x != nil {
+		return x.Members
+	}
+	return nil
+}
+
+type SetProjectMemberRequest struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	// User to grant; must already be a member of the project's organization.
+	Principal string `protobuf:"bytes,2,opt,name=principal,proto3" json:"principal,omitempty"`
+	// "owner" | "editor" | "viewer".
+	Role          string `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetProjectMemberRequest) Reset() {
+	*x = SetProjectMemberRequest{}
+	mi := &file_aes_project_v1_project_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetProjectMemberRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetProjectMemberRequest) ProtoMessage() {}
+
+func (x *SetProjectMemberRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_project_v1_project_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetProjectMemberRequest.ProtoReflect.Descriptor instead.
+func (*SetProjectMemberRequest) Descriptor() ([]byte, []int) {
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SetProjectMemberRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *SetProjectMemberRequest) GetPrincipal() string {
+	if x != nil {
+		return x.Principal
+	}
+	return ""
+}
+
+func (x *SetProjectMemberRequest) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+type SetProjectMemberResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Member        *ProjectMember         `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetProjectMemberResponse) Reset() {
+	*x = SetProjectMemberResponse{}
+	mi := &file_aes_project_v1_project_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetProjectMemberResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetProjectMemberResponse) ProtoMessage() {}
+
+func (x *SetProjectMemberResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_project_v1_project_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetProjectMemberResponse.ProtoReflect.Descriptor instead.
+func (*SetProjectMemberResponse) Descriptor() ([]byte, []int) {
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *SetProjectMemberResponse) GetMember() *ProjectMember {
+	if x != nil {
+		return x.Member
+	}
+	return nil
+}
+
+type RemoveProjectMemberRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	Principal     string                 `protobuf:"bytes,2,opt,name=principal,proto3" json:"principal,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveProjectMemberRequest) Reset() {
+	*x = RemoveProjectMemberRequest{}
+	mi := &file_aes_project_v1_project_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveProjectMemberRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveProjectMemberRequest) ProtoMessage() {}
+
+func (x *RemoveProjectMemberRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_project_v1_project_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveProjectMemberRequest.ProtoReflect.Descriptor instead.
+func (*RemoveProjectMemberRequest) Descriptor() ([]byte, []int) {
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *RemoveProjectMemberRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *RemoveProjectMemberRequest) GetPrincipal() string {
+	if x != nil {
+		return x.Principal
+	}
+	return ""
+}
+
+type RemoveProjectMemberResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveProjectMemberResponse) Reset() {
+	*x = RemoveProjectMemberResponse{}
+	mi := &file_aes_project_v1_project_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveProjectMemberResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveProjectMemberResponse) ProtoMessage() {}
+
+func (x *RemoveProjectMemberResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_project_v1_project_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveProjectMemberResponse.ProtoReflect.Descriptor instead.
+func (*RemoveProjectMemberResponse) Descriptor() ([]byte, []int) {
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{14}
+}
+
 type CreateOrganizationRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Resource name, e.g. `organizations/acme`.
@@ -522,7 +886,7 @@ type CreateOrganizationRequest struct {
 
 func (x *CreateOrganizationRequest) Reset() {
 	*x = CreateOrganizationRequest{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[8]
+	mi := &file_aes_project_v1_project_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -534,7 +898,7 @@ func (x *CreateOrganizationRequest) String() string {
 func (*CreateOrganizationRequest) ProtoMessage() {}
 
 func (x *CreateOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[8]
+	mi := &file_aes_project_v1_project_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -547,7 +911,7 @@ func (x *CreateOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{8}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CreateOrganizationRequest) GetName() string {
@@ -573,7 +937,7 @@ type CreateOrganizationResponse struct {
 
 func (x *CreateOrganizationResponse) Reset() {
 	*x = CreateOrganizationResponse{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[9]
+	mi := &file_aes_project_v1_project_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -585,7 +949,7 @@ func (x *CreateOrganizationResponse) String() string {
 func (*CreateOrganizationResponse) ProtoMessage() {}
 
 func (x *CreateOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[9]
+	mi := &file_aes_project_v1_project_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -598,7 +962,7 @@ func (x *CreateOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{9}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateOrganizationResponse) GetOrganization() *Organization {
@@ -620,7 +984,7 @@ type UpdateOrganizationRequest struct {
 
 func (x *UpdateOrganizationRequest) Reset() {
 	*x = UpdateOrganizationRequest{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[10]
+	mi := &file_aes_project_v1_project_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -632,7 +996,7 @@ func (x *UpdateOrganizationRequest) String() string {
 func (*UpdateOrganizationRequest) ProtoMessage() {}
 
 func (x *UpdateOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[10]
+	mi := &file_aes_project_v1_project_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -645,7 +1009,7 @@ func (x *UpdateOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{10}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateOrganizationRequest) GetName() string {
@@ -678,7 +1042,7 @@ type UpdateOrganizationResponse struct {
 
 func (x *UpdateOrganizationResponse) Reset() {
 	*x = UpdateOrganizationResponse{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[11]
+	mi := &file_aes_project_v1_project_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -690,7 +1054,7 @@ func (x *UpdateOrganizationResponse) String() string {
 func (*UpdateOrganizationResponse) ProtoMessage() {}
 
 func (x *UpdateOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[11]
+	mi := &file_aes_project_v1_project_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -703,7 +1067,7 @@ func (x *UpdateOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*UpdateOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{11}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UpdateOrganizationResponse) GetOrganization() *Organization {
@@ -722,7 +1086,7 @@ type DeleteOrganizationRequest struct {
 
 func (x *DeleteOrganizationRequest) Reset() {
 	*x = DeleteOrganizationRequest{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[12]
+	mi := &file_aes_project_v1_project_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -734,7 +1098,7 @@ func (x *DeleteOrganizationRequest) String() string {
 func (*DeleteOrganizationRequest) ProtoMessage() {}
 
 func (x *DeleteOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[12]
+	mi := &file_aes_project_v1_project_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -747,7 +1111,7 @@ func (x *DeleteOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*DeleteOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{12}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DeleteOrganizationRequest) GetName() string {
@@ -765,7 +1129,7 @@ type DeleteOrganizationResponse struct {
 
 func (x *DeleteOrganizationResponse) Reset() {
 	*x = DeleteOrganizationResponse{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[13]
+	mi := &file_aes_project_v1_project_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -777,7 +1141,7 @@ func (x *DeleteOrganizationResponse) String() string {
 func (*DeleteOrganizationResponse) ProtoMessage() {}
 
 func (x *DeleteOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[13]
+	mi := &file_aes_project_v1_project_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -790,7 +1154,7 @@ func (x *DeleteOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*DeleteOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{13}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{20}
 }
 
 type CreateProjectRequest struct {
@@ -806,7 +1170,7 @@ type CreateProjectRequest struct {
 
 func (x *CreateProjectRequest) Reset() {
 	*x = CreateProjectRequest{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[14]
+	mi := &file_aes_project_v1_project_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -818,7 +1182,7 @@ func (x *CreateProjectRequest) String() string {
 func (*CreateProjectRequest) ProtoMessage() {}
 
 func (x *CreateProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[14]
+	mi := &file_aes_project_v1_project_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -831,7 +1195,7 @@ func (x *CreateProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProjectRequest.ProtoReflect.Descriptor instead.
 func (*CreateProjectRequest) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{14}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CreateProjectRequest) GetName() string {
@@ -864,7 +1228,7 @@ type CreateProjectResponse struct {
 
 func (x *CreateProjectResponse) Reset() {
 	*x = CreateProjectResponse{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[15]
+	mi := &file_aes_project_v1_project_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -876,7 +1240,7 @@ func (x *CreateProjectResponse) String() string {
 func (*CreateProjectResponse) ProtoMessage() {}
 
 func (x *CreateProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[15]
+	mi := &file_aes_project_v1_project_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -889,7 +1253,7 @@ func (x *CreateProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProjectResponse.ProtoReflect.Descriptor instead.
 func (*CreateProjectResponse) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{15}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *CreateProjectResponse) GetProject() *Project {
@@ -909,7 +1273,7 @@ type UpdateProjectRequest struct {
 
 func (x *UpdateProjectRequest) Reset() {
 	*x = UpdateProjectRequest{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[16]
+	mi := &file_aes_project_v1_project_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -921,7 +1285,7 @@ func (x *UpdateProjectRequest) String() string {
 func (*UpdateProjectRequest) ProtoMessage() {}
 
 func (x *UpdateProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[16]
+	mi := &file_aes_project_v1_project_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -934,7 +1298,7 @@ func (x *UpdateProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProjectRequest.ProtoReflect.Descriptor instead.
 func (*UpdateProjectRequest) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{16}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *UpdateProjectRequest) GetName() string {
@@ -960,7 +1324,7 @@ type UpdateProjectResponse struct {
 
 func (x *UpdateProjectResponse) Reset() {
 	*x = UpdateProjectResponse{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[17]
+	mi := &file_aes_project_v1_project_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -972,7 +1336,7 @@ func (x *UpdateProjectResponse) String() string {
 func (*UpdateProjectResponse) ProtoMessage() {}
 
 func (x *UpdateProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[17]
+	mi := &file_aes_project_v1_project_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -985,7 +1349,7 @@ func (x *UpdateProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProjectResponse.ProtoReflect.Descriptor instead.
 func (*UpdateProjectResponse) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{17}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *UpdateProjectResponse) GetProject() *Project {
@@ -1004,7 +1368,7 @@ type DeleteProjectRequest struct {
 
 func (x *DeleteProjectRequest) Reset() {
 	*x = DeleteProjectRequest{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[18]
+	mi := &file_aes_project_v1_project_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1016,7 +1380,7 @@ func (x *DeleteProjectRequest) String() string {
 func (*DeleteProjectRequest) ProtoMessage() {}
 
 func (x *DeleteProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[18]
+	mi := &file_aes_project_v1_project_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1029,7 +1393,7 @@ func (x *DeleteProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProjectRequest.ProtoReflect.Descriptor instead.
 func (*DeleteProjectRequest) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{18}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *DeleteProjectRequest) GetName() string {
@@ -1047,7 +1411,7 @@ type DeleteProjectResponse struct {
 
 func (x *DeleteProjectResponse) Reset() {
 	*x = DeleteProjectResponse{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[19]
+	mi := &file_aes_project_v1_project_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1059,7 +1423,7 @@ func (x *DeleteProjectResponse) String() string {
 func (*DeleteProjectResponse) ProtoMessage() {}
 
 func (x *DeleteProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[19]
+	mi := &file_aes_project_v1_project_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1072,7 +1436,7 @@ func (x *DeleteProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProjectResponse.ProtoReflect.Descriptor instead.
 func (*DeleteProjectResponse) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{19}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{26}
 }
 
 type ListOrgActivityRequest struct {
@@ -1086,7 +1450,7 @@ type ListOrgActivityRequest struct {
 
 func (x *ListOrgActivityRequest) Reset() {
 	*x = ListOrgActivityRequest{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[20]
+	mi := &file_aes_project_v1_project_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1098,7 +1462,7 @@ func (x *ListOrgActivityRequest) String() string {
 func (*ListOrgActivityRequest) ProtoMessage() {}
 
 func (x *ListOrgActivityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[20]
+	mi := &file_aes_project_v1_project_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1111,7 +1475,7 @@ func (x *ListOrgActivityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrgActivityRequest.ProtoReflect.Descriptor instead.
 func (*ListOrgActivityRequest) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{20}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListOrgActivityRequest) GetOrganizationName() string {
@@ -1145,7 +1509,7 @@ type ListOrgActivityResponse struct {
 
 func (x *ListOrgActivityResponse) Reset() {
 	*x = ListOrgActivityResponse{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[21]
+	mi := &file_aes_project_v1_project_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1157,7 +1521,7 @@ func (x *ListOrgActivityResponse) String() string {
 func (*ListOrgActivityResponse) ProtoMessage() {}
 
 func (x *ListOrgActivityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[21]
+	mi := &file_aes_project_v1_project_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1170,7 +1534,7 @@ func (x *ListOrgActivityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrgActivityResponse.ProtoReflect.Descriptor instead.
 func (*ListOrgActivityResponse) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{21}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListOrgActivityResponse) GetEvents() []*ActivityEvent {
@@ -1200,7 +1564,7 @@ type CheckSlugAvailableRequest struct {
 
 func (x *CheckSlugAvailableRequest) Reset() {
 	*x = CheckSlugAvailableRequest{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[22]
+	mi := &file_aes_project_v1_project_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1212,7 +1576,7 @@ func (x *CheckSlugAvailableRequest) String() string {
 func (*CheckSlugAvailableRequest) ProtoMessage() {}
 
 func (x *CheckSlugAvailableRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[22]
+	mi := &file_aes_project_v1_project_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1225,7 +1589,7 @@ func (x *CheckSlugAvailableRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckSlugAvailableRequest.ProtoReflect.Descriptor instead.
 func (*CheckSlugAvailableRequest) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{22}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *CheckSlugAvailableRequest) GetKind() SlugKind {
@@ -1262,7 +1626,7 @@ type CheckSlugAvailableResponse struct {
 
 func (x *CheckSlugAvailableResponse) Reset() {
 	*x = CheckSlugAvailableResponse{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[23]
+	mi := &file_aes_project_v1_project_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1274,7 +1638,7 @@ func (x *CheckSlugAvailableResponse) String() string {
 func (*CheckSlugAvailableResponse) ProtoMessage() {}
 
 func (x *CheckSlugAvailableResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[23]
+	mi := &file_aes_project_v1_project_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1287,7 +1651,7 @@ func (x *CheckSlugAvailableResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckSlugAvailableResponse.ProtoReflect.Descriptor instead.
 func (*CheckSlugAvailableResponse) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{23}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *CheckSlugAvailableResponse) GetAvailable() bool {
@@ -1335,7 +1699,7 @@ type ActivityEvent struct {
 
 func (x *ActivityEvent) Reset() {
 	*x = ActivityEvent{}
-	mi := &file_aes_project_v1_project_proto_msgTypes[24]
+	mi := &file_aes_project_v1_project_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1347,7 +1711,7 @@ func (x *ActivityEvent) String() string {
 func (*ActivityEvent) ProtoMessage() {}
 
 func (x *ActivityEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_project_v1_project_proto_msgTypes[24]
+	mi := &file_aes_project_v1_project_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1360,7 +1724,7 @@ func (x *ActivityEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActivityEvent.ProtoReflect.Descriptor instead.
 func (*ActivityEvent) Descriptor() ([]byte, []int) {
-	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{24}
+	return file_aes_project_v1_project_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ActivityEvent) GetId() string {
@@ -1443,7 +1807,27 @@ const file_aes_project_v1_project_proto_rawDesc = "" +
 	"\x11GetProjectRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"G\n" +
 	"\x12GetProjectResponse\x121\n" +
-	"\aproject\x18\x01 \x01(\v2\x17.aes.project.v1.ProjectR\aproject\"R\n" +
+	"\aproject\x18\x01 \x01(\v2\x17.aes.project.v1.ProjectR\aproject\"\xa4\x01\n" +
+	"\rProjectMember\x12\x1c\n" +
+	"\tprincipal\x18\x01 \x01(\tR\tprincipal\x12\x12\n" +
+	"\x04role\x18\x02 \x01(\tR\x04role\x12(\n" +
+	"\x10create_time_unix\x18\x03 \x01(\x03R\x0ecreateTimeUnix\x12\x14\n" +
+	"\x05email\x18\x04 \x01(\tR\x05email\x12!\n" +
+	"\fdisplay_name\x18\x05 \x01(\tR\vdisplayName\">\n" +
+	"\x19ListProjectMembersRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\"U\n" +
+	"\x1aListProjectMembersResponse\x127\n" +
+	"\amembers\x18\x01 \x03(\v2\x1d.aes.project.v1.ProjectMemberR\amembers\"n\n" +
+	"\x17SetProjectMemberRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1c\n" +
+	"\tprincipal\x18\x02 \x01(\tR\tprincipal\x12\x12\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\"Q\n" +
+	"\x18SetProjectMemberResponse\x125\n" +
+	"\x06member\x18\x01 \x01(\v2\x1d.aes.project.v1.ProjectMemberR\x06member\"]\n" +
+	"\x1aRemoveProjectMemberRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1c\n" +
+	"\tprincipal\x18\x02 \x01(\tR\tprincipal\"\x1d\n" +
+	"\x1bRemoveProjectMemberResponse\"R\n" +
 	"\x19CreateOrganizationRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"^\n" +
@@ -1505,7 +1889,7 @@ const file_aes_project_v1_project_proto_rawDesc = "" +
 	"\bSlugKind\x12\x19\n" +
 	"\x15SLUG_KIND_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rSLUG_KIND_ORG\x10\x01\x12\x15\n" +
-	"\x11SLUG_KIND_PROJECT\x10\x022\xd6\b\n" +
+	"\x11SLUG_KIND_PROJECT\x10\x022\x9a\v\n" +
 	"\x0eProjectService\x12b\n" +
 	"\x0fGetOrganization\x12&.aes.project.v1.GetOrganizationRequest\x1a'.aes.project.v1.GetOrganizationResponse\x12k\n" +
 	"\x12CreateOrganization\x12).aes.project.v1.CreateOrganizationRequest\x1a*.aes.project.v1.CreateOrganizationResponse\x12k\n" +
@@ -1518,7 +1902,10 @@ const file_aes_project_v1_project_proto_rawDesc = "" +
 	"\rUpdateProject\x12$.aes.project.v1.UpdateProjectRequest\x1a%.aes.project.v1.UpdateProjectResponse\x12\\\n" +
 	"\rDeleteProject\x12$.aes.project.v1.DeleteProjectRequest\x1a%.aes.project.v1.DeleteProjectResponse\x12b\n" +
 	"\x0fListOrgActivity\x12&.aes.project.v1.ListOrgActivityRequest\x1a'.aes.project.v1.ListOrgActivityResponse\x12k\n" +
-	"\x12CheckSlugAvailable\x12).aes.project.v1.CheckSlugAvailableRequest\x1a*.aes.project.v1.CheckSlugAvailableResponseB\xc3\x01\n" +
+	"\x12CheckSlugAvailable\x12).aes.project.v1.CheckSlugAvailableRequest\x1a*.aes.project.v1.CheckSlugAvailableResponse\x12k\n" +
+	"\x12ListProjectMembers\x12).aes.project.v1.ListProjectMembersRequest\x1a*.aes.project.v1.ListProjectMembersResponse\x12e\n" +
+	"\x10SetProjectMember\x12'.aes.project.v1.SetProjectMemberRequest\x1a(.aes.project.v1.SetProjectMemberResponse\x12n\n" +
+	"\x13RemoveProjectMember\x12*.aes.project.v1.RemoveProjectMemberRequest\x1a+.aes.project.v1.RemoveProjectMemberResponseB\xc3\x01\n" +
 	"\x12com.aes.project.v1B\fProjectProtoP\x01ZEgithub.com/AES-Services/metalhost-sdk/gen/go/aes/project/v1;projectv1\xa2\x02\x03APX\xaa\x02\x0eAes.Project.V1\xca\x02\x0eAes\\Project\\V1\xe2\x02\x1aAes\\Project\\V1\\GPBMetadata\xea\x02\x10Aes::Project::V1b\x06proto3"
 
 var (
@@ -1534,72 +1921,87 @@ func file_aes_project_v1_project_proto_rawDescGZIP() []byte {
 }
 
 var file_aes_project_v1_project_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_aes_project_v1_project_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_aes_project_v1_project_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_aes_project_v1_project_proto_goTypes = []any{
-	(SlugKind)(0),                      // 0: aes.project.v1.SlugKind
-	(*Organization)(nil),               // 1: aes.project.v1.Organization
-	(*GetOrganizationRequest)(nil),     // 2: aes.project.v1.GetOrganizationRequest
-	(*GetOrganizationResponse)(nil),    // 3: aes.project.v1.GetOrganizationResponse
-	(*Project)(nil),                    // 4: aes.project.v1.Project
-	(*ListProjectsRequest)(nil),        // 5: aes.project.v1.ListProjectsRequest
-	(*ListProjectsResponse)(nil),       // 6: aes.project.v1.ListProjectsResponse
-	(*GetProjectRequest)(nil),          // 7: aes.project.v1.GetProjectRequest
-	(*GetProjectResponse)(nil),         // 8: aes.project.v1.GetProjectResponse
-	(*CreateOrganizationRequest)(nil),  // 9: aes.project.v1.CreateOrganizationRequest
-	(*CreateOrganizationResponse)(nil), // 10: aes.project.v1.CreateOrganizationResponse
-	(*UpdateOrganizationRequest)(nil),  // 11: aes.project.v1.UpdateOrganizationRequest
-	(*UpdateOrganizationResponse)(nil), // 12: aes.project.v1.UpdateOrganizationResponse
-	(*DeleteOrganizationRequest)(nil),  // 13: aes.project.v1.DeleteOrganizationRequest
-	(*DeleteOrganizationResponse)(nil), // 14: aes.project.v1.DeleteOrganizationResponse
-	(*CreateProjectRequest)(nil),       // 15: aes.project.v1.CreateProjectRequest
-	(*CreateProjectResponse)(nil),      // 16: aes.project.v1.CreateProjectResponse
-	(*UpdateProjectRequest)(nil),       // 17: aes.project.v1.UpdateProjectRequest
-	(*UpdateProjectResponse)(nil),      // 18: aes.project.v1.UpdateProjectResponse
-	(*DeleteProjectRequest)(nil),       // 19: aes.project.v1.DeleteProjectRequest
-	(*DeleteProjectResponse)(nil),      // 20: aes.project.v1.DeleteProjectResponse
-	(*ListOrgActivityRequest)(nil),     // 21: aes.project.v1.ListOrgActivityRequest
-	(*ListOrgActivityResponse)(nil),    // 22: aes.project.v1.ListOrgActivityResponse
-	(*CheckSlugAvailableRequest)(nil),  // 23: aes.project.v1.CheckSlugAvailableRequest
-	(*CheckSlugAvailableResponse)(nil), // 24: aes.project.v1.CheckSlugAvailableResponse
-	(*ActivityEvent)(nil),              // 25: aes.project.v1.ActivityEvent
+	(SlugKind)(0),                       // 0: aes.project.v1.SlugKind
+	(*Organization)(nil),                // 1: aes.project.v1.Organization
+	(*GetOrganizationRequest)(nil),      // 2: aes.project.v1.GetOrganizationRequest
+	(*GetOrganizationResponse)(nil),     // 3: aes.project.v1.GetOrganizationResponse
+	(*Project)(nil),                     // 4: aes.project.v1.Project
+	(*ListProjectsRequest)(nil),         // 5: aes.project.v1.ListProjectsRequest
+	(*ListProjectsResponse)(nil),        // 6: aes.project.v1.ListProjectsResponse
+	(*GetProjectRequest)(nil),           // 7: aes.project.v1.GetProjectRequest
+	(*GetProjectResponse)(nil),          // 8: aes.project.v1.GetProjectResponse
+	(*ProjectMember)(nil),               // 9: aes.project.v1.ProjectMember
+	(*ListProjectMembersRequest)(nil),   // 10: aes.project.v1.ListProjectMembersRequest
+	(*ListProjectMembersResponse)(nil),  // 11: aes.project.v1.ListProjectMembersResponse
+	(*SetProjectMemberRequest)(nil),     // 12: aes.project.v1.SetProjectMemberRequest
+	(*SetProjectMemberResponse)(nil),    // 13: aes.project.v1.SetProjectMemberResponse
+	(*RemoveProjectMemberRequest)(nil),  // 14: aes.project.v1.RemoveProjectMemberRequest
+	(*RemoveProjectMemberResponse)(nil), // 15: aes.project.v1.RemoveProjectMemberResponse
+	(*CreateOrganizationRequest)(nil),   // 16: aes.project.v1.CreateOrganizationRequest
+	(*CreateOrganizationResponse)(nil),  // 17: aes.project.v1.CreateOrganizationResponse
+	(*UpdateOrganizationRequest)(nil),   // 18: aes.project.v1.UpdateOrganizationRequest
+	(*UpdateOrganizationResponse)(nil),  // 19: aes.project.v1.UpdateOrganizationResponse
+	(*DeleteOrganizationRequest)(nil),   // 20: aes.project.v1.DeleteOrganizationRequest
+	(*DeleteOrganizationResponse)(nil),  // 21: aes.project.v1.DeleteOrganizationResponse
+	(*CreateProjectRequest)(nil),        // 22: aes.project.v1.CreateProjectRequest
+	(*CreateProjectResponse)(nil),       // 23: aes.project.v1.CreateProjectResponse
+	(*UpdateProjectRequest)(nil),        // 24: aes.project.v1.UpdateProjectRequest
+	(*UpdateProjectResponse)(nil),       // 25: aes.project.v1.UpdateProjectResponse
+	(*DeleteProjectRequest)(nil),        // 26: aes.project.v1.DeleteProjectRequest
+	(*DeleteProjectResponse)(nil),       // 27: aes.project.v1.DeleteProjectResponse
+	(*ListOrgActivityRequest)(nil),      // 28: aes.project.v1.ListOrgActivityRequest
+	(*ListOrgActivityResponse)(nil),     // 29: aes.project.v1.ListOrgActivityResponse
+	(*CheckSlugAvailableRequest)(nil),   // 30: aes.project.v1.CheckSlugAvailableRequest
+	(*CheckSlugAvailableResponse)(nil),  // 31: aes.project.v1.CheckSlugAvailableResponse
+	(*ActivityEvent)(nil),               // 32: aes.project.v1.ActivityEvent
 }
 var file_aes_project_v1_project_proto_depIdxs = []int32{
 	1,  // 0: aes.project.v1.GetOrganizationResponse.organization:type_name -> aes.project.v1.Organization
 	4,  // 1: aes.project.v1.ListProjectsResponse.projects:type_name -> aes.project.v1.Project
 	4,  // 2: aes.project.v1.GetProjectResponse.project:type_name -> aes.project.v1.Project
-	1,  // 3: aes.project.v1.CreateOrganizationResponse.organization:type_name -> aes.project.v1.Organization
-	1,  // 4: aes.project.v1.UpdateOrganizationResponse.organization:type_name -> aes.project.v1.Organization
-	4,  // 5: aes.project.v1.CreateProjectResponse.project:type_name -> aes.project.v1.Project
-	4,  // 6: aes.project.v1.UpdateProjectResponse.project:type_name -> aes.project.v1.Project
-	25, // 7: aes.project.v1.ListOrgActivityResponse.events:type_name -> aes.project.v1.ActivityEvent
-	0,  // 8: aes.project.v1.CheckSlugAvailableRequest.kind:type_name -> aes.project.v1.SlugKind
-	2,  // 9: aes.project.v1.ProjectService.GetOrganization:input_type -> aes.project.v1.GetOrganizationRequest
-	9,  // 10: aes.project.v1.ProjectService.CreateOrganization:input_type -> aes.project.v1.CreateOrganizationRequest
-	11, // 11: aes.project.v1.ProjectService.UpdateOrganization:input_type -> aes.project.v1.UpdateOrganizationRequest
-	13, // 12: aes.project.v1.ProjectService.DeleteOrganization:input_type -> aes.project.v1.DeleteOrganizationRequest
-	5,  // 13: aes.project.v1.ProjectService.ListProjects:input_type -> aes.project.v1.ListProjectsRequest
-	7,  // 14: aes.project.v1.ProjectService.GetProject:input_type -> aes.project.v1.GetProjectRequest
-	15, // 15: aes.project.v1.ProjectService.CreateProject:input_type -> aes.project.v1.CreateProjectRequest
-	17, // 16: aes.project.v1.ProjectService.UpdateProject:input_type -> aes.project.v1.UpdateProjectRequest
-	19, // 17: aes.project.v1.ProjectService.DeleteProject:input_type -> aes.project.v1.DeleteProjectRequest
-	21, // 18: aes.project.v1.ProjectService.ListOrgActivity:input_type -> aes.project.v1.ListOrgActivityRequest
-	23, // 19: aes.project.v1.ProjectService.CheckSlugAvailable:input_type -> aes.project.v1.CheckSlugAvailableRequest
-	3,  // 20: aes.project.v1.ProjectService.GetOrganization:output_type -> aes.project.v1.GetOrganizationResponse
-	10, // 21: aes.project.v1.ProjectService.CreateOrganization:output_type -> aes.project.v1.CreateOrganizationResponse
-	12, // 22: aes.project.v1.ProjectService.UpdateOrganization:output_type -> aes.project.v1.UpdateOrganizationResponse
-	14, // 23: aes.project.v1.ProjectService.DeleteOrganization:output_type -> aes.project.v1.DeleteOrganizationResponse
-	6,  // 24: aes.project.v1.ProjectService.ListProjects:output_type -> aes.project.v1.ListProjectsResponse
-	8,  // 25: aes.project.v1.ProjectService.GetProject:output_type -> aes.project.v1.GetProjectResponse
-	16, // 26: aes.project.v1.ProjectService.CreateProject:output_type -> aes.project.v1.CreateProjectResponse
-	18, // 27: aes.project.v1.ProjectService.UpdateProject:output_type -> aes.project.v1.UpdateProjectResponse
-	20, // 28: aes.project.v1.ProjectService.DeleteProject:output_type -> aes.project.v1.DeleteProjectResponse
-	22, // 29: aes.project.v1.ProjectService.ListOrgActivity:output_type -> aes.project.v1.ListOrgActivityResponse
-	24, // 30: aes.project.v1.ProjectService.CheckSlugAvailable:output_type -> aes.project.v1.CheckSlugAvailableResponse
-	20, // [20:31] is the sub-list for method output_type
-	9,  // [9:20] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	9,  // 3: aes.project.v1.ListProjectMembersResponse.members:type_name -> aes.project.v1.ProjectMember
+	9,  // 4: aes.project.v1.SetProjectMemberResponse.member:type_name -> aes.project.v1.ProjectMember
+	1,  // 5: aes.project.v1.CreateOrganizationResponse.organization:type_name -> aes.project.v1.Organization
+	1,  // 6: aes.project.v1.UpdateOrganizationResponse.organization:type_name -> aes.project.v1.Organization
+	4,  // 7: aes.project.v1.CreateProjectResponse.project:type_name -> aes.project.v1.Project
+	4,  // 8: aes.project.v1.UpdateProjectResponse.project:type_name -> aes.project.v1.Project
+	32, // 9: aes.project.v1.ListOrgActivityResponse.events:type_name -> aes.project.v1.ActivityEvent
+	0,  // 10: aes.project.v1.CheckSlugAvailableRequest.kind:type_name -> aes.project.v1.SlugKind
+	2,  // 11: aes.project.v1.ProjectService.GetOrganization:input_type -> aes.project.v1.GetOrganizationRequest
+	16, // 12: aes.project.v1.ProjectService.CreateOrganization:input_type -> aes.project.v1.CreateOrganizationRequest
+	18, // 13: aes.project.v1.ProjectService.UpdateOrganization:input_type -> aes.project.v1.UpdateOrganizationRequest
+	20, // 14: aes.project.v1.ProjectService.DeleteOrganization:input_type -> aes.project.v1.DeleteOrganizationRequest
+	5,  // 15: aes.project.v1.ProjectService.ListProjects:input_type -> aes.project.v1.ListProjectsRequest
+	7,  // 16: aes.project.v1.ProjectService.GetProject:input_type -> aes.project.v1.GetProjectRequest
+	22, // 17: aes.project.v1.ProjectService.CreateProject:input_type -> aes.project.v1.CreateProjectRequest
+	24, // 18: aes.project.v1.ProjectService.UpdateProject:input_type -> aes.project.v1.UpdateProjectRequest
+	26, // 19: aes.project.v1.ProjectService.DeleteProject:input_type -> aes.project.v1.DeleteProjectRequest
+	28, // 20: aes.project.v1.ProjectService.ListOrgActivity:input_type -> aes.project.v1.ListOrgActivityRequest
+	30, // 21: aes.project.v1.ProjectService.CheckSlugAvailable:input_type -> aes.project.v1.CheckSlugAvailableRequest
+	10, // 22: aes.project.v1.ProjectService.ListProjectMembers:input_type -> aes.project.v1.ListProjectMembersRequest
+	12, // 23: aes.project.v1.ProjectService.SetProjectMember:input_type -> aes.project.v1.SetProjectMemberRequest
+	14, // 24: aes.project.v1.ProjectService.RemoveProjectMember:input_type -> aes.project.v1.RemoveProjectMemberRequest
+	3,  // 25: aes.project.v1.ProjectService.GetOrganization:output_type -> aes.project.v1.GetOrganizationResponse
+	17, // 26: aes.project.v1.ProjectService.CreateOrganization:output_type -> aes.project.v1.CreateOrganizationResponse
+	19, // 27: aes.project.v1.ProjectService.UpdateOrganization:output_type -> aes.project.v1.UpdateOrganizationResponse
+	21, // 28: aes.project.v1.ProjectService.DeleteOrganization:output_type -> aes.project.v1.DeleteOrganizationResponse
+	6,  // 29: aes.project.v1.ProjectService.ListProjects:output_type -> aes.project.v1.ListProjectsResponse
+	8,  // 30: aes.project.v1.ProjectService.GetProject:output_type -> aes.project.v1.GetProjectResponse
+	23, // 31: aes.project.v1.ProjectService.CreateProject:output_type -> aes.project.v1.CreateProjectResponse
+	25, // 32: aes.project.v1.ProjectService.UpdateProject:output_type -> aes.project.v1.UpdateProjectResponse
+	27, // 33: aes.project.v1.ProjectService.DeleteProject:output_type -> aes.project.v1.DeleteProjectResponse
+	29, // 34: aes.project.v1.ProjectService.ListOrgActivity:output_type -> aes.project.v1.ListOrgActivityResponse
+	31, // 35: aes.project.v1.ProjectService.CheckSlugAvailable:output_type -> aes.project.v1.CheckSlugAvailableResponse
+	11, // 36: aes.project.v1.ProjectService.ListProjectMembers:output_type -> aes.project.v1.ListProjectMembersResponse
+	13, // 37: aes.project.v1.ProjectService.SetProjectMember:output_type -> aes.project.v1.SetProjectMemberResponse
+	15, // 38: aes.project.v1.ProjectService.RemoveProjectMember:output_type -> aes.project.v1.RemoveProjectMemberResponse
+	25, // [25:39] is the sub-list for method output_type
+	11, // [11:25] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_aes_project_v1_project_proto_init() }
@@ -1607,15 +2009,15 @@ func file_aes_project_v1_project_proto_init() {
 	if File_aes_project_v1_project_proto != nil {
 		return
 	}
-	file_aes_project_v1_project_proto_msgTypes[10].OneofWrappers = []any{}
-	file_aes_project_v1_project_proto_msgTypes[16].OneofWrappers = []any{}
+	file_aes_project_v1_project_proto_msgTypes[17].OneofWrappers = []any{}
+	file_aes_project_v1_project_proto_msgTypes[23].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_project_v1_project_proto_rawDesc), len(file_aes_project_v1_project_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   25,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

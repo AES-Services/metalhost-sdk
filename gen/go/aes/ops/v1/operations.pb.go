@@ -176,21 +176,50 @@ type CreateOperationRequest struct {
 	// the number of whole GPUs. Empty/0 = CPU-only VM.
 	VmGpuModel string `protobuf:"bytes,44,opt,name=vm_gpu_model,json=vmGpuModel,proto3" json:"vm_gpu_model,omitempty"`
 	VmGpuCount int32  `protobuf:"varint,45,opt,name=vm_gpu_count,json=vmGpuCount,proto3" json:"vm_gpu_count,omitempty"`
-	// Bare-metal ISO URL import (kind=bm_iso_import). The org-prefix-confined object key + the
-	// source URL are computed + quota-checked at the BareMetalService API edge, then handed here so
-	// the durable ISOImportWorkflow's activity can stream the bytes into object storage with live
-	// byte-progress (surfaced on the Operation metadata + ListBareMetalISOs).
+	// Bare-metal ISO URL import (kind=bm_iso_import). The object key and source URL are
+	// validated and quota-checked by BareMetalService; import byte-progress is surfaced on
+	// the Operation metadata and ListBareMetalISOs.
 	IsoProjectName string `protobuf:"bytes,46,opt,name=iso_project_name,json=isoProjectName,proto3" json:"iso_project_name,omitempty"`
 	IsoSourceUrl   string `protobuf:"bytes,47,opt,name=iso_source_url,json=isoSourceUrl,proto3" json:"iso_source_url,omitempty"`
 	IsoObjectKey   string `protobuf:"bytes,48,opt,name=iso_object_key,json=isoObjectKey,proto3" json:"iso_object_key,omitempty"`
 	IsoFilename    string `protobuf:"bytes,49,opt,name=iso_filename,json=isoFilename,proto3" json:"iso_filename,omitempty"`
-	// Customer-networking-v1 (VM provisioning). Threaded so async-provisioned VMs persist the
-	// same networking the sync path writes. vm_security_groups: internal security groups to
-	// attach at create; vm_private_only: no public NIC at all (no public v4/v6).
+	// VM networking at provision time. vm_security_groups: security groups to attach at
+	// create; vm_private_only: no public NIC at all (no public v4/v6).
 	VmSecurityGroups []string `protobuf:"bytes,50,rep,name=vm_security_groups,json=vmSecurityGroups,proto3" json:"vm_security_groups,omitempty"`
 	VmPrivateOnly    bool     `protobuf:"varint,51,opt,name=vm_private_only,json=vmPrivateOnly,proto3" json:"vm_private_only,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// Live-migration-specific (kind=vm_migrate). Passed alongside vm_name. Empty target =
+	// any eligible node in the VM's cpu-class pool is chosen automatically.
+	VmMigrateTargetNode string `protobuf:"bytes,52,opt,name=vm_migrate_target_node,json=vmMigrateTargetNode,proto3" json:"vm_migrate_target_node,omitempty"`
+	// Drain-specific (kind=host_drain). Passed alongside host_name + datacenter_name.
+	// host_node_name identifies the node being drained and is resolved by DrainHost.
+	DrainReason  string `protobuf:"bytes,53,opt,name=drain_reason,json=drainReason,proto3" json:"drain_reason,omitempty"`
+	HostNodeName string `protobuf:"bytes,54,opt,name=host_node_name,json=hostNodeName,proto3" json:"host_node_name,omitempty"`
+	// Fleet orchestrator kinds. All carry fleet_proposal_name so the operation's
+	// terminal stages can stamp the proposal's outcome (empty when an admin runs
+	// the same operation directly).
+	//
+	//	host_role_convert:      host_name + datacenter_name + convert_target_role
+	//	                        ('baremetal_pool' | 'hypervisor').
+	//	host_drain_maintenance: host_name + datacenter_name + host_node_name +
+	//	                        drain_reason — cordon + full live-migration drain,
+	//	                        then park the host in role 'bench' with the
+	//	                        maintenance note.
+	//	host_bench_power:       host_name + datacenter_name + bench_power_action
+	//	                        ('down' = graceful off into bench, 'up' = power on
+	//	                        + rejoin from bench).
+	//	defrag_pass:            datacenter_name + defrag_plan_json — the literal
+	//	                        migration set from the approved proposal (execution
+	//	                        is never re-planned at run time), bounded by
+	//	                        defrag_budget.
+	FleetProposalName string `protobuf:"bytes,55,opt,name=fleet_proposal_name,json=fleetProposalName,proto3" json:"fleet_proposal_name,omitempty"`
+	ConvertTargetRole string `protobuf:"bytes,56,opt,name=convert_target_role,json=convertTargetRole,proto3" json:"convert_target_role,omitempty"`
+	BenchPowerAction  string `protobuf:"bytes,57,opt,name=bench_power_action,json=benchPowerAction,proto3" json:"bench_power_action,omitempty"`
+	DefragPlanJson    string `protobuf:"bytes,58,opt,name=defrag_plan_json,json=defragPlanJson,proto3" json:"defrag_plan_json,omitempty"`
+	DefragBudget      int32  `protobuf:"varint,59,opt,name=defrag_budget,json=defragBudget,proto3" json:"defrag_budget,omitempty"`
+	// Requested runtime state for this lifecycle operation.
+	VmRuntimeTargetState string `protobuf:"bytes,60,opt,name=vm_runtime_target_state,json=vmRuntimeTargetState,proto3" json:"vm_runtime_target_state,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *CreateOperationRequest) Reset() {
@@ -536,6 +565,69 @@ func (x *CreateOperationRequest) GetVmPrivateOnly() bool {
 		return x.VmPrivateOnly
 	}
 	return false
+}
+
+func (x *CreateOperationRequest) GetVmMigrateTargetNode() string {
+	if x != nil {
+		return x.VmMigrateTargetNode
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetDrainReason() string {
+	if x != nil {
+		return x.DrainReason
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetHostNodeName() string {
+	if x != nil {
+		return x.HostNodeName
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetFleetProposalName() string {
+	if x != nil {
+		return x.FleetProposalName
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetConvertTargetRole() string {
+	if x != nil {
+		return x.ConvertTargetRole
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetBenchPowerAction() string {
+	if x != nil {
+		return x.BenchPowerAction
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetDefragPlanJson() string {
+	if x != nil {
+		return x.DefragPlanJson
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetDefragBudget() int32 {
+	if x != nil {
+		return x.DefragBudget
+	}
+	return 0
+}
+
+func (x *CreateOperationRequest) GetVmRuntimeTargetState() string {
+	if x != nil {
+		return x.VmRuntimeTargetState
+	}
+	return ""
 }
 
 type CreateOperationResponse struct {
@@ -1090,7 +1182,7 @@ var File_aes_ops_v1_operations_proto protoreflect.FileDescriptor
 const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\n" +
 	"\x1baes/ops/v1/operations.proto\x12\n" +
-	"aes.ops.v1\"\xb5\x12\n" +
+	"aes.ops.v1\"\xc7\x15\n" +
 	"\x16CreateOperationRequest\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12'\n" +
 	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12&\n" +
@@ -1142,7 +1234,16 @@ const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\x0eiso_object_key\x180 \x01(\tR\fisoObjectKey\x12!\n" +
 	"\fiso_filename\x181 \x01(\tR\visoFilename\x12,\n" +
 	"\x12vm_security_groups\x182 \x03(\tR\x10vmSecurityGroups\x12&\n" +
-	"\x0fvm_private_only\x183 \x01(\bR\rvmPrivateOnly\x1a;\n" +
+	"\x0fvm_private_only\x183 \x01(\bR\rvmPrivateOnly\x123\n" +
+	"\x16vm_migrate_target_node\x184 \x01(\tR\x13vmMigrateTargetNode\x12!\n" +
+	"\fdrain_reason\x185 \x01(\tR\vdrainReason\x12$\n" +
+	"\x0ehost_node_name\x186 \x01(\tR\fhostNodeName\x12.\n" +
+	"\x13fleet_proposal_name\x187 \x01(\tR\x11fleetProposalName\x12.\n" +
+	"\x13convert_target_role\x188 \x01(\tR\x11convertTargetRole\x12,\n" +
+	"\x12bench_power_action\x189 \x01(\tR\x10benchPowerAction\x12(\n" +
+	"\x10defrag_plan_json\x18: \x01(\tR\x0edefragPlanJson\x12#\n" +
+	"\rdefrag_budget\x18; \x01(\x05R\fdefragBudget\x125\n" +
+	"\x17vm_runtime_target_state\x18< \x01(\tR\x14vmRuntimeTargetState\x1a;\n" +
 	"\rVmLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a@\n" +

@@ -77,6 +77,9 @@ const (
 	// WalletServiceGetCostForecastProcedure is the fully-qualified name of the WalletService's
 	// GetCostForecast RPC.
 	WalletServiceGetCostForecastProcedure = "/aes.wallet.v1.WalletService/GetCostForecast"
+	// WalletServiceGetProjectSpendBreakdownProcedure is the fully-qualified name of the WalletService's
+	// GetProjectSpendBreakdown RPC.
+	WalletServiceGetProjectSpendBreakdownProcedure = "/aes.wallet.v1.WalletService/GetProjectSpendBreakdown"
 	// WalletServiceConfigureWalletAlertsProcedure is the fully-qualified name of the WalletService's
 	// ConfigureWalletAlerts RPC.
 	WalletServiceConfigureWalletAlertsProcedure = "/aes.wallet.v1.WalletService/ConfigureWalletAlerts"
@@ -148,6 +151,10 @@ type WalletServiceClient interface {
 	// call this for budget tracking; the projection is naive (mtd_spend / days_elapsed × days_in_month)
 	// with no seasonality or per-resource modeling.
 	GetCostForecast(context.Context, *connect.Request[v1.GetCostForecastRequest]) (*connect.Response[v1.GetCostForecastResponse], error)
+	// GetProjectSpendBreakdown returns this period's spend broken down by project (#208). Billing
+	// stays org-level (one wallet/invoice); this is read-only visibility into which project drives
+	// cost. Spend is estimated from metered usage × effective rates over the period.
+	GetProjectSpendBreakdown(context.Context, *connect.Request[v1.GetProjectSpendBreakdownRequest]) (*connect.Response[v1.GetProjectSpendBreakdownResponse], error)
 	// Wallet alerts. One config per wallet: balance_alert_minor (fire when prepay balance drops
 	// below) and/or days_remaining_alert (fire when balance / daily burn falls below this many
 	// days). Either can be unset (NULL) to disable that alert. Edge-fire arming — fires once
@@ -177,10 +184,11 @@ type WalletServiceClient interface {
 	// a time-limited presigned download URL.
 	QueryUsage(context.Context, *connect.Request[v1.QueryUsageRequest]) (*connect.Response[v1.QueryUsageResponse], error)
 	ExportUsage(context.Context, *connect.Request[v1.ExportUsageRequest]) (*connect.Response[v1.ExportUsageResponse], error)
-	// Promotion coupons (launch founder discount). RedeemPromotionCode consumes a single-use
-	// code and installs a percentage discount window on the caller's org billing account;
-	// GetActivePromotion backs the "Founder 50% · ends {date}" banner. The discount is applied at
-	// settlement / prepaid-quote time — it is not a wallet credit. Spec: docs/specs/LAUNCH_PROMO_COUPONS.md.
+	// Promotions. RedeemPromotionCode accepts a single-use coupon code or a shared campaign
+	// code (e.g. "PODCAST50" / "MH5"), redeemable once per org. Discount promotions install a
+	// percentage-off window applied at settlement / prepaid-quote time; credit promotions add
+	// the funds to the wallet at redeem time (a saved payment method is required for those).
+	// GetActivePromotion backs the billing-page banner for both kinds.
 	RedeemPromotionCode(context.Context, *connect.Request[v1.RedeemPromotionCodeRequest]) (*connect.Response[v1.RedeemPromotionCodeResponse], error)
 	GetActivePromotion(context.Context, *connect.Request[v1.GetActivePromotionRequest]) (*connect.Response[v1.GetActivePromotionResponse], error)
 }
@@ -286,6 +294,12 @@ func NewWalletServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(walletServiceMethods.ByName("GetCostForecast")),
 			connect.WithClientOptions(opts...),
 		),
+		getProjectSpendBreakdown: connect.NewClient[v1.GetProjectSpendBreakdownRequest, v1.GetProjectSpendBreakdownResponse](
+			httpClient,
+			baseURL+WalletServiceGetProjectSpendBreakdownProcedure,
+			connect.WithSchema(walletServiceMethods.ByName("GetProjectSpendBreakdown")),
+			connect.WithClientOptions(opts...),
+		),
 		configureWalletAlerts: connect.NewClient[v1.ConfigureWalletAlertsRequest, v1.ConfigureWalletAlertsResponse](
 			httpClient,
 			baseURL+WalletServiceConfigureWalletAlertsProcedure,
@@ -372,6 +386,7 @@ type walletServiceClient struct {
 	configureAutoRecharge       *connect.Client[v1.ConfigureAutoRechargeRequest, v1.ConfigureAutoRechargeResponse]
 	getAutoRechargeConfig       *connect.Client[v1.GetAutoRechargeConfigRequest, v1.GetAutoRechargeConfigResponse]
 	getCostForecast             *connect.Client[v1.GetCostForecastRequest, v1.GetCostForecastResponse]
+	getProjectSpendBreakdown    *connect.Client[v1.GetProjectSpendBreakdownRequest, v1.GetProjectSpendBreakdownResponse]
 	configureWalletAlerts       *connect.Client[v1.ConfigureWalletAlertsRequest, v1.ConfigureWalletAlertsResponse]
 	getWalletAlerts             *connect.Client[v1.GetWalletAlertsRequest, v1.GetWalletAlertsResponse]
 	createStripeTopUpIntent     *connect.Client[v1.CreateStripeTopUpIntentRequest, v1.CreateStripeTopUpIntentResponse]
@@ -458,6 +473,11 @@ func (c *walletServiceClient) GetAutoRechargeConfig(ctx context.Context, req *co
 // GetCostForecast calls aes.wallet.v1.WalletService.GetCostForecast.
 func (c *walletServiceClient) GetCostForecast(ctx context.Context, req *connect.Request[v1.GetCostForecastRequest]) (*connect.Response[v1.GetCostForecastResponse], error) {
 	return c.getCostForecast.CallUnary(ctx, req)
+}
+
+// GetProjectSpendBreakdown calls aes.wallet.v1.WalletService.GetProjectSpendBreakdown.
+func (c *walletServiceClient) GetProjectSpendBreakdown(ctx context.Context, req *connect.Request[v1.GetProjectSpendBreakdownRequest]) (*connect.Response[v1.GetProjectSpendBreakdownResponse], error) {
+	return c.getProjectSpendBreakdown.CallUnary(ctx, req)
 }
 
 // ConfigureWalletAlerts calls aes.wallet.v1.WalletService.ConfigureWalletAlerts.
@@ -552,6 +572,10 @@ type WalletServiceHandler interface {
 	// call this for budget tracking; the projection is naive (mtd_spend / days_elapsed × days_in_month)
 	// with no seasonality or per-resource modeling.
 	GetCostForecast(context.Context, *connect.Request[v1.GetCostForecastRequest]) (*connect.Response[v1.GetCostForecastResponse], error)
+	// GetProjectSpendBreakdown returns this period's spend broken down by project (#208). Billing
+	// stays org-level (one wallet/invoice); this is read-only visibility into which project drives
+	// cost. Spend is estimated from metered usage × effective rates over the period.
+	GetProjectSpendBreakdown(context.Context, *connect.Request[v1.GetProjectSpendBreakdownRequest]) (*connect.Response[v1.GetProjectSpendBreakdownResponse], error)
 	// Wallet alerts. One config per wallet: balance_alert_minor (fire when prepay balance drops
 	// below) and/or days_remaining_alert (fire when balance / daily burn falls below this many
 	// days). Either can be unset (NULL) to disable that alert. Edge-fire arming — fires once
@@ -581,10 +605,11 @@ type WalletServiceHandler interface {
 	// a time-limited presigned download URL.
 	QueryUsage(context.Context, *connect.Request[v1.QueryUsageRequest]) (*connect.Response[v1.QueryUsageResponse], error)
 	ExportUsage(context.Context, *connect.Request[v1.ExportUsageRequest]) (*connect.Response[v1.ExportUsageResponse], error)
-	// Promotion coupons (launch founder discount). RedeemPromotionCode consumes a single-use
-	// code and installs a percentage discount window on the caller's org billing account;
-	// GetActivePromotion backs the "Founder 50% · ends {date}" banner. The discount is applied at
-	// settlement / prepaid-quote time — it is not a wallet credit. Spec: docs/specs/LAUNCH_PROMO_COUPONS.md.
+	// Promotions. RedeemPromotionCode accepts a single-use coupon code or a shared campaign
+	// code (e.g. "PODCAST50" / "MH5"), redeemable once per org. Discount promotions install a
+	// percentage-off window applied at settlement / prepaid-quote time; credit promotions add
+	// the funds to the wallet at redeem time (a saved payment method is required for those).
+	// GetActivePromotion backs the billing-page banner for both kinds.
 	RedeemPromotionCode(context.Context, *connect.Request[v1.RedeemPromotionCodeRequest]) (*connect.Response[v1.RedeemPromotionCodeResponse], error)
 	GetActivePromotion(context.Context, *connect.Request[v1.GetActivePromotionRequest]) (*connect.Response[v1.GetActivePromotionResponse], error)
 }
@@ -686,6 +711,12 @@ func NewWalletServiceHandler(svc WalletServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(walletServiceMethods.ByName("GetCostForecast")),
 		connect.WithHandlerOptions(opts...),
 	)
+	walletServiceGetProjectSpendBreakdownHandler := connect.NewUnaryHandler(
+		WalletServiceGetProjectSpendBreakdownProcedure,
+		svc.GetProjectSpendBreakdown,
+		connect.WithSchema(walletServiceMethods.ByName("GetProjectSpendBreakdown")),
+		connect.WithHandlerOptions(opts...),
+	)
 	walletServiceConfigureWalletAlertsHandler := connect.NewUnaryHandler(
 		WalletServiceConfigureWalletAlertsProcedure,
 		svc.ConfigureWalletAlerts,
@@ -784,6 +815,8 @@ func NewWalletServiceHandler(svc WalletServiceHandler, opts ...connect.HandlerOp
 			walletServiceGetAutoRechargeConfigHandler.ServeHTTP(w, r)
 		case WalletServiceGetCostForecastProcedure:
 			walletServiceGetCostForecastHandler.ServeHTTP(w, r)
+		case WalletServiceGetProjectSpendBreakdownProcedure:
+			walletServiceGetProjectSpendBreakdownHandler.ServeHTTP(w, r)
 		case WalletServiceConfigureWalletAlertsProcedure:
 			walletServiceConfigureWalletAlertsHandler.ServeHTTP(w, r)
 		case WalletServiceGetWalletAlertsProcedure:
@@ -873,6 +906,10 @@ func (UnimplementedWalletServiceHandler) GetAutoRechargeConfig(context.Context, 
 
 func (UnimplementedWalletServiceHandler) GetCostForecast(context.Context, *connect.Request[v1.GetCostForecastRequest]) (*connect.Response[v1.GetCostForecastResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.wallet.v1.WalletService.GetCostForecast is not implemented"))
+}
+
+func (UnimplementedWalletServiceHandler) GetProjectSpendBreakdown(context.Context, *connect.Request[v1.GetProjectSpendBreakdownRequest]) (*connect.Response[v1.GetProjectSpendBreakdownResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.wallet.v1.WalletService.GetProjectSpendBreakdown is not implemented"))
 }
 
 func (UnimplementedWalletServiceHandler) ConfigureWalletAlerts(context.Context, *connect.Request[v1.ConfigureWalletAlertsRequest]) (*connect.Response[v1.ConfigureWalletAlertsResponse], error) {

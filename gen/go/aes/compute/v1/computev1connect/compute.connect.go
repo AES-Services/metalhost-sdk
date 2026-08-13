@@ -54,6 +54,9 @@ const (
 	// ComputeServiceResizeVirtualMachineProcedure is the fully-qualified name of the ComputeService's
 	// ResizeVirtualMachine RPC.
 	ComputeServiceResizeVirtualMachineProcedure = "/aes.compute.v1.ComputeService/ResizeVirtualMachine"
+	// ComputeServiceQuoteVirtualMachineResizeProcedure is the fully-qualified name of the
+	// ComputeService's QuoteVirtualMachineResize RPC.
+	ComputeServiceQuoteVirtualMachineResizeProcedure = "/aes.compute.v1.ComputeService/QuoteVirtualMachineResize"
 	// ComputeServiceSetVMAutorenewProcedure is the fully-qualified name of the ComputeService's
 	// SetVMAutorenew RPC.
 	ComputeServiceSetVMAutorenewProcedure = "/aes.compute.v1.ComputeService/SetVMAutorenew"
@@ -114,6 +117,10 @@ type ComputeServiceClient interface {
 	// and polls. Brief downtime. Disks, networks, and IP addresses survive. A cpu_class change
 	// requires capacity for the new class in the datacenter, or the operation fails.
 	ResizeVirtualMachine(context.Context, *connect.Request[v1.ResizeVirtualMachineRequest]) (*connect.Response[v1.ResizeVirtualMachineResponse], error)
+	// QuoteVirtualMachineResize prices a resize before it is applied. For a VM inside a monthly
+	// term, growing the shape is allowed (never shrinking) and the difference for the remaining
+	// term is charged immediately on resize — due_now_minor is that amount. 0 for hourly VMs.
+	QuoteVirtualMachineResize(context.Context, *connect.Request[v1.QuoteVirtualMachineResizeRequest]) (*connect.Response[v1.QuoteVirtualMachineResizeResponse], error)
 	// SetVMAutorenew flips the autorenew flag on a VM in MONTHLY_* billing mode. Returns
 	// FailedPrecondition when called on a HOURLY VM (no term to renew).
 	SetVMAutorenew(context.Context, *connect.Request[v1.SetVMAutorenewRequest]) (*connect.Response[v1.SetVMAutorenewResponse], error)
@@ -219,6 +226,12 @@ func NewComputeServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(computeServiceMethods.ByName("ResizeVirtualMachine")),
 			connect.WithClientOptions(opts...),
 		),
+		quoteVirtualMachineResize: connect.NewClient[v1.QuoteVirtualMachineResizeRequest, v1.QuoteVirtualMachineResizeResponse](
+			httpClient,
+			baseURL+ComputeServiceQuoteVirtualMachineResizeProcedure,
+			connect.WithSchema(computeServiceMethods.ByName("QuoteVirtualMachineResize")),
+			connect.WithClientOptions(opts...),
+		),
 		setVMAutorenew: connect.NewClient[v1.SetVMAutorenewRequest, v1.SetVMAutorenewResponse](
 			httpClient,
 			baseURL+ComputeServiceSetVMAutorenewProcedure,
@@ -309,6 +322,7 @@ type computeServiceClient struct {
 	stopVirtualMachine             *connect.Client[v1.StopVirtualMachineRequest, v1.StopVirtualMachineResponse]
 	restartVirtualMachine          *connect.Client[v1.RestartVirtualMachineRequest, v1.RestartVirtualMachineResponse]
 	resizeVirtualMachine           *connect.Client[v1.ResizeVirtualMachineRequest, v1.ResizeVirtualMachineResponse]
+	quoteVirtualMachineResize      *connect.Client[v1.QuoteVirtualMachineResizeRequest, v1.QuoteVirtualMachineResizeResponse]
 	setVMAutorenew                 *connect.Client[v1.SetVMAutorenewRequest, v1.SetVMAutorenewResponse]
 	renewVMNow                     *connect.Client[v1.RenewVMNowRequest, v1.RenewVMNowResponse]
 	reimageVirtualMachine          *connect.Client[v1.ReimageVirtualMachineRequest, v1.ReimageVirtualMachineResponse]
@@ -357,6 +371,11 @@ func (c *computeServiceClient) RestartVirtualMachine(ctx context.Context, req *c
 // ResizeVirtualMachine calls aes.compute.v1.ComputeService.ResizeVirtualMachine.
 func (c *computeServiceClient) ResizeVirtualMachine(ctx context.Context, req *connect.Request[v1.ResizeVirtualMachineRequest]) (*connect.Response[v1.ResizeVirtualMachineResponse], error) {
 	return c.resizeVirtualMachine.CallUnary(ctx, req)
+}
+
+// QuoteVirtualMachineResize calls aes.compute.v1.ComputeService.QuoteVirtualMachineResize.
+func (c *computeServiceClient) QuoteVirtualMachineResize(ctx context.Context, req *connect.Request[v1.QuoteVirtualMachineResizeRequest]) (*connect.Response[v1.QuoteVirtualMachineResizeResponse], error) {
+	return c.quoteVirtualMachineResize.CallUnary(ctx, req)
 }
 
 // SetVMAutorenew calls aes.compute.v1.ComputeService.SetVMAutorenew.
@@ -444,6 +463,10 @@ type ComputeServiceHandler interface {
 	// and polls. Brief downtime. Disks, networks, and IP addresses survive. A cpu_class change
 	// requires capacity for the new class in the datacenter, or the operation fails.
 	ResizeVirtualMachine(context.Context, *connect.Request[v1.ResizeVirtualMachineRequest]) (*connect.Response[v1.ResizeVirtualMachineResponse], error)
+	// QuoteVirtualMachineResize prices a resize before it is applied. For a VM inside a monthly
+	// term, growing the shape is allowed (never shrinking) and the difference for the remaining
+	// term is charged immediately on resize — due_now_minor is that amount. 0 for hourly VMs.
+	QuoteVirtualMachineResize(context.Context, *connect.Request[v1.QuoteVirtualMachineResizeRequest]) (*connect.Response[v1.QuoteVirtualMachineResizeResponse], error)
 	// SetVMAutorenew flips the autorenew flag on a VM in MONTHLY_* billing mode. Returns
 	// FailedPrecondition when called on a HOURLY VM (no term to renew).
 	SetVMAutorenew(context.Context, *connect.Request[v1.SetVMAutorenewRequest]) (*connect.Response[v1.SetVMAutorenewResponse], error)
@@ -545,6 +568,12 @@ func NewComputeServiceHandler(svc ComputeServiceHandler, opts ...connect.Handler
 		connect.WithSchema(computeServiceMethods.ByName("ResizeVirtualMachine")),
 		connect.WithHandlerOptions(opts...),
 	)
+	computeServiceQuoteVirtualMachineResizeHandler := connect.NewUnaryHandler(
+		ComputeServiceQuoteVirtualMachineResizeProcedure,
+		svc.QuoteVirtualMachineResize,
+		connect.WithSchema(computeServiceMethods.ByName("QuoteVirtualMachineResize")),
+		connect.WithHandlerOptions(opts...),
+	)
 	computeServiceSetVMAutorenewHandler := connect.NewUnaryHandler(
 		ComputeServiceSetVMAutorenewProcedure,
 		svc.SetVMAutorenew,
@@ -639,6 +668,8 @@ func NewComputeServiceHandler(svc ComputeServiceHandler, opts ...connect.Handler
 			computeServiceRestartVirtualMachineHandler.ServeHTTP(w, r)
 		case ComputeServiceResizeVirtualMachineProcedure:
 			computeServiceResizeVirtualMachineHandler.ServeHTTP(w, r)
+		case ComputeServiceQuoteVirtualMachineResizeProcedure:
+			computeServiceQuoteVirtualMachineResizeHandler.ServeHTTP(w, r)
 		case ComputeServiceSetVMAutorenewProcedure:
 			computeServiceSetVMAutorenewHandler.ServeHTTP(w, r)
 		case ComputeServiceRenewVMNowProcedure:
@@ -700,6 +731,10 @@ func (UnimplementedComputeServiceHandler) RestartVirtualMachine(context.Context,
 
 func (UnimplementedComputeServiceHandler) ResizeVirtualMachine(context.Context, *connect.Request[v1.ResizeVirtualMachineRequest]) (*connect.Response[v1.ResizeVirtualMachineResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.compute.v1.ComputeService.ResizeVirtualMachine is not implemented"))
+}
+
+func (UnimplementedComputeServiceHandler) QuoteVirtualMachineResize(context.Context, *connect.Request[v1.QuoteVirtualMachineResizeRequest]) (*connect.Response[v1.QuoteVirtualMachineResizeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.compute.v1.ComputeService.QuoteVirtualMachineResize is not implemented"))
 }
 
 func (UnimplementedComputeServiceHandler) SetVMAutorenew(context.Context, *connect.Request[v1.SetVMAutorenewRequest]) (*connect.Response[v1.SetVMAutorenewResponse], error) {

@@ -691,10 +691,10 @@ paths:
         - aes.baremetal.v1.BareMetalService
       summary: ReleaseBareMetalInstance
       description: |-
-        ReleaseBareMetalInstance ends the lease; the host returns to the available pool. Refused
-         while a MONTHLY_* term is still active (hard non-cancel, same as DeleteVirtualMachine). The
-         customer's data on local disks is not wiped by Metalhost — operator policy decides whether
-         the host is reformatted before re-leasing.
+        ReleaseBareMetalInstance ends the lease; the machine is powered down and returns to the
+         available pool after operator processing. Refused while a MONTHLY_* term is still active
+         (hard non-cancel, same as DeleteVirtualMachine). Local disks are securely erased before the
+         machine is ever re-leased.
       operationId: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance
       parameters:
         - name: Connect-Protocol-Version
@@ -1482,6 +1482,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.compute.v1.OpenConsoleResponse'
+  /aes.compute.v1.ComputeService/QuoteVirtualMachineResize:
+    post:
+      tags:
+        - aes.compute.v1.ComputeService
+      summary: QuoteVirtualMachineResize
+      description: |-
+        QuoteVirtualMachineResize prices a resize before it is applied. For a VM inside a monthly
+         term, growing the shape is allowed (never shrinking) and the difference for the remaining
+         term is charged immediately on resize — due_now_minor is that amount. 0 for hourly VMs.
+      operationId: aes.compute.v1.ComputeService.QuoteVirtualMachineResize
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.compute.v1.QuoteVirtualMachineResizeRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.compute.v1.QuoteVirtualMachineResizeResponse'
   /aes.compute.v1.ComputeService/ReimageVirtualMachine:
     post:
       tags:
@@ -4040,7 +4079,7 @@ paths:
       tags:
         - aes.ops.v1.OperationsService
       summary: ListOperations
-      description: Lists operations in name order (opaque page_token is the last-seen name).
+      description: Lists operations newest-first (reverse name order; opaque page_token is the last-seen name).
       operationId: aes.ops.v1.OperationsService.ListOperations
       parameters:
         - name: Connect-Protocol-Version
@@ -4369,6 +4408,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.project.v1.ListOrgActivityResponse'
+  /aes.project.v1.ProjectService/ListProjectMembers:
+    post:
+      tags:
+        - aes.project.v1.ProjectService
+      summary: ListProjectMembers
+      description: |-
+        Per-member project access (#208). Org owners/admins reach every project implicitly; these
+         RPCs grant a specific org member access to a specific project with a project role
+         (owner/editor/viewer). Caller must be a project owner, an org owner/admin, or platform admin.
+      operationId: aes.project.v1.ProjectService.ListProjectMembers
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.project.v1.ListProjectMembersRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.project.v1.ListProjectMembersResponse'
   /aes.project.v1.ProjectService/ListProjects:
     post:
       tags:
@@ -4404,6 +4482,80 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.project.v1.ListProjectsResponse'
+  /aes.project.v1.ProjectService/RemoveProjectMember:
+    post:
+      tags:
+        - aes.project.v1.ProjectService
+      summary: RemoveProjectMember
+      description: |-
+        RemoveProjectMember revokes a member's project-scoped access (org owners/admins keep implicit
+         access regardless).
+      operationId: aes.project.v1.ProjectService.RemoveProjectMember
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.project.v1.RemoveProjectMemberRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.project.v1.RemoveProjectMemberResponse'
+  /aes.project.v1.ProjectService/SetProjectMember:
+    post:
+      tags:
+        - aes.project.v1.ProjectService
+      summary: SetProjectMember
+      description: SetProjectMember grants or updates a member's role on the project (idempotent upsert).
+      operationId: aes.project.v1.ProjectService.SetProjectMember
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.project.v1.SetProjectMemberRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.project.v1.SetProjectMemberResponse'
   /aes.project.v1.ProjectService/UpdateOrganization:
     post:
       tags:
@@ -4907,6 +5059,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.storage.v1.ListFileSharesResponse'
+  /aes.storage.v1.StorageService/QuoteDiskResize:
+    post:
+      tags:
+        - aes.storage.v1.StorageService
+      summary: QuoteDiskResize
+      description: |-
+        QuoteDiskResize prices a resize before it is applied. A disk covered by its VM's monthly
+         reservation grows as a paid upgrade: the difference for the remaining term is charged
+         immediately on resize — due_now_minor is that amount. 0 for hourly-billed disks.
+      operationId: aes.storage.v1.StorageService.QuoteDiskResize
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.storage.v1.QuoteDiskResizeRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.storage.v1.QuoteDiskResizeResponse'
   /aes.storage.v1.StorageService/ResizeDisk:
     post:
       tags:
@@ -5694,6 +5885,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.wallet.v1.GetInvoiceResponse'
+  /aes.wallet.v1.WalletService/GetProjectSpendBreakdown:
+    post:
+      tags:
+        - aes.wallet.v1.WalletService
+      summary: GetProjectSpendBreakdown
+      description: |-
+        GetProjectSpendBreakdown returns this period's spend broken down by project (#208). Billing
+         stays org-level (one wallet/invoice); this is read-only visibility into which project drives
+         cost. Spend is estimated from metered usage × effective rates over the period.
+      operationId: aes.wallet.v1.WalletService.GetProjectSpendBreakdown
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.wallet.v1.GetProjectSpendBreakdownRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.wallet.v1.GetProjectSpendBreakdownResponse'
   /aes.wallet.v1.WalletService/GetTopUp:
     post:
       tags:
@@ -6066,10 +6296,11 @@ paths:
         - aes.wallet.v1.WalletService
       summary: RedeemPromotionCode
       description: |-
-        Promotion coupons (launch founder discount). RedeemPromotionCode consumes a single-use
-         code and installs a percentage discount window on the caller's org billing account;
-         GetActivePromotion backs the "Founder 50% · ends {date}" banner. The discount is applied at
-         settlement / prepaid-quote time — it is not a wallet credit. Spec: docs/specs/LAUNCH_PROMO_COUPONS.md.
+        Promotions. RedeemPromotionCode accepts a single-use coupon code or a shared campaign
+         code (e.g. "PODCAST50" / "MH5"), redeemable once per org. Discount promotions install a
+         percentage-off window applied at settlement / prepaid-quote time; credit promotions add
+         the funds to the wallet at redeem time (a saved payment method is required for those).
+         GetActivePromotion backs the billing-page banner for both kinds.
       operationId: aes.wallet.v1.WalletService.RedeemPromotionCode
       parameters:
         - name: Connect-Protocol-Version
@@ -6605,6 +6836,15 @@ components:
         currency:
           type: string
           title: currency
+        fulfillment:
+          title: fulfillment
+          description: Fulfillment speed. IMMEDIATE unless stated otherwise.
+          $ref: '#/components/schemas/aes.baremetal.v1.BareMetalFulfillment'
+        provisioningEtaMinutes:
+          type: integer
+          title: provisioning_eta_minutes
+          format: int32
+          description: Expected minutes until handover for non-immediate fulfillment.
       title: AvailableBareMetal
       additionalProperties: false
     aes.baremetal.v1.BareMetalAvailability:
@@ -6625,6 +6865,14 @@ components:
         - BARE_METAL_BOOT_DEVICE_CDROM
         - BARE_METAL_BOOT_DEVICE_PXE
       description: BareMetalBootDevice selects the one-time boot source for SetBareMetalBootDevice.
+    aes.baremetal.v1.BareMetalFulfillment:
+      type: string
+      title: BareMetalFulfillment
+      enum:
+        - BARE_METAL_FULFILLMENT_UNSPECIFIED
+        - BARE_METAL_FULFILLMENT_IMMEDIATE
+        - BARE_METAL_FULFILLMENT_CONVERT_JIT
+      description: How quickly a listed server can be handed over after an order.
     aes.baremetal.v1.BareMetalInstance:
       type: object
       properties:
@@ -6822,6 +7070,15 @@ components:
           type: integer
           title: gpu_count
           format: int32
+        fulfillment:
+          title: fulfillment
+          description: Fulfillment speed when available. IMMEDIATE unless stated otherwise.
+          $ref: '#/components/schemas/aes.baremetal.v1.BareMetalFulfillment'
+        provisioningEtaMinutes:
+          type: integer
+          title: provisioning_eta_minutes
+          format: int32
+          description: Expected minutes until handover for non-immediate fulfillment.
       title: BareMetalNode
       additionalProperties: false
       description: |-
@@ -8810,6 +9067,51 @@ components:
           format: int64
       title: OpenConsoleResponse
       additionalProperties: false
+    aes.compute.v1.QuoteVirtualMachineResizeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        vcpus:
+          type: integer
+          title: vcpus
+          format: int32
+          description: |-
+            Target shape, same semantics as ResizeVirtualMachineRequest. cpu_class cannot change
+             while a monthly term is active.
+        ramGib:
+          type: integer
+          title: ram_gib
+          format: int32
+      title: QuoteVirtualMachineResizeRequest
+      additionalProperties: false
+    aes.compute.v1.QuoteVirtualMachineResizeResponse:
+      type: object
+      properties:
+        reserved:
+          type: boolean
+          title: reserved
+          description: True when the VM is inside an active monthly term (resize = paid one-way upgrade).
+        dueNowMinor:
+          type:
+            - integer
+            - string
+          title: due_now_minor
+          format: int64
+          description: Charged immediately when the resize is applied. Always 0 when reserved is false.
+        currency:
+          type: string
+          title: currency
+        termEndUnix:
+          type:
+            - integer
+            - string
+          title: term_end_unix
+          format: int64
+          description: End of the current term the upgrade is prorated to. 0 when reserved is false.
+      title: QuoteVirtualMachineResizeResponse
+      additionalProperties: false
     aes.compute.v1.ReimageVirtualMachineRequest:
       type: object
       properties:
@@ -9094,6 +9396,10 @@ components:
         virtualMachine:
           title: virtual_machine
           $ref: '#/components/schemas/aes.compute.v1.VirtualMachine'
+        operation:
+          title: operation
+          description: The operation tracking this request. Poll until terminal, then fetch the VM.
+          $ref: '#/components/schemas/aes.ops.v1.Operation'
       title: StartVirtualMachineResponse
       additionalProperties: false
     aes.compute.v1.StopVirtualMachineRequest:
@@ -9110,6 +9416,10 @@ components:
         virtualMachine:
           title: virtual_machine
           $ref: '#/components/schemas/aes.compute.v1.VirtualMachine'
+        operation:
+          title: operation
+          description: The operation tracking this request. Poll until terminal, then fetch the VM.
+          $ref: '#/components/schemas/aes.ops.v1.Operation'
       title: StopVirtualMachineResponse
       additionalProperties: false
     aes.compute.v1.UserSpec:
@@ -9404,6 +9714,14 @@ components:
              the public IP in IPv6-enabled datacenters — no extra request flag and no extra charge.
              Statically configured and pinned for the VM's lifetime. Empty when the VM has no public
              IP or the datacenter doesn't offer IPv6 yet.
+        publicIpv6Prefix:
+          type: string
+          title: public_ipv6_prefix
+          description: |-
+            Routed IPv6 /64 (CIDR form) dedicated to this VM, included free with the public NIC in
+             supported datacenters. The whole prefix routes to the VM: the first address
+             (<prefix>::1) is preconfigured in the guest; bind any others directly. Pinned for the
+             VM's lifetime. Empty when the datacenter doesn't offer routed prefixes yet.
         bootDisk:
           type: string
           title: boot_disk
@@ -9489,6 +9807,19 @@ components:
           description: |-
             Unix seconds the VM's datacenter became unreachable (0 when reachable). Lets the UI show how
              long the outage has lasted ("offline 3m").
+        createdBy:
+          type: string
+          title: created_by
+          description: Principal that created the VM (e.g. `users/jane`). '' for legacy rows / system-created.
+        renewalCostPerHourMinorDecimal:
+          type: string
+          title: renewal_cost_per_hour_minor_decimal
+          description: |-
+            For a VM inside a monthly term: the full-shape hourly rate at current prices — what the
+             next renewal (or the fallback to hourly billing at term end) will effectively cost.
+             current_cost_per_hour_minor_decimal reads "0" during the term (the shape is prepaid);
+             this field lets burn-rate and balance projections still account for the commitment.
+             Empty for hourly-billed VMs.
       title: VirtualMachine
       additionalProperties: false
     aes.compute.v1.VirtualMachine.AnnotationsEntry:
@@ -11025,6 +11356,18 @@ components:
              server falls back to display_name (the company / org name). Surfacing this separately
              lets the portal greet the user by their name ("Welcome back, Alice") instead of their
              company name. Portal sign-up form should collect both.
+        attribution:
+          title: attribution
+          description: |-
+            Optional marketing attribution captured on the website at first visit. Stored on the
+             account at creation; never updated afterwards.
+          $ref: '#/components/schemas/aes.iam.v1.SignupAttribution'
+        turnstileToken:
+          type: string
+          title: turnstile_token
+          description: |-
+            Cloudflare Turnstile widget token. Required when the deployment has bot protection
+             enabled; safe to omit otherwise.
       title: SignUpRequest
       additionalProperties: false
     aes.iam.v1.SignUpResponse:
@@ -11059,6 +11402,52 @@ components:
              organization / user / API key fields above are empty in this case.
       title: SignUpResponse
       additionalProperties: false
+    aes.iam.v1.SignupAttribution:
+      type: object
+      properties:
+        utmSource:
+          type: string
+          title: utm_source
+        utmMedium:
+          type: string
+          title: utm_medium
+        utmCampaign:
+          type: string
+          title: utm_campaign
+        utmTerm:
+          type: string
+          title: utm_term
+        utmContent:
+          type: string
+          title: utm_content
+        gclid:
+          type: string
+          title: gclid
+          description: Google Ads click ID.
+        rdtCid:
+          type: string
+          title: rdt_cid
+          description: Reddit Ads click ID.
+        landingPage:
+          type: string
+          title: landing_page
+          description: First page visited (path + query).
+        referrer:
+          type: string
+          title: referrer
+          description: document.referrer at first visit.
+        firstTouchAtUnix:
+          type:
+            - integer
+            - string
+          title: first_touch_at_unix
+          format: int64
+          description: Unix seconds of the first visit.
+      title: SignupAttribution
+      additionalProperties: false
+      description: |-
+        Marketing attribution for a new account: UTM parameters and ad click IDs captured on the
+         website at first visit. All fields optional.
     aes.iam.v1.StartOidcLoginRequest:
       type: object
       properties:
@@ -11070,6 +11459,12 @@ components:
           type: string
           title: redirect_uri
           description: Where the IdP should redirect after auth — typically the gateway's /oauth/callback.
+        attribution:
+          title: attribution
+          description: |-
+            Optional marketing attribution captured on the website at first visit. Applied only when
+             this sign-in creates a brand-new account; ignored on sign-ins to existing accounts.
+          $ref: '#/components/schemas/aes.iam.v1.SignupAttribution'
       title: StartOidcLoginRequest
       additionalProperties: false
     aes.iam.v1.StartOidcLoginResponse:
@@ -12439,10 +12834,9 @@ components:
           type: string
           title: iso_project_name
           description: |-
-            Bare-metal ISO URL import (kind=bm_iso_import). The org-prefix-confined object key + the
-             source URL are computed + quota-checked at the BareMetalService API edge, then handed here so
-             the durable ISOImportWorkflow's activity can stream the bytes into object storage with live
-             byte-progress (surfaced on the Operation metadata + ListBareMetalISOs).
+            Bare-metal ISO URL import (kind=bm_iso_import). The object key and source URL are
+             validated and quota-checked by BareMetalService; import byte-progress is surfaced on
+             the Operation metadata and ListBareMetalISOs.
         isoSourceUrl:
           type: string
           title: iso_source_url
@@ -12458,12 +12852,63 @@ components:
             type: string
           title: vm_security_groups
           description: |-
-            Customer-networking-v1 (VM provisioning). Threaded so async-provisioned VMs persist the
-             same networking the sync path writes. vm_security_groups: internal security groups to
-             attach at create; vm_private_only: no public NIC at all (no public v4/v6).
+            VM networking at provision time. vm_security_groups: security groups to attach at
+             create; vm_private_only: no public NIC at all (no public v4/v6).
         vmPrivateOnly:
           type: boolean
           title: vm_private_only
+        vmMigrateTargetNode:
+          type: string
+          title: vm_migrate_target_node
+          description: |-
+            Live-migration-specific (kind=vm_migrate). Passed alongside vm_name. Empty target =
+             any eligible node in the VM's cpu-class pool is chosen automatically.
+        drainReason:
+          type: string
+          title: drain_reason
+          description: |-
+            Drain-specific (kind=host_drain). Passed alongside host_name + datacenter_name.
+             host_node_name identifies the node being drained and is resolved by DrainHost.
+        hostNodeName:
+          type: string
+          title: host_node_name
+        fleetProposalName:
+          type: string
+          title: fleet_proposal_name
+          description: |-
+            Fleet orchestrator kinds. All carry fleet_proposal_name so the operation's
+             terminal stages can stamp the proposal's outcome (empty when an admin runs
+             the same operation directly).
+               host_role_convert:      host_name + datacenter_name + convert_target_role
+                                       ('baremetal_pool' | 'hypervisor').
+               host_drain_maintenance: host_name + datacenter_name + host_node_name +
+                                       drain_reason — cordon + full live-migration drain,
+                                       then park the host in role 'bench' with the
+                                       maintenance note.
+               host_bench_power:       host_name + datacenter_name + bench_power_action
+                                       ('down' = graceful off into bench, 'up' = power on
+                                       + rejoin from bench).
+               defrag_pass:            datacenter_name + defrag_plan_json — the literal
+                                       migration set from the approved proposal (execution
+                                       is never re-planned at run time), bounded by
+                                       defrag_budget.
+        convertTargetRole:
+          type: string
+          title: convert_target_role
+        benchPowerAction:
+          type: string
+          title: bench_power_action
+        defragPlanJson:
+          type: string
+          title: defrag_plan_json
+        defragBudget:
+          type: integer
+          title: defrag_budget
+          format: int32
+        vmRuntimeTargetState:
+          type: string
+          title: vm_runtime_target_state
+          description: Requested runtime state for this lifecycle operation.
       title: CreateOperationRequest
       additionalProperties: false
     aes.ops.v1.CreateOperationRequest.VmAnnotationsEntry:
@@ -12832,6 +13277,25 @@ components:
           title: next_page_token
       title: ListOrgActivityResponse
       additionalProperties: false
+    aes.project.v1.ListProjectMembersRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+          description: Project resource name, `organizations/{org}/projects/{slug}`.
+      title: ListProjectMembersRequest
+      additionalProperties: false
+    aes.project.v1.ListProjectMembersResponse:
+      type: object
+      properties:
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.project.v1.ProjectMember'
+          title: members
+      title: ListProjectMembersResponse
+      additionalProperties: false
     aes.project.v1.ListProjectsRequest:
       type: object
       properties:
@@ -12913,6 +13377,74 @@ components:
             Seconds since unix epoch when the projects row was inserted. 0 only for legacy rows
              pre-dating this field — fresh creates always populate it.
       title: Project
+      additionalProperties: false
+    aes.project.v1.ProjectMember:
+      type: object
+      properties:
+        principal:
+          type: string
+          title: principal
+          description: User principal, e.g. `users/jane`.
+        role:
+          type: string
+          title: role
+          description: 'Project role: "owner" | "editor" | "viewer".'
+        createTimeUnix:
+          type:
+            - integer
+            - string
+          title: create_time_unix
+          format: int64
+        email:
+          type: string
+          title: email
+          description: Resolved from the user record for display; may be empty.
+        displayName:
+          type: string
+          title: display_name
+      title: ProjectMember
+      additionalProperties: false
+      description: |-
+        ProjectMember is an explicit per-project access grant. Org owners/admins have access to every
+         project implicitly and are not returned here.
+    aes.project.v1.RemoveProjectMemberRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        principal:
+          type: string
+          title: principal
+      title: RemoveProjectMemberRequest
+      additionalProperties: false
+    aes.project.v1.RemoveProjectMemberResponse:
+      type: object
+      title: RemoveProjectMemberResponse
+      additionalProperties: false
+    aes.project.v1.SetProjectMemberRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        principal:
+          type: string
+          title: principal
+          description: User to grant; must already be a member of the project's organization.
+        role:
+          type: string
+          title: role
+          description: '"owner" | "editor" | "viewer".'
+      title: SetProjectMemberRequest
+      additionalProperties: false
+    aes.project.v1.SetProjectMemberResponse:
+      type: object
+      properties:
+        member:
+          title: member
+          $ref: '#/components/schemas/aes.project.v1.ProjectMember'
+      title: SetProjectMemberResponse
       additionalProperties: false
     aes.project.v1.SlugKind:
       type: string
@@ -13582,6 +14114,45 @@ components:
           title: next_page_token
       title: ListFileSharesResponse
       additionalProperties: false
+    aes.storage.v1.QuoteDiskResizeRequest:
+      type: object
+      properties:
+        diskName:
+          type: string
+          title: disk_name
+        newSizeGib:
+          type: integer
+          title: new_size_gib
+          format: int32
+          description: Target size, same semantics as ResizeDiskRequest (strictly greater than current).
+      title: QuoteDiskResizeRequest
+      additionalProperties: false
+    aes.storage.v1.QuoteDiskResizeResponse:
+      type: object
+      properties:
+        reserved:
+          type: boolean
+          title: reserved
+          description: True when the disk is covered by an active monthly reservation (resize = paid upgrade).
+        dueNowMinor:
+          type:
+            - integer
+            - string
+          title: due_now_minor
+          format: int64
+          description: Charged immediately when the resize is applied. Always 0 when reserved is false.
+        currency:
+          type: string
+          title: currency
+        termEndUnix:
+          type:
+            - integer
+            - string
+          title: term_end_unix
+          format: int64
+          description: End of the current term the upgrade is prorated to. 0 when reserved is false.
+      title: QuoteDiskResizeResponse
+      additionalProperties: false
     aes.storage.v1.ResizeDiskRequest:
       type: object
       properties:
@@ -13628,6 +14199,15 @@ components:
           $ref: '#/components/schemas/aes.storage.v1.Disk'
       title: UpdateDiskResponse
       additionalProperties: false
+    aes.support.v1.AuthorKind:
+      type: string
+      title: AuthorKind
+      enum:
+        - AUTHOR_KIND_UNSPECIFIED
+        - AUTHOR_KIND_CUSTOMER
+        - AUTHOR_KIND_STAFF
+        - AUTHOR_KIND_SYSTEM
+      description: AuthorKind is the typed form of TicketMessage.author_type.
     aes.support.v1.CloseTicketRequest:
       type: object
       properties:
@@ -13871,9 +14451,11 @@ components:
         - TICKET_CHANNEL_API
         - TICKET_CHANNEL_EMAIL
         - TICKET_CHANNEL_SYSTEM
+        - TICKET_CHANNEL_STAFF
       description: |-
         Channel records how the ticket was originally opened. v1 only ever sets API; EMAIL and
-         SYSTEM (auto-opened on incident detection) are reserved for phase 2.
+         SYSTEM (auto-opened on incident detection) are reserved for phase 2. STAFF marks a ticket
+         proactively opened by support staff via AdminSupportService.InitiateTicket.
     aes.support.v1.TicketMessage:
       type: object
       properties:
@@ -13900,6 +14482,12 @@ components:
         createdAt:
           title: created_at
           $ref: '#/components/schemas/google.protobuf.Timestamp'
+        authorKind:
+          title: author_kind
+          description: |-
+            Typed author classification. Mirrors author_type (kept for compatibility) so clients
+             stop string-matching "staff-ish" values.
+          $ref: '#/components/schemas/aes.support.v1.AuthorKind'
       title: TicketMessage
       additionalProperties: false
     aes.support.v1.TicketPriority:
@@ -13946,7 +14534,9 @@ components:
             - string
           title: discount_starts_at_unix
           format: int64
-          description: Unix seconds; the discount applies to usage/prepaid before this instant.
+          description: |-
+            Unix seconds; the discount applies to usage/prepaid before this instant. For credit
+             promotions this is when the unspent credit expires.
         discountEndsAtUnix:
           type:
             - integer
@@ -13959,9 +14549,22 @@ components:
         appliesToPrepaid:
           type: boolean
           title: applies_to_prepaid
+        kind:
+          type: string
+          title: kind
+          description: '"PERCENT" (discount) or "CREDIT" (wallet credit).'
+        creditAmountMinor:
+          type:
+            - integer
+            - string
+          title: credit_amount_minor
+          format: int64
+          description: 'Credit promotions: the amount credited to the wallet, in minor units (500 = $5.00).'
       title: ActivePromotion
       additionalProperties: false
-      description: ActivePromotion is the customer-facing view of a live discount on an org's billing account.
+      description: |-
+        ActivePromotion is the customer-facing view of a live promotion on an org's billing
+         account — either a percentage discount or a promotional wallet credit.
     aes.wallet.v1.AttachPaymentMethodRequest:
       type: object
       properties:
@@ -14493,6 +15096,50 @@ components:
           $ref: '#/components/schemas/aes.wallet.v1.Invoice'
       title: GetInvoiceResponse
       additionalProperties: false
+    aes.wallet.v1.GetProjectSpendBreakdownRequest:
+      type: object
+      properties:
+        billingAccountName:
+          type: string
+          title: billing_account_name
+        period:
+          type: string
+          title: period
+          description: '"monthly" (default) | "weekly" | "daily" — the period window to total over.'
+      title: GetProjectSpendBreakdownRequest
+      additionalProperties: false
+      description: Per-project spend breakdown (#208).
+    aes.wallet.v1.GetProjectSpendBreakdownResponse:
+      type: object
+      properties:
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.wallet.v1.ProjectSpend'
+          title: projects
+        currency:
+          type: string
+          title: currency
+        totalMinor:
+          type:
+            - integer
+            - string
+          title: total_minor
+          format: int64
+        periodStartUnix:
+          type:
+            - integer
+            - string
+          title: period_start_unix
+          format: int64
+        periodEndUnix:
+          type:
+            - integer
+            - string
+          title: period_end_unix
+          format: int64
+      title: GetProjectSpendBreakdownResponse
+      additionalProperties: false
     aes.wallet.v1.GetTopUpRequest:
       type: object
       properties:
@@ -14876,6 +15523,23 @@ components:
         - POSTING_DIRECTION_UNSPECIFIED
         - POSTING_DIRECTION_DEBIT
         - POSTING_DIRECTION_CREDIT
+    aes.wallet.v1.ProjectSpend:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        displayName:
+          type: string
+          title: display_name
+        costMinor:
+          type:
+            - integer
+            - string
+          title: cost_minor
+          format: int64
+      title: ProjectSpend
+      additionalProperties: false
     aes.wallet.v1.PublicMeterRate:
       type: object
       properties:
@@ -15240,6 +15904,13 @@ components:
         currency:
           type: string
           title: currency
+        resourceLabel:
+          type: string
+          title: resource_label
+          description: |-
+            Human-friendly label for resource_name (e.g. a VM's hostname), resolved server-side so the
+             UI can show a name instead of the raw id — including for resources since deleted. Empty when
+             the row isn't resource-scoped or no label is known.
       title: UsageRow
       additionalProperties: false
     aes.wallet.v1.Wallet:

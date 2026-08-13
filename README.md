@@ -1,82 +1,80 @@
 # Metalhost SDK
 
-Public customer SDK and API contract snapshots for AES Metalhost.
+Public Go SDK and versioned API contract snapshots for AES Metalhost.
 
-This repository is the customer-facing integration surface for Metalhost. It contains released public API snapshots, generated clients, and hand-written helpers used by the public `metalhost` CLI, Terraform provider, examples, and customer applications.
+The module is `github.com/AES-Services/metalhost-sdk`. Its first stable release is `v1.0.0`; consumers should select a concrete `v1` version in `go.mod`.
 
-## Current Status
-
-The Go SDK is published as the first public customer integration surface. It is already consumed by the public `metalhost` CLI and tracks released snapshots of the public API.
-
-The current API surface is suitable for early customer/lab integration work. Production customer readiness still depends on the Metalhost service endpoint's infrastructure readiness, capacity checks, VM state reconciliation, persistent disk path, and billing settlement.
-
-## Repository Contract
-
-- This repo contains released snapshots of public `proto/aes/**` packages and generated OpenAPI.
-- The checked-in proto snapshot is the public API contract for this SDK release.
-- Generated SDK clients must be reproducible from the checked-in proto snapshot.
-- Hand-written helpers must wrap generated clients without hiding server-side authorization, validation, or billing behavior.
-
-## Layout
+## What is included
 
 ```text
-proto/                 Released protobuf API snapshot
-gen/go/                Generated Go protobuf + Connect clients
-gen/openapi/           Generated OpenAPI specs
-metalhost/               Hand-written Go SDK helpers
-docs/                  SDK docs and release process notes
-scripts/               Sync/generation scripts
+proto/aes/       Released protobuf API snapshot
+gen/go/          Generated protobuf messages and Connect RPC clients
+gen/openapi/     Generated and finalized OpenAPI document
+metalhost/       Small hand-written HTTP configuration helper
+docs/            API surface, consumer, and release notes
+scripts/         API snapshot synchronization
 ```
 
-## Go SDK
+The checked-in proto files are the source contract for a release. `buf generate` derives the Go and OpenAPI outputs from that snapshot. See [API surface](docs/API_SURFACE.md) for packages and a minimal client example.
 
-The Go module is:
+## Go client setup
 
-```text
-github.com/AES-Services/metalhost-sdk
+`metalhost.Config` contains the endpoint, API key, optional HTTP client, and user agent. `BaseURL` trims whitespace and a trailing slash. `Client` returns the supplied HTTP client or a new client with a 30-second timeout.
+
+Authentication is installed explicitly as an HTTP transport:
+
+```go
+package main
+
+import (
+	"context"
+	"net/http"
+
+	"connectrpc.com/connect"
+	healthv1 "github.com/AES-Services/metalhost-sdk/gen/go/aes/health/v1"
+	"github.com/AES-Services/metalhost-sdk/gen/go/aes/health/v1/healthv1connect"
+	"github.com/AES-Services/metalhost-sdk/metalhost"
+)
+
+func check(ctx context.Context) error {
+	cfg := metalhost.Config{
+		Endpoint: "https://api.metalhost.net",
+		APIKey:   "aes_...",
+		UserAgent: "my-integration/1.0",
+	}
+	cfg.HTTPClient = &http.Client{Transport: cfg.RoundTripper(http.DefaultTransport)}
+
+	client := healthv1connect.NewHealthServiceClient(cfg.Client(), cfg.BaseURL())
+	_, err := client.Check(ctx, connect.NewRequest(&healthv1.CheckRequest{}))
+	return err
+}
 ```
 
-Generated clients live under:
+`RoundTripper` clones each request, sets `Authorization: Bearer <API key>` when a key is present, and supplies the configured user agent only when the request does not already have one. `Config.Client()` does **not** install that transport automatically.
 
-```text
-github.com/AES-Services/metalhost-sdk/gen/go/aes/...
-```
+Generated service constructors and request/response types remain the primary SDK surface; the helper does not hide authorization, validation, pagination, operations, or billing behavior.
 
-Hand-written helpers live under:
+## Keep the API snapshot synchronized
 
-```text
-github.com/AES-Services/metalhost-sdk/metalhost
-```
-
-## Generate
-
-Install local protobuf plugins:
+Install pinned generation tools once:
 
 ```sh
 make tools
 ```
 
-Then run:
-
-```sh
-make ci
-```
-
-## Sync API Snapshot
-
-From this repo:
+To replace the public snapshot from the API source repository:
 
 ```sh
 METALHOST_API_SOURCE="/path/to/api/source" ./scripts/sync-api-snapshot.sh
 ```
 
-The script replaces `proto/aes`, regenerates Go/OpenAPI outputs, and runs `go mod tidy`.
+The script copies the allowlisted public `proto/aes` packages, regenerates Go and OpenAPI output, finalizes the OpenAPI metadata/filtering, runs `go mod tidy`, and tests the module. It requires `yq`.
 
-## Release Rule
+For an existing snapshot, `make ci` runs proto lint, generation/OpenAPI finalization, and Go tests. CI also fails if regeneration changes `gen/`.
 
-No customer-facing Metalhost API change is complete until this SDK repo has:
+## Consumers and releases
 
-- updated proto snapshot,
-- regenerated clients/OpenAPI,
-- passing CI,
-- release notes documenting breaking changes or new features.
+- The public `metalhost` CLI uses the generated Connect clients and `metalhost.Config`.
+- A Terraform provider is planned but is not published from this repository.
+- Release and compatibility rules are in [Release process](docs/RELEASE_PROCESS.md).
+- CLI and Terraform boundaries are in [CLI and Terraform consumers](docs/CLI_AND_TERRAFORM.md).

@@ -332,6 +332,32 @@ message SignUpRequest {
   // lets the portal greet the user by their name ("Welcome back, Alice") instead of their
   // company name. Portal sign-up form should collect both.
   string full_name = 4;
+  // Optional marketing attribution captured on the website at first visit. Stored on the
+  // account at creation; never updated afterwards.
+  SignupAttribution attribution = 5;
+  // Cloudflare Turnstile widget token. Required when the deployment has bot protection
+  // enabled; safe to omit otherwise.
+  string turnstile_token = 6;
+}
+
+// Marketing attribution for a new account: UTM parameters and ad click IDs captured on the
+// website at first visit. All fields optional.
+message SignupAttribution {
+  string utm_source = 1;
+  string utm_medium = 2;
+  string utm_campaign = 3;
+  string utm_term = 4;
+  string utm_content = 5;
+  // Google Ads click ID.
+  string gclid = 6;
+  // Reddit Ads click ID.
+  string rdt_cid = 7;
+  // First page visited (path + query).
+  string landing_page = 8;
+  // document.referrer at first visit.
+  string referrer = 9;
+  // Unix seconds of the first visit.
+  int64 first_touch_at_unix = 10;
 }
 
 message SignUpResponse {
@@ -592,6 +618,9 @@ message StartOidcLoginRequest {
   string provider_name = 1;
   // Where the IdP should redirect after auth — typically the gateway's /oauth/callback.
   string redirect_uri = 2;
+  // Optional marketing attribution captured on the website at first visit. Applied only when
+  // this sign-in creates a brand-new account; ignored on sign-ins to existing accounts.
+  SignupAttribution attribution = 3;
 }
 
 message StartOidcLoginResponse {

@@ -26,6 +26,10 @@ service StorageService {
   // disks, the guest sees the new size after a filesystem-level resize. Shrinking is not
   // supported (expansion is one-way).
   rpc ResizeDisk(ResizeDiskRequest) returns (ResizeDiskResponse);
+  // QuoteDiskResize prices a resize before it is applied. A disk covered by its VM's monthly
+  // reservation grows as a paid upgrade: the difference for the remaining term is charged
+  // immediately on resize — due_now_minor is that amount. 0 for hourly-billed disks.
+  rpc QuoteDiskResize(QuoteDiskResizeRequest) returns (QuoteDiskResizeResponse);
 
   // File shares — RWX NFS volumes that multiple VMs in the same tenant network can mount
   // concurrently. Access is restricted to the tenant network, so any VM on that network can
@@ -166,6 +170,22 @@ message ResizeDiskRequest {
 
 message ResizeDiskResponse {
   Disk disk = 1;
+}
+
+message QuoteDiskResizeRequest {
+  string disk_name = 1;
+  // Target size, same semantics as ResizeDiskRequest (strictly greater than current).
+  int32 new_size_gib = 2;
+}
+
+message QuoteDiskResizeResponse {
+  // True when the disk is covered by an active monthly reservation (resize = paid upgrade).
+  bool reserved = 1;
+  // Charged immediately when the resize is applied. Always 0 when reserved is false.
+  int64 due_now_minor = 2;
+  string currency = 3;
+  // End of the current term the upgrade is prorated to. 0 when reserved is false.
+  int64 term_end_unix = 4;
 }
 
 // -----------------------------------------------------------------------------

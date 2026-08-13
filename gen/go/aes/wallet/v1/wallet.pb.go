@@ -70,19 +70,25 @@ func (PostingDirection) EnumDescriptor() ([]byte, []int) {
 	return file_aes_wallet_v1_wallet_proto_rawDescGZIP(), []int{0}
 }
 
-// ActivePromotion is the customer-facing view of a live discount on an org's billing account.
+// ActivePromotion is the customer-facing view of a live promotion on an org's billing
+// account — either a percentage discount or a promotional wallet credit.
 type ActivePromotion struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
 	CampaignName string                 `protobuf:"bytes,1,opt,name=campaign_name,json=campaignName,proto3" json:"campaign_name,omitempty"`
 	DisplayName  string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	DiscountPct  int32                  `protobuf:"varint,3,opt,name=discount_pct,json=discountPct,proto3" json:"discount_pct,omitempty"`
-	// Unix seconds; the discount applies to usage/prepaid before this instant.
+	// Unix seconds; the discount applies to usage/prepaid before this instant. For credit
+	// promotions this is when the unspent credit expires.
 	DiscountStartsAtUnix int64 `protobuf:"varint,4,opt,name=discount_starts_at_unix,json=discountStartsAtUnix,proto3" json:"discount_starts_at_unix,omitempty"`
 	DiscountEndsAtUnix   int64 `protobuf:"varint,5,opt,name=discount_ends_at_unix,json=discountEndsAtUnix,proto3" json:"discount_ends_at_unix,omitempty"`
 	AppliesToUsage       bool  `protobuf:"varint,6,opt,name=applies_to_usage,json=appliesToUsage,proto3" json:"applies_to_usage,omitempty"`
 	AppliesToPrepaid     bool  `protobuf:"varint,7,opt,name=applies_to_prepaid,json=appliesToPrepaid,proto3" json:"applies_to_prepaid,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// "PERCENT" (discount) or "CREDIT" (wallet credit).
+	Kind string `protobuf:"bytes,8,opt,name=kind,proto3" json:"kind,omitempty"`
+	// Credit promotions: the amount credited to the wallet, in minor units (500 = $5.00).
+	CreditAmountMinor int64 `protobuf:"varint,9,opt,name=credit_amount_minor,json=creditAmountMinor,proto3" json:"credit_amount_minor,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ActivePromotion) Reset() {
@@ -162,6 +168,20 @@ func (x *ActivePromotion) GetAppliesToPrepaid() bool {
 		return x.AppliesToPrepaid
 	}
 	return false
+}
+
+func (x *ActivePromotion) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *ActivePromotion) GetCreditAmountMinor() int64 {
+	if x != nil {
+		return x.CreditAmountMinor
+	}
+	return 0
 }
 
 type RedeemPromotionCodeRequest struct {
@@ -4346,8 +4366,12 @@ type UsageRow struct {
 	Quantity string `protobuf:"bytes,6,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	Unit     string `protobuf:"bytes,7,opt,name=unit,proto3" json:"unit,omitempty"`
 	// Estimated cost in minor units (rate × quantity, rounded). 0 when no rate is registered.
-	CostMinor     int64  `protobuf:"varint,8,opt,name=cost_minor,json=costMinor,proto3" json:"cost_minor,omitempty"`
-	Currency      string `protobuf:"bytes,9,opt,name=currency,proto3" json:"currency,omitempty"`
+	CostMinor int64  `protobuf:"varint,8,opt,name=cost_minor,json=costMinor,proto3" json:"cost_minor,omitempty"`
+	Currency  string `protobuf:"bytes,9,opt,name=currency,proto3" json:"currency,omitempty"`
+	// Human-friendly label for resource_name (e.g. a VM's hostname), resolved server-side so the
+	// UI can show a name instead of the raw id — including for resources since deleted. Empty when
+	// the row isn't resource-scoped or no label is known.
+	ResourceLabel string `protobuf:"bytes,10,opt,name=resource_label,json=resourceLabel,proto3" json:"resource_label,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4441,6 +4465,13 @@ func (x *UsageRow) GetCostMinor() int64 {
 func (x *UsageRow) GetCurrency() string {
 	if x != nil {
 		return x.Currency
+	}
+	return ""
+}
+
+func (x *UsageRow) GetResourceLabel() string {
+	if x != nil {
+		return x.ResourceLabel
 	}
 	return ""
 }
@@ -4669,11 +4700,201 @@ func (x *ExportUsageResponse) GetObjectKey() string {
 	return ""
 }
 
+// Per-project spend breakdown (#208).
+type GetProjectSpendBreakdownRequest struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	BillingAccountName string                 `protobuf:"bytes,1,opt,name=billing_account_name,json=billingAccountName,proto3" json:"billing_account_name,omitempty"`
+	// "monthly" (default) | "weekly" | "daily" — the period window to total over.
+	Period        string `protobuf:"bytes,2,opt,name=period,proto3" json:"period,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProjectSpendBreakdownRequest) Reset() {
+	*x = GetProjectSpendBreakdownRequest{}
+	mi := &file_aes_wallet_v1_wallet_proto_msgTypes[74]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProjectSpendBreakdownRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProjectSpendBreakdownRequest) ProtoMessage() {}
+
+func (x *GetProjectSpendBreakdownRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_wallet_v1_wallet_proto_msgTypes[74]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProjectSpendBreakdownRequest.ProtoReflect.Descriptor instead.
+func (*GetProjectSpendBreakdownRequest) Descriptor() ([]byte, []int) {
+	return file_aes_wallet_v1_wallet_proto_rawDescGZIP(), []int{74}
+}
+
+func (x *GetProjectSpendBreakdownRequest) GetBillingAccountName() string {
+	if x != nil {
+		return x.BillingAccountName
+	}
+	return ""
+}
+
+func (x *GetProjectSpendBreakdownRequest) GetPeriod() string {
+	if x != nil {
+		return x.Period
+	}
+	return ""
+}
+
+type ProjectSpend struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	CostMinor     int64                  `protobuf:"varint,3,opt,name=cost_minor,json=costMinor,proto3" json:"cost_minor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProjectSpend) Reset() {
+	*x = ProjectSpend{}
+	mi := &file_aes_wallet_v1_wallet_proto_msgTypes[75]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProjectSpend) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProjectSpend) ProtoMessage() {}
+
+func (x *ProjectSpend) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_wallet_v1_wallet_proto_msgTypes[75]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProjectSpend.ProtoReflect.Descriptor instead.
+func (*ProjectSpend) Descriptor() ([]byte, []int) {
+	return file_aes_wallet_v1_wallet_proto_rawDescGZIP(), []int{75}
+}
+
+func (x *ProjectSpend) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *ProjectSpend) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *ProjectSpend) GetCostMinor() int64 {
+	if x != nil {
+		return x.CostMinor
+	}
+	return 0
+}
+
+type GetProjectSpendBreakdownResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Projects        []*ProjectSpend        `protobuf:"bytes,1,rep,name=projects,proto3" json:"projects,omitempty"`
+	Currency        string                 `protobuf:"bytes,2,opt,name=currency,proto3" json:"currency,omitempty"`
+	TotalMinor      int64                  `protobuf:"varint,3,opt,name=total_minor,json=totalMinor,proto3" json:"total_minor,omitempty"`
+	PeriodStartUnix int64                  `protobuf:"varint,4,opt,name=period_start_unix,json=periodStartUnix,proto3" json:"period_start_unix,omitempty"`
+	PeriodEndUnix   int64                  `protobuf:"varint,5,opt,name=period_end_unix,json=periodEndUnix,proto3" json:"period_end_unix,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *GetProjectSpendBreakdownResponse) Reset() {
+	*x = GetProjectSpendBreakdownResponse{}
+	mi := &file_aes_wallet_v1_wallet_proto_msgTypes[76]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProjectSpendBreakdownResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProjectSpendBreakdownResponse) ProtoMessage() {}
+
+func (x *GetProjectSpendBreakdownResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_wallet_v1_wallet_proto_msgTypes[76]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProjectSpendBreakdownResponse.ProtoReflect.Descriptor instead.
+func (*GetProjectSpendBreakdownResponse) Descriptor() ([]byte, []int) {
+	return file_aes_wallet_v1_wallet_proto_rawDescGZIP(), []int{76}
+}
+
+func (x *GetProjectSpendBreakdownResponse) GetProjects() []*ProjectSpend {
+	if x != nil {
+		return x.Projects
+	}
+	return nil
+}
+
+func (x *GetProjectSpendBreakdownResponse) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *GetProjectSpendBreakdownResponse) GetTotalMinor() int64 {
+	if x != nil {
+		return x.TotalMinor
+	}
+	return 0
+}
+
+func (x *GetProjectSpendBreakdownResponse) GetPeriodStartUnix() int64 {
+	if x != nil {
+		return x.PeriodStartUnix
+	}
+	return 0
+}
+
+func (x *GetProjectSpendBreakdownResponse) GetPeriodEndUnix() int64 {
+	if x != nil {
+		return x.PeriodEndUnix
+	}
+	return 0
+}
+
 var File_aes_wallet_v1_wallet_proto protoreflect.FileDescriptor
 
 const file_aes_wallet_v1_wallet_proto_rawDesc = "" +
 	"\n" +
-	"\x1aaes/wallet/v1/wallet.proto\x12\raes.wallet.v1\"\xbe\x02\n" +
+	"\x1aaes/wallet/v1/wallet.proto\x12\raes.wallet.v1\"\x82\x03\n" +
 	"\x0fActivePromotion\x12#\n" +
 	"\rcampaign_name\x18\x01 \x01(\tR\fcampaignName\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12!\n" +
@@ -4681,7 +4902,9 @@ const file_aes_wallet_v1_wallet_proto_rawDesc = "" +
 	"\x17discount_starts_at_unix\x18\x04 \x01(\x03R\x14discountStartsAtUnix\x121\n" +
 	"\x15discount_ends_at_unix\x18\x05 \x01(\x03R\x12discountEndsAtUnix\x12(\n" +
 	"\x10applies_to_usage\x18\x06 \x01(\bR\x0eappliesToUsage\x12,\n" +
-	"\x12applies_to_prepaid\x18\a \x01(\bR\x10appliesToPrepaid\"]\n" +
+	"\x12applies_to_prepaid\x18\a \x01(\bR\x10appliesToPrepaid\x12\x12\n" +
+	"\x04kind\x18\b \x01(\tR\x04kind\x12.\n" +
+	"\x13credit_amount_minor\x18\t \x01(\x03R\x11creditAmountMinor\"]\n" +
 	"\x1aRedeemPromotionCodeRequest\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12+\n" +
 	"\x11organization_name\x18\x02 \x01(\tR\x10organizationName\"[\n" +
@@ -4981,7 +5204,7 @@ const file_aes_wallet_v1_wallet_proto_rawDesc = "" +
 	"\bgroup_by\x18\a \x03(\tR\agroupBy\x12\x1b\n" +
 	"\tpage_size\x18\b \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\t \x01(\tR\tpageToken\"\xa8\x02\n" +
+	"page_token\x18\t \x01(\tR\tpageToken\"\xcf\x02\n" +
 	"\bUsageRow\x12*\n" +
 	"\x11bucket_start_unix\x18\x01 \x01(\x03R\x0fbucketStartUnix\x12!\n" +
 	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12\x14\n" +
@@ -4992,7 +5215,9 @@ const file_aes_wallet_v1_wallet_proto_rawDesc = "" +
 	"\x04unit\x18\a \x01(\tR\x04unit\x12\x1d\n" +
 	"\n" +
 	"cost_minor\x18\b \x01(\x03R\tcostMinor\x12\x1a\n" +
-	"\bcurrency\x18\t \x01(\tR\bcurrency\"\x91\x01\n" +
+	"\bcurrency\x18\t \x01(\tR\bcurrency\x12%\n" +
+	"\x0eresource_label\x18\n" +
+	" \x01(\tR\rresourceLabel\"\x91\x01\n" +
 	"\x12QueryUsageResponse\x12+\n" +
 	"\x04rows\x18\x01 \x03(\v2\x17.aes.wallet.v1.UsageRowR\x04rows\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12&\n" +
@@ -5010,11 +5235,26 @@ const file_aes_wallet_v1_wallet_proto_rawDesc = "" +
 	"\x0fexpires_at_unix\x18\x02 \x01(\x03R\rexpiresAtUnix\x12\x1b\n" +
 	"\trow_count\x18\x03 \x01(\x03R\browCount\x12\x1d\n" +
 	"\n" +
-	"object_key\x18\x04 \x01(\tR\tobjectKey*p\n" +
+	"object_key\x18\x04 \x01(\tR\tobjectKey\"k\n" +
+	"\x1fGetProjectSpendBreakdownRequest\x120\n" +
+	"\x14billing_account_name\x18\x01 \x01(\tR\x12billingAccountName\x12\x16\n" +
+	"\x06period\x18\x02 \x01(\tR\x06period\"s\n" +
+	"\fProjectSpend\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12!\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1d\n" +
+	"\n" +
+	"cost_minor\x18\x03 \x01(\x03R\tcostMinor\"\xec\x01\n" +
+	" GetProjectSpendBreakdownResponse\x127\n" +
+	"\bprojects\x18\x01 \x03(\v2\x1b.aes.wallet.v1.ProjectSpendR\bprojects\x12\x1a\n" +
+	"\bcurrency\x18\x02 \x01(\tR\bcurrency\x12\x1f\n" +
+	"\vtotal_minor\x18\x03 \x01(\x03R\n" +
+	"totalMinor\x12*\n" +
+	"\x11period_start_unix\x18\x04 \x01(\x03R\x0fperiodStartUnix\x12&\n" +
+	"\x0fperiod_end_unix\x18\x05 \x01(\x03R\rperiodEndUnix*p\n" +
 	"\x10PostingDirection\x12!\n" +
 	"\x1dPOSTING_DIRECTION_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17POSTING_DIRECTION_DEBIT\x10\x01\x12\x1c\n" +
-	"\x18POSTING_DIRECTION_CREDIT\x10\x022\x9a\x15\n" +
+	"\x18POSTING_DIRECTION_CREDIT\x10\x022\x97\x16\n" +
 	"\rWalletService\x12l\n" +
 	"\x13ListBillingAccounts\x12).aes.wallet.v1.ListBillingAccountsRequest\x1a*.aes.wallet.v1.ListBillingAccountsResponse\x12f\n" +
 	"\x11GetBillingAccount\x12'.aes.wallet.v1.GetBillingAccountRequest\x1a(.aes.wallet.v1.GetBillingAccountResponse\x12N\n" +
@@ -5031,7 +5271,8 @@ const file_aes_wallet_v1_wallet_proto_rawDesc = "" +
 	"\x12DownloadInvoicePDF\x12(.aes.wallet.v1.DownloadInvoicePDFRequest\x1a).aes.wallet.v1.DownloadInvoicePDFResponse\x12r\n" +
 	"\x15ConfigureAutoRecharge\x12+.aes.wallet.v1.ConfigureAutoRechargeRequest\x1a,.aes.wallet.v1.ConfigureAutoRechargeResponse\x12r\n" +
 	"\x15GetAutoRechargeConfig\x12+.aes.wallet.v1.GetAutoRechargeConfigRequest\x1a,.aes.wallet.v1.GetAutoRechargeConfigResponse\x12`\n" +
-	"\x0fGetCostForecast\x12%.aes.wallet.v1.GetCostForecastRequest\x1a&.aes.wallet.v1.GetCostForecastResponse\x12r\n" +
+	"\x0fGetCostForecast\x12%.aes.wallet.v1.GetCostForecastRequest\x1a&.aes.wallet.v1.GetCostForecastResponse\x12{\n" +
+	"\x18GetProjectSpendBreakdown\x12..aes.wallet.v1.GetProjectSpendBreakdownRequest\x1a/.aes.wallet.v1.GetProjectSpendBreakdownResponse\x12r\n" +
 	"\x15ConfigureWalletAlerts\x12+.aes.wallet.v1.ConfigureWalletAlertsRequest\x1a,.aes.wallet.v1.ConfigureWalletAlertsResponse\x12`\n" +
 	"\x0fGetWalletAlerts\x12%.aes.wallet.v1.GetWalletAlertsRequest\x1a&.aes.wallet.v1.GetWalletAlertsResponse\x12x\n" +
 	"\x17CreateStripeTopUpIntent\x12-.aes.wallet.v1.CreateStripeTopUpIntentRequest\x1a..aes.wallet.v1.CreateStripeTopUpIntentResponse\x12r\n" +
@@ -5060,7 +5301,7 @@ func file_aes_wallet_v1_wallet_proto_rawDescGZIP() []byte {
 }
 
 var file_aes_wallet_v1_wallet_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_aes_wallet_v1_wallet_proto_msgTypes = make([]protoimpl.MessageInfo, 75)
+var file_aes_wallet_v1_wallet_proto_msgTypes = make([]protoimpl.MessageInfo, 78)
 var file_aes_wallet_v1_wallet_proto_goTypes = []any{
 	(PostingDirection)(0),                       // 0: aes.wallet.v1.PostingDirection
 	(*ActivePromotion)(nil),                     // 1: aes.wallet.v1.ActivePromotion
@@ -5137,7 +5378,10 @@ var file_aes_wallet_v1_wallet_proto_goTypes = []any{
 	(*QueryUsageResponse)(nil),                  // 72: aes.wallet.v1.QueryUsageResponse
 	(*ExportUsageRequest)(nil),                  // 73: aes.wallet.v1.ExportUsageRequest
 	(*ExportUsageResponse)(nil),                 // 74: aes.wallet.v1.ExportUsageResponse
-	nil,                                         // 75: aes.wallet.v1.RecordUsageEventRequest.MetadataEntry
+	(*GetProjectSpendBreakdownRequest)(nil),     // 75: aes.wallet.v1.GetProjectSpendBreakdownRequest
+	(*ProjectSpend)(nil),                        // 76: aes.wallet.v1.ProjectSpend
+	(*GetProjectSpendBreakdownResponse)(nil),    // 77: aes.wallet.v1.GetProjectSpendBreakdownResponse
+	nil,                                         // 78: aes.wallet.v1.RecordUsageEventRequest.MetadataEntry
 }
 var file_aes_wallet_v1_wallet_proto_depIdxs = []int32{
 	1,  // 0: aes.wallet.v1.RedeemPromotionCodeResponse.promotion:type_name -> aes.wallet.v1.ActivePromotion
@@ -5158,70 +5402,73 @@ var file_aes_wallet_v1_wallet_proto_depIdxs = []int32{
 	36, // 15: aes.wallet.v1.GetBillingAccountResponse.billing_account:type_name -> aes.wallet.v1.BillingAccount
 	37, // 16: aes.wallet.v1.GetWalletResponse.wallet:type_name -> aes.wallet.v1.Wallet
 	38, // 17: aes.wallet.v1.RecordJournalEntryRequest.postings:type_name -> aes.wallet.v1.LedgerPosting
-	75, // 18: aes.wallet.v1.RecordUsageEventRequest.metadata:type_name -> aes.wallet.v1.RecordUsageEventRequest.MetadataEntry
+	78, // 18: aes.wallet.v1.RecordUsageEventRequest.metadata:type_name -> aes.wallet.v1.RecordUsageEventRequest.MetadataEntry
 	37, // 19: aes.wallet.v1.CreateWalletResponse.wallet:type_name -> aes.wallet.v1.Wallet
 	59, // 20: aes.wallet.v1.CreateStripeTopUpIntentResponse.top_up:type_name -> aes.wallet.v1.TopUp
 	59, // 21: aes.wallet.v1.CreateCoinbaseTopUpCheckoutResponse.top_up:type_name -> aes.wallet.v1.TopUp
 	59, // 22: aes.wallet.v1.ListTopUpsResponse.top_ups:type_name -> aes.wallet.v1.TopUp
 	59, // 23: aes.wallet.v1.GetTopUpResponse.top_up:type_name -> aes.wallet.v1.TopUp
 	71, // 24: aes.wallet.v1.QueryUsageResponse.rows:type_name -> aes.wallet.v1.UsageRow
-	39, // 25: aes.wallet.v1.WalletService.ListBillingAccounts:input_type -> aes.wallet.v1.ListBillingAccountsRequest
-	41, // 26: aes.wallet.v1.WalletService.GetBillingAccount:input_type -> aes.wallet.v1.GetBillingAccountRequest
-	43, // 27: aes.wallet.v1.WalletService.GetWallet:input_type -> aes.wallet.v1.GetWalletRequest
-	45, // 28: aes.wallet.v1.WalletService.GetWalletBalance:input_type -> aes.wallet.v1.GetWalletBalanceRequest
-	34, // 29: aes.wallet.v1.WalletService.ListPublicMeterRates:input_type -> aes.wallet.v1.ListPublicMeterRatesRequest
-	7,  // 30: aes.wallet.v1.WalletService.AttachPaymentMethod:input_type -> aes.wallet.v1.AttachPaymentMethodRequest
-	9,  // 31: aes.wallet.v1.WalletService.ListPaymentMethods:input_type -> aes.wallet.v1.ListPaymentMethodsRequest
-	11, // 32: aes.wallet.v1.WalletService.DetachPaymentMethod:input_type -> aes.wallet.v1.DetachPaymentMethodRequest
-	13, // 33: aes.wallet.v1.WalletService.SetDefaultPaymentMethod:input_type -> aes.wallet.v1.SetDefaultPaymentMethodRequest
-	17, // 34: aes.wallet.v1.WalletService.ListInvoices:input_type -> aes.wallet.v1.ListInvoicesRequest
-	19, // 35: aes.wallet.v1.WalletService.GetInvoice:input_type -> aes.wallet.v1.GetInvoiceRequest
-	21, // 36: aes.wallet.v1.WalletService.DownloadInvoicePDF:input_type -> aes.wallet.v1.DownloadInvoicePDFRequest
-	29, // 37: aes.wallet.v1.WalletService.ConfigureAutoRecharge:input_type -> aes.wallet.v1.ConfigureAutoRechargeRequest
-	31, // 38: aes.wallet.v1.WalletService.GetAutoRechargeConfig:input_type -> aes.wallet.v1.GetAutoRechargeConfigRequest
-	57, // 39: aes.wallet.v1.WalletService.GetCostForecast:input_type -> aes.wallet.v1.GetCostForecastRequest
-	24, // 40: aes.wallet.v1.WalletService.ConfigureWalletAlerts:input_type -> aes.wallet.v1.ConfigureWalletAlertsRequest
-	26, // 41: aes.wallet.v1.WalletService.GetWalletAlerts:input_type -> aes.wallet.v1.GetWalletAlertsRequest
-	60, // 42: aes.wallet.v1.WalletService.CreateStripeTopUpIntent:input_type -> aes.wallet.v1.CreateStripeTopUpIntentRequest
-	62, // 43: aes.wallet.v1.WalletService.CreateCardSetupIntent:input_type -> aes.wallet.v1.CreateCardSetupIntentRequest
-	64, // 44: aes.wallet.v1.WalletService.CreateCoinbaseTopUpCheckout:input_type -> aes.wallet.v1.CreateCoinbaseTopUpCheckoutRequest
-	66, // 45: aes.wallet.v1.WalletService.ListTopUps:input_type -> aes.wallet.v1.ListTopUpsRequest
-	68, // 46: aes.wallet.v1.WalletService.GetTopUp:input_type -> aes.wallet.v1.GetTopUpRequest
-	70, // 47: aes.wallet.v1.WalletService.QueryUsage:input_type -> aes.wallet.v1.QueryUsageRequest
-	73, // 48: aes.wallet.v1.WalletService.ExportUsage:input_type -> aes.wallet.v1.ExportUsageRequest
-	2,  // 49: aes.wallet.v1.WalletService.RedeemPromotionCode:input_type -> aes.wallet.v1.RedeemPromotionCodeRequest
-	4,  // 50: aes.wallet.v1.WalletService.GetActivePromotion:input_type -> aes.wallet.v1.GetActivePromotionRequest
-	40, // 51: aes.wallet.v1.WalletService.ListBillingAccounts:output_type -> aes.wallet.v1.ListBillingAccountsResponse
-	42, // 52: aes.wallet.v1.WalletService.GetBillingAccount:output_type -> aes.wallet.v1.GetBillingAccountResponse
-	44, // 53: aes.wallet.v1.WalletService.GetWallet:output_type -> aes.wallet.v1.GetWalletResponse
-	46, // 54: aes.wallet.v1.WalletService.GetWalletBalance:output_type -> aes.wallet.v1.GetWalletBalanceResponse
-	35, // 55: aes.wallet.v1.WalletService.ListPublicMeterRates:output_type -> aes.wallet.v1.ListPublicMeterRatesResponse
-	8,  // 56: aes.wallet.v1.WalletService.AttachPaymentMethod:output_type -> aes.wallet.v1.AttachPaymentMethodResponse
-	10, // 57: aes.wallet.v1.WalletService.ListPaymentMethods:output_type -> aes.wallet.v1.ListPaymentMethodsResponse
-	12, // 58: aes.wallet.v1.WalletService.DetachPaymentMethod:output_type -> aes.wallet.v1.DetachPaymentMethodResponse
-	14, // 59: aes.wallet.v1.WalletService.SetDefaultPaymentMethod:output_type -> aes.wallet.v1.SetDefaultPaymentMethodResponse
-	18, // 60: aes.wallet.v1.WalletService.ListInvoices:output_type -> aes.wallet.v1.ListInvoicesResponse
-	20, // 61: aes.wallet.v1.WalletService.GetInvoice:output_type -> aes.wallet.v1.GetInvoiceResponse
-	22, // 62: aes.wallet.v1.WalletService.DownloadInvoicePDF:output_type -> aes.wallet.v1.DownloadInvoicePDFResponse
-	30, // 63: aes.wallet.v1.WalletService.ConfigureAutoRecharge:output_type -> aes.wallet.v1.ConfigureAutoRechargeResponse
-	32, // 64: aes.wallet.v1.WalletService.GetAutoRechargeConfig:output_type -> aes.wallet.v1.GetAutoRechargeConfigResponse
-	58, // 65: aes.wallet.v1.WalletService.GetCostForecast:output_type -> aes.wallet.v1.GetCostForecastResponse
-	25, // 66: aes.wallet.v1.WalletService.ConfigureWalletAlerts:output_type -> aes.wallet.v1.ConfigureWalletAlertsResponse
-	27, // 67: aes.wallet.v1.WalletService.GetWalletAlerts:output_type -> aes.wallet.v1.GetWalletAlertsResponse
-	61, // 68: aes.wallet.v1.WalletService.CreateStripeTopUpIntent:output_type -> aes.wallet.v1.CreateStripeTopUpIntentResponse
-	63, // 69: aes.wallet.v1.WalletService.CreateCardSetupIntent:output_type -> aes.wallet.v1.CreateCardSetupIntentResponse
-	65, // 70: aes.wallet.v1.WalletService.CreateCoinbaseTopUpCheckout:output_type -> aes.wallet.v1.CreateCoinbaseTopUpCheckoutResponse
-	67, // 71: aes.wallet.v1.WalletService.ListTopUps:output_type -> aes.wallet.v1.ListTopUpsResponse
-	69, // 72: aes.wallet.v1.WalletService.GetTopUp:output_type -> aes.wallet.v1.GetTopUpResponse
-	72, // 73: aes.wallet.v1.WalletService.QueryUsage:output_type -> aes.wallet.v1.QueryUsageResponse
-	74, // 74: aes.wallet.v1.WalletService.ExportUsage:output_type -> aes.wallet.v1.ExportUsageResponse
-	3,  // 75: aes.wallet.v1.WalletService.RedeemPromotionCode:output_type -> aes.wallet.v1.RedeemPromotionCodeResponse
-	5,  // 76: aes.wallet.v1.WalletService.GetActivePromotion:output_type -> aes.wallet.v1.GetActivePromotionResponse
-	51, // [51:77] is the sub-list for method output_type
-	25, // [25:51] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	76, // 25: aes.wallet.v1.GetProjectSpendBreakdownResponse.projects:type_name -> aes.wallet.v1.ProjectSpend
+	39, // 26: aes.wallet.v1.WalletService.ListBillingAccounts:input_type -> aes.wallet.v1.ListBillingAccountsRequest
+	41, // 27: aes.wallet.v1.WalletService.GetBillingAccount:input_type -> aes.wallet.v1.GetBillingAccountRequest
+	43, // 28: aes.wallet.v1.WalletService.GetWallet:input_type -> aes.wallet.v1.GetWalletRequest
+	45, // 29: aes.wallet.v1.WalletService.GetWalletBalance:input_type -> aes.wallet.v1.GetWalletBalanceRequest
+	34, // 30: aes.wallet.v1.WalletService.ListPublicMeterRates:input_type -> aes.wallet.v1.ListPublicMeterRatesRequest
+	7,  // 31: aes.wallet.v1.WalletService.AttachPaymentMethod:input_type -> aes.wallet.v1.AttachPaymentMethodRequest
+	9,  // 32: aes.wallet.v1.WalletService.ListPaymentMethods:input_type -> aes.wallet.v1.ListPaymentMethodsRequest
+	11, // 33: aes.wallet.v1.WalletService.DetachPaymentMethod:input_type -> aes.wallet.v1.DetachPaymentMethodRequest
+	13, // 34: aes.wallet.v1.WalletService.SetDefaultPaymentMethod:input_type -> aes.wallet.v1.SetDefaultPaymentMethodRequest
+	17, // 35: aes.wallet.v1.WalletService.ListInvoices:input_type -> aes.wallet.v1.ListInvoicesRequest
+	19, // 36: aes.wallet.v1.WalletService.GetInvoice:input_type -> aes.wallet.v1.GetInvoiceRequest
+	21, // 37: aes.wallet.v1.WalletService.DownloadInvoicePDF:input_type -> aes.wallet.v1.DownloadInvoicePDFRequest
+	29, // 38: aes.wallet.v1.WalletService.ConfigureAutoRecharge:input_type -> aes.wallet.v1.ConfigureAutoRechargeRequest
+	31, // 39: aes.wallet.v1.WalletService.GetAutoRechargeConfig:input_type -> aes.wallet.v1.GetAutoRechargeConfigRequest
+	57, // 40: aes.wallet.v1.WalletService.GetCostForecast:input_type -> aes.wallet.v1.GetCostForecastRequest
+	75, // 41: aes.wallet.v1.WalletService.GetProjectSpendBreakdown:input_type -> aes.wallet.v1.GetProjectSpendBreakdownRequest
+	24, // 42: aes.wallet.v1.WalletService.ConfigureWalletAlerts:input_type -> aes.wallet.v1.ConfigureWalletAlertsRequest
+	26, // 43: aes.wallet.v1.WalletService.GetWalletAlerts:input_type -> aes.wallet.v1.GetWalletAlertsRequest
+	60, // 44: aes.wallet.v1.WalletService.CreateStripeTopUpIntent:input_type -> aes.wallet.v1.CreateStripeTopUpIntentRequest
+	62, // 45: aes.wallet.v1.WalletService.CreateCardSetupIntent:input_type -> aes.wallet.v1.CreateCardSetupIntentRequest
+	64, // 46: aes.wallet.v1.WalletService.CreateCoinbaseTopUpCheckout:input_type -> aes.wallet.v1.CreateCoinbaseTopUpCheckoutRequest
+	66, // 47: aes.wallet.v1.WalletService.ListTopUps:input_type -> aes.wallet.v1.ListTopUpsRequest
+	68, // 48: aes.wallet.v1.WalletService.GetTopUp:input_type -> aes.wallet.v1.GetTopUpRequest
+	70, // 49: aes.wallet.v1.WalletService.QueryUsage:input_type -> aes.wallet.v1.QueryUsageRequest
+	73, // 50: aes.wallet.v1.WalletService.ExportUsage:input_type -> aes.wallet.v1.ExportUsageRequest
+	2,  // 51: aes.wallet.v1.WalletService.RedeemPromotionCode:input_type -> aes.wallet.v1.RedeemPromotionCodeRequest
+	4,  // 52: aes.wallet.v1.WalletService.GetActivePromotion:input_type -> aes.wallet.v1.GetActivePromotionRequest
+	40, // 53: aes.wallet.v1.WalletService.ListBillingAccounts:output_type -> aes.wallet.v1.ListBillingAccountsResponse
+	42, // 54: aes.wallet.v1.WalletService.GetBillingAccount:output_type -> aes.wallet.v1.GetBillingAccountResponse
+	44, // 55: aes.wallet.v1.WalletService.GetWallet:output_type -> aes.wallet.v1.GetWalletResponse
+	46, // 56: aes.wallet.v1.WalletService.GetWalletBalance:output_type -> aes.wallet.v1.GetWalletBalanceResponse
+	35, // 57: aes.wallet.v1.WalletService.ListPublicMeterRates:output_type -> aes.wallet.v1.ListPublicMeterRatesResponse
+	8,  // 58: aes.wallet.v1.WalletService.AttachPaymentMethod:output_type -> aes.wallet.v1.AttachPaymentMethodResponse
+	10, // 59: aes.wallet.v1.WalletService.ListPaymentMethods:output_type -> aes.wallet.v1.ListPaymentMethodsResponse
+	12, // 60: aes.wallet.v1.WalletService.DetachPaymentMethod:output_type -> aes.wallet.v1.DetachPaymentMethodResponse
+	14, // 61: aes.wallet.v1.WalletService.SetDefaultPaymentMethod:output_type -> aes.wallet.v1.SetDefaultPaymentMethodResponse
+	18, // 62: aes.wallet.v1.WalletService.ListInvoices:output_type -> aes.wallet.v1.ListInvoicesResponse
+	20, // 63: aes.wallet.v1.WalletService.GetInvoice:output_type -> aes.wallet.v1.GetInvoiceResponse
+	22, // 64: aes.wallet.v1.WalletService.DownloadInvoicePDF:output_type -> aes.wallet.v1.DownloadInvoicePDFResponse
+	30, // 65: aes.wallet.v1.WalletService.ConfigureAutoRecharge:output_type -> aes.wallet.v1.ConfigureAutoRechargeResponse
+	32, // 66: aes.wallet.v1.WalletService.GetAutoRechargeConfig:output_type -> aes.wallet.v1.GetAutoRechargeConfigResponse
+	58, // 67: aes.wallet.v1.WalletService.GetCostForecast:output_type -> aes.wallet.v1.GetCostForecastResponse
+	77, // 68: aes.wallet.v1.WalletService.GetProjectSpendBreakdown:output_type -> aes.wallet.v1.GetProjectSpendBreakdownResponse
+	25, // 69: aes.wallet.v1.WalletService.ConfigureWalletAlerts:output_type -> aes.wallet.v1.ConfigureWalletAlertsResponse
+	27, // 70: aes.wallet.v1.WalletService.GetWalletAlerts:output_type -> aes.wallet.v1.GetWalletAlertsResponse
+	61, // 71: aes.wallet.v1.WalletService.CreateStripeTopUpIntent:output_type -> aes.wallet.v1.CreateStripeTopUpIntentResponse
+	63, // 72: aes.wallet.v1.WalletService.CreateCardSetupIntent:output_type -> aes.wallet.v1.CreateCardSetupIntentResponse
+	65, // 73: aes.wallet.v1.WalletService.CreateCoinbaseTopUpCheckout:output_type -> aes.wallet.v1.CreateCoinbaseTopUpCheckoutResponse
+	67, // 74: aes.wallet.v1.WalletService.ListTopUps:output_type -> aes.wallet.v1.ListTopUpsResponse
+	69, // 75: aes.wallet.v1.WalletService.GetTopUp:output_type -> aes.wallet.v1.GetTopUpResponse
+	72, // 76: aes.wallet.v1.WalletService.QueryUsage:output_type -> aes.wallet.v1.QueryUsageResponse
+	74, // 77: aes.wallet.v1.WalletService.ExportUsage:output_type -> aes.wallet.v1.ExportUsageResponse
+	3,  // 78: aes.wallet.v1.WalletService.RedeemPromotionCode:output_type -> aes.wallet.v1.RedeemPromotionCodeResponse
+	5,  // 79: aes.wallet.v1.WalletService.GetActivePromotion:output_type -> aes.wallet.v1.GetActivePromotionResponse
+	53, // [53:80] is the sub-list for method output_type
+	26, // [26:53] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_aes_wallet_v1_wallet_proto_init() }
@@ -5236,7 +5483,7 @@ func file_aes_wallet_v1_wallet_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_wallet_v1_wallet_proto_rawDesc), len(file_aes_wallet_v1_wallet_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   75,
+			NumMessages:   78,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

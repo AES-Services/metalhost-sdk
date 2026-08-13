@@ -76,6 +76,58 @@ func (BareMetalPowerAction) EnumDescriptor() ([]byte, []int) {
 	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{0}
 }
 
+// How quickly a listed server can be handed over after an order.
+type BareMetalFulfillment int32
+
+const (
+	BareMetalFulfillment_BARE_METAL_FULFILLMENT_UNSPECIFIED BareMetalFulfillment = 0
+	// Ready now — provisioning starts immediately.
+	BareMetalFulfillment_BARE_METAL_FULFILLMENT_IMMEDIATE BareMetalFulfillment = 1
+	// Prepared on order; see provisioning_eta_minutes for the expected wait.
+	BareMetalFulfillment_BARE_METAL_FULFILLMENT_CONVERT_JIT BareMetalFulfillment = 2
+)
+
+// Enum value maps for BareMetalFulfillment.
+var (
+	BareMetalFulfillment_name = map[int32]string{
+		0: "BARE_METAL_FULFILLMENT_UNSPECIFIED",
+		1: "BARE_METAL_FULFILLMENT_IMMEDIATE",
+		2: "BARE_METAL_FULFILLMENT_CONVERT_JIT",
+	}
+	BareMetalFulfillment_value = map[string]int32{
+		"BARE_METAL_FULFILLMENT_UNSPECIFIED": 0,
+		"BARE_METAL_FULFILLMENT_IMMEDIATE":   1,
+		"BARE_METAL_FULFILLMENT_CONVERT_JIT": 2,
+	}
+)
+
+func (x BareMetalFulfillment) Enum() *BareMetalFulfillment {
+	p := new(BareMetalFulfillment)
+	*p = x
+	return p
+}
+
+func (x BareMetalFulfillment) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BareMetalFulfillment) Descriptor() protoreflect.EnumDescriptor {
+	return file_aes_baremetal_v1_baremetal_proto_enumTypes[1].Descriptor()
+}
+
+func (BareMetalFulfillment) Type() protoreflect.EnumType {
+	return &file_aes_baremetal_v1_baremetal_proto_enumTypes[1]
+}
+
+func (x BareMetalFulfillment) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BareMetalFulfillment.Descriptor instead.
+func (BareMetalFulfillment) EnumDescriptor() ([]byte, []int) {
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{1}
+}
+
 // Availability of a published bare-metal host in the public inventory.
 type BareMetalAvailability int32
 
@@ -116,11 +168,11 @@ func (x BareMetalAvailability) String() string {
 }
 
 func (BareMetalAvailability) Descriptor() protoreflect.EnumDescriptor {
-	return file_aes_baremetal_v1_baremetal_proto_enumTypes[1].Descriptor()
+	return file_aes_baremetal_v1_baremetal_proto_enumTypes[2].Descriptor()
 }
 
 func (BareMetalAvailability) Type() protoreflect.EnumType {
-	return &file_aes_baremetal_v1_baremetal_proto_enumTypes[1]
+	return &file_aes_baremetal_v1_baremetal_proto_enumTypes[2]
 }
 
 func (x BareMetalAvailability) Number() protoreflect.EnumNumber {
@@ -129,7 +181,7 @@ func (x BareMetalAvailability) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use BareMetalAvailability.Descriptor instead.
 func (BareMetalAvailability) EnumDescriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{1}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{2}
 }
 
 // BareMetalBootDevice selects the one-time boot source for SetBareMetalBootDevice.
@@ -169,11 +221,11 @@ func (x BareMetalBootDevice) String() string {
 }
 
 func (BareMetalBootDevice) Descriptor() protoreflect.EnumDescriptor {
-	return file_aes_baremetal_v1_baremetal_proto_enumTypes[2].Descriptor()
+	return file_aes_baremetal_v1_baremetal_proto_enumTypes[3].Descriptor()
 }
 
 func (BareMetalBootDevice) Type() protoreflect.EnumType {
-	return &file_aes_baremetal_v1_baremetal_proto_enumTypes[2]
+	return &file_aes_baremetal_v1_baremetal_proto_enumTypes[3]
 }
 
 func (x BareMetalBootDevice) Number() protoreflect.EnumNumber {
@@ -182,7 +234,7 @@ func (x BareMetalBootDevice) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use BareMetalBootDevice.Descriptor instead.
 func (BareMetalBootDevice) EnumDescriptor() ([]byte, []int) {
-	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{2}
+	return file_aes_baremetal_v1_baremetal_proto_rawDescGZIP(), []int{3}
 }
 
 type BareMetalInstance struct {
@@ -453,8 +505,12 @@ type AvailableBareMetal struct {
 	// Per-server price the operator set; the hourly rate is monthly_price_minor/730.
 	MonthlyPriceMinor int64  `protobuf:"varint,9,opt,name=monthly_price_minor,json=monthlyPriceMinor,proto3" json:"monthly_price_minor,omitempty"`
 	Currency          string `protobuf:"bytes,10,opt,name=currency,proto3" json:"currency,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// Fulfillment speed. IMMEDIATE unless stated otherwise.
+	Fulfillment BareMetalFulfillment `protobuf:"varint,11,opt,name=fulfillment,proto3,enum=aes.baremetal.v1.BareMetalFulfillment" json:"fulfillment,omitempty"`
+	// Expected minutes until handover for non-immediate fulfillment.
+	ProvisioningEtaMinutes int32 `protobuf:"varint,12,opt,name=provisioning_eta_minutes,json=provisioningEtaMinutes,proto3" json:"provisioning_eta_minutes,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *AvailableBareMetal) Reset() {
@@ -555,6 +611,20 @@ func (x *AvailableBareMetal) GetCurrency() string {
 		return x.Currency
 	}
 	return ""
+}
+
+func (x *AvailableBareMetal) GetFulfillment() BareMetalFulfillment {
+	if x != nil {
+		return x.Fulfillment
+	}
+	return BareMetalFulfillment_BARE_METAL_FULFILLMENT_UNSPECIFIED
+}
+
+func (x *AvailableBareMetal) GetProvisioningEtaMinutes() int32 {
+	if x != nil {
+		return x.ProvisioningEtaMinutes
+	}
+	return 0
 }
 
 type ListAvailableBareMetalRequest struct {
@@ -689,10 +759,14 @@ type BareMetalNode struct {
 	Availability      BareMetalAvailability `protobuf:"varint,11,opt,name=availability,proto3,enum=aes.baremetal.v1.BareMetalAvailability" json:"availability,omitempty"`
 	// GPU model + count when this is a GPU node (empty/0 otherwise). cpu_generation already carries
 	// the CPU class, so heterogeneous fleets (incl. AMD-CPU GPU boxes) are described per-node.
-	GpuModel      string `protobuf:"bytes,12,opt,name=gpu_model,json=gpuModel,proto3" json:"gpu_model,omitempty"`
-	GpuCount      int32  `protobuf:"varint,13,opt,name=gpu_count,json=gpuCount,proto3" json:"gpu_count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	GpuModel string `protobuf:"bytes,12,opt,name=gpu_model,json=gpuModel,proto3" json:"gpu_model,omitempty"`
+	GpuCount int32  `protobuf:"varint,13,opt,name=gpu_count,json=gpuCount,proto3" json:"gpu_count,omitempty"`
+	// Fulfillment speed when available. IMMEDIATE unless stated otherwise.
+	Fulfillment BareMetalFulfillment `protobuf:"varint,14,opt,name=fulfillment,proto3,enum=aes.baremetal.v1.BareMetalFulfillment" json:"fulfillment,omitempty"`
+	// Expected minutes until handover for non-immediate fulfillment.
+	ProvisioningEtaMinutes int32 `protobuf:"varint,15,opt,name=provisioning_eta_minutes,json=provisioningEtaMinutes,proto3" json:"provisioning_eta_minutes,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *BareMetalNode) Reset() {
@@ -812,6 +886,20 @@ func (x *BareMetalNode) GetGpuModel() string {
 func (x *BareMetalNode) GetGpuCount() int32 {
 	if x != nil {
 		return x.GpuCount
+	}
+	return 0
+}
+
+func (x *BareMetalNode) GetFulfillment() BareMetalFulfillment {
+	if x != nil {
+		return x.Fulfillment
+	}
+	return BareMetalFulfillment_BARE_METAL_FULFILLMENT_UNSPECIFIED
+}
+
+func (x *BareMetalNode) GetProvisioningEtaMinutes() int32 {
+	if x != nil {
+		return x.ProvisioningEtaMinutes
 	}
 	return 0
 }
@@ -3227,7 +3315,7 @@ const file_aes_baremetal_v1_baremetal_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xe4\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xe8\x03\n" +
 	"\x12AvailableBareMetal\x12\x1b\n" +
 	"\thost_name\x18\x01 \x01(\tR\bhostName\x12'\n" +
 	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12\x1d\n" +
@@ -3242,7 +3330,9 @@ const file_aes_baremetal_v1_baremetal_proto_rawDesc = "" +
 	"storageGib\x12.\n" +
 	"\x13monthly_price_minor\x18\t \x01(\x03R\x11monthlyPriceMinor\x12\x1a\n" +
 	"\bcurrency\x18\n" +
-	" \x01(\tR\bcurrency\"\x84\x01\n" +
+	" \x01(\tR\bcurrency\x12H\n" +
+	"\vfulfillment\x18\v \x01(\x0e2&.aes.baremetal.v1.BareMetalFulfillmentR\vfulfillment\x128\n" +
+	"\x18provisioning_eta_minutes\x18\f \x01(\x05R\x16provisioningEtaMinutes\"\x84\x01\n" +
 	"\x1dListAvailableBareMetalRequest\x12'\n" +
 	"\x0fdatacenter_name\x18\x01 \x01(\tR\x0edatacenterName\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -3250,7 +3340,7 @@ const file_aes_baremetal_v1_baremetal_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\"\x84\x01\n" +
 	"\x1eListAvailableBareMetalResponse\x12:\n" +
 	"\x05hosts\x18\x01 \x03(\v2$.aes.baremetal.v1.AvailableBareMetalR\x05hosts\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xe6\x03\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xea\x04\n" +
 	"\rBareMetalNode\x12\x1b\n" +
 	"\thost_name\x18\x01 \x01(\tR\bhostName\x12'\n" +
 	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12\x1d\n" +
@@ -3268,7 +3358,9 @@ const file_aes_baremetal_v1_baremetal_proto_rawDesc = "" +
 	" \x01(\tR\bcurrency\x12K\n" +
 	"\favailability\x18\v \x01(\x0e2'.aes.baremetal.v1.BareMetalAvailabilityR\favailability\x12\x1b\n" +
 	"\tgpu_model\x18\f \x01(\tR\bgpuModel\x12\x1b\n" +
-	"\tgpu_count\x18\r \x01(\x05R\bgpuCount\"\x84\x01\n" +
+	"\tgpu_count\x18\r \x01(\x05R\bgpuCount\x12H\n" +
+	"\vfulfillment\x18\x0e \x01(\x0e2&.aes.baremetal.v1.BareMetalFulfillmentR\vfulfillment\x128\n" +
+	"\x18provisioning_eta_minutes\x18\x0f \x01(\x05R\x16provisioningEtaMinutes\"\x84\x01\n" +
 	"\x1dListBareMetalInventoryRequest\x12'\n" +
 	"\x0fdatacenter_name\x18\x01 \x01(\tR\x0edatacenterName\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -3439,7 +3531,11 @@ const file_aes_baremetal_v1_baremetal_proto_rawDesc = "" +
 	"#BARE_METAL_POWER_ACTION_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aBARE_METAL_POWER_ACTION_ON\x10\x01\x12\x1f\n" +
 	"\x1bBARE_METAL_POWER_ACTION_OFF\x10\x02\x12\"\n" +
-	"\x1eBARE_METAL_POWER_ACTION_REBOOT\x10\x03*\xb4\x01\n" +
+	"\x1eBARE_METAL_POWER_ACTION_REBOOT\x10\x03*\x8c\x01\n" +
+	"\x14BareMetalFulfillment\x12&\n" +
+	"\"BARE_METAL_FULFILLMENT_UNSPECIFIED\x10\x00\x12$\n" +
+	" BARE_METAL_FULFILLMENT_IMMEDIATE\x10\x01\x12&\n" +
+	"\"BARE_METAL_FULFILLMENT_CONVERT_JIT\x10\x02*\xb4\x01\n" +
 	"\x15BareMetalAvailability\x12'\n" +
 	"#BARE_METAL_AVAILABILITY_UNSPECIFIED\x10\x00\x12%\n" +
 	"!BARE_METAL_AVAILABILITY_AVAILABLE\x10\x01\x12\"\n" +
@@ -3486,138 +3582,141 @@ func file_aes_baremetal_v1_baremetal_proto_rawDescGZIP() []byte {
 	return file_aes_baremetal_v1_baremetal_proto_rawDescData
 }
 
-var file_aes_baremetal_v1_baremetal_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_aes_baremetal_v1_baremetal_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
 var file_aes_baremetal_v1_baremetal_proto_msgTypes = make([]protoimpl.MessageInfo, 50)
 var file_aes_baremetal_v1_baremetal_proto_goTypes = []any{
 	(BareMetalPowerAction)(0),                   // 0: aes.baremetal.v1.BareMetalPowerAction
-	(BareMetalAvailability)(0),                  // 1: aes.baremetal.v1.BareMetalAvailability
-	(BareMetalBootDevice)(0),                    // 2: aes.baremetal.v1.BareMetalBootDevice
-	(*BareMetalInstance)(nil),                   // 3: aes.baremetal.v1.BareMetalInstance
-	(*AvailableBareMetal)(nil),                  // 4: aes.baremetal.v1.AvailableBareMetal
-	(*ListAvailableBareMetalRequest)(nil),       // 5: aes.baremetal.v1.ListAvailableBareMetalRequest
-	(*ListAvailableBareMetalResponse)(nil),      // 6: aes.baremetal.v1.ListAvailableBareMetalResponse
-	(*BareMetalNode)(nil),                       // 7: aes.baremetal.v1.BareMetalNode
-	(*ListBareMetalInventoryRequest)(nil),       // 8: aes.baremetal.v1.ListBareMetalInventoryRequest
-	(*ListBareMetalInventoryResponse)(nil),      // 9: aes.baremetal.v1.ListBareMetalInventoryResponse
-	(*QuoteBareMetalRequest)(nil),               // 10: aes.baremetal.v1.QuoteBareMetalRequest
-	(*QuoteBareMetalResponse)(nil),              // 11: aes.baremetal.v1.QuoteBareMetalResponse
-	(*CreateBareMetalInstanceRequest)(nil),      // 12: aes.baremetal.v1.CreateBareMetalInstanceRequest
-	(*CreateBareMetalInstanceResponse)(nil),     // 13: aes.baremetal.v1.CreateBareMetalInstanceResponse
-	(*GetBareMetalInstanceRequest)(nil),         // 14: aes.baremetal.v1.GetBareMetalInstanceRequest
-	(*GetBareMetalInstanceResponse)(nil),        // 15: aes.baremetal.v1.GetBareMetalInstanceResponse
-	(*ListBareMetalInstancesRequest)(nil),       // 16: aes.baremetal.v1.ListBareMetalInstancesRequest
-	(*ListBareMetalInstancesResponse)(nil),      // 17: aes.baremetal.v1.ListBareMetalInstancesResponse
-	(*ReleaseBareMetalInstanceRequest)(nil),     // 18: aes.baremetal.v1.ReleaseBareMetalInstanceRequest
-	(*ReleaseBareMetalInstanceResponse)(nil),    // 19: aes.baremetal.v1.ReleaseBareMetalInstanceResponse
-	(*RenewBareMetalNowRequest)(nil),            // 20: aes.baremetal.v1.RenewBareMetalNowRequest
-	(*RenewBareMetalNowResponse)(nil),           // 21: aes.baremetal.v1.RenewBareMetalNowResponse
-	(*SetBareMetalPowerRequest)(nil),            // 22: aes.baremetal.v1.SetBareMetalPowerRequest
-	(*SetBareMetalPowerResponse)(nil),           // 23: aes.baremetal.v1.SetBareMetalPowerResponse
-	(*ReinstallBareMetalRequest)(nil),           // 24: aes.baremetal.v1.ReinstallBareMetalRequest
-	(*ReinstallBareMetalResponse)(nil),          // 25: aes.baremetal.v1.ReinstallBareMetalResponse
-	(*GetBareMetalConsoleURLRequest)(nil),       // 26: aes.baremetal.v1.GetBareMetalConsoleURLRequest
-	(*GetBareMetalConsoleURLResponse)(nil),      // 27: aes.baremetal.v1.GetBareMetalConsoleURLResponse
-	(*EnterBareMetalRescueModeRequest)(nil),     // 28: aes.baremetal.v1.EnterBareMetalRescueModeRequest
-	(*EnterBareMetalRescueModeResponse)(nil),    // 29: aes.baremetal.v1.EnterBareMetalRescueModeResponse
-	(*ExitBareMetalRescueModeRequest)(nil),      // 30: aes.baremetal.v1.ExitBareMetalRescueModeRequest
-	(*ExitBareMetalRescueModeResponse)(nil),     // 31: aes.baremetal.v1.ExitBareMetalRescueModeResponse
-	(*CreateBareMetalISOUploadURLRequest)(nil),  // 32: aes.baremetal.v1.CreateBareMetalISOUploadURLRequest
-	(*CreateBareMetalISOUploadURLResponse)(nil), // 33: aes.baremetal.v1.CreateBareMetalISOUploadURLResponse
-	(*ISOFile)(nil),                             // 34: aes.baremetal.v1.ISOFile
-	(*ListBareMetalISOsRequest)(nil),            // 35: aes.baremetal.v1.ListBareMetalISOsRequest
-	(*CreateBareMetalISOFromURLRequest)(nil),    // 36: aes.baremetal.v1.CreateBareMetalISOFromURLRequest
-	(*CreateBareMetalISOFromURLResponse)(nil),   // 37: aes.baremetal.v1.CreateBareMetalISOFromURLResponse
-	(*ListBareMetalISOsResponse)(nil),           // 38: aes.baremetal.v1.ListBareMetalISOsResponse
-	(*DeleteBareMetalISORequest)(nil),           // 39: aes.baremetal.v1.DeleteBareMetalISORequest
-	(*DeleteBareMetalISOResponse)(nil),          // 40: aes.baremetal.v1.DeleteBareMetalISOResponse
-	(*GetBareMetalVirtualMediaRequest)(nil),     // 41: aes.baremetal.v1.GetBareMetalVirtualMediaRequest
-	(*GetBareMetalVirtualMediaResponse)(nil),    // 42: aes.baremetal.v1.GetBareMetalVirtualMediaResponse
-	(*AttachBareMetalISORequest)(nil),           // 43: aes.baremetal.v1.AttachBareMetalISORequest
-	(*AttachBareMetalISOResponse)(nil),          // 44: aes.baremetal.v1.AttachBareMetalISOResponse
-	(*DetachBareMetalISORequest)(nil),           // 45: aes.baremetal.v1.DetachBareMetalISORequest
-	(*DetachBareMetalISOResponse)(nil),          // 46: aes.baremetal.v1.DetachBareMetalISOResponse
-	(*SetBareMetalBootDeviceRequest)(nil),       // 47: aes.baremetal.v1.SetBareMetalBootDeviceRequest
-	(*SetBareMetalBootDeviceResponse)(nil),      // 48: aes.baremetal.v1.SetBareMetalBootDeviceResponse
-	nil,                                         // 49: aes.baremetal.v1.BareMetalInstance.LabelsEntry
-	nil,                                         // 50: aes.baremetal.v1.BareMetalInstance.AnnotationsEntry
-	nil,                                         // 51: aes.baremetal.v1.CreateBareMetalInstanceRequest.LabelsEntry
-	nil,                                         // 52: aes.baremetal.v1.CreateBareMetalInstanceRequest.AnnotationsEntry
-	(v1.BillingMode)(0),                         // 53: aes.compute.v1.BillingMode
-	(*v11.Operation)(nil),                       // 54: aes.ops.v1.Operation
+	(BareMetalFulfillment)(0),                   // 1: aes.baremetal.v1.BareMetalFulfillment
+	(BareMetalAvailability)(0),                  // 2: aes.baremetal.v1.BareMetalAvailability
+	(BareMetalBootDevice)(0),                    // 3: aes.baremetal.v1.BareMetalBootDevice
+	(*BareMetalInstance)(nil),                   // 4: aes.baremetal.v1.BareMetalInstance
+	(*AvailableBareMetal)(nil),                  // 5: aes.baremetal.v1.AvailableBareMetal
+	(*ListAvailableBareMetalRequest)(nil),       // 6: aes.baremetal.v1.ListAvailableBareMetalRequest
+	(*ListAvailableBareMetalResponse)(nil),      // 7: aes.baremetal.v1.ListAvailableBareMetalResponse
+	(*BareMetalNode)(nil),                       // 8: aes.baremetal.v1.BareMetalNode
+	(*ListBareMetalInventoryRequest)(nil),       // 9: aes.baremetal.v1.ListBareMetalInventoryRequest
+	(*ListBareMetalInventoryResponse)(nil),      // 10: aes.baremetal.v1.ListBareMetalInventoryResponse
+	(*QuoteBareMetalRequest)(nil),               // 11: aes.baremetal.v1.QuoteBareMetalRequest
+	(*QuoteBareMetalResponse)(nil),              // 12: aes.baremetal.v1.QuoteBareMetalResponse
+	(*CreateBareMetalInstanceRequest)(nil),      // 13: aes.baremetal.v1.CreateBareMetalInstanceRequest
+	(*CreateBareMetalInstanceResponse)(nil),     // 14: aes.baremetal.v1.CreateBareMetalInstanceResponse
+	(*GetBareMetalInstanceRequest)(nil),         // 15: aes.baremetal.v1.GetBareMetalInstanceRequest
+	(*GetBareMetalInstanceResponse)(nil),        // 16: aes.baremetal.v1.GetBareMetalInstanceResponse
+	(*ListBareMetalInstancesRequest)(nil),       // 17: aes.baremetal.v1.ListBareMetalInstancesRequest
+	(*ListBareMetalInstancesResponse)(nil),      // 18: aes.baremetal.v1.ListBareMetalInstancesResponse
+	(*ReleaseBareMetalInstanceRequest)(nil),     // 19: aes.baremetal.v1.ReleaseBareMetalInstanceRequest
+	(*ReleaseBareMetalInstanceResponse)(nil),    // 20: aes.baremetal.v1.ReleaseBareMetalInstanceResponse
+	(*RenewBareMetalNowRequest)(nil),            // 21: aes.baremetal.v1.RenewBareMetalNowRequest
+	(*RenewBareMetalNowResponse)(nil),           // 22: aes.baremetal.v1.RenewBareMetalNowResponse
+	(*SetBareMetalPowerRequest)(nil),            // 23: aes.baremetal.v1.SetBareMetalPowerRequest
+	(*SetBareMetalPowerResponse)(nil),           // 24: aes.baremetal.v1.SetBareMetalPowerResponse
+	(*ReinstallBareMetalRequest)(nil),           // 25: aes.baremetal.v1.ReinstallBareMetalRequest
+	(*ReinstallBareMetalResponse)(nil),          // 26: aes.baremetal.v1.ReinstallBareMetalResponse
+	(*GetBareMetalConsoleURLRequest)(nil),       // 27: aes.baremetal.v1.GetBareMetalConsoleURLRequest
+	(*GetBareMetalConsoleURLResponse)(nil),      // 28: aes.baremetal.v1.GetBareMetalConsoleURLResponse
+	(*EnterBareMetalRescueModeRequest)(nil),     // 29: aes.baremetal.v1.EnterBareMetalRescueModeRequest
+	(*EnterBareMetalRescueModeResponse)(nil),    // 30: aes.baremetal.v1.EnterBareMetalRescueModeResponse
+	(*ExitBareMetalRescueModeRequest)(nil),      // 31: aes.baremetal.v1.ExitBareMetalRescueModeRequest
+	(*ExitBareMetalRescueModeResponse)(nil),     // 32: aes.baremetal.v1.ExitBareMetalRescueModeResponse
+	(*CreateBareMetalISOUploadURLRequest)(nil),  // 33: aes.baremetal.v1.CreateBareMetalISOUploadURLRequest
+	(*CreateBareMetalISOUploadURLResponse)(nil), // 34: aes.baremetal.v1.CreateBareMetalISOUploadURLResponse
+	(*ISOFile)(nil),                             // 35: aes.baremetal.v1.ISOFile
+	(*ListBareMetalISOsRequest)(nil),            // 36: aes.baremetal.v1.ListBareMetalISOsRequest
+	(*CreateBareMetalISOFromURLRequest)(nil),    // 37: aes.baremetal.v1.CreateBareMetalISOFromURLRequest
+	(*CreateBareMetalISOFromURLResponse)(nil),   // 38: aes.baremetal.v1.CreateBareMetalISOFromURLResponse
+	(*ListBareMetalISOsResponse)(nil),           // 39: aes.baremetal.v1.ListBareMetalISOsResponse
+	(*DeleteBareMetalISORequest)(nil),           // 40: aes.baremetal.v1.DeleteBareMetalISORequest
+	(*DeleteBareMetalISOResponse)(nil),          // 41: aes.baremetal.v1.DeleteBareMetalISOResponse
+	(*GetBareMetalVirtualMediaRequest)(nil),     // 42: aes.baremetal.v1.GetBareMetalVirtualMediaRequest
+	(*GetBareMetalVirtualMediaResponse)(nil),    // 43: aes.baremetal.v1.GetBareMetalVirtualMediaResponse
+	(*AttachBareMetalISORequest)(nil),           // 44: aes.baremetal.v1.AttachBareMetalISORequest
+	(*AttachBareMetalISOResponse)(nil),          // 45: aes.baremetal.v1.AttachBareMetalISOResponse
+	(*DetachBareMetalISORequest)(nil),           // 46: aes.baremetal.v1.DetachBareMetalISORequest
+	(*DetachBareMetalISOResponse)(nil),          // 47: aes.baremetal.v1.DetachBareMetalISOResponse
+	(*SetBareMetalBootDeviceRequest)(nil),       // 48: aes.baremetal.v1.SetBareMetalBootDeviceRequest
+	(*SetBareMetalBootDeviceResponse)(nil),      // 49: aes.baremetal.v1.SetBareMetalBootDeviceResponse
+	nil,                                         // 50: aes.baremetal.v1.BareMetalInstance.LabelsEntry
+	nil,                                         // 51: aes.baremetal.v1.BareMetalInstance.AnnotationsEntry
+	nil,                                         // 52: aes.baremetal.v1.CreateBareMetalInstanceRequest.LabelsEntry
+	nil,                                         // 53: aes.baremetal.v1.CreateBareMetalInstanceRequest.AnnotationsEntry
+	(v1.BillingMode)(0),                         // 54: aes.compute.v1.BillingMode
+	(*v11.Operation)(nil),                       // 55: aes.ops.v1.Operation
 }
 var file_aes_baremetal_v1_baremetal_proto_depIdxs = []int32{
-	49, // 0: aes.baremetal.v1.BareMetalInstance.labels:type_name -> aes.baremetal.v1.BareMetalInstance.LabelsEntry
-	50, // 1: aes.baremetal.v1.BareMetalInstance.annotations:type_name -> aes.baremetal.v1.BareMetalInstance.AnnotationsEntry
-	53, // 2: aes.baremetal.v1.BareMetalInstance.billing_mode:type_name -> aes.compute.v1.BillingMode
-	4,  // 3: aes.baremetal.v1.ListAvailableBareMetalResponse.hosts:type_name -> aes.baremetal.v1.AvailableBareMetal
-	1,  // 4: aes.baremetal.v1.BareMetalNode.availability:type_name -> aes.baremetal.v1.BareMetalAvailability
-	7,  // 5: aes.baremetal.v1.ListBareMetalInventoryResponse.nodes:type_name -> aes.baremetal.v1.BareMetalNode
-	53, // 6: aes.baremetal.v1.QuoteBareMetalRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
-	51, // 7: aes.baremetal.v1.CreateBareMetalInstanceRequest.labels:type_name -> aes.baremetal.v1.CreateBareMetalInstanceRequest.LabelsEntry
-	52, // 8: aes.baremetal.v1.CreateBareMetalInstanceRequest.annotations:type_name -> aes.baremetal.v1.CreateBareMetalInstanceRequest.AnnotationsEntry
-	53, // 9: aes.baremetal.v1.CreateBareMetalInstanceRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
-	3,  // 10: aes.baremetal.v1.CreateBareMetalInstanceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	3,  // 11: aes.baremetal.v1.GetBareMetalInstanceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	3,  // 12: aes.baremetal.v1.ListBareMetalInstancesResponse.bare_metal_instances:type_name -> aes.baremetal.v1.BareMetalInstance
-	3,  // 13: aes.baremetal.v1.RenewBareMetalNowResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	0,  // 14: aes.baremetal.v1.SetBareMetalPowerRequest.action:type_name -> aes.baremetal.v1.BareMetalPowerAction
-	3,  // 15: aes.baremetal.v1.SetBareMetalPowerResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	3,  // 16: aes.baremetal.v1.ReinstallBareMetalResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	3,  // 17: aes.baremetal.v1.EnterBareMetalRescueModeResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	3,  // 18: aes.baremetal.v1.ExitBareMetalRescueModeResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	54, // 19: aes.baremetal.v1.CreateBareMetalISOFromURLResponse.operation:type_name -> aes.ops.v1.Operation
-	34, // 20: aes.baremetal.v1.ListBareMetalISOsResponse.isos:type_name -> aes.baremetal.v1.ISOFile
-	3,  // 21: aes.baremetal.v1.AttachBareMetalISOResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	3,  // 22: aes.baremetal.v1.DetachBareMetalISOResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	2,  // 23: aes.baremetal.v1.SetBareMetalBootDeviceRequest.device:type_name -> aes.baremetal.v1.BareMetalBootDevice
-	3,  // 24: aes.baremetal.v1.SetBareMetalBootDeviceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
-	5,  // 25: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal:input_type -> aes.baremetal.v1.ListAvailableBareMetalRequest
-	8,  // 26: aes.baremetal.v1.BareMetalService.ListBareMetalInventory:input_type -> aes.baremetal.v1.ListBareMetalInventoryRequest
-	10, // 27: aes.baremetal.v1.BareMetalService.QuoteBareMetal:input_type -> aes.baremetal.v1.QuoteBareMetalRequest
-	12, // 28: aes.baremetal.v1.BareMetalService.CreateBareMetalInstance:input_type -> aes.baremetal.v1.CreateBareMetalInstanceRequest
-	14, // 29: aes.baremetal.v1.BareMetalService.GetBareMetalInstance:input_type -> aes.baremetal.v1.GetBareMetalInstanceRequest
-	16, // 30: aes.baremetal.v1.BareMetalService.ListBareMetalInstances:input_type -> aes.baremetal.v1.ListBareMetalInstancesRequest
-	18, // 31: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance:input_type -> aes.baremetal.v1.ReleaseBareMetalInstanceRequest
-	20, // 32: aes.baremetal.v1.BareMetalService.RenewBareMetalNow:input_type -> aes.baremetal.v1.RenewBareMetalNowRequest
-	22, // 33: aes.baremetal.v1.BareMetalService.SetBareMetalPower:input_type -> aes.baremetal.v1.SetBareMetalPowerRequest
-	24, // 34: aes.baremetal.v1.BareMetalService.ReinstallBareMetal:input_type -> aes.baremetal.v1.ReinstallBareMetalRequest
-	26, // 35: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL:input_type -> aes.baremetal.v1.GetBareMetalConsoleURLRequest
-	28, // 36: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode:input_type -> aes.baremetal.v1.EnterBareMetalRescueModeRequest
-	30, // 37: aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode:input_type -> aes.baremetal.v1.ExitBareMetalRescueModeRequest
-	32, // 38: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL:input_type -> aes.baremetal.v1.CreateBareMetalISOUploadURLRequest
-	35, // 39: aes.baremetal.v1.BareMetalService.ListBareMetalISOs:input_type -> aes.baremetal.v1.ListBareMetalISOsRequest
-	36, // 40: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL:input_type -> aes.baremetal.v1.CreateBareMetalISOFromURLRequest
-	39, // 41: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO:input_type -> aes.baremetal.v1.DeleteBareMetalISORequest
-	43, // 42: aes.baremetal.v1.BareMetalService.AttachBareMetalISO:input_type -> aes.baremetal.v1.AttachBareMetalISORequest
-	41, // 43: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia:input_type -> aes.baremetal.v1.GetBareMetalVirtualMediaRequest
-	45, // 44: aes.baremetal.v1.BareMetalService.DetachBareMetalISO:input_type -> aes.baremetal.v1.DetachBareMetalISORequest
-	47, // 45: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice:input_type -> aes.baremetal.v1.SetBareMetalBootDeviceRequest
-	6,  // 46: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal:output_type -> aes.baremetal.v1.ListAvailableBareMetalResponse
-	9,  // 47: aes.baremetal.v1.BareMetalService.ListBareMetalInventory:output_type -> aes.baremetal.v1.ListBareMetalInventoryResponse
-	11, // 48: aes.baremetal.v1.BareMetalService.QuoteBareMetal:output_type -> aes.baremetal.v1.QuoteBareMetalResponse
-	13, // 49: aes.baremetal.v1.BareMetalService.CreateBareMetalInstance:output_type -> aes.baremetal.v1.CreateBareMetalInstanceResponse
-	15, // 50: aes.baremetal.v1.BareMetalService.GetBareMetalInstance:output_type -> aes.baremetal.v1.GetBareMetalInstanceResponse
-	17, // 51: aes.baremetal.v1.BareMetalService.ListBareMetalInstances:output_type -> aes.baremetal.v1.ListBareMetalInstancesResponse
-	19, // 52: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance:output_type -> aes.baremetal.v1.ReleaseBareMetalInstanceResponse
-	21, // 53: aes.baremetal.v1.BareMetalService.RenewBareMetalNow:output_type -> aes.baremetal.v1.RenewBareMetalNowResponse
-	23, // 54: aes.baremetal.v1.BareMetalService.SetBareMetalPower:output_type -> aes.baremetal.v1.SetBareMetalPowerResponse
-	25, // 55: aes.baremetal.v1.BareMetalService.ReinstallBareMetal:output_type -> aes.baremetal.v1.ReinstallBareMetalResponse
-	27, // 56: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL:output_type -> aes.baremetal.v1.GetBareMetalConsoleURLResponse
-	29, // 57: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode:output_type -> aes.baremetal.v1.EnterBareMetalRescueModeResponse
-	31, // 58: aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode:output_type -> aes.baremetal.v1.ExitBareMetalRescueModeResponse
-	33, // 59: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL:output_type -> aes.baremetal.v1.CreateBareMetalISOUploadURLResponse
-	38, // 60: aes.baremetal.v1.BareMetalService.ListBareMetalISOs:output_type -> aes.baremetal.v1.ListBareMetalISOsResponse
-	37, // 61: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL:output_type -> aes.baremetal.v1.CreateBareMetalISOFromURLResponse
-	40, // 62: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO:output_type -> aes.baremetal.v1.DeleteBareMetalISOResponse
-	44, // 63: aes.baremetal.v1.BareMetalService.AttachBareMetalISO:output_type -> aes.baremetal.v1.AttachBareMetalISOResponse
-	42, // 64: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia:output_type -> aes.baremetal.v1.GetBareMetalVirtualMediaResponse
-	46, // 65: aes.baremetal.v1.BareMetalService.DetachBareMetalISO:output_type -> aes.baremetal.v1.DetachBareMetalISOResponse
-	48, // 66: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice:output_type -> aes.baremetal.v1.SetBareMetalBootDeviceResponse
-	46, // [46:67] is the sub-list for method output_type
-	25, // [25:46] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	50, // 0: aes.baremetal.v1.BareMetalInstance.labels:type_name -> aes.baremetal.v1.BareMetalInstance.LabelsEntry
+	51, // 1: aes.baremetal.v1.BareMetalInstance.annotations:type_name -> aes.baremetal.v1.BareMetalInstance.AnnotationsEntry
+	54, // 2: aes.baremetal.v1.BareMetalInstance.billing_mode:type_name -> aes.compute.v1.BillingMode
+	1,  // 3: aes.baremetal.v1.AvailableBareMetal.fulfillment:type_name -> aes.baremetal.v1.BareMetalFulfillment
+	5,  // 4: aes.baremetal.v1.ListAvailableBareMetalResponse.hosts:type_name -> aes.baremetal.v1.AvailableBareMetal
+	2,  // 5: aes.baremetal.v1.BareMetalNode.availability:type_name -> aes.baremetal.v1.BareMetalAvailability
+	1,  // 6: aes.baremetal.v1.BareMetalNode.fulfillment:type_name -> aes.baremetal.v1.BareMetalFulfillment
+	8,  // 7: aes.baremetal.v1.ListBareMetalInventoryResponse.nodes:type_name -> aes.baremetal.v1.BareMetalNode
+	54, // 8: aes.baremetal.v1.QuoteBareMetalRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
+	52, // 9: aes.baremetal.v1.CreateBareMetalInstanceRequest.labels:type_name -> aes.baremetal.v1.CreateBareMetalInstanceRequest.LabelsEntry
+	53, // 10: aes.baremetal.v1.CreateBareMetalInstanceRequest.annotations:type_name -> aes.baremetal.v1.CreateBareMetalInstanceRequest.AnnotationsEntry
+	54, // 11: aes.baremetal.v1.CreateBareMetalInstanceRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
+	4,  // 12: aes.baremetal.v1.CreateBareMetalInstanceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	4,  // 13: aes.baremetal.v1.GetBareMetalInstanceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	4,  // 14: aes.baremetal.v1.ListBareMetalInstancesResponse.bare_metal_instances:type_name -> aes.baremetal.v1.BareMetalInstance
+	4,  // 15: aes.baremetal.v1.RenewBareMetalNowResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	0,  // 16: aes.baremetal.v1.SetBareMetalPowerRequest.action:type_name -> aes.baremetal.v1.BareMetalPowerAction
+	4,  // 17: aes.baremetal.v1.SetBareMetalPowerResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	4,  // 18: aes.baremetal.v1.ReinstallBareMetalResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	4,  // 19: aes.baremetal.v1.EnterBareMetalRescueModeResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	4,  // 20: aes.baremetal.v1.ExitBareMetalRescueModeResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	55, // 21: aes.baremetal.v1.CreateBareMetalISOFromURLResponse.operation:type_name -> aes.ops.v1.Operation
+	35, // 22: aes.baremetal.v1.ListBareMetalISOsResponse.isos:type_name -> aes.baremetal.v1.ISOFile
+	4,  // 23: aes.baremetal.v1.AttachBareMetalISOResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	4,  // 24: aes.baremetal.v1.DetachBareMetalISOResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	3,  // 25: aes.baremetal.v1.SetBareMetalBootDeviceRequest.device:type_name -> aes.baremetal.v1.BareMetalBootDevice
+	4,  // 26: aes.baremetal.v1.SetBareMetalBootDeviceResponse.instance:type_name -> aes.baremetal.v1.BareMetalInstance
+	6,  // 27: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal:input_type -> aes.baremetal.v1.ListAvailableBareMetalRequest
+	9,  // 28: aes.baremetal.v1.BareMetalService.ListBareMetalInventory:input_type -> aes.baremetal.v1.ListBareMetalInventoryRequest
+	11, // 29: aes.baremetal.v1.BareMetalService.QuoteBareMetal:input_type -> aes.baremetal.v1.QuoteBareMetalRequest
+	13, // 30: aes.baremetal.v1.BareMetalService.CreateBareMetalInstance:input_type -> aes.baremetal.v1.CreateBareMetalInstanceRequest
+	15, // 31: aes.baremetal.v1.BareMetalService.GetBareMetalInstance:input_type -> aes.baremetal.v1.GetBareMetalInstanceRequest
+	17, // 32: aes.baremetal.v1.BareMetalService.ListBareMetalInstances:input_type -> aes.baremetal.v1.ListBareMetalInstancesRequest
+	19, // 33: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance:input_type -> aes.baremetal.v1.ReleaseBareMetalInstanceRequest
+	21, // 34: aes.baremetal.v1.BareMetalService.RenewBareMetalNow:input_type -> aes.baremetal.v1.RenewBareMetalNowRequest
+	23, // 35: aes.baremetal.v1.BareMetalService.SetBareMetalPower:input_type -> aes.baremetal.v1.SetBareMetalPowerRequest
+	25, // 36: aes.baremetal.v1.BareMetalService.ReinstallBareMetal:input_type -> aes.baremetal.v1.ReinstallBareMetalRequest
+	27, // 37: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL:input_type -> aes.baremetal.v1.GetBareMetalConsoleURLRequest
+	29, // 38: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode:input_type -> aes.baremetal.v1.EnterBareMetalRescueModeRequest
+	31, // 39: aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode:input_type -> aes.baremetal.v1.ExitBareMetalRescueModeRequest
+	33, // 40: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL:input_type -> aes.baremetal.v1.CreateBareMetalISOUploadURLRequest
+	36, // 41: aes.baremetal.v1.BareMetalService.ListBareMetalISOs:input_type -> aes.baremetal.v1.ListBareMetalISOsRequest
+	37, // 42: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL:input_type -> aes.baremetal.v1.CreateBareMetalISOFromURLRequest
+	40, // 43: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO:input_type -> aes.baremetal.v1.DeleteBareMetalISORequest
+	44, // 44: aes.baremetal.v1.BareMetalService.AttachBareMetalISO:input_type -> aes.baremetal.v1.AttachBareMetalISORequest
+	42, // 45: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia:input_type -> aes.baremetal.v1.GetBareMetalVirtualMediaRequest
+	46, // 46: aes.baremetal.v1.BareMetalService.DetachBareMetalISO:input_type -> aes.baremetal.v1.DetachBareMetalISORequest
+	48, // 47: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice:input_type -> aes.baremetal.v1.SetBareMetalBootDeviceRequest
+	7,  // 48: aes.baremetal.v1.BareMetalService.ListAvailableBareMetal:output_type -> aes.baremetal.v1.ListAvailableBareMetalResponse
+	10, // 49: aes.baremetal.v1.BareMetalService.ListBareMetalInventory:output_type -> aes.baremetal.v1.ListBareMetalInventoryResponse
+	12, // 50: aes.baremetal.v1.BareMetalService.QuoteBareMetal:output_type -> aes.baremetal.v1.QuoteBareMetalResponse
+	14, // 51: aes.baremetal.v1.BareMetalService.CreateBareMetalInstance:output_type -> aes.baremetal.v1.CreateBareMetalInstanceResponse
+	16, // 52: aes.baremetal.v1.BareMetalService.GetBareMetalInstance:output_type -> aes.baremetal.v1.GetBareMetalInstanceResponse
+	18, // 53: aes.baremetal.v1.BareMetalService.ListBareMetalInstances:output_type -> aes.baremetal.v1.ListBareMetalInstancesResponse
+	20, // 54: aes.baremetal.v1.BareMetalService.ReleaseBareMetalInstance:output_type -> aes.baremetal.v1.ReleaseBareMetalInstanceResponse
+	22, // 55: aes.baremetal.v1.BareMetalService.RenewBareMetalNow:output_type -> aes.baremetal.v1.RenewBareMetalNowResponse
+	24, // 56: aes.baremetal.v1.BareMetalService.SetBareMetalPower:output_type -> aes.baremetal.v1.SetBareMetalPowerResponse
+	26, // 57: aes.baremetal.v1.BareMetalService.ReinstallBareMetal:output_type -> aes.baremetal.v1.ReinstallBareMetalResponse
+	28, // 58: aes.baremetal.v1.BareMetalService.GetBareMetalConsoleURL:output_type -> aes.baremetal.v1.GetBareMetalConsoleURLResponse
+	30, // 59: aes.baremetal.v1.BareMetalService.EnterBareMetalRescueMode:output_type -> aes.baremetal.v1.EnterBareMetalRescueModeResponse
+	32, // 60: aes.baremetal.v1.BareMetalService.ExitBareMetalRescueMode:output_type -> aes.baremetal.v1.ExitBareMetalRescueModeResponse
+	34, // 61: aes.baremetal.v1.BareMetalService.CreateBareMetalISOUploadURL:output_type -> aes.baremetal.v1.CreateBareMetalISOUploadURLResponse
+	39, // 62: aes.baremetal.v1.BareMetalService.ListBareMetalISOs:output_type -> aes.baremetal.v1.ListBareMetalISOsResponse
+	38, // 63: aes.baremetal.v1.BareMetalService.CreateBareMetalISOFromURL:output_type -> aes.baremetal.v1.CreateBareMetalISOFromURLResponse
+	41, // 64: aes.baremetal.v1.BareMetalService.DeleteBareMetalISO:output_type -> aes.baremetal.v1.DeleteBareMetalISOResponse
+	45, // 65: aes.baremetal.v1.BareMetalService.AttachBareMetalISO:output_type -> aes.baremetal.v1.AttachBareMetalISOResponse
+	43, // 66: aes.baremetal.v1.BareMetalService.GetBareMetalVirtualMedia:output_type -> aes.baremetal.v1.GetBareMetalVirtualMediaResponse
+	47, // 67: aes.baremetal.v1.BareMetalService.DetachBareMetalISO:output_type -> aes.baremetal.v1.DetachBareMetalISOResponse
+	49, // 68: aes.baremetal.v1.BareMetalService.SetBareMetalBootDevice:output_type -> aes.baremetal.v1.SetBareMetalBootDeviceResponse
+	48, // [48:69] is the sub-list for method output_type
+	27, // [27:48] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_aes_baremetal_v1_baremetal_proto_init() }
@@ -3630,7 +3729,7 @@ func file_aes_baremetal_v1_baremetal_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_baremetal_v1_baremetal_proto_rawDesc), len(file_aes_baremetal_v1_baremetal_proto_rawDesc)),
-			NumEnums:      3,
+			NumEnums:      4,
 			NumMessages:   50,
 			NumExtensions: 0,
 			NumServices:   1,

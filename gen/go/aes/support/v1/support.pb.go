@@ -199,7 +199,8 @@ func (TicketCategory) EnumDescriptor() ([]byte, []int) {
 }
 
 // Channel records how the ticket was originally opened. v1 only ever sets API; EMAIL and
-// SYSTEM (auto-opened on incident detection) are reserved for phase 2.
+// SYSTEM (auto-opened on incident detection) are reserved for phase 2. STAFF marks a ticket
+// proactively opened by support staff via AdminSupportService.InitiateTicket.
 type TicketChannel int32
 
 const (
@@ -207,6 +208,7 @@ const (
 	TicketChannel_TICKET_CHANNEL_API         TicketChannel = 1
 	TicketChannel_TICKET_CHANNEL_EMAIL       TicketChannel = 2
 	TicketChannel_TICKET_CHANNEL_SYSTEM      TicketChannel = 3
+	TicketChannel_TICKET_CHANNEL_STAFF       TicketChannel = 4
 )
 
 // Enum value maps for TicketChannel.
@@ -216,12 +218,14 @@ var (
 		1: "TICKET_CHANNEL_API",
 		2: "TICKET_CHANNEL_EMAIL",
 		3: "TICKET_CHANNEL_SYSTEM",
+		4: "TICKET_CHANNEL_STAFF",
 	}
 	TicketChannel_value = map[string]int32{
 		"TICKET_CHANNEL_UNSPECIFIED": 0,
 		"TICKET_CHANNEL_API":         1,
 		"TICKET_CHANNEL_EMAIL":       2,
 		"TICKET_CHANNEL_SYSTEM":      3,
+		"TICKET_CHANNEL_STAFF":       4,
 	}
 )
 
@@ -250,6 +254,59 @@ func (x TicketChannel) Number() protoreflect.EnumNumber {
 // Deprecated: Use TicketChannel.Descriptor instead.
 func (TicketChannel) EnumDescriptor() ([]byte, []int) {
 	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{3}
+}
+
+// AuthorKind is the typed form of TicketMessage.author_type.
+type AuthorKind int32
+
+const (
+	AuthorKind_AUTHOR_KIND_UNSPECIFIED AuthorKind = 0
+	AuthorKind_AUTHOR_KIND_CUSTOMER    AuthorKind = 1
+	AuthorKind_AUTHOR_KIND_STAFF       AuthorKind = 2
+	AuthorKind_AUTHOR_KIND_SYSTEM      AuthorKind = 3
+)
+
+// Enum value maps for AuthorKind.
+var (
+	AuthorKind_name = map[int32]string{
+		0: "AUTHOR_KIND_UNSPECIFIED",
+		1: "AUTHOR_KIND_CUSTOMER",
+		2: "AUTHOR_KIND_STAFF",
+		3: "AUTHOR_KIND_SYSTEM",
+	}
+	AuthorKind_value = map[string]int32{
+		"AUTHOR_KIND_UNSPECIFIED": 0,
+		"AUTHOR_KIND_CUSTOMER":    1,
+		"AUTHOR_KIND_STAFF":       2,
+		"AUTHOR_KIND_SYSTEM":      3,
+	}
+)
+
+func (x AuthorKind) Enum() *AuthorKind {
+	p := new(AuthorKind)
+	*p = x
+	return p
+}
+
+func (x AuthorKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AuthorKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_aes_support_v1_support_proto_enumTypes[4].Descriptor()
+}
+
+func (AuthorKind) Type() protoreflect.EnumType {
+	return &file_aes_support_v1_support_proto_enumTypes[4]
+}
+
+func (x AuthorKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AuthorKind.Descriptor instead.
+func (AuthorKind) EnumDescriptor() ([]byte, []int) {
+	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{4}
 }
 
 // ResourceRef attaches an arbitrary platform resource to a ticket — useful for staff
@@ -504,8 +561,11 @@ type TicketMessage struct {
 	AuthorId   string `protobuf:"bytes,4,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
 	Body       string `protobuf:"bytes,5,opt,name=body,proto3" json:"body,omitempty"`
 	// True when the message is staff-only. Filtered out by GetTicket for non-staff callers.
-	InternalNote  bool                   `protobuf:"varint,6,opt,name=internal_note,json=internalNote,proto3" json:"internal_note,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	InternalNote bool                   `protobuf:"varint,6,opt,name=internal_note,json=internalNote,proto3" json:"internal_note,omitempty"`
+	CreatedAt    *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Typed author classification. Mirrors author_type (kept for compatibility) so clients
+	// stop string-matching "staff-ish" values.
+	AuthorKind    AuthorKind `protobuf:"varint,8,opt,name=author_kind,json=authorKind,proto3,enum=aes.support.v1.AuthorKind" json:"author_kind,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -587,6 +647,13 @@ func (x *TicketMessage) GetCreatedAt() *timestamppb.Timestamp {
 		return x.CreatedAt
 	}
 	return nil
+}
+
+func (x *TicketMessage) GetAuthorKind() AuthorKind {
+	if x != nil {
+		return x.AuthorKind
+	}
+	return AuthorKind_AUTHOR_KIND_UNSPECIFIED
 }
 
 type CreateTicketRequest struct {
@@ -1179,7 +1246,7 @@ const file_aes_support_v1_support_proto_rawDesc = "" +
 	"\rmessage_count\x18\x12 \x01(\x05R\fmessageCount\x128\n" +
 	"\n" +
 	"sla_due_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\bslaDueAt\x12=\n" +
-	"\fescalated_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\vescalatedAtJ\x04\b\x01\x10\x02R\x02id\"\xee\x01\n" +
+	"\fescalated_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\vescalatedAtJ\x04\b\x01\x10\x02R\x02id\"\xab\x02\n" +
 	"\rTicketMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tticket_id\x18\x02 \x01(\tR\bticketId\x12\x1f\n" +
@@ -1189,7 +1256,9 @@ const file_aes_support_v1_support_proto_rawDesc = "" +
 	"\x04body\x18\x05 \x01(\tR\x04body\x12#\n" +
 	"\rinternal_note\x18\x06 \x01(\bR\finternalNote\x129\n" +
 	"\n" +
-	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xaa\x02\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12;\n" +
+	"\vauthor_kind\x18\b \x01(\x0e2\x1a.aes.support.v1.AuthorKindR\n" +
+	"authorKind\"\xaa\x02\n" +
 	"\x13CreateTicketRequest\x12+\n" +
 	"\x11organization_name\x18\x01 \x01(\tR\x10organizationName\x12\x18\n" +
 	"\asubject\x18\x02 \x01(\tR\asubject\x12\x12\n" +
@@ -1244,12 +1313,19 @@ const file_aes_support_v1_support_proto_rawDesc = "" +
 	"\x19TICKET_CATEGORY_TECHNICAL\x10\x02\x12\x1b\n" +
 	"\x17TICKET_CATEGORY_BILLING\x10\x03\x12\x19\n" +
 	"\x15TICKET_CATEGORY_ABUSE\x10\x04\x12\x1b\n" +
-	"\x17TICKET_CATEGORY_FEATURE\x10\x05*|\n" +
+	"\x17TICKET_CATEGORY_FEATURE\x10\x05*\x96\x01\n" +
 	"\rTicketChannel\x12\x1e\n" +
 	"\x1aTICKET_CHANNEL_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12TICKET_CHANNEL_API\x10\x01\x12\x18\n" +
 	"\x14TICKET_CHANNEL_EMAIL\x10\x02\x12\x19\n" +
-	"\x15TICKET_CHANNEL_SYSTEM\x10\x032\xc5\x03\n" +
+	"\x15TICKET_CHANNEL_SYSTEM\x10\x03\x12\x18\n" +
+	"\x14TICKET_CHANNEL_STAFF\x10\x04*r\n" +
+	"\n" +
+	"AuthorKind\x12\x1b\n" +
+	"\x17AUTHOR_KIND_UNSPECIFIED\x10\x00\x12\x18\n" +
+	"\x14AUTHOR_KIND_CUSTOMER\x10\x01\x12\x15\n" +
+	"\x11AUTHOR_KIND_STAFF\x10\x02\x12\x16\n" +
+	"\x12AUTHOR_KIND_SYSTEM\x10\x032\xc5\x03\n" +
 	"\x0eSupportService\x12Y\n" +
 	"\fCreateTicket\x12#.aes.support.v1.CreateTicketRequest\x1a$.aes.support.v1.CreateTicketResponse\x12V\n" +
 	"\vListTickets\x12\".aes.support.v1.ListTicketsRequest\x1a#.aes.support.v1.ListTicketsResponse\x12P\n" +
@@ -1270,68 +1346,70 @@ func file_aes_support_v1_support_proto_rawDescGZIP() []byte {
 	return file_aes_support_v1_support_proto_rawDescData
 }
 
-var file_aes_support_v1_support_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_aes_support_v1_support_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
 var file_aes_support_v1_support_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_aes_support_v1_support_proto_goTypes = []any{
 	(TicketStatus)(0),             // 0: aes.support.v1.TicketStatus
 	(TicketPriority)(0),           // 1: aes.support.v1.TicketPriority
 	(TicketCategory)(0),           // 2: aes.support.v1.TicketCategory
 	(TicketChannel)(0),            // 3: aes.support.v1.TicketChannel
-	(*ResourceRef)(nil),           // 4: aes.support.v1.ResourceRef
-	(*Ticket)(nil),                // 5: aes.support.v1.Ticket
-	(*TicketMessage)(nil),         // 6: aes.support.v1.TicketMessage
-	(*CreateTicketRequest)(nil),   // 7: aes.support.v1.CreateTicketRequest
-	(*CreateTicketResponse)(nil),  // 8: aes.support.v1.CreateTicketResponse
-	(*ListTicketsRequest)(nil),    // 9: aes.support.v1.ListTicketsRequest
-	(*ListTicketsResponse)(nil),   // 10: aes.support.v1.ListTicketsResponse
-	(*GetTicketRequest)(nil),      // 11: aes.support.v1.GetTicketRequest
-	(*GetTicketResponse)(nil),     // 12: aes.support.v1.GetTicketResponse
-	(*ReplyTicketRequest)(nil),    // 13: aes.support.v1.ReplyTicketRequest
-	(*ReplyTicketResponse)(nil),   // 14: aes.support.v1.ReplyTicketResponse
-	(*CloseTicketRequest)(nil),    // 15: aes.support.v1.CloseTicketRequest
-	(*CloseTicketResponse)(nil),   // 16: aes.support.v1.CloseTicketResponse
-	(*timestamppb.Timestamp)(nil), // 17: google.protobuf.Timestamp
+	(AuthorKind)(0),               // 4: aes.support.v1.AuthorKind
+	(*ResourceRef)(nil),           // 5: aes.support.v1.ResourceRef
+	(*Ticket)(nil),                // 6: aes.support.v1.Ticket
+	(*TicketMessage)(nil),         // 7: aes.support.v1.TicketMessage
+	(*CreateTicketRequest)(nil),   // 8: aes.support.v1.CreateTicketRequest
+	(*CreateTicketResponse)(nil),  // 9: aes.support.v1.CreateTicketResponse
+	(*ListTicketsRequest)(nil),    // 10: aes.support.v1.ListTicketsRequest
+	(*ListTicketsResponse)(nil),   // 11: aes.support.v1.ListTicketsResponse
+	(*GetTicketRequest)(nil),      // 12: aes.support.v1.GetTicketRequest
+	(*GetTicketResponse)(nil),     // 13: aes.support.v1.GetTicketResponse
+	(*ReplyTicketRequest)(nil),    // 14: aes.support.v1.ReplyTicketRequest
+	(*ReplyTicketResponse)(nil),   // 15: aes.support.v1.ReplyTicketResponse
+	(*CloseTicketRequest)(nil),    // 16: aes.support.v1.CloseTicketRequest
+	(*CloseTicketResponse)(nil),   // 17: aes.support.v1.CloseTicketResponse
+	(*timestamppb.Timestamp)(nil), // 18: google.protobuf.Timestamp
 }
 var file_aes_support_v1_support_proto_depIdxs = []int32{
 	0,  // 0: aes.support.v1.Ticket.status:type_name -> aes.support.v1.TicketStatus
 	1,  // 1: aes.support.v1.Ticket.priority:type_name -> aes.support.v1.TicketPriority
 	2,  // 2: aes.support.v1.Ticket.category:type_name -> aes.support.v1.TicketCategory
 	3,  // 3: aes.support.v1.Ticket.channel:type_name -> aes.support.v1.TicketChannel
-	4,  // 4: aes.support.v1.Ticket.resource_refs:type_name -> aes.support.v1.ResourceRef
-	17, // 5: aes.support.v1.Ticket.created_at:type_name -> google.protobuf.Timestamp
-	17, // 6: aes.support.v1.Ticket.updated_at:type_name -> google.protobuf.Timestamp
-	17, // 7: aes.support.v1.Ticket.last_activity_at:type_name -> google.protobuf.Timestamp
-	17, // 8: aes.support.v1.Ticket.resolved_at:type_name -> google.protobuf.Timestamp
-	17, // 9: aes.support.v1.Ticket.sla_due_at:type_name -> google.protobuf.Timestamp
-	17, // 10: aes.support.v1.Ticket.escalated_at:type_name -> google.protobuf.Timestamp
-	17, // 11: aes.support.v1.TicketMessage.created_at:type_name -> google.protobuf.Timestamp
-	2,  // 12: aes.support.v1.CreateTicketRequest.category:type_name -> aes.support.v1.TicketCategory
-	1,  // 13: aes.support.v1.CreateTicketRequest.priority:type_name -> aes.support.v1.TicketPriority
-	4,  // 14: aes.support.v1.CreateTicketRequest.resource_refs:type_name -> aes.support.v1.ResourceRef
-	5,  // 15: aes.support.v1.CreateTicketResponse.ticket:type_name -> aes.support.v1.Ticket
-	6,  // 16: aes.support.v1.CreateTicketResponse.initial_message:type_name -> aes.support.v1.TicketMessage
-	0,  // 17: aes.support.v1.ListTicketsRequest.status_filter:type_name -> aes.support.v1.TicketStatus
-	5,  // 18: aes.support.v1.ListTicketsResponse.tickets:type_name -> aes.support.v1.Ticket
-	5,  // 19: aes.support.v1.GetTicketResponse.ticket:type_name -> aes.support.v1.Ticket
-	6,  // 20: aes.support.v1.GetTicketResponse.messages:type_name -> aes.support.v1.TicketMessage
-	6,  // 21: aes.support.v1.ReplyTicketResponse.message:type_name -> aes.support.v1.TicketMessage
-	5,  // 22: aes.support.v1.ReplyTicketResponse.ticket:type_name -> aes.support.v1.Ticket
-	5,  // 23: aes.support.v1.CloseTicketResponse.ticket:type_name -> aes.support.v1.Ticket
-	7,  // 24: aes.support.v1.SupportService.CreateTicket:input_type -> aes.support.v1.CreateTicketRequest
-	9,  // 25: aes.support.v1.SupportService.ListTickets:input_type -> aes.support.v1.ListTicketsRequest
-	11, // 26: aes.support.v1.SupportService.GetTicket:input_type -> aes.support.v1.GetTicketRequest
-	13, // 27: aes.support.v1.SupportService.ReplyTicket:input_type -> aes.support.v1.ReplyTicketRequest
-	15, // 28: aes.support.v1.SupportService.CloseTicket:input_type -> aes.support.v1.CloseTicketRequest
-	8,  // 29: aes.support.v1.SupportService.CreateTicket:output_type -> aes.support.v1.CreateTicketResponse
-	10, // 30: aes.support.v1.SupportService.ListTickets:output_type -> aes.support.v1.ListTicketsResponse
-	12, // 31: aes.support.v1.SupportService.GetTicket:output_type -> aes.support.v1.GetTicketResponse
-	14, // 32: aes.support.v1.SupportService.ReplyTicket:output_type -> aes.support.v1.ReplyTicketResponse
-	16, // 33: aes.support.v1.SupportService.CloseTicket:output_type -> aes.support.v1.CloseTicketResponse
-	29, // [29:34] is the sub-list for method output_type
-	24, // [24:29] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	5,  // 4: aes.support.v1.Ticket.resource_refs:type_name -> aes.support.v1.ResourceRef
+	18, // 5: aes.support.v1.Ticket.created_at:type_name -> google.protobuf.Timestamp
+	18, // 6: aes.support.v1.Ticket.updated_at:type_name -> google.protobuf.Timestamp
+	18, // 7: aes.support.v1.Ticket.last_activity_at:type_name -> google.protobuf.Timestamp
+	18, // 8: aes.support.v1.Ticket.resolved_at:type_name -> google.protobuf.Timestamp
+	18, // 9: aes.support.v1.Ticket.sla_due_at:type_name -> google.protobuf.Timestamp
+	18, // 10: aes.support.v1.Ticket.escalated_at:type_name -> google.protobuf.Timestamp
+	18, // 11: aes.support.v1.TicketMessage.created_at:type_name -> google.protobuf.Timestamp
+	4,  // 12: aes.support.v1.TicketMessage.author_kind:type_name -> aes.support.v1.AuthorKind
+	2,  // 13: aes.support.v1.CreateTicketRequest.category:type_name -> aes.support.v1.TicketCategory
+	1,  // 14: aes.support.v1.CreateTicketRequest.priority:type_name -> aes.support.v1.TicketPriority
+	5,  // 15: aes.support.v1.CreateTicketRequest.resource_refs:type_name -> aes.support.v1.ResourceRef
+	6,  // 16: aes.support.v1.CreateTicketResponse.ticket:type_name -> aes.support.v1.Ticket
+	7,  // 17: aes.support.v1.CreateTicketResponse.initial_message:type_name -> aes.support.v1.TicketMessage
+	0,  // 18: aes.support.v1.ListTicketsRequest.status_filter:type_name -> aes.support.v1.TicketStatus
+	6,  // 19: aes.support.v1.ListTicketsResponse.tickets:type_name -> aes.support.v1.Ticket
+	6,  // 20: aes.support.v1.GetTicketResponse.ticket:type_name -> aes.support.v1.Ticket
+	7,  // 21: aes.support.v1.GetTicketResponse.messages:type_name -> aes.support.v1.TicketMessage
+	7,  // 22: aes.support.v1.ReplyTicketResponse.message:type_name -> aes.support.v1.TicketMessage
+	6,  // 23: aes.support.v1.ReplyTicketResponse.ticket:type_name -> aes.support.v1.Ticket
+	6,  // 24: aes.support.v1.CloseTicketResponse.ticket:type_name -> aes.support.v1.Ticket
+	8,  // 25: aes.support.v1.SupportService.CreateTicket:input_type -> aes.support.v1.CreateTicketRequest
+	10, // 26: aes.support.v1.SupportService.ListTickets:input_type -> aes.support.v1.ListTicketsRequest
+	12, // 27: aes.support.v1.SupportService.GetTicket:input_type -> aes.support.v1.GetTicketRequest
+	14, // 28: aes.support.v1.SupportService.ReplyTicket:input_type -> aes.support.v1.ReplyTicketRequest
+	16, // 29: aes.support.v1.SupportService.CloseTicket:input_type -> aes.support.v1.CloseTicketRequest
+	9,  // 30: aes.support.v1.SupportService.CreateTicket:output_type -> aes.support.v1.CreateTicketResponse
+	11, // 31: aes.support.v1.SupportService.ListTickets:output_type -> aes.support.v1.ListTicketsResponse
+	13, // 32: aes.support.v1.SupportService.GetTicket:output_type -> aes.support.v1.GetTicketResponse
+	15, // 33: aes.support.v1.SupportService.ReplyTicket:output_type -> aes.support.v1.ReplyTicketResponse
+	17, // 34: aes.support.v1.SupportService.CloseTicket:output_type -> aes.support.v1.CloseTicketResponse
+	30, // [30:35] is the sub-list for method output_type
+	25, // [25:30] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_aes_support_v1_support_proto_init() }
@@ -1344,7 +1422,7 @@ func file_aes_support_v1_support_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_support_v1_support_proto_rawDesc), len(file_aes_support_v1_support_proto_rawDesc)),
-			NumEnums:      4,
+			NumEnums:      5,
 			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,

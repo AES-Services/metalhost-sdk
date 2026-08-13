@@ -66,6 +66,15 @@ const (
 	// ProjectServiceCheckSlugAvailableProcedure is the fully-qualified name of the ProjectService's
 	// CheckSlugAvailable RPC.
 	ProjectServiceCheckSlugAvailableProcedure = "/aes.project.v1.ProjectService/CheckSlugAvailable"
+	// ProjectServiceListProjectMembersProcedure is the fully-qualified name of the ProjectService's
+	// ListProjectMembers RPC.
+	ProjectServiceListProjectMembersProcedure = "/aes.project.v1.ProjectService/ListProjectMembers"
+	// ProjectServiceSetProjectMemberProcedure is the fully-qualified name of the ProjectService's
+	// SetProjectMember RPC.
+	ProjectServiceSetProjectMemberProcedure = "/aes.project.v1.ProjectService/SetProjectMember"
+	// ProjectServiceRemoveProjectMemberProcedure is the fully-qualified name of the ProjectService's
+	// RemoveProjectMember RPC.
+	ProjectServiceRemoveProjectMemberProcedure = "/aes.project.v1.ProjectService/RemoveProjectMember"
 )
 
 // ProjectServiceClient is a client for the aes.project.v1.ProjectService service.
@@ -95,6 +104,15 @@ type ProjectServiceClient interface {
 	// and a human reason ("taken" / "invalid" / "") — never API jargon. Authed; no resource is
 	// created. Validation mirrors the create paths (DNS-1035, 3–30 chars, reserved-word blocklist).
 	CheckSlugAvailable(context.Context, *connect.Request[v1.CheckSlugAvailableRequest]) (*connect.Response[v1.CheckSlugAvailableResponse], error)
+	// Per-member project access (#208). Org owners/admins reach every project implicitly; these
+	// RPCs grant a specific org member access to a specific project with a project role
+	// (owner/editor/viewer). Caller must be a project owner, an org owner/admin, or platform admin.
+	ListProjectMembers(context.Context, *connect.Request[v1.ListProjectMembersRequest]) (*connect.Response[v1.ListProjectMembersResponse], error)
+	// SetProjectMember grants or updates a member's role on the project (idempotent upsert).
+	SetProjectMember(context.Context, *connect.Request[v1.SetProjectMemberRequest]) (*connect.Response[v1.SetProjectMemberResponse], error)
+	// RemoveProjectMember revokes a member's project-scoped access (org owners/admins keep implicit
+	// access regardless).
+	RemoveProjectMember(context.Context, *connect.Request[v1.RemoveProjectMemberRequest]) (*connect.Response[v1.RemoveProjectMemberResponse], error)
 }
 
 // NewProjectServiceClient constructs a client for the aes.project.v1.ProjectService service. By
@@ -174,22 +192,43 @@ func NewProjectServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(projectServiceMethods.ByName("CheckSlugAvailable")),
 			connect.WithClientOptions(opts...),
 		),
+		listProjectMembers: connect.NewClient[v1.ListProjectMembersRequest, v1.ListProjectMembersResponse](
+			httpClient,
+			baseURL+ProjectServiceListProjectMembersProcedure,
+			connect.WithSchema(projectServiceMethods.ByName("ListProjectMembers")),
+			connect.WithClientOptions(opts...),
+		),
+		setProjectMember: connect.NewClient[v1.SetProjectMemberRequest, v1.SetProjectMemberResponse](
+			httpClient,
+			baseURL+ProjectServiceSetProjectMemberProcedure,
+			connect.WithSchema(projectServiceMethods.ByName("SetProjectMember")),
+			connect.WithClientOptions(opts...),
+		),
+		removeProjectMember: connect.NewClient[v1.RemoveProjectMemberRequest, v1.RemoveProjectMemberResponse](
+			httpClient,
+			baseURL+ProjectServiceRemoveProjectMemberProcedure,
+			connect.WithSchema(projectServiceMethods.ByName("RemoveProjectMember")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // projectServiceClient implements ProjectServiceClient.
 type projectServiceClient struct {
-	getOrganization    *connect.Client[v1.GetOrganizationRequest, v1.GetOrganizationResponse]
-	createOrganization *connect.Client[v1.CreateOrganizationRequest, v1.CreateOrganizationResponse]
-	updateOrganization *connect.Client[v1.UpdateOrganizationRequest, v1.UpdateOrganizationResponse]
-	deleteOrganization *connect.Client[v1.DeleteOrganizationRequest, v1.DeleteOrganizationResponse]
-	listProjects       *connect.Client[v1.ListProjectsRequest, v1.ListProjectsResponse]
-	getProject         *connect.Client[v1.GetProjectRequest, v1.GetProjectResponse]
-	createProject      *connect.Client[v1.CreateProjectRequest, v1.CreateProjectResponse]
-	updateProject      *connect.Client[v1.UpdateProjectRequest, v1.UpdateProjectResponse]
-	deleteProject      *connect.Client[v1.DeleteProjectRequest, v1.DeleteProjectResponse]
-	listOrgActivity    *connect.Client[v1.ListOrgActivityRequest, v1.ListOrgActivityResponse]
-	checkSlugAvailable *connect.Client[v1.CheckSlugAvailableRequest, v1.CheckSlugAvailableResponse]
+	getOrganization     *connect.Client[v1.GetOrganizationRequest, v1.GetOrganizationResponse]
+	createOrganization  *connect.Client[v1.CreateOrganizationRequest, v1.CreateOrganizationResponse]
+	updateOrganization  *connect.Client[v1.UpdateOrganizationRequest, v1.UpdateOrganizationResponse]
+	deleteOrganization  *connect.Client[v1.DeleteOrganizationRequest, v1.DeleteOrganizationResponse]
+	listProjects        *connect.Client[v1.ListProjectsRequest, v1.ListProjectsResponse]
+	getProject          *connect.Client[v1.GetProjectRequest, v1.GetProjectResponse]
+	createProject       *connect.Client[v1.CreateProjectRequest, v1.CreateProjectResponse]
+	updateProject       *connect.Client[v1.UpdateProjectRequest, v1.UpdateProjectResponse]
+	deleteProject       *connect.Client[v1.DeleteProjectRequest, v1.DeleteProjectResponse]
+	listOrgActivity     *connect.Client[v1.ListOrgActivityRequest, v1.ListOrgActivityResponse]
+	checkSlugAvailable  *connect.Client[v1.CheckSlugAvailableRequest, v1.CheckSlugAvailableResponse]
+	listProjectMembers  *connect.Client[v1.ListProjectMembersRequest, v1.ListProjectMembersResponse]
+	setProjectMember    *connect.Client[v1.SetProjectMemberRequest, v1.SetProjectMemberResponse]
+	removeProjectMember *connect.Client[v1.RemoveProjectMemberRequest, v1.RemoveProjectMemberResponse]
 }
 
 // GetOrganization calls aes.project.v1.ProjectService.GetOrganization.
@@ -247,6 +286,21 @@ func (c *projectServiceClient) CheckSlugAvailable(ctx context.Context, req *conn
 	return c.checkSlugAvailable.CallUnary(ctx, req)
 }
 
+// ListProjectMembers calls aes.project.v1.ProjectService.ListProjectMembers.
+func (c *projectServiceClient) ListProjectMembers(ctx context.Context, req *connect.Request[v1.ListProjectMembersRequest]) (*connect.Response[v1.ListProjectMembersResponse], error) {
+	return c.listProjectMembers.CallUnary(ctx, req)
+}
+
+// SetProjectMember calls aes.project.v1.ProjectService.SetProjectMember.
+func (c *projectServiceClient) SetProjectMember(ctx context.Context, req *connect.Request[v1.SetProjectMemberRequest]) (*connect.Response[v1.SetProjectMemberResponse], error) {
+	return c.setProjectMember.CallUnary(ctx, req)
+}
+
+// RemoveProjectMember calls aes.project.v1.ProjectService.RemoveProjectMember.
+func (c *projectServiceClient) RemoveProjectMember(ctx context.Context, req *connect.Request[v1.RemoveProjectMemberRequest]) (*connect.Response[v1.RemoveProjectMemberResponse], error) {
+	return c.removeProjectMember.CallUnary(ctx, req)
+}
+
 // ProjectServiceHandler is an implementation of the aes.project.v1.ProjectService service.
 type ProjectServiceHandler interface {
 	GetOrganization(context.Context, *connect.Request[v1.GetOrganizationRequest]) (*connect.Response[v1.GetOrganizationResponse], error)
@@ -274,6 +328,15 @@ type ProjectServiceHandler interface {
 	// and a human reason ("taken" / "invalid" / "") — never API jargon. Authed; no resource is
 	// created. Validation mirrors the create paths (DNS-1035, 3–30 chars, reserved-word blocklist).
 	CheckSlugAvailable(context.Context, *connect.Request[v1.CheckSlugAvailableRequest]) (*connect.Response[v1.CheckSlugAvailableResponse], error)
+	// Per-member project access (#208). Org owners/admins reach every project implicitly; these
+	// RPCs grant a specific org member access to a specific project with a project role
+	// (owner/editor/viewer). Caller must be a project owner, an org owner/admin, or platform admin.
+	ListProjectMembers(context.Context, *connect.Request[v1.ListProjectMembersRequest]) (*connect.Response[v1.ListProjectMembersResponse], error)
+	// SetProjectMember grants or updates a member's role on the project (idempotent upsert).
+	SetProjectMember(context.Context, *connect.Request[v1.SetProjectMemberRequest]) (*connect.Response[v1.SetProjectMemberResponse], error)
+	// RemoveProjectMember revokes a member's project-scoped access (org owners/admins keep implicit
+	// access regardless).
+	RemoveProjectMember(context.Context, *connect.Request[v1.RemoveProjectMemberRequest]) (*connect.Response[v1.RemoveProjectMemberResponse], error)
 }
 
 // NewProjectServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -349,6 +412,24 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect.Handler
 		connect.WithSchema(projectServiceMethods.ByName("CheckSlugAvailable")),
 		connect.WithHandlerOptions(opts...),
 	)
+	projectServiceListProjectMembersHandler := connect.NewUnaryHandler(
+		ProjectServiceListProjectMembersProcedure,
+		svc.ListProjectMembers,
+		connect.WithSchema(projectServiceMethods.ByName("ListProjectMembers")),
+		connect.WithHandlerOptions(opts...),
+	)
+	projectServiceSetProjectMemberHandler := connect.NewUnaryHandler(
+		ProjectServiceSetProjectMemberProcedure,
+		svc.SetProjectMember,
+		connect.WithSchema(projectServiceMethods.ByName("SetProjectMember")),
+		connect.WithHandlerOptions(opts...),
+	)
+	projectServiceRemoveProjectMemberHandler := connect.NewUnaryHandler(
+		ProjectServiceRemoveProjectMemberProcedure,
+		svc.RemoveProjectMember,
+		connect.WithSchema(projectServiceMethods.ByName("RemoveProjectMember")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/aes.project.v1.ProjectService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ProjectServiceGetOrganizationProcedure:
@@ -373,6 +454,12 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect.Handler
 			projectServiceListOrgActivityHandler.ServeHTTP(w, r)
 		case ProjectServiceCheckSlugAvailableProcedure:
 			projectServiceCheckSlugAvailableHandler.ServeHTTP(w, r)
+		case ProjectServiceListProjectMembersProcedure:
+			projectServiceListProjectMembersHandler.ServeHTTP(w, r)
+		case ProjectServiceSetProjectMemberProcedure:
+			projectServiceSetProjectMemberHandler.ServeHTTP(w, r)
+		case ProjectServiceRemoveProjectMemberProcedure:
+			projectServiceRemoveProjectMemberHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -424,4 +511,16 @@ func (UnimplementedProjectServiceHandler) ListOrgActivity(context.Context, *conn
 
 func (UnimplementedProjectServiceHandler) CheckSlugAvailable(context.Context, *connect.Request[v1.CheckSlugAvailableRequest]) (*connect.Response[v1.CheckSlugAvailableResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.project.v1.ProjectService.CheckSlugAvailable is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) ListProjectMembers(context.Context, *connect.Request[v1.ListProjectMembersRequest]) (*connect.Response[v1.ListProjectMembersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.project.v1.ProjectService.ListProjectMembers is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) SetProjectMember(context.Context, *connect.Request[v1.SetProjectMemberRequest]) (*connect.Response[v1.SetProjectMemberResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.project.v1.ProjectService.SetProjectMember is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) RemoveProjectMember(context.Context, *connect.Request[v1.RemoveProjectMemberRequest]) (*connect.Response[v1.RemoveProjectMemberResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.project.v1.ProjectService.RemoveProjectMember is not implemented"))
 }

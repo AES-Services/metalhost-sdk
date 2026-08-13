@@ -46,6 +46,11 @@ service WalletService {
   // with no seasonality or per-resource modeling.
   rpc GetCostForecast(GetCostForecastRequest) returns (GetCostForecastResponse);
 
+  // GetProjectSpendBreakdown returns this period's spend broken down by project (#208). Billing
+  // stays org-level (one wallet/invoice); this is read-only visibility into which project drives
+  // cost. Spend is estimated from metered usage × effective rates over the period.
+  rpc GetProjectSpendBreakdown(GetProjectSpendBreakdownRequest) returns (GetProjectSpendBreakdownResponse);
+
   // Wallet alerts. One config per wallet: balance_alert_minor (fire when prepay balance drops
   // below) and/or days_remaining_alert (fire when balance / daily burn falls below this many
   // days). Either can be unset (NULL) to disable that alert. Edge-fire arming — fires once
@@ -86,24 +91,31 @@ service WalletService {
   // replacement: the customer picks billing_mode at VM create time (HOURLY or
   // MONTHLY_{1,3,6,12}) and the prepayment lives on the VM itself. See compute.BillingMode.
 
-  // Promotion coupons (launch founder discount). RedeemPromotionCode consumes a single-use
-  // code and installs a percentage discount window on the caller's org billing account;
-  // GetActivePromotion backs the "Founder 50% · ends {date}" banner. The discount is applied at
-  // settlement / prepaid-quote time — it is not a wallet credit. Spec: docs/specs/LAUNCH_PROMO_COUPONS.md.
+  // Promotions. RedeemPromotionCode accepts a single-use coupon code or a shared campaign
+  // code (e.g. "PODCAST50" / "MH5"), redeemable once per org. Discount promotions install a
+  // percentage-off window applied at settlement / prepaid-quote time; credit promotions add
+  // the funds to the wallet at redeem time (a saved payment method is required for those).
+  // GetActivePromotion backs the billing-page banner for both kinds.
   rpc RedeemPromotionCode(RedeemPromotionCodeRequest) returns (RedeemPromotionCodeResponse);
   rpc GetActivePromotion(GetActivePromotionRequest) returns (GetActivePromotionResponse);
 }
 
-// ActivePromotion is the customer-facing view of a live discount on an org's billing account.
+// ActivePromotion is the customer-facing view of a live promotion on an org's billing
+// account — either a percentage discount or a promotional wallet credit.
 message ActivePromotion {
   string campaign_name = 1;
   string display_name = 2;
   int32 discount_pct = 3;
-  // Unix seconds; the discount applies to usage/prepaid before this instant.
+  // Unix seconds; the discount applies to usage/prepaid before this instant. For credit
+  // promotions this is when the unspent credit expires.
   int64 discount_starts_at_unix = 4;
   int64 discount_ends_at_unix = 5;
   bool applies_to_usage = 6;
   bool applies_to_prepaid = 7;
+  // "PERCENT" (discount) or "CREDIT" (wallet credit).
+  string kind = 8;
+  // Credit promotions: the amount credited to the wallet, in minor units (500 = $5.00).
+  int64 credit_amount_minor = 9;
 }
 
 message RedeemPromotionCodeRequest {
@@ -618,6 +630,10 @@ message UsageRow {
   // Estimated cost in minor units (rate × quantity, rounded). 0 when no rate is registered.
   int64 cost_minor = 8;
   string currency = 9;
+  // Human-friendly label for resource_name (e.g. a VM's hostname), resolved server-side so the
+  // UI can show a name instead of the raw id — including for resources since deleted. Empty when
+  // the row isn't resource-scoped or no label is known.
+  string resource_label = 10;
 }
 
 message QueryUsageResponse {
@@ -649,3 +665,22 @@ message ExportUsageResponse {
 
 // Commitment / reservation messages intentionally not modeled — see ComputeService.BillingMode
 // for the per-VM monthly billing replacement.
+
+// Per-project spend breakdown (#208).
+message GetProjectSpendBreakdownRequest {
+  string billing_account_name = 1;
+  // "monthly" (default) | "weekly" | "daily" — the period window to total over.
+  string period = 2;
+}
+message ProjectSpend {
+  string project_name = 1;
+  string display_name = 2;
+  int64 cost_minor = 3;
+}
+message GetProjectSpendBreakdownResponse {
+  repeated ProjectSpend projects = 1;
+  string currency = 2;
+  int64 total_minor = 3;
+  int64 period_start_unix = 4;
+  int64 period_end_unix = 5;
+}

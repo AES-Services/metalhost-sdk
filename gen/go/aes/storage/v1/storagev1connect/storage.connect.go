@@ -56,6 +56,9 @@ const (
 	// StorageServiceResizeDiskProcedure is the fully-qualified name of the StorageService's ResizeDisk
 	// RPC.
 	StorageServiceResizeDiskProcedure = "/aes.storage.v1.StorageService/ResizeDisk"
+	// StorageServiceQuoteDiskResizeProcedure is the fully-qualified name of the StorageService's
+	// QuoteDiskResize RPC.
+	StorageServiceQuoteDiskResizeProcedure = "/aes.storage.v1.StorageService/QuoteDiskResize"
 	// StorageServiceCreateFileShareProcedure is the fully-qualified name of the StorageService's
 	// CreateFileShare RPC.
 	StorageServiceCreateFileShareProcedure = "/aes.storage.v1.StorageService/CreateFileShare"
@@ -83,6 +86,10 @@ type StorageServiceClient interface {
 	// disks, the guest sees the new size after a filesystem-level resize. Shrinking is not
 	// supported (expansion is one-way).
 	ResizeDisk(context.Context, *connect.Request[v1.ResizeDiskRequest]) (*connect.Response[v1.ResizeDiskResponse], error)
+	// QuoteDiskResize prices a resize before it is applied. A disk covered by its VM's monthly
+	// reservation grows as a paid upgrade: the difference for the remaining term is charged
+	// immediately on resize — due_now_minor is that amount. 0 for hourly-billed disks.
+	QuoteDiskResize(context.Context, *connect.Request[v1.QuoteDiskResizeRequest]) (*connect.Response[v1.QuoteDiskResizeResponse], error)
 	// File shares — RWX NFS volumes that multiple VMs in the same tenant network can mount
 	// concurrently. Access is restricted to the tenant network, so any VM on that network can
 	// `mount -t nfs4` using the FileShare's `mount_command`. No attach/detach bookkeeping —
@@ -151,6 +158,12 @@ func NewStorageServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(storageServiceMethods.ByName("ResizeDisk")),
 			connect.WithClientOptions(opts...),
 		),
+		quoteDiskResize: connect.NewClient[v1.QuoteDiskResizeRequest, v1.QuoteDiskResizeResponse](
+			httpClient,
+			baseURL+StorageServiceQuoteDiskResizeProcedure,
+			connect.WithSchema(storageServiceMethods.ByName("QuoteDiskResize")),
+			connect.WithClientOptions(opts...),
+		),
 		createFileShare: connect.NewClient[v1.CreateFileShareRequest, v1.CreateFileShareResponse](
 			httpClient,
 			baseURL+StorageServiceCreateFileShareProcedure,
@@ -182,6 +195,7 @@ type storageServiceClient struct {
 	attachDisk      *connect.Client[v1.AttachDiskRequest, v1.AttachDiskResponse]
 	detachDisk      *connect.Client[v1.DetachDiskRequest, v1.DetachDiskResponse]
 	resizeDisk      *connect.Client[v1.ResizeDiskRequest, v1.ResizeDiskResponse]
+	quoteDiskResize *connect.Client[v1.QuoteDiskResizeRequest, v1.QuoteDiskResizeResponse]
 	createFileShare *connect.Client[v1.CreateFileShareRequest, v1.CreateFileShareResponse]
 	listFileShares  *connect.Client[v1.ListFileSharesRequest, v1.ListFileSharesResponse]
 	deleteFileShare *connect.Client[v1.DeleteFileShareRequest, v1.DeleteFileShareResponse]
@@ -227,6 +241,11 @@ func (c *storageServiceClient) ResizeDisk(ctx context.Context, req *connect.Requ
 	return c.resizeDisk.CallUnary(ctx, req)
 }
 
+// QuoteDiskResize calls aes.storage.v1.StorageService.QuoteDiskResize.
+func (c *storageServiceClient) QuoteDiskResize(ctx context.Context, req *connect.Request[v1.QuoteDiskResizeRequest]) (*connect.Response[v1.QuoteDiskResizeResponse], error) {
+	return c.quoteDiskResize.CallUnary(ctx, req)
+}
+
 // CreateFileShare calls aes.storage.v1.StorageService.CreateFileShare.
 func (c *storageServiceClient) CreateFileShare(ctx context.Context, req *connect.Request[v1.CreateFileShareRequest]) (*connect.Response[v1.CreateFileShareResponse], error) {
 	return c.createFileShare.CallUnary(ctx, req)
@@ -258,6 +277,10 @@ type StorageServiceHandler interface {
 	// disks, the guest sees the new size after a filesystem-level resize. Shrinking is not
 	// supported (expansion is one-way).
 	ResizeDisk(context.Context, *connect.Request[v1.ResizeDiskRequest]) (*connect.Response[v1.ResizeDiskResponse], error)
+	// QuoteDiskResize prices a resize before it is applied. A disk covered by its VM's monthly
+	// reservation grows as a paid upgrade: the difference for the remaining term is charged
+	// immediately on resize — due_now_minor is that amount. 0 for hourly-billed disks.
+	QuoteDiskResize(context.Context, *connect.Request[v1.QuoteDiskResizeRequest]) (*connect.Response[v1.QuoteDiskResizeResponse], error)
 	// File shares — RWX NFS volumes that multiple VMs in the same tenant network can mount
 	// concurrently. Access is restricted to the tenant network, so any VM on that network can
 	// `mount -t nfs4` using the FileShare's `mount_command`. No attach/detach bookkeeping —
@@ -322,6 +345,12 @@ func NewStorageServiceHandler(svc StorageServiceHandler, opts ...connect.Handler
 		connect.WithSchema(storageServiceMethods.ByName("ResizeDisk")),
 		connect.WithHandlerOptions(opts...),
 	)
+	storageServiceQuoteDiskResizeHandler := connect.NewUnaryHandler(
+		StorageServiceQuoteDiskResizeProcedure,
+		svc.QuoteDiskResize,
+		connect.WithSchema(storageServiceMethods.ByName("QuoteDiskResize")),
+		connect.WithHandlerOptions(opts...),
+	)
 	storageServiceCreateFileShareHandler := connect.NewUnaryHandler(
 		StorageServiceCreateFileShareProcedure,
 		svc.CreateFileShare,
@@ -358,6 +387,8 @@ func NewStorageServiceHandler(svc StorageServiceHandler, opts ...connect.Handler
 			storageServiceDetachDiskHandler.ServeHTTP(w, r)
 		case StorageServiceResizeDiskProcedure:
 			storageServiceResizeDiskHandler.ServeHTTP(w, r)
+		case StorageServiceQuoteDiskResizeProcedure:
+			storageServiceQuoteDiskResizeHandler.ServeHTTP(w, r)
 		case StorageServiceCreateFileShareProcedure:
 			storageServiceCreateFileShareHandler.ServeHTTP(w, r)
 		case StorageServiceListFileSharesProcedure:
@@ -403,6 +434,10 @@ func (UnimplementedStorageServiceHandler) DetachDisk(context.Context, *connect.R
 
 func (UnimplementedStorageServiceHandler) ResizeDisk(context.Context, *connect.Request[v1.ResizeDiskRequest]) (*connect.Response[v1.ResizeDiskResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.ResizeDisk is not implemented"))
+}
+
+func (UnimplementedStorageServiceHandler) QuoteDiskResize(context.Context, *connect.Request[v1.QuoteDiskResizeRequest]) (*connect.Response[v1.QuoteDiskResizeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.QuoteDiskResize is not implemented"))
 }
 
 func (UnimplementedStorageServiceHandler) CreateFileShare(context.Context, *connect.Request[v1.CreateFileShareRequest]) (*connect.Response[v1.CreateFileShareResponse], error) {

@@ -59,12 +59,14 @@ enum TicketCategory {
 }
 
 // Channel records how the ticket was originally opened. v1 only ever sets API; EMAIL and
-// SYSTEM (auto-opened on incident detection) are reserved for phase 2.
+// SYSTEM (auto-opened on incident detection) are reserved for phase 2. STAFF marks a ticket
+// proactively opened by support staff via AdminSupportService.InitiateTicket.
 enum TicketChannel {
   TICKET_CHANNEL_UNSPECIFIED = 0;
   TICKET_CHANNEL_API = 1;
   TICKET_CHANNEL_EMAIL = 2;
   TICKET_CHANNEL_SYSTEM = 3;
+  TICKET_CHANNEL_STAFF = 4;
 }
 
 // ResourceRef attaches an arbitrary platform resource to a ticket — useful for staff
@@ -116,6 +118,17 @@ message TicketMessage {
   // True when the message is staff-only. Filtered out by GetTicket for non-staff callers.
   bool internal_note = 6;
   google.protobuf.Timestamp created_at = 7;
+  // Typed author classification. Mirrors author_type (kept for compatibility) so clients
+  // stop string-matching "staff-ish" values.
+  AuthorKind author_kind = 8;
+}
+
+// AuthorKind is the typed form of TicketMessage.author_type.
+enum AuthorKind {
+  AUTHOR_KIND_UNSPECIFIED = 0;
+  AUTHOR_KIND_CUSTOMER = 1;
+  AUTHOR_KIND_STAFF = 2;
+  AUTHOR_KIND_SYSTEM = 3;
 }
 
 message CreateTicketRequest {

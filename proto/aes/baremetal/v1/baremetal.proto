@@ -35,10 +35,10 @@ service BareMetalService {
   rpc CreateBareMetalInstance(CreateBareMetalInstanceRequest) returns (CreateBareMetalInstanceResponse);
   rpc GetBareMetalInstance(GetBareMetalInstanceRequest) returns (GetBareMetalInstanceResponse);
   rpc ListBareMetalInstances(ListBareMetalInstancesRequest) returns (ListBareMetalInstancesResponse);
-  // ReleaseBareMetalInstance ends the lease; the host returns to the available pool. Refused
-  // while a MONTHLY_* term is still active (hard non-cancel, same as DeleteVirtualMachine). The
-  // customer's data on local disks is not wiped by Metalhost — operator policy decides whether
-  // the host is reformatted before re-leasing.
+  // ReleaseBareMetalInstance ends the lease; the machine is powered down and returns to the
+  // available pool after operator processing. Refused while a MONTHLY_* term is still active
+  // (hard non-cancel, same as DeleteVirtualMachine). Local disks are securely erased before the
+  // machine is ever re-leased.
   rpc ReleaseBareMetalInstance(ReleaseBareMetalInstanceRequest) returns (ReleaseBareMetalInstanceResponse);
   // RenewBareMetalNow charges the next prepaid term immediately for a MONTHLY_* lease (mirror of
   // ComputeService.RenewVMNow). Useful before a term lapses or to extend ahead of the worker.
@@ -144,6 +144,15 @@ enum BareMetalPowerAction {
   BARE_METAL_POWER_ACTION_REBOOT = 3;
 }
 
+// How quickly a listed server can be handed over after an order.
+enum BareMetalFulfillment {
+  BARE_METAL_FULFILLMENT_UNSPECIFIED = 0;
+  // Ready now — provisioning starts immediately.
+  BARE_METAL_FULFILLMENT_IMMEDIATE = 1;
+  // Prepared on order; see provisioning_eta_minutes for the expected wait.
+  BARE_METAL_FULFILLMENT_CONVERT_JIT = 2;
+}
+
 message AvailableBareMetal {
   // Host resource name to lease (`hosts/{slug}`).
   string host_name = 1;
@@ -158,6 +167,10 @@ message AvailableBareMetal {
   // Per-server price the operator set; the hourly rate is monthly_price_minor/730.
   int64 monthly_price_minor = 9;
   string currency = 10;
+  // Fulfillment speed. IMMEDIATE unless stated otherwise.
+  BareMetalFulfillment fulfillment = 11;
+  // Expected minutes until handover for non-immediate fulfillment.
+  int32 provisioning_eta_minutes = 12;
 }
 
 message ListAvailableBareMetalRequest {
@@ -203,6 +216,10 @@ message BareMetalNode {
   // the CPU class, so heterogeneous fleets (incl. AMD-CPU GPU boxes) are described per-node.
   string gpu_model = 12;
   int32 gpu_count = 13;
+  // Fulfillment speed when available. IMMEDIATE unless stated otherwise.
+  BareMetalFulfillment fulfillment = 14;
+  // Expected minutes until handover for non-immediate fulfillment.
+  int32 provisioning_eta_minutes = 15;
 }
 
 message ListBareMetalInventoryRequest {

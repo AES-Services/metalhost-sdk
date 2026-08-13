@@ -38,6 +38,16 @@ service ProjectService {
   // and a human reason ("taken" / "invalid" / "") — never API jargon. Authed; no resource is
   // created. Validation mirrors the create paths (DNS-1035, 3–30 chars, reserved-word blocklist).
   rpc CheckSlugAvailable(CheckSlugAvailableRequest) returns (CheckSlugAvailableResponse);
+
+  // Per-member project access (#208). Org owners/admins reach every project implicitly; these
+  // RPCs grant a specific org member access to a specific project with a project role
+  // (owner/editor/viewer). Caller must be a project owner, an org owner/admin, or platform admin.
+  rpc ListProjectMembers(ListProjectMembersRequest) returns (ListProjectMembersResponse);
+  // SetProjectMember grants or updates a member's role on the project (idempotent upsert).
+  rpc SetProjectMember(SetProjectMemberRequest) returns (SetProjectMemberResponse);
+  // RemoveProjectMember revokes a member's project-scoped access (org owners/admins keep implicit
+  // access regardless).
+  rpc RemoveProjectMember(RemoveProjectMemberRequest) returns (RemoveProjectMemberResponse);
 }
 
 message Organization {
@@ -100,6 +110,44 @@ message GetProjectRequest {
 message GetProjectResponse {
   Project project = 1;
 }
+
+// ProjectMember is an explicit per-project access grant. Org owners/admins have access to every
+// project implicitly and are not returned here.
+message ProjectMember {
+  // User principal, e.g. `users/jane`.
+  string principal = 1;
+  // Project role: "owner" | "editor" | "viewer".
+  string role = 2;
+  int64 create_time_unix = 3;
+  // Resolved from the user record for display; may be empty.
+  string email = 4;
+  string display_name = 5;
+}
+
+message ListProjectMembersRequest {
+  // Project resource name, `organizations/{org}/projects/{slug}`.
+  string project_name = 1;
+}
+message ListProjectMembersResponse {
+  repeated ProjectMember members = 1;
+}
+
+message SetProjectMemberRequest {
+  string project_name = 1;
+  // User to grant; must already be a member of the project's organization.
+  string principal = 2;
+  // "owner" | "editor" | "viewer".
+  string role = 3;
+}
+message SetProjectMemberResponse {
+  ProjectMember member = 1;
+}
+
+message RemoveProjectMemberRequest {
+  string project_name = 1;
+  string principal = 2;
+}
+message RemoveProjectMemberResponse {}
 
 // Org CRUD.
 

@@ -207,6 +207,11 @@ type VirtualMachine struct {
 	// Statically configured and pinned for the VM's lifetime. Empty when the VM has no public
 	// IP or the datacenter doesn't offer IPv6 yet.
 	PublicIpv6 string `protobuf:"bytes,23,opt,name=public_ipv6,json=publicIpv6,proto3" json:"public_ipv6,omitempty"`
+	// Routed IPv6 /64 (CIDR form) dedicated to this VM, included free with the public NIC in
+	// supported datacenters. The whole prefix routes to the VM: the first address
+	// (<prefix>::1) is preconfigured in the guest; bind any others directly. Pinned for the
+	// VM's lifetime. Empty when the datacenter doesn't offer routed prefixes yet.
+	PublicIpv6Prefix string `protobuf:"bytes,37,opt,name=public_ipv6_prefix,json=publicIpv6Prefix,proto3" json:"public_ipv6_prefix,omitempty"`
 	// The Disk resource bound as the VM's boot device (`projects/{p}/disks/{id}`). Set on every
 	// persistent VM (ephemeral lab VMs leave it empty). The disk has its own
 	// lifecycle: DeleteVirtualMachine detaches it but does not delete it, so a customer can bind
@@ -252,6 +257,14 @@ type VirtualMachine struct {
 	// Unix seconds the VM's datacenter became unreachable (0 when reachable). Lets the UI show how
 	// long the outage has lasted ("offline 3m").
 	DatacenterUnreachableSinceUnix int64 `protobuf:"varint,35,opt,name=datacenter_unreachable_since_unix,json=datacenterUnreachableSinceUnix,proto3" json:"datacenter_unreachable_since_unix,omitempty"`
+	// Principal that created the VM (e.g. `users/jane`). ” for legacy rows / system-created.
+	CreatedBy string `protobuf:"bytes,36,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	// For a VM inside a monthly term: the full-shape hourly rate at current prices — what the
+	// next renewal (or the fallback to hourly billing at term end) will effectively cost.
+	// current_cost_per_hour_minor_decimal reads "0" during the term (the shape is prepaid);
+	// this field lets burn-rate and balance projections still account for the commitment.
+	// Empty for hourly-billed VMs.
+	RenewalCostPerHourMinorDecimal string `protobuf:"bytes,38,opt,name=renewal_cost_per_hour_minor_decimal,json=renewalCostPerHourMinorDecimal,proto3" json:"renewal_cost_per_hour_minor_decimal,omitempty"`
 	unknownFields                  protoimpl.UnknownFields
 	sizeCache                      protoimpl.SizeCache
 }
@@ -419,6 +432,13 @@ func (x *VirtualMachine) GetPublicIpv6() string {
 	return ""
 }
 
+func (x *VirtualMachine) GetPublicIpv6Prefix() string {
+	if x != nil {
+		return x.PublicIpv6Prefix
+	}
+	return ""
+}
+
 func (x *VirtualMachine) GetBootDisk() string {
 	if x != nil {
 		return x.BootDisk
@@ -501,6 +521,20 @@ func (x *VirtualMachine) GetDatacenterUnreachableSinceUnix() int64 {
 		return x.DatacenterUnreachableSinceUnix
 	}
 	return 0
+}
+
+func (x *VirtualMachine) GetCreatedBy() string {
+	if x != nil {
+		return x.CreatedBy
+	}
+	return ""
+}
+
+func (x *VirtualMachine) GetRenewalCostPerHourMinorDecimal() string {
+	if x != nil {
+		return x.RenewalCostPerHourMinorDecimal
+	}
+	return ""
 }
 
 // ───────────────────────────── Declarative VM manifest ─────────────────────────────
@@ -1726,8 +1760,10 @@ func (x *StartVirtualMachineRequest) GetName() string {
 type StartVirtualMachineResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	VirtualMachine *VirtualMachine        `protobuf:"bytes,1,opt,name=virtual_machine,json=virtualMachine,proto3" json:"virtual_machine,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// The operation tracking this request. Poll until terminal, then fetch the VM.
+	Operation     *v1.Operation `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *StartVirtualMachineResponse) Reset() {
@@ -1763,6 +1799,13 @@ func (*StartVirtualMachineResponse) Descriptor() ([]byte, []int) {
 func (x *StartVirtualMachineResponse) GetVirtualMachine() *VirtualMachine {
 	if x != nil {
 		return x.VirtualMachine
+	}
+	return nil
+}
+
+func (x *StartVirtualMachineResponse) GetOperation() *v1.Operation {
+	if x != nil {
+		return x.Operation
 	}
 	return nil
 }
@@ -1814,8 +1857,10 @@ func (x *StopVirtualMachineRequest) GetName() string {
 type StopVirtualMachineResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	VirtualMachine *VirtualMachine        `protobuf:"bytes,1,opt,name=virtual_machine,json=virtualMachine,proto3" json:"virtual_machine,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// The operation tracking this request. Poll until terminal, then fetch the VM.
+	Operation     *v1.Operation `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *StopVirtualMachineResponse) Reset() {
@@ -1851,6 +1896,13 @@ func (*StopVirtualMachineResponse) Descriptor() ([]byte, []int) {
 func (x *StopVirtualMachineResponse) GetVirtualMachine() *VirtualMachine {
 	if x != nil {
 		return x.VirtualMachine
+	}
+	return nil
+}
+
+func (x *StopVirtualMachineResponse) GetOperation() *v1.Operation {
+	if x != nil {
+		return x.Operation
 	}
 	return nil
 }
@@ -2016,6 +2068,139 @@ func (x *ResizeVirtualMachineRequest) GetCpuClass() string {
 	return ""
 }
 
+type QuoteVirtualMachineResizeRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Target shape, same semantics as ResizeVirtualMachineRequest. cpu_class cannot change
+	// while a monthly term is active.
+	Vcpus         int32 `protobuf:"varint,2,opt,name=vcpus,proto3" json:"vcpus,omitempty"`
+	RamGib        int32 `protobuf:"varint,3,opt,name=ram_gib,json=ramGib,proto3" json:"ram_gib,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *QuoteVirtualMachineResizeRequest) Reset() {
+	*x = QuoteVirtualMachineResizeRequest{}
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QuoteVirtualMachineResizeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QuoteVirtualMachineResizeRequest) ProtoMessage() {}
+
+func (x *QuoteVirtualMachineResizeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QuoteVirtualMachineResizeRequest.ProtoReflect.Descriptor instead.
+func (*QuoteVirtualMachineResizeRequest) Descriptor() ([]byte, []int) {
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *QuoteVirtualMachineResizeRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *QuoteVirtualMachineResizeRequest) GetVcpus() int32 {
+	if x != nil {
+		return x.Vcpus
+	}
+	return 0
+}
+
+func (x *QuoteVirtualMachineResizeRequest) GetRamGib() int32 {
+	if x != nil {
+		return x.RamGib
+	}
+	return 0
+}
+
+type QuoteVirtualMachineResizeResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// True when the VM is inside an active monthly term (resize = paid one-way upgrade).
+	Reserved bool `protobuf:"varint,1,opt,name=reserved,proto3" json:"reserved,omitempty"`
+	// Charged immediately when the resize is applied. Always 0 when reserved is false.
+	DueNowMinor int64  `protobuf:"varint,2,opt,name=due_now_minor,json=dueNowMinor,proto3" json:"due_now_minor,omitempty"`
+	Currency    string `protobuf:"bytes,3,opt,name=currency,proto3" json:"currency,omitempty"`
+	// End of the current term the upgrade is prorated to. 0 when reserved is false.
+	TermEndUnix   int64 `protobuf:"varint,4,opt,name=term_end_unix,json=termEndUnix,proto3" json:"term_end_unix,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *QuoteVirtualMachineResizeResponse) Reset() {
+	*x = QuoteVirtualMachineResizeResponse{}
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QuoteVirtualMachineResizeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QuoteVirtualMachineResizeResponse) ProtoMessage() {}
+
+func (x *QuoteVirtualMachineResizeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QuoteVirtualMachineResizeResponse.ProtoReflect.Descriptor instead.
+func (*QuoteVirtualMachineResizeResponse) Descriptor() ([]byte, []int) {
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *QuoteVirtualMachineResizeResponse) GetReserved() bool {
+	if x != nil {
+		return x.Reserved
+	}
+	return false
+}
+
+func (x *QuoteVirtualMachineResizeResponse) GetDueNowMinor() int64 {
+	if x != nil {
+		return x.DueNowMinor
+	}
+	return 0
+}
+
+func (x *QuoteVirtualMachineResizeResponse) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *QuoteVirtualMachineResizeResponse) GetTermEndUnix() int64 {
+	if x != nil {
+		return x.TermEndUnix
+	}
+	return 0
+}
+
 type ResizeVirtualMachineResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Set on the synchronous path.
@@ -2031,7 +2216,7 @@ type ResizeVirtualMachineResponse struct {
 
 func (x *ResizeVirtualMachineResponse) Reset() {
 	*x = ResizeVirtualMachineResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[26]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2043,7 +2228,7 @@ func (x *ResizeVirtualMachineResponse) String() string {
 func (*ResizeVirtualMachineResponse) ProtoMessage() {}
 
 func (x *ResizeVirtualMachineResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[26]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2056,7 +2241,7 @@ func (x *ResizeVirtualMachineResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResizeVirtualMachineResponse.ProtoReflect.Descriptor instead.
 func (*ResizeVirtualMachineResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{26}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ResizeVirtualMachineResponse) GetVirtualMachine() *VirtualMachine {
@@ -2083,7 +2268,7 @@ type SetVMAutorenewRequest struct {
 
 func (x *SetVMAutorenewRequest) Reset() {
 	*x = SetVMAutorenewRequest{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[27]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2095,7 +2280,7 @@ func (x *SetVMAutorenewRequest) String() string {
 func (*SetVMAutorenewRequest) ProtoMessage() {}
 
 func (x *SetVMAutorenewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[27]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2108,7 +2293,7 @@ func (x *SetVMAutorenewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetVMAutorenewRequest.ProtoReflect.Descriptor instead.
 func (*SetVMAutorenewRequest) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{27}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *SetVMAutorenewRequest) GetName() string {
@@ -2134,7 +2319,7 @@ type SetVMAutorenewResponse struct {
 
 func (x *SetVMAutorenewResponse) Reset() {
 	*x = SetVMAutorenewResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[28]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2146,7 +2331,7 @@ func (x *SetVMAutorenewResponse) String() string {
 func (*SetVMAutorenewResponse) ProtoMessage() {}
 
 func (x *SetVMAutorenewResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[28]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2159,7 +2344,7 @@ func (x *SetVMAutorenewResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetVMAutorenewResponse.ProtoReflect.Descriptor instead.
 func (*SetVMAutorenewResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{28}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *SetVMAutorenewResponse) GetVirtualMachine() *VirtualMachine {
@@ -2178,7 +2363,7 @@ type RenewVMNowRequest struct {
 
 func (x *RenewVMNowRequest) Reset() {
 	*x = RenewVMNowRequest{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[29]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2190,7 +2375,7 @@ func (x *RenewVMNowRequest) String() string {
 func (*RenewVMNowRequest) ProtoMessage() {}
 
 func (x *RenewVMNowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[29]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2203,7 +2388,7 @@ func (x *RenewVMNowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenewVMNowRequest.ProtoReflect.Descriptor instead.
 func (*RenewVMNowRequest) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{29}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *RenewVMNowRequest) GetName() string {
@@ -2227,7 +2412,7 @@ type RenewVMNowResponse struct {
 
 func (x *RenewVMNowResponse) Reset() {
 	*x = RenewVMNowResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[30]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2239,7 +2424,7 @@ func (x *RenewVMNowResponse) String() string {
 func (*RenewVMNowResponse) ProtoMessage() {}
 
 func (x *RenewVMNowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[30]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2252,7 +2437,7 @@ func (x *RenewVMNowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenewVMNowResponse.ProtoReflect.Descriptor instead.
 func (*RenewVMNowResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{30}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *RenewVMNowResponse) GetVirtualMachine() *VirtualMachine {
@@ -2301,7 +2486,7 @@ type ReimageVirtualMachineRequest struct {
 
 func (x *ReimageVirtualMachineRequest) Reset() {
 	*x = ReimageVirtualMachineRequest{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[31]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2313,7 +2498,7 @@ func (x *ReimageVirtualMachineRequest) String() string {
 func (*ReimageVirtualMachineRequest) ProtoMessage() {}
 
 func (x *ReimageVirtualMachineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[31]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2326,7 +2511,7 @@ func (x *ReimageVirtualMachineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReimageVirtualMachineRequest.ProtoReflect.Descriptor instead.
 func (*ReimageVirtualMachineRequest) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{31}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ReimageVirtualMachineRequest) GetName() string {
@@ -2359,7 +2544,7 @@ type ReimageVirtualMachineResponse struct {
 
 func (x *ReimageVirtualMachineResponse) Reset() {
 	*x = ReimageVirtualMachineResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[32]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2371,7 +2556,7 @@ func (x *ReimageVirtualMachineResponse) String() string {
 func (*ReimageVirtualMachineResponse) ProtoMessage() {}
 
 func (x *ReimageVirtualMachineResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[32]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2384,7 +2569,7 @@ func (x *ReimageVirtualMachineResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReimageVirtualMachineResponse.ProtoReflect.Descriptor instead.
 func (*ReimageVirtualMachineResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{32}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ReimageVirtualMachineResponse) GetVirtualMachine() *VirtualMachine {
@@ -2405,7 +2590,7 @@ type OpenConsoleRequest struct {
 
 func (x *OpenConsoleRequest) Reset() {
 	*x = OpenConsoleRequest{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[33]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2417,7 +2602,7 @@ func (x *OpenConsoleRequest) String() string {
 func (*OpenConsoleRequest) ProtoMessage() {}
 
 func (x *OpenConsoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[33]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2430,7 +2615,7 @@ func (x *OpenConsoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpenConsoleRequest.ProtoReflect.Descriptor instead.
 func (*OpenConsoleRequest) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{33}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *OpenConsoleRequest) GetName() string {
@@ -2463,7 +2648,7 @@ type OpenConsoleResponse struct {
 
 func (x *OpenConsoleResponse) Reset() {
 	*x = OpenConsoleResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[34]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2475,7 +2660,7 @@ func (x *OpenConsoleResponse) String() string {
 func (*OpenConsoleResponse) ProtoMessage() {}
 
 func (x *OpenConsoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[34]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2488,7 +2673,7 @@ func (x *OpenConsoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpenConsoleResponse.ProtoReflect.Descriptor instead.
 func (*OpenConsoleResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{34}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *OpenConsoleResponse) GetWebsocketPath() string {
@@ -2552,7 +2737,7 @@ type VmSnapshot struct {
 
 func (x *VmSnapshot) Reset() {
 	*x = VmSnapshot{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[35]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2564,7 +2749,7 @@ func (x *VmSnapshot) String() string {
 func (*VmSnapshot) ProtoMessage() {}
 
 func (x *VmSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[35]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2577,7 +2762,7 @@ func (x *VmSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VmSnapshot.ProtoReflect.Descriptor instead.
 func (*VmSnapshot) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{35}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *VmSnapshot) GetName() string {
@@ -2685,7 +2870,7 @@ type SnapshotVirtualMachineRequest struct {
 
 func (x *SnapshotVirtualMachineRequest) Reset() {
 	*x = SnapshotVirtualMachineRequest{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[36]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2697,7 +2882,7 @@ func (x *SnapshotVirtualMachineRequest) String() string {
 func (*SnapshotVirtualMachineRequest) ProtoMessage() {}
 
 func (x *SnapshotVirtualMachineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[36]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2710,7 +2895,7 @@ func (x *SnapshotVirtualMachineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SnapshotVirtualMachineRequest.ProtoReflect.Descriptor instead.
 func (*SnapshotVirtualMachineRequest) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{36}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *SnapshotVirtualMachineRequest) GetVmName() string {
@@ -2750,7 +2935,7 @@ type SnapshotVirtualMachineResponse struct {
 
 func (x *SnapshotVirtualMachineResponse) Reset() {
 	*x = SnapshotVirtualMachineResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[37]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2762,7 +2947,7 @@ func (x *SnapshotVirtualMachineResponse) String() string {
 func (*SnapshotVirtualMachineResponse) ProtoMessage() {}
 
 func (x *SnapshotVirtualMachineResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[37]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2775,7 +2960,7 @@ func (x *SnapshotVirtualMachineResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SnapshotVirtualMachineResponse.ProtoReflect.Descriptor instead.
 func (*SnapshotVirtualMachineResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{37}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *SnapshotVirtualMachineResponse) GetSnapshot() *VmSnapshot {
@@ -2794,7 +2979,7 @@ type GetVmSnapshotRequest struct {
 
 func (x *GetVmSnapshotRequest) Reset() {
 	*x = GetVmSnapshotRequest{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[38]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2806,7 +2991,7 @@ func (x *GetVmSnapshotRequest) String() string {
 func (*GetVmSnapshotRequest) ProtoMessage() {}
 
 func (x *GetVmSnapshotRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[38]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2819,7 +3004,7 @@ func (x *GetVmSnapshotRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetVmSnapshotRequest.ProtoReflect.Descriptor instead.
 func (*GetVmSnapshotRequest) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{38}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *GetVmSnapshotRequest) GetName() string {
@@ -2838,7 +3023,7 @@ type GetVmSnapshotResponse struct {
 
 func (x *GetVmSnapshotResponse) Reset() {
 	*x = GetVmSnapshotResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[39]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2850,7 +3035,7 @@ func (x *GetVmSnapshotResponse) String() string {
 func (*GetVmSnapshotResponse) ProtoMessage() {}
 
 func (x *GetVmSnapshotResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[39]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2863,7 +3048,7 @@ func (x *GetVmSnapshotResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetVmSnapshotResponse.ProtoReflect.Descriptor instead.
 func (*GetVmSnapshotResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{39}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GetVmSnapshotResponse) GetSnapshot() *VmSnapshot {
@@ -2886,7 +3071,7 @@ type ListVmSnapshotsRequest struct {
 
 func (x *ListVmSnapshotsRequest) Reset() {
 	*x = ListVmSnapshotsRequest{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[40]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2898,7 +3083,7 @@ func (x *ListVmSnapshotsRequest) String() string {
 func (*ListVmSnapshotsRequest) ProtoMessage() {}
 
 func (x *ListVmSnapshotsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[40]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2911,7 +3096,7 @@ func (x *ListVmSnapshotsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListVmSnapshotsRequest.ProtoReflect.Descriptor instead.
 func (*ListVmSnapshotsRequest) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{40}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ListVmSnapshotsRequest) GetProjectName() string {
@@ -2952,7 +3137,7 @@ type ListVmSnapshotsResponse struct {
 
 func (x *ListVmSnapshotsResponse) Reset() {
 	*x = ListVmSnapshotsResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[41]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2964,7 +3149,7 @@ func (x *ListVmSnapshotsResponse) String() string {
 func (*ListVmSnapshotsResponse) ProtoMessage() {}
 
 func (x *ListVmSnapshotsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[41]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2977,7 +3162,7 @@ func (x *ListVmSnapshotsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListVmSnapshotsResponse.ProtoReflect.Descriptor instead.
 func (*ListVmSnapshotsResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{41}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ListVmSnapshotsResponse) GetVmSnapshots() []*VmSnapshot {
@@ -3003,7 +3188,7 @@ type DeleteVmSnapshotRequest struct {
 
 func (x *DeleteVmSnapshotRequest) Reset() {
 	*x = DeleteVmSnapshotRequest{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[42]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3015,7 +3200,7 @@ func (x *DeleteVmSnapshotRequest) String() string {
 func (*DeleteVmSnapshotRequest) ProtoMessage() {}
 
 func (x *DeleteVmSnapshotRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[42]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3028,7 +3213,7 @@ func (x *DeleteVmSnapshotRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteVmSnapshotRequest.ProtoReflect.Descriptor instead.
 func (*DeleteVmSnapshotRequest) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{42}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *DeleteVmSnapshotRequest) GetName() string {
@@ -3046,7 +3231,7 @@ type DeleteVmSnapshotResponse struct {
 
 func (x *DeleteVmSnapshotResponse) Reset() {
 	*x = DeleteVmSnapshotResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[43]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3058,7 +3243,7 @@ func (x *DeleteVmSnapshotResponse) String() string {
 func (*DeleteVmSnapshotResponse) ProtoMessage() {}
 
 func (x *DeleteVmSnapshotResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[43]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3071,7 +3256,7 @@ func (x *DeleteVmSnapshotResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteVmSnapshotResponse.ProtoReflect.Descriptor instead.
 func (*DeleteVmSnapshotResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{43}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{45}
 }
 
 type ListVMUtilizationRequest struct {
@@ -3083,7 +3268,7 @@ type ListVMUtilizationRequest struct {
 
 func (x *ListVMUtilizationRequest) Reset() {
 	*x = ListVMUtilizationRequest{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[44]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3095,7 +3280,7 @@ func (x *ListVMUtilizationRequest) String() string {
 func (*ListVMUtilizationRequest) ProtoMessage() {}
 
 func (x *ListVMUtilizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[44]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3108,7 +3293,7 @@ func (x *ListVMUtilizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListVMUtilizationRequest.ProtoReflect.Descriptor instead.
 func (*ListVMUtilizationRequest) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{44}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ListVMUtilizationRequest) GetProjectName() string {
@@ -3138,7 +3323,7 @@ type VMUtilization struct {
 
 func (x *VMUtilization) Reset() {
 	*x = VMUtilization{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[45]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3150,7 +3335,7 @@ func (x *VMUtilization) String() string {
 func (*VMUtilization) ProtoMessage() {}
 
 func (x *VMUtilization) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[45]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3163,7 +3348,7 @@ func (x *VMUtilization) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VMUtilization.ProtoReflect.Descriptor instead.
 func (*VMUtilization) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{45}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *VMUtilization) GetVirtualMachineName() string {
@@ -3214,7 +3399,7 @@ type ListVMUtilizationResponse struct {
 
 func (x *ListVMUtilizationResponse) Reset() {
 	*x = ListVMUtilizationResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[46]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3226,7 +3411,7 @@ func (x *ListVMUtilizationResponse) String() string {
 func (*ListVMUtilizationResponse) ProtoMessage() {}
 
 func (x *ListVMUtilizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[46]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3239,7 +3424,7 @@ func (x *ListVMUtilizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListVMUtilizationResponse.ProtoReflect.Descriptor instead.
 func (*ListVMUtilizationResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{46}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ListVMUtilizationResponse) GetVms() []*VMUtilization {
@@ -3277,7 +3462,7 @@ type GetVMMetricsRequest struct {
 
 func (x *GetVMMetricsRequest) Reset() {
 	*x = GetVMMetricsRequest{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[47]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3289,7 +3474,7 @@ func (x *GetVMMetricsRequest) String() string {
 func (*GetVMMetricsRequest) ProtoMessage() {}
 
 func (x *GetVMMetricsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[47]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3302,7 +3487,7 @@ func (x *GetVMMetricsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetVMMetricsRequest.ProtoReflect.Descriptor instead.
 func (*GetVMMetricsRequest) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{47}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *GetVMMetricsRequest) GetName() string {
@@ -3343,7 +3528,7 @@ type MetricSample struct {
 
 func (x *MetricSample) Reset() {
 	*x = MetricSample{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[48]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3355,7 +3540,7 @@ func (x *MetricSample) String() string {
 func (*MetricSample) ProtoMessage() {}
 
 func (x *MetricSample) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[48]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3368,7 +3553,7 @@ func (x *MetricSample) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetricSample.ProtoReflect.Descriptor instead.
 func (*MetricSample) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{48}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *MetricSample) GetTimestampUnix() int64 {
@@ -3397,7 +3582,7 @@ type MetricSeries struct {
 
 func (x *MetricSeries) Reset() {
 	*x = MetricSeries{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[49]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3409,7 +3594,7 @@ func (x *MetricSeries) String() string {
 func (*MetricSeries) ProtoMessage() {}
 
 func (x *MetricSeries) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[49]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3422,7 +3607,7 @@ func (x *MetricSeries) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetricSeries.ProtoReflect.Descriptor instead.
 func (*MetricSeries) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{49}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *MetricSeries) GetMetric() string {
@@ -3448,7 +3633,7 @@ type GetVMMetricsResponse struct {
 
 func (x *GetVMMetricsResponse) Reset() {
 	*x = GetVMMetricsResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[50]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3460,7 +3645,7 @@ func (x *GetVMMetricsResponse) String() string {
 func (*GetVMMetricsResponse) ProtoMessage() {}
 
 func (x *GetVMMetricsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[50]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3473,7 +3658,7 @@ func (x *GetVMMetricsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetVMMetricsResponse.ProtoReflect.Descriptor instead.
 func (*GetVMMetricsResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{50}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *GetVMMetricsResponse) GetSeries() []*MetricSeries {
@@ -3500,7 +3685,7 @@ type CloneVirtualMachineRequest struct {
 
 func (x *CloneVirtualMachineRequest) Reset() {
 	*x = CloneVirtualMachineRequest{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[51]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3512,7 +3697,7 @@ func (x *CloneVirtualMachineRequest) String() string {
 func (*CloneVirtualMachineRequest) ProtoMessage() {}
 
 func (x *CloneVirtualMachineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[51]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3525,7 +3710,7 @@ func (x *CloneVirtualMachineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloneVirtualMachineRequest.ProtoReflect.Descriptor instead.
 func (*CloneVirtualMachineRequest) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{51}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *CloneVirtualMachineRequest) GetSourceVmName() string {
@@ -3571,7 +3756,7 @@ type CloneVirtualMachineResponse struct {
 
 func (x *CloneVirtualMachineResponse) Reset() {
 	*x = CloneVirtualMachineResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[52]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3583,7 +3768,7 @@ func (x *CloneVirtualMachineResponse) String() string {
 func (*CloneVirtualMachineResponse) ProtoMessage() {}
 
 func (x *CloneVirtualMachineResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[52]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3596,7 +3781,7 @@ func (x *CloneVirtualMachineResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloneVirtualMachineResponse.ProtoReflect.Descriptor instead.
 func (*CloneVirtualMachineResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{52}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *CloneVirtualMachineResponse) GetVirtualMachine() *VirtualMachine {
@@ -3648,7 +3833,7 @@ type CreateVirtualMachineFromBackupRequest struct {
 
 func (x *CreateVirtualMachineFromBackupRequest) Reset() {
 	*x = CreateVirtualMachineFromBackupRequest{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[53]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3660,7 +3845,7 @@ func (x *CreateVirtualMachineFromBackupRequest) String() string {
 func (*CreateVirtualMachineFromBackupRequest) ProtoMessage() {}
 
 func (x *CreateVirtualMachineFromBackupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[53]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3673,7 +3858,7 @@ func (x *CreateVirtualMachineFromBackupRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use CreateVirtualMachineFromBackupRequest.ProtoReflect.Descriptor instead.
 func (*CreateVirtualMachineFromBackupRequest) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{53}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *CreateVirtualMachineFromBackupRequest) GetVmSnapshotName() string {
@@ -3783,7 +3968,7 @@ type CreateVirtualMachineFromBackupResponse struct {
 
 func (x *CreateVirtualMachineFromBackupResponse) Reset() {
 	*x = CreateVirtualMachineFromBackupResponse{}
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[54]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3795,7 +3980,7 @@ func (x *CreateVirtualMachineFromBackupResponse) String() string {
 func (*CreateVirtualMachineFromBackupResponse) ProtoMessage() {}
 
 func (x *CreateVirtualMachineFromBackupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_compute_v1_compute_proto_msgTypes[54]
+	mi := &file_aes_compute_v1_compute_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3808,7 +3993,7 @@ func (x *CreateVirtualMachineFromBackupResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use CreateVirtualMachineFromBackupResponse.ProtoReflect.Descriptor instead.
 func (*CreateVirtualMachineFromBackupResponse) Descriptor() ([]byte, []int) {
-	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{54}
+	return file_aes_compute_v1_compute_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *CreateVirtualMachineFromBackupResponse) GetVirtualMachine() *VirtualMachine {
@@ -3836,7 +4021,7 @@ var File_aes_compute_v1_compute_proto protoreflect.FileDescriptor
 
 const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\xc1\v\n" +
+	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\xdb\f\n" +
 	"\x0eVirtualMachine\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12'\n" +
@@ -3859,7 +4044,8 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\vpublic_ipv4\x18\x16 \x01(\tR\n" +
 	"publicIpv4\x12\x1f\n" +
 	"\vpublic_ipv6\x18\x17 \x01(\tR\n" +
-	"publicIpv6\x12\x1b\n" +
+	"publicIpv6\x12,\n" +
+	"\x12public_ipv6_prefix\x18% \x01(\tR\x10publicIpv6Prefix\x12\x1b\n" +
 	"\tboot_disk\x18\x18 \x01(\tR\bbootDisk\x12\x14\n" +
 	"\x05vcpus\x18\x19 \x01(\x05R\x05vcpus\x12\x17\n" +
 	"\aram_gib\x18\x1a \x01(\x05R\x06ramGib\x12\x1b\n" +
@@ -3871,7 +4057,10 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x0elinux_username\x18\x1e \x01(\tR\rlinuxUsername\x12'\n" +
 	"\x0fsecurity_groups\x18! \x03(\tR\x0esecurityGroups\x121\n" +
 	"\x14datacenter_reachable\x18\" \x01(\bR\x13datacenterReachable\x12I\n" +
-	"!datacenter_unreachable_since_unix\x18# \x01(\x03R\x1edatacenterUnreachableSinceUnix\x1a9\n" +
+	"!datacenter_unreachable_since_unix\x18# \x01(\x03R\x1edatacenterUnreachableSinceUnix\x12\x1d\n" +
+	"\n" +
+	"created_by\x18$ \x01(\tR\tcreatedBy\x12K\n" +
+	"#renewal_cost_per_hour_minor_decimal\x18& \x01(\tR\x1erenewalCostPerHourMinorDecimal\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
@@ -3972,13 +4161,15 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x1cDeleteVirtualMachineResponse\x123\n" +
 	"\toperation\x18\x01 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"0\n" +
 	"\x1aStartVirtualMachineRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"f\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"\x9b\x01\n" +
 	"\x1bStartVirtualMachineResponse\x12G\n" +
-	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\"/\n" +
+	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\x123\n" +
+	"\toperation\x18\x02 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"/\n" +
 	"\x19StopVirtualMachineRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"e\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"\x9a\x01\n" +
 	"\x1aStopVirtualMachineResponse\x12G\n" +
-	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\"2\n" +
+	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\x123\n" +
+	"\toperation\x18\x02 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"2\n" +
 	"\x1cRestartVirtualMachineRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"h\n" +
 	"\x1dRestartVirtualMachineResponse\x12G\n" +
@@ -3987,7 +4178,16 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05vcpus\x18\x03 \x01(\x05R\x05vcpus\x12\x17\n" +
 	"\aram_gib\x18\x04 \x01(\x05R\x06ramGib\x12\x1b\n" +
-	"\tcpu_class\x18\x05 \x01(\tR\bcpuClassJ\x04\b\x02\x10\x03R\rinstance_type\"\x9c\x01\n" +
+	"\tcpu_class\x18\x05 \x01(\tR\bcpuClassJ\x04\b\x02\x10\x03R\rinstance_type\"e\n" +
+	" QuoteVirtualMachineResizeRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05vcpus\x18\x02 \x01(\x05R\x05vcpus\x12\x17\n" +
+	"\aram_gib\x18\x03 \x01(\x05R\x06ramGib\"\xa3\x01\n" +
+	"!QuoteVirtualMachineResizeResponse\x12\x1a\n" +
+	"\breserved\x18\x01 \x01(\bR\breserved\x12\"\n" +
+	"\rdue_now_minor\x18\x02 \x01(\x03R\vdueNowMinor\x12\x1a\n" +
+	"\bcurrency\x18\x03 \x01(\tR\bcurrency\x12\"\n" +
+	"\rterm_end_unix\x18\x04 \x01(\x03R\vtermEndUnix\"\x9c\x01\n" +
 	"\x1cResizeVirtualMachineResponse\x12G\n" +
 	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\x123\n" +
 	"\toperation\x18\x02 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"I\n" +
@@ -4143,7 +4343,7 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\vConsoleType\x12\x1c\n" +
 	"\x18CONSOLE_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13CONSOLE_TYPE_SERIAL\x10\x01\x12\x14\n" +
-	"\x10CONSOLE_TYPE_VNC\x10\x022\x83\x11\n" +
+	"\x10CONSOLE_TYPE_VNC\x10\x022\x86\x12\n" +
 	"\x0eComputeService\x12q\n" +
 	"\x14CreateVirtualMachine\x12+.aes.compute.v1.CreateVirtualMachineRequest\x1a,.aes.compute.v1.CreateVirtualMachineResponse\x12h\n" +
 	"\x11GetVirtualMachine\x12(.aes.compute.v1.GetVirtualMachineRequest\x1a).aes.compute.v1.GetVirtualMachineResponse\x12n\n" +
@@ -4151,7 +4351,8 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x13StartVirtualMachine\x12*.aes.compute.v1.StartVirtualMachineRequest\x1a+.aes.compute.v1.StartVirtualMachineResponse\x12k\n" +
 	"\x12StopVirtualMachine\x12).aes.compute.v1.StopVirtualMachineRequest\x1a*.aes.compute.v1.StopVirtualMachineResponse\x12t\n" +
 	"\x15RestartVirtualMachine\x12,.aes.compute.v1.RestartVirtualMachineRequest\x1a-.aes.compute.v1.RestartVirtualMachineResponse\x12q\n" +
-	"\x14ResizeVirtualMachine\x12+.aes.compute.v1.ResizeVirtualMachineRequest\x1a,.aes.compute.v1.ResizeVirtualMachineResponse\x12_\n" +
+	"\x14ResizeVirtualMachine\x12+.aes.compute.v1.ResizeVirtualMachineRequest\x1a,.aes.compute.v1.ResizeVirtualMachineResponse\x12\x80\x01\n" +
+	"\x19QuoteVirtualMachineResize\x120.aes.compute.v1.QuoteVirtualMachineResizeRequest\x1a1.aes.compute.v1.QuoteVirtualMachineResizeResponse\x12_\n" +
 	"\x0eSetVMAutorenew\x12%.aes.compute.v1.SetVMAutorenewRequest\x1a&.aes.compute.v1.SetVMAutorenewResponse\x12S\n" +
 	"\n" +
 	"RenewVMNow\x12!.aes.compute.v1.RenewVMNowRequest\x1a\".aes.compute.v1.RenewVMNowResponse\x12t\n" +
@@ -4181,7 +4382,7 @@ func file_aes_compute_v1_compute_proto_rawDescGZIP() []byte {
 }
 
 var file_aes_compute_v1_compute_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_aes_compute_v1_compute_proto_msgTypes = make([]protoimpl.MessageInfo, 69)
+var file_aes_compute_v1_compute_proto_msgTypes = make([]protoimpl.MessageInfo, 71)
 var file_aes_compute_v1_compute_proto_goTypes = []any{
 	(BillingMode)(0),                               // 0: aes.compute.v1.BillingMode
 	(ConsoleType)(0),                               // 1: aes.compute.v1.ConsoleType
@@ -4211,59 +4412,61 @@ var file_aes_compute_v1_compute_proto_goTypes = []any{
 	(*RestartVirtualMachineRequest)(nil),           // 25: aes.compute.v1.RestartVirtualMachineRequest
 	(*RestartVirtualMachineResponse)(nil),          // 26: aes.compute.v1.RestartVirtualMachineResponse
 	(*ResizeVirtualMachineRequest)(nil),            // 27: aes.compute.v1.ResizeVirtualMachineRequest
-	(*ResizeVirtualMachineResponse)(nil),           // 28: aes.compute.v1.ResizeVirtualMachineResponse
-	(*SetVMAutorenewRequest)(nil),                  // 29: aes.compute.v1.SetVMAutorenewRequest
-	(*SetVMAutorenewResponse)(nil),                 // 30: aes.compute.v1.SetVMAutorenewResponse
-	(*RenewVMNowRequest)(nil),                      // 31: aes.compute.v1.RenewVMNowRequest
-	(*RenewVMNowResponse)(nil),                     // 32: aes.compute.v1.RenewVMNowResponse
-	(*ReimageVirtualMachineRequest)(nil),           // 33: aes.compute.v1.ReimageVirtualMachineRequest
-	(*ReimageVirtualMachineResponse)(nil),          // 34: aes.compute.v1.ReimageVirtualMachineResponse
-	(*OpenConsoleRequest)(nil),                     // 35: aes.compute.v1.OpenConsoleRequest
-	(*OpenConsoleResponse)(nil),                    // 36: aes.compute.v1.OpenConsoleResponse
-	(*VmSnapshot)(nil),                             // 37: aes.compute.v1.VmSnapshot
-	(*SnapshotVirtualMachineRequest)(nil),          // 38: aes.compute.v1.SnapshotVirtualMachineRequest
-	(*SnapshotVirtualMachineResponse)(nil),         // 39: aes.compute.v1.SnapshotVirtualMachineResponse
-	(*GetVmSnapshotRequest)(nil),                   // 40: aes.compute.v1.GetVmSnapshotRequest
-	(*GetVmSnapshotResponse)(nil),                  // 41: aes.compute.v1.GetVmSnapshotResponse
-	(*ListVmSnapshotsRequest)(nil),                 // 42: aes.compute.v1.ListVmSnapshotsRequest
-	(*ListVmSnapshotsResponse)(nil),                // 43: aes.compute.v1.ListVmSnapshotsResponse
-	(*DeleteVmSnapshotRequest)(nil),                // 44: aes.compute.v1.DeleteVmSnapshotRequest
-	(*DeleteVmSnapshotResponse)(nil),               // 45: aes.compute.v1.DeleteVmSnapshotResponse
-	(*ListVMUtilizationRequest)(nil),               // 46: aes.compute.v1.ListVMUtilizationRequest
-	(*VMUtilization)(nil),                          // 47: aes.compute.v1.VMUtilization
-	(*ListVMUtilizationResponse)(nil),              // 48: aes.compute.v1.ListVMUtilizationResponse
-	(*GetVMMetricsRequest)(nil),                    // 49: aes.compute.v1.GetVMMetricsRequest
-	(*MetricSample)(nil),                           // 50: aes.compute.v1.MetricSample
-	(*MetricSeries)(nil),                           // 51: aes.compute.v1.MetricSeries
-	(*GetVMMetricsResponse)(nil),                   // 52: aes.compute.v1.GetVMMetricsResponse
-	(*CloneVirtualMachineRequest)(nil),             // 53: aes.compute.v1.CloneVirtualMachineRequest
-	(*CloneVirtualMachineResponse)(nil),            // 54: aes.compute.v1.CloneVirtualMachineResponse
-	(*CreateVirtualMachineFromBackupRequest)(nil),  // 55: aes.compute.v1.CreateVirtualMachineFromBackupRequest
-	(*CreateVirtualMachineFromBackupResponse)(nil), // 56: aes.compute.v1.CreateVirtualMachineFromBackupResponse
-	nil,                  // 57: aes.compute.v1.VirtualMachine.LabelsEntry
-	nil,                  // 58: aes.compute.v1.VirtualMachine.AnnotationsEntry
-	nil,                  // 59: aes.compute.v1.VirtualMachineMetadata.LabelsEntry
-	nil,                  // 60: aes.compute.v1.VirtualMachineMetadata.AnnotationsEntry
-	nil,                  // 61: aes.compute.v1.BootDiskSpec.LabelsEntry
-	nil,                  // 62: aes.compute.v1.BootDiskSpec.AnnotationsEntry
-	nil,                  // 63: aes.compute.v1.VmSnapshot.LabelsEntry
-	nil,                  // 64: aes.compute.v1.VmSnapshot.AnnotationsEntry
-	nil,                  // 65: aes.compute.v1.SnapshotVirtualMachineRequest.LabelsEntry
-	nil,                  // 66: aes.compute.v1.SnapshotVirtualMachineRequest.AnnotationsEntry
-	nil,                  // 67: aes.compute.v1.CloneVirtualMachineRequest.LabelsEntry
-	nil,                  // 68: aes.compute.v1.CloneVirtualMachineRequest.AnnotationsEntry
-	nil,                  // 69: aes.compute.v1.CreateVirtualMachineFromBackupRequest.LabelsEntry
-	nil,                  // 70: aes.compute.v1.CreateVirtualMachineFromBackupRequest.AnnotationsEntry
-	(*v1.Operation)(nil), // 71: aes.ops.v1.Operation
+	(*QuoteVirtualMachineResizeRequest)(nil),       // 28: aes.compute.v1.QuoteVirtualMachineResizeRequest
+	(*QuoteVirtualMachineResizeResponse)(nil),      // 29: aes.compute.v1.QuoteVirtualMachineResizeResponse
+	(*ResizeVirtualMachineResponse)(nil),           // 30: aes.compute.v1.ResizeVirtualMachineResponse
+	(*SetVMAutorenewRequest)(nil),                  // 31: aes.compute.v1.SetVMAutorenewRequest
+	(*SetVMAutorenewResponse)(nil),                 // 32: aes.compute.v1.SetVMAutorenewResponse
+	(*RenewVMNowRequest)(nil),                      // 33: aes.compute.v1.RenewVMNowRequest
+	(*RenewVMNowResponse)(nil),                     // 34: aes.compute.v1.RenewVMNowResponse
+	(*ReimageVirtualMachineRequest)(nil),           // 35: aes.compute.v1.ReimageVirtualMachineRequest
+	(*ReimageVirtualMachineResponse)(nil),          // 36: aes.compute.v1.ReimageVirtualMachineResponse
+	(*OpenConsoleRequest)(nil),                     // 37: aes.compute.v1.OpenConsoleRequest
+	(*OpenConsoleResponse)(nil),                    // 38: aes.compute.v1.OpenConsoleResponse
+	(*VmSnapshot)(nil),                             // 39: aes.compute.v1.VmSnapshot
+	(*SnapshotVirtualMachineRequest)(nil),          // 40: aes.compute.v1.SnapshotVirtualMachineRequest
+	(*SnapshotVirtualMachineResponse)(nil),         // 41: aes.compute.v1.SnapshotVirtualMachineResponse
+	(*GetVmSnapshotRequest)(nil),                   // 42: aes.compute.v1.GetVmSnapshotRequest
+	(*GetVmSnapshotResponse)(nil),                  // 43: aes.compute.v1.GetVmSnapshotResponse
+	(*ListVmSnapshotsRequest)(nil),                 // 44: aes.compute.v1.ListVmSnapshotsRequest
+	(*ListVmSnapshotsResponse)(nil),                // 45: aes.compute.v1.ListVmSnapshotsResponse
+	(*DeleteVmSnapshotRequest)(nil),                // 46: aes.compute.v1.DeleteVmSnapshotRequest
+	(*DeleteVmSnapshotResponse)(nil),               // 47: aes.compute.v1.DeleteVmSnapshotResponse
+	(*ListVMUtilizationRequest)(nil),               // 48: aes.compute.v1.ListVMUtilizationRequest
+	(*VMUtilization)(nil),                          // 49: aes.compute.v1.VMUtilization
+	(*ListVMUtilizationResponse)(nil),              // 50: aes.compute.v1.ListVMUtilizationResponse
+	(*GetVMMetricsRequest)(nil),                    // 51: aes.compute.v1.GetVMMetricsRequest
+	(*MetricSample)(nil),                           // 52: aes.compute.v1.MetricSample
+	(*MetricSeries)(nil),                           // 53: aes.compute.v1.MetricSeries
+	(*GetVMMetricsResponse)(nil),                   // 54: aes.compute.v1.GetVMMetricsResponse
+	(*CloneVirtualMachineRequest)(nil),             // 55: aes.compute.v1.CloneVirtualMachineRequest
+	(*CloneVirtualMachineResponse)(nil),            // 56: aes.compute.v1.CloneVirtualMachineResponse
+	(*CreateVirtualMachineFromBackupRequest)(nil),  // 57: aes.compute.v1.CreateVirtualMachineFromBackupRequest
+	(*CreateVirtualMachineFromBackupResponse)(nil), // 58: aes.compute.v1.CreateVirtualMachineFromBackupResponse
+	nil,                  // 59: aes.compute.v1.VirtualMachine.LabelsEntry
+	nil,                  // 60: aes.compute.v1.VirtualMachine.AnnotationsEntry
+	nil,                  // 61: aes.compute.v1.VirtualMachineMetadata.LabelsEntry
+	nil,                  // 62: aes.compute.v1.VirtualMachineMetadata.AnnotationsEntry
+	nil,                  // 63: aes.compute.v1.BootDiskSpec.LabelsEntry
+	nil,                  // 64: aes.compute.v1.BootDiskSpec.AnnotationsEntry
+	nil,                  // 65: aes.compute.v1.VmSnapshot.LabelsEntry
+	nil,                  // 66: aes.compute.v1.VmSnapshot.AnnotationsEntry
+	nil,                  // 67: aes.compute.v1.SnapshotVirtualMachineRequest.LabelsEntry
+	nil,                  // 68: aes.compute.v1.SnapshotVirtualMachineRequest.AnnotationsEntry
+	nil,                  // 69: aes.compute.v1.CloneVirtualMachineRequest.LabelsEntry
+	nil,                  // 70: aes.compute.v1.CloneVirtualMachineRequest.AnnotationsEntry
+	nil,                  // 71: aes.compute.v1.CreateVirtualMachineFromBackupRequest.LabelsEntry
+	nil,                  // 72: aes.compute.v1.CreateVirtualMachineFromBackupRequest.AnnotationsEntry
+	(*v1.Operation)(nil), // 73: aes.ops.v1.Operation
 }
 var file_aes_compute_v1_compute_proto_depIdxs = []int32{
-	57, // 0: aes.compute.v1.VirtualMachine.labels:type_name -> aes.compute.v1.VirtualMachine.LabelsEntry
-	58, // 1: aes.compute.v1.VirtualMachine.annotations:type_name -> aes.compute.v1.VirtualMachine.AnnotationsEntry
+	59, // 0: aes.compute.v1.VirtualMachine.labels:type_name -> aes.compute.v1.VirtualMachine.LabelsEntry
+	60, // 1: aes.compute.v1.VirtualMachine.annotations:type_name -> aes.compute.v1.VirtualMachine.AnnotationsEntry
 	0,  // 2: aes.compute.v1.VirtualMachine.billing_mode:type_name -> aes.compute.v1.BillingMode
 	4,  // 3: aes.compute.v1.VirtualMachineManifest.metadata:type_name -> aes.compute.v1.VirtualMachineMetadata
 	5,  // 4: aes.compute.v1.VirtualMachineManifest.spec:type_name -> aes.compute.v1.VirtualMachineSpec
-	59, // 5: aes.compute.v1.VirtualMachineMetadata.labels:type_name -> aes.compute.v1.VirtualMachineMetadata.LabelsEntry
-	60, // 6: aes.compute.v1.VirtualMachineMetadata.annotations:type_name -> aes.compute.v1.VirtualMachineMetadata.AnnotationsEntry
+	61, // 5: aes.compute.v1.VirtualMachineMetadata.labels:type_name -> aes.compute.v1.VirtualMachineMetadata.LabelsEntry
+	62, // 6: aes.compute.v1.VirtualMachineMetadata.annotations:type_name -> aes.compute.v1.VirtualMachineMetadata.AnnotationsEntry
 	6,  // 7: aes.compute.v1.VirtualMachineSpec.compute:type_name -> aes.compute.v1.VMComputeSpec
 	8,  // 8: aes.compute.v1.VirtualMachineSpec.boot:type_name -> aes.compute.v1.VMBootSpec
 	9,  // 9: aes.compute.v1.VirtualMachineSpec.network:type_name -> aes.compute.v1.VMNetworkSpec
@@ -4272,86 +4475,90 @@ var file_aes_compute_v1_compute_proto_depIdxs = []int32{
 	7,  // 12: aes.compute.v1.VMComputeSpec.gpu:type_name -> aes.compute.v1.GPUSpec
 	0,  // 13: aes.compute.v1.VMBillingSpec.mode:type_name -> aes.compute.v1.BillingMode
 	3,  // 14: aes.compute.v1.CreateVirtualMachineRequest.manifest:type_name -> aes.compute.v1.VirtualMachineManifest
-	61, // 15: aes.compute.v1.BootDiskSpec.labels:type_name -> aes.compute.v1.BootDiskSpec.LabelsEntry
-	62, // 16: aes.compute.v1.BootDiskSpec.annotations:type_name -> aes.compute.v1.BootDiskSpec.AnnotationsEntry
-	71, // 17: aes.compute.v1.CreateVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
+	63, // 15: aes.compute.v1.BootDiskSpec.labels:type_name -> aes.compute.v1.BootDiskSpec.LabelsEntry
+	64, // 16: aes.compute.v1.BootDiskSpec.annotations:type_name -> aes.compute.v1.BootDiskSpec.AnnotationsEntry
+	73, // 17: aes.compute.v1.CreateVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
 	2,  // 18: aes.compute.v1.CreateVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
 	2,  // 19: aes.compute.v1.GetVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
 	2,  // 20: aes.compute.v1.ListVirtualMachinesResponse.virtual_machines:type_name -> aes.compute.v1.VirtualMachine
-	71, // 21: aes.compute.v1.DeleteVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
+	73, // 21: aes.compute.v1.DeleteVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
 	2,  // 22: aes.compute.v1.StartVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	2,  // 23: aes.compute.v1.StopVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	2,  // 24: aes.compute.v1.RestartVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	2,  // 25: aes.compute.v1.ResizeVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	71, // 26: aes.compute.v1.ResizeVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
-	2,  // 27: aes.compute.v1.SetVMAutorenewResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	2,  // 28: aes.compute.v1.RenewVMNowResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	2,  // 29: aes.compute.v1.ReimageVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	1,  // 30: aes.compute.v1.OpenConsoleRequest.type:type_name -> aes.compute.v1.ConsoleType
-	63, // 31: aes.compute.v1.VmSnapshot.labels:type_name -> aes.compute.v1.VmSnapshot.LabelsEntry
-	64, // 32: aes.compute.v1.VmSnapshot.annotations:type_name -> aes.compute.v1.VmSnapshot.AnnotationsEntry
-	65, // 33: aes.compute.v1.SnapshotVirtualMachineRequest.labels:type_name -> aes.compute.v1.SnapshotVirtualMachineRequest.LabelsEntry
-	66, // 34: aes.compute.v1.SnapshotVirtualMachineRequest.annotations:type_name -> aes.compute.v1.SnapshotVirtualMachineRequest.AnnotationsEntry
-	37, // 35: aes.compute.v1.SnapshotVirtualMachineResponse.snapshot:type_name -> aes.compute.v1.VmSnapshot
-	37, // 36: aes.compute.v1.GetVmSnapshotResponse.snapshot:type_name -> aes.compute.v1.VmSnapshot
-	37, // 37: aes.compute.v1.ListVmSnapshotsResponse.vm_snapshots:type_name -> aes.compute.v1.VmSnapshot
-	47, // 38: aes.compute.v1.ListVMUtilizationResponse.vms:type_name -> aes.compute.v1.VMUtilization
-	50, // 39: aes.compute.v1.MetricSeries.samples:type_name -> aes.compute.v1.MetricSample
-	51, // 40: aes.compute.v1.GetVMMetricsResponse.series:type_name -> aes.compute.v1.MetricSeries
-	67, // 41: aes.compute.v1.CloneVirtualMachineRequest.labels:type_name -> aes.compute.v1.CloneVirtualMachineRequest.LabelsEntry
-	68, // 42: aes.compute.v1.CloneVirtualMachineRequest.annotations:type_name -> aes.compute.v1.CloneVirtualMachineRequest.AnnotationsEntry
-	2,  // 43: aes.compute.v1.CloneVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	71, // 44: aes.compute.v1.CloneVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
-	0,  // 45: aes.compute.v1.CreateVirtualMachineFromBackupRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
-	69, // 46: aes.compute.v1.CreateVirtualMachineFromBackupRequest.labels:type_name -> aes.compute.v1.CreateVirtualMachineFromBackupRequest.LabelsEntry
-	70, // 47: aes.compute.v1.CreateVirtualMachineFromBackupRequest.annotations:type_name -> aes.compute.v1.CreateVirtualMachineFromBackupRequest.AnnotationsEntry
-	2,  // 48: aes.compute.v1.CreateVirtualMachineFromBackupResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	71, // 49: aes.compute.v1.CreateVirtualMachineFromBackupResponse.operation:type_name -> aes.ops.v1.Operation
-	12, // 50: aes.compute.v1.ComputeService.CreateVirtualMachine:input_type -> aes.compute.v1.CreateVirtualMachineRequest
-	15, // 51: aes.compute.v1.ComputeService.GetVirtualMachine:input_type -> aes.compute.v1.GetVirtualMachineRequest
-	17, // 52: aes.compute.v1.ComputeService.ListVirtualMachines:input_type -> aes.compute.v1.ListVirtualMachinesRequest
-	21, // 53: aes.compute.v1.ComputeService.StartVirtualMachine:input_type -> aes.compute.v1.StartVirtualMachineRequest
-	23, // 54: aes.compute.v1.ComputeService.StopVirtualMachine:input_type -> aes.compute.v1.StopVirtualMachineRequest
-	25, // 55: aes.compute.v1.ComputeService.RestartVirtualMachine:input_type -> aes.compute.v1.RestartVirtualMachineRequest
-	27, // 56: aes.compute.v1.ComputeService.ResizeVirtualMachine:input_type -> aes.compute.v1.ResizeVirtualMachineRequest
-	29, // 57: aes.compute.v1.ComputeService.SetVMAutorenew:input_type -> aes.compute.v1.SetVMAutorenewRequest
-	31, // 58: aes.compute.v1.ComputeService.RenewVMNow:input_type -> aes.compute.v1.RenewVMNowRequest
-	33, // 59: aes.compute.v1.ComputeService.ReimageVirtualMachine:input_type -> aes.compute.v1.ReimageVirtualMachineRequest
-	35, // 60: aes.compute.v1.ComputeService.OpenConsole:input_type -> aes.compute.v1.OpenConsoleRequest
-	38, // 61: aes.compute.v1.ComputeService.SnapshotVirtualMachine:input_type -> aes.compute.v1.SnapshotVirtualMachineRequest
-	40, // 62: aes.compute.v1.ComputeService.GetVmSnapshot:input_type -> aes.compute.v1.GetVmSnapshotRequest
-	42, // 63: aes.compute.v1.ComputeService.ListVmSnapshots:input_type -> aes.compute.v1.ListVmSnapshotsRequest
-	44, // 64: aes.compute.v1.ComputeService.DeleteVmSnapshot:input_type -> aes.compute.v1.DeleteVmSnapshotRequest
-	19, // 65: aes.compute.v1.ComputeService.DeleteVirtualMachine:input_type -> aes.compute.v1.DeleteVirtualMachineRequest
-	49, // 66: aes.compute.v1.ComputeService.GetVMMetrics:input_type -> aes.compute.v1.GetVMMetricsRequest
-	46, // 67: aes.compute.v1.ComputeService.ListVMUtilization:input_type -> aes.compute.v1.ListVMUtilizationRequest
-	53, // 68: aes.compute.v1.ComputeService.CloneVirtualMachine:input_type -> aes.compute.v1.CloneVirtualMachineRequest
-	55, // 69: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup:input_type -> aes.compute.v1.CreateVirtualMachineFromBackupRequest
-	14, // 70: aes.compute.v1.ComputeService.CreateVirtualMachine:output_type -> aes.compute.v1.CreateVirtualMachineResponse
-	16, // 71: aes.compute.v1.ComputeService.GetVirtualMachine:output_type -> aes.compute.v1.GetVirtualMachineResponse
-	18, // 72: aes.compute.v1.ComputeService.ListVirtualMachines:output_type -> aes.compute.v1.ListVirtualMachinesResponse
-	22, // 73: aes.compute.v1.ComputeService.StartVirtualMachine:output_type -> aes.compute.v1.StartVirtualMachineResponse
-	24, // 74: aes.compute.v1.ComputeService.StopVirtualMachine:output_type -> aes.compute.v1.StopVirtualMachineResponse
-	26, // 75: aes.compute.v1.ComputeService.RestartVirtualMachine:output_type -> aes.compute.v1.RestartVirtualMachineResponse
-	28, // 76: aes.compute.v1.ComputeService.ResizeVirtualMachine:output_type -> aes.compute.v1.ResizeVirtualMachineResponse
-	30, // 77: aes.compute.v1.ComputeService.SetVMAutorenew:output_type -> aes.compute.v1.SetVMAutorenewResponse
-	32, // 78: aes.compute.v1.ComputeService.RenewVMNow:output_type -> aes.compute.v1.RenewVMNowResponse
-	34, // 79: aes.compute.v1.ComputeService.ReimageVirtualMachine:output_type -> aes.compute.v1.ReimageVirtualMachineResponse
-	36, // 80: aes.compute.v1.ComputeService.OpenConsole:output_type -> aes.compute.v1.OpenConsoleResponse
-	39, // 81: aes.compute.v1.ComputeService.SnapshotVirtualMachine:output_type -> aes.compute.v1.SnapshotVirtualMachineResponse
-	41, // 82: aes.compute.v1.ComputeService.GetVmSnapshot:output_type -> aes.compute.v1.GetVmSnapshotResponse
-	43, // 83: aes.compute.v1.ComputeService.ListVmSnapshots:output_type -> aes.compute.v1.ListVmSnapshotsResponse
-	45, // 84: aes.compute.v1.ComputeService.DeleteVmSnapshot:output_type -> aes.compute.v1.DeleteVmSnapshotResponse
-	20, // 85: aes.compute.v1.ComputeService.DeleteVirtualMachine:output_type -> aes.compute.v1.DeleteVirtualMachineResponse
-	52, // 86: aes.compute.v1.ComputeService.GetVMMetrics:output_type -> aes.compute.v1.GetVMMetricsResponse
-	48, // 87: aes.compute.v1.ComputeService.ListVMUtilization:output_type -> aes.compute.v1.ListVMUtilizationResponse
-	54, // 88: aes.compute.v1.ComputeService.CloneVirtualMachine:output_type -> aes.compute.v1.CloneVirtualMachineResponse
-	56, // 89: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup:output_type -> aes.compute.v1.CreateVirtualMachineFromBackupResponse
-	70, // [70:90] is the sub-list for method output_type
-	50, // [50:70] is the sub-list for method input_type
-	50, // [50:50] is the sub-list for extension type_name
-	50, // [50:50] is the sub-list for extension extendee
-	0,  // [0:50] is the sub-list for field type_name
+	73, // 23: aes.compute.v1.StartVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
+	2,  // 24: aes.compute.v1.StopVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	73, // 25: aes.compute.v1.StopVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
+	2,  // 26: aes.compute.v1.RestartVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	2,  // 27: aes.compute.v1.ResizeVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	73, // 28: aes.compute.v1.ResizeVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
+	2,  // 29: aes.compute.v1.SetVMAutorenewResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	2,  // 30: aes.compute.v1.RenewVMNowResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	2,  // 31: aes.compute.v1.ReimageVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	1,  // 32: aes.compute.v1.OpenConsoleRequest.type:type_name -> aes.compute.v1.ConsoleType
+	65, // 33: aes.compute.v1.VmSnapshot.labels:type_name -> aes.compute.v1.VmSnapshot.LabelsEntry
+	66, // 34: aes.compute.v1.VmSnapshot.annotations:type_name -> aes.compute.v1.VmSnapshot.AnnotationsEntry
+	67, // 35: aes.compute.v1.SnapshotVirtualMachineRequest.labels:type_name -> aes.compute.v1.SnapshotVirtualMachineRequest.LabelsEntry
+	68, // 36: aes.compute.v1.SnapshotVirtualMachineRequest.annotations:type_name -> aes.compute.v1.SnapshotVirtualMachineRequest.AnnotationsEntry
+	39, // 37: aes.compute.v1.SnapshotVirtualMachineResponse.snapshot:type_name -> aes.compute.v1.VmSnapshot
+	39, // 38: aes.compute.v1.GetVmSnapshotResponse.snapshot:type_name -> aes.compute.v1.VmSnapshot
+	39, // 39: aes.compute.v1.ListVmSnapshotsResponse.vm_snapshots:type_name -> aes.compute.v1.VmSnapshot
+	49, // 40: aes.compute.v1.ListVMUtilizationResponse.vms:type_name -> aes.compute.v1.VMUtilization
+	52, // 41: aes.compute.v1.MetricSeries.samples:type_name -> aes.compute.v1.MetricSample
+	53, // 42: aes.compute.v1.GetVMMetricsResponse.series:type_name -> aes.compute.v1.MetricSeries
+	69, // 43: aes.compute.v1.CloneVirtualMachineRequest.labels:type_name -> aes.compute.v1.CloneVirtualMachineRequest.LabelsEntry
+	70, // 44: aes.compute.v1.CloneVirtualMachineRequest.annotations:type_name -> aes.compute.v1.CloneVirtualMachineRequest.AnnotationsEntry
+	2,  // 45: aes.compute.v1.CloneVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	73, // 46: aes.compute.v1.CloneVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
+	0,  // 47: aes.compute.v1.CreateVirtualMachineFromBackupRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
+	71, // 48: aes.compute.v1.CreateVirtualMachineFromBackupRequest.labels:type_name -> aes.compute.v1.CreateVirtualMachineFromBackupRequest.LabelsEntry
+	72, // 49: aes.compute.v1.CreateVirtualMachineFromBackupRequest.annotations:type_name -> aes.compute.v1.CreateVirtualMachineFromBackupRequest.AnnotationsEntry
+	2,  // 50: aes.compute.v1.CreateVirtualMachineFromBackupResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	73, // 51: aes.compute.v1.CreateVirtualMachineFromBackupResponse.operation:type_name -> aes.ops.v1.Operation
+	12, // 52: aes.compute.v1.ComputeService.CreateVirtualMachine:input_type -> aes.compute.v1.CreateVirtualMachineRequest
+	15, // 53: aes.compute.v1.ComputeService.GetVirtualMachine:input_type -> aes.compute.v1.GetVirtualMachineRequest
+	17, // 54: aes.compute.v1.ComputeService.ListVirtualMachines:input_type -> aes.compute.v1.ListVirtualMachinesRequest
+	21, // 55: aes.compute.v1.ComputeService.StartVirtualMachine:input_type -> aes.compute.v1.StartVirtualMachineRequest
+	23, // 56: aes.compute.v1.ComputeService.StopVirtualMachine:input_type -> aes.compute.v1.StopVirtualMachineRequest
+	25, // 57: aes.compute.v1.ComputeService.RestartVirtualMachine:input_type -> aes.compute.v1.RestartVirtualMachineRequest
+	27, // 58: aes.compute.v1.ComputeService.ResizeVirtualMachine:input_type -> aes.compute.v1.ResizeVirtualMachineRequest
+	28, // 59: aes.compute.v1.ComputeService.QuoteVirtualMachineResize:input_type -> aes.compute.v1.QuoteVirtualMachineResizeRequest
+	31, // 60: aes.compute.v1.ComputeService.SetVMAutorenew:input_type -> aes.compute.v1.SetVMAutorenewRequest
+	33, // 61: aes.compute.v1.ComputeService.RenewVMNow:input_type -> aes.compute.v1.RenewVMNowRequest
+	35, // 62: aes.compute.v1.ComputeService.ReimageVirtualMachine:input_type -> aes.compute.v1.ReimageVirtualMachineRequest
+	37, // 63: aes.compute.v1.ComputeService.OpenConsole:input_type -> aes.compute.v1.OpenConsoleRequest
+	40, // 64: aes.compute.v1.ComputeService.SnapshotVirtualMachine:input_type -> aes.compute.v1.SnapshotVirtualMachineRequest
+	42, // 65: aes.compute.v1.ComputeService.GetVmSnapshot:input_type -> aes.compute.v1.GetVmSnapshotRequest
+	44, // 66: aes.compute.v1.ComputeService.ListVmSnapshots:input_type -> aes.compute.v1.ListVmSnapshotsRequest
+	46, // 67: aes.compute.v1.ComputeService.DeleteVmSnapshot:input_type -> aes.compute.v1.DeleteVmSnapshotRequest
+	19, // 68: aes.compute.v1.ComputeService.DeleteVirtualMachine:input_type -> aes.compute.v1.DeleteVirtualMachineRequest
+	51, // 69: aes.compute.v1.ComputeService.GetVMMetrics:input_type -> aes.compute.v1.GetVMMetricsRequest
+	48, // 70: aes.compute.v1.ComputeService.ListVMUtilization:input_type -> aes.compute.v1.ListVMUtilizationRequest
+	55, // 71: aes.compute.v1.ComputeService.CloneVirtualMachine:input_type -> aes.compute.v1.CloneVirtualMachineRequest
+	57, // 72: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup:input_type -> aes.compute.v1.CreateVirtualMachineFromBackupRequest
+	14, // 73: aes.compute.v1.ComputeService.CreateVirtualMachine:output_type -> aes.compute.v1.CreateVirtualMachineResponse
+	16, // 74: aes.compute.v1.ComputeService.GetVirtualMachine:output_type -> aes.compute.v1.GetVirtualMachineResponse
+	18, // 75: aes.compute.v1.ComputeService.ListVirtualMachines:output_type -> aes.compute.v1.ListVirtualMachinesResponse
+	22, // 76: aes.compute.v1.ComputeService.StartVirtualMachine:output_type -> aes.compute.v1.StartVirtualMachineResponse
+	24, // 77: aes.compute.v1.ComputeService.StopVirtualMachine:output_type -> aes.compute.v1.StopVirtualMachineResponse
+	26, // 78: aes.compute.v1.ComputeService.RestartVirtualMachine:output_type -> aes.compute.v1.RestartVirtualMachineResponse
+	30, // 79: aes.compute.v1.ComputeService.ResizeVirtualMachine:output_type -> aes.compute.v1.ResizeVirtualMachineResponse
+	29, // 80: aes.compute.v1.ComputeService.QuoteVirtualMachineResize:output_type -> aes.compute.v1.QuoteVirtualMachineResizeResponse
+	32, // 81: aes.compute.v1.ComputeService.SetVMAutorenew:output_type -> aes.compute.v1.SetVMAutorenewResponse
+	34, // 82: aes.compute.v1.ComputeService.RenewVMNow:output_type -> aes.compute.v1.RenewVMNowResponse
+	36, // 83: aes.compute.v1.ComputeService.ReimageVirtualMachine:output_type -> aes.compute.v1.ReimageVirtualMachineResponse
+	38, // 84: aes.compute.v1.ComputeService.OpenConsole:output_type -> aes.compute.v1.OpenConsoleResponse
+	41, // 85: aes.compute.v1.ComputeService.SnapshotVirtualMachine:output_type -> aes.compute.v1.SnapshotVirtualMachineResponse
+	43, // 86: aes.compute.v1.ComputeService.GetVmSnapshot:output_type -> aes.compute.v1.GetVmSnapshotResponse
+	45, // 87: aes.compute.v1.ComputeService.ListVmSnapshots:output_type -> aes.compute.v1.ListVmSnapshotsResponse
+	47, // 88: aes.compute.v1.ComputeService.DeleteVmSnapshot:output_type -> aes.compute.v1.DeleteVmSnapshotResponse
+	20, // 89: aes.compute.v1.ComputeService.DeleteVirtualMachine:output_type -> aes.compute.v1.DeleteVirtualMachineResponse
+	54, // 90: aes.compute.v1.ComputeService.GetVMMetrics:output_type -> aes.compute.v1.GetVMMetricsResponse
+	50, // 91: aes.compute.v1.ComputeService.ListVMUtilization:output_type -> aes.compute.v1.ListVMUtilizationResponse
+	56, // 92: aes.compute.v1.ComputeService.CloneVirtualMachine:output_type -> aes.compute.v1.CloneVirtualMachineResponse
+	58, // 93: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup:output_type -> aes.compute.v1.CreateVirtualMachineFromBackupResponse
+	73, // [73:94] is the sub-list for method output_type
+	52, // [52:73] is the sub-list for method input_type
+	52, // [52:52] is the sub-list for extension type_name
+	52, // [52:52] is the sub-list for extension extendee
+	0,  // [0:52] is the sub-list for field type_name
 }
 
 func init() { file_aes_compute_v1_compute_proto_init() }
@@ -4365,7 +4572,7 @@ func file_aes_compute_v1_compute_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_compute_v1_compute_proto_rawDesc), len(file_aes_compute_v1_compute_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   69,
+			NumMessages:   71,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

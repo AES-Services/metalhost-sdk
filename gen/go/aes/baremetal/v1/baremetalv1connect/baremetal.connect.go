@@ -114,10 +114,10 @@ type BareMetalServiceClient interface {
 	CreateBareMetalInstance(context.Context, *connect.Request[v1.CreateBareMetalInstanceRequest]) (*connect.Response[v1.CreateBareMetalInstanceResponse], error)
 	GetBareMetalInstance(context.Context, *connect.Request[v1.GetBareMetalInstanceRequest]) (*connect.Response[v1.GetBareMetalInstanceResponse], error)
 	ListBareMetalInstances(context.Context, *connect.Request[v1.ListBareMetalInstancesRequest]) (*connect.Response[v1.ListBareMetalInstancesResponse], error)
-	// ReleaseBareMetalInstance ends the lease; the host returns to the available pool. Refused
-	// while a MONTHLY_* term is still active (hard non-cancel, same as DeleteVirtualMachine). The
-	// customer's data on local disks is not wiped by Metalhost — operator policy decides whether
-	// the host is reformatted before re-leasing.
+	// ReleaseBareMetalInstance ends the lease; the machine is powered down and returns to the
+	// available pool after operator processing. Refused while a MONTHLY_* term is still active
+	// (hard non-cancel, same as DeleteVirtualMachine). Local disks are securely erased before the
+	// machine is ever re-leased.
 	ReleaseBareMetalInstance(context.Context, *connect.Request[v1.ReleaseBareMetalInstanceRequest]) (*connect.Response[v1.ReleaseBareMetalInstanceResponse], error)
 	// RenewBareMetalNow charges the next prepaid term immediately for a MONTHLY_* lease (mirror of
 	// ComputeService.RenewVMNow). Useful before a term lapses or to extend ahead of the worker.
@@ -452,10 +452,10 @@ type BareMetalServiceHandler interface {
 	CreateBareMetalInstance(context.Context, *connect.Request[v1.CreateBareMetalInstanceRequest]) (*connect.Response[v1.CreateBareMetalInstanceResponse], error)
 	GetBareMetalInstance(context.Context, *connect.Request[v1.GetBareMetalInstanceRequest]) (*connect.Response[v1.GetBareMetalInstanceResponse], error)
 	ListBareMetalInstances(context.Context, *connect.Request[v1.ListBareMetalInstancesRequest]) (*connect.Response[v1.ListBareMetalInstancesResponse], error)
-	// ReleaseBareMetalInstance ends the lease; the host returns to the available pool. Refused
-	// while a MONTHLY_* term is still active (hard non-cancel, same as DeleteVirtualMachine). The
-	// customer's data on local disks is not wiped by Metalhost — operator policy decides whether
-	// the host is reformatted before re-leasing.
+	// ReleaseBareMetalInstance ends the lease; the machine is powered down and returns to the
+	// available pool after operator processing. Refused while a MONTHLY_* term is still active
+	// (hard non-cancel, same as DeleteVirtualMachine). Local disks are securely erased before the
+	// machine is ever re-leased.
 	ReleaseBareMetalInstance(context.Context, *connect.Request[v1.ReleaseBareMetalInstanceRequest]) (*connect.Response[v1.ReleaseBareMetalInstanceResponse], error)
 	// RenewBareMetalNow charges the next prepaid term immediately for a MONTHLY_* lease (mirror of
 	// ComputeService.RenewVMNow). Useful before a term lapses or to extend ahead of the worker.

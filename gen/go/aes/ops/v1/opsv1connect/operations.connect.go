@@ -44,7 +44,7 @@ const (
 // OperationsServiceClient is a client for the aes.ops.v1.OperationsService service.
 type OperationsServiceClient interface {
 	GetOperation(context.Context, *connect.Request[v1.GetOperationRequest]) (*connect.Response[v1.GetOperationResponse], error)
-	// Lists operations in name order (opaque page_token is the last-seen name).
+	// Lists operations newest-first (reverse name order; opaque page_token is the last-seen name).
 	ListOperations(context.Context, *connect.Request[v1.ListOperationsRequest]) (*connect.Response[v1.ListOperationsResponse], error)
 }
 
@@ -93,7 +93,7 @@ func (c *operationsServiceClient) ListOperations(ctx context.Context, req *conne
 // OperationsServiceHandler is an implementation of the aes.ops.v1.OperationsService service.
 type OperationsServiceHandler interface {
 	GetOperation(context.Context, *connect.Request[v1.GetOperationRequest]) (*connect.Response[v1.GetOperationResponse], error)
-	// Lists operations in name order (opaque page_token is the last-seen name).
+	// Lists operations newest-first (reverse name order; opaque page_token is the last-seen name).
 	ListOperations(context.Context, *connect.Request[v1.ListOperationsRequest]) (*connect.Response[v1.ListOperationsResponse], error)
 }
 

@@ -1012,9 +1012,15 @@ type SignUpRequest struct {
 	// server falls back to display_name (the company / org name). Surfacing this separately
 	// lets the portal greet the user by their name ("Welcome back, Alice") instead of their
 	// company name. Portal sign-up form should collect both.
-	FullName      string `protobuf:"bytes,4,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	FullName string `protobuf:"bytes,4,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
+	// Optional marketing attribution captured on the website at first visit. Stored on the
+	// account at creation; never updated afterwards.
+	Attribution *SignupAttribution `protobuf:"bytes,5,opt,name=attribution,proto3" json:"attribution,omitempty"`
+	// Cloudflare Turnstile widget token. Required when the deployment has bot protection
+	// enabled; safe to omit otherwise.
+	TurnstileToken string `protobuf:"bytes,6,opt,name=turnstile_token,json=turnstileToken,proto3" json:"turnstile_token,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *SignUpRequest) Reset() {
@@ -1075,6 +1081,143 @@ func (x *SignUpRequest) GetFullName() string {
 	return ""
 }
 
+func (x *SignUpRequest) GetAttribution() *SignupAttribution {
+	if x != nil {
+		return x.Attribution
+	}
+	return nil
+}
+
+func (x *SignUpRequest) GetTurnstileToken() string {
+	if x != nil {
+		return x.TurnstileToken
+	}
+	return ""
+}
+
+// Marketing attribution for a new account: UTM parameters and ad click IDs captured on the
+// website at first visit. All fields optional.
+type SignupAttribution struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	UtmSource   string                 `protobuf:"bytes,1,opt,name=utm_source,json=utmSource,proto3" json:"utm_source,omitempty"`
+	UtmMedium   string                 `protobuf:"bytes,2,opt,name=utm_medium,json=utmMedium,proto3" json:"utm_medium,omitempty"`
+	UtmCampaign string                 `protobuf:"bytes,3,opt,name=utm_campaign,json=utmCampaign,proto3" json:"utm_campaign,omitempty"`
+	UtmTerm     string                 `protobuf:"bytes,4,opt,name=utm_term,json=utmTerm,proto3" json:"utm_term,omitempty"`
+	UtmContent  string                 `protobuf:"bytes,5,opt,name=utm_content,json=utmContent,proto3" json:"utm_content,omitempty"`
+	// Google Ads click ID.
+	Gclid string `protobuf:"bytes,6,opt,name=gclid,proto3" json:"gclid,omitempty"`
+	// Reddit Ads click ID.
+	RdtCid string `protobuf:"bytes,7,opt,name=rdt_cid,json=rdtCid,proto3" json:"rdt_cid,omitempty"`
+	// First page visited (path + query).
+	LandingPage string `protobuf:"bytes,8,opt,name=landing_page,json=landingPage,proto3" json:"landing_page,omitempty"`
+	// document.referrer at first visit.
+	Referrer string `protobuf:"bytes,9,opt,name=referrer,proto3" json:"referrer,omitempty"`
+	// Unix seconds of the first visit.
+	FirstTouchAtUnix int64 `protobuf:"varint,10,opt,name=first_touch_at_unix,json=firstTouchAtUnix,proto3" json:"first_touch_at_unix,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SignupAttribution) Reset() {
+	*x = SignupAttribution{}
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SignupAttribution) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SignupAttribution) ProtoMessage() {}
+
+func (x *SignupAttribution) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SignupAttribution.ProtoReflect.Descriptor instead.
+func (*SignupAttribution) Descriptor() ([]byte, []int) {
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *SignupAttribution) GetUtmSource() string {
+	if x != nil {
+		return x.UtmSource
+	}
+	return ""
+}
+
+func (x *SignupAttribution) GetUtmMedium() string {
+	if x != nil {
+		return x.UtmMedium
+	}
+	return ""
+}
+
+func (x *SignupAttribution) GetUtmCampaign() string {
+	if x != nil {
+		return x.UtmCampaign
+	}
+	return ""
+}
+
+func (x *SignupAttribution) GetUtmTerm() string {
+	if x != nil {
+		return x.UtmTerm
+	}
+	return ""
+}
+
+func (x *SignupAttribution) GetUtmContent() string {
+	if x != nil {
+		return x.UtmContent
+	}
+	return ""
+}
+
+func (x *SignupAttribution) GetGclid() string {
+	if x != nil {
+		return x.Gclid
+	}
+	return ""
+}
+
+func (x *SignupAttribution) GetRdtCid() string {
+	if x != nil {
+		return x.RdtCid
+	}
+	return ""
+}
+
+func (x *SignupAttribution) GetLandingPage() string {
+	if x != nil {
+		return x.LandingPage
+	}
+	return ""
+}
+
+func (x *SignupAttribution) GetReferrer() string {
+	if x != nil {
+		return x.Referrer
+	}
+	return ""
+}
+
+func (x *SignupAttribution) GetFirstTouchAtUnix() int64 {
+	if x != nil {
+		return x.FirstTouchAtUnix
+	}
+	return 0
+}
+
 type SignUpResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The created organization (`organizations/{slug}`). Empty when verification_pending=true.
@@ -1096,7 +1239,7 @@ type SignUpResponse struct {
 
 func (x *SignUpResponse) Reset() {
 	*x = SignUpResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[18]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1108,7 +1251,7 @@ func (x *SignUpResponse) String() string {
 func (*SignUpResponse) ProtoMessage() {}
 
 func (x *SignUpResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[18]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1121,7 +1264,7 @@ func (x *SignUpResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignUpResponse.ProtoReflect.Descriptor instead.
 func (*SignUpResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{18}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *SignUpResponse) GetOrganizationName() string {
@@ -1176,7 +1319,7 @@ type VerifyEmailRequest struct {
 
 func (x *VerifyEmailRequest) Reset() {
 	*x = VerifyEmailRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[19]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1188,7 +1331,7 @@ func (x *VerifyEmailRequest) String() string {
 func (*VerifyEmailRequest) ProtoMessage() {}
 
 func (x *VerifyEmailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[19]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1201,7 +1344,7 @@ func (x *VerifyEmailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyEmailRequest.ProtoReflect.Descriptor instead.
 func (*VerifyEmailRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{19}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *VerifyEmailRequest) GetToken() string {
@@ -1224,7 +1367,7 @@ type VerifyEmailResponse struct {
 
 func (x *VerifyEmailResponse) Reset() {
 	*x = VerifyEmailResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[20]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1236,7 +1379,7 @@ func (x *VerifyEmailResponse) String() string {
 func (*VerifyEmailResponse) ProtoMessage() {}
 
 func (x *VerifyEmailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[20]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1249,7 +1392,7 @@ func (x *VerifyEmailResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyEmailResponse.ProtoReflect.Descriptor instead.
 func (*VerifyEmailResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{20}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *VerifyEmailResponse) GetOrganizationName() string {
@@ -1297,7 +1440,7 @@ type LoginRequest struct {
 
 func (x *LoginRequest) Reset() {
 	*x = LoginRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[21]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1309,7 +1452,7 @@ func (x *LoginRequest) String() string {
 func (*LoginRequest) ProtoMessage() {}
 
 func (x *LoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[21]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1322,7 +1465,7 @@ func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
 func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{21}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *LoginRequest) GetEmail() string {
@@ -1356,7 +1499,7 @@ type LoginResponse struct {
 
 func (x *LoginResponse) Reset() {
 	*x = LoginResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[22]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1368,7 +1511,7 @@ func (x *LoginResponse) String() string {
 func (*LoginResponse) ProtoMessage() {}
 
 func (x *LoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[22]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1381,7 +1524,7 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
 func (*LoginResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{22}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *LoginResponse) GetPrincipal() string {
@@ -1428,7 +1571,7 @@ type SubmitMFAChallengeRequest struct {
 
 func (x *SubmitMFAChallengeRequest) Reset() {
 	*x = SubmitMFAChallengeRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[23]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1440,7 +1583,7 @@ func (x *SubmitMFAChallengeRequest) String() string {
 func (*SubmitMFAChallengeRequest) ProtoMessage() {}
 
 func (x *SubmitMFAChallengeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[23]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1453,7 +1596,7 @@ func (x *SubmitMFAChallengeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitMFAChallengeRequest.ProtoReflect.Descriptor instead.
 func (*SubmitMFAChallengeRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{23}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *SubmitMFAChallengeRequest) GetChallengeToken() string {
@@ -1492,7 +1635,7 @@ type SubmitMFAChallengeResponse struct {
 
 func (x *SubmitMFAChallengeResponse) Reset() {
 	*x = SubmitMFAChallengeResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[24]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1504,7 +1647,7 @@ func (x *SubmitMFAChallengeResponse) String() string {
 func (*SubmitMFAChallengeResponse) ProtoMessage() {}
 
 func (x *SubmitMFAChallengeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[24]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1517,7 +1660,7 @@ func (x *SubmitMFAChallengeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitMFAChallengeResponse.ProtoReflect.Descriptor instead.
 func (*SubmitMFAChallengeResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{24}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *SubmitMFAChallengeResponse) GetPrincipal() string {
@@ -1560,7 +1703,7 @@ type LinkOidcProviderRequest struct {
 
 func (x *LinkOidcProviderRequest) Reset() {
 	*x = LinkOidcProviderRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[25]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1572,7 +1715,7 @@ func (x *LinkOidcProviderRequest) String() string {
 func (*LinkOidcProviderRequest) ProtoMessage() {}
 
 func (x *LinkOidcProviderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[25]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1585,7 +1728,7 @@ func (x *LinkOidcProviderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LinkOidcProviderRequest.ProtoReflect.Descriptor instead.
 func (*LinkOidcProviderRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{25}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *LinkOidcProviderRequest) GetProviderName() string {
@@ -1612,7 +1755,7 @@ type LinkOidcProviderResponse struct {
 
 func (x *LinkOidcProviderResponse) Reset() {
 	*x = LinkOidcProviderResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[26]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1624,7 +1767,7 @@ func (x *LinkOidcProviderResponse) String() string {
 func (*LinkOidcProviderResponse) ProtoMessage() {}
 
 func (x *LinkOidcProviderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[26]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1637,7 +1780,7 @@ func (x *LinkOidcProviderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LinkOidcProviderResponse.ProtoReflect.Descriptor instead.
 func (*LinkOidcProviderResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{26}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *LinkOidcProviderResponse) GetAuthorizeUrl() string {
@@ -1671,7 +1814,7 @@ type InviteOrgMemberRequest struct {
 
 func (x *InviteOrgMemberRequest) Reset() {
 	*x = InviteOrgMemberRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[27]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1683,7 +1826,7 @@ func (x *InviteOrgMemberRequest) String() string {
 func (*InviteOrgMemberRequest) ProtoMessage() {}
 
 func (x *InviteOrgMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[27]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1696,7 +1839,7 @@ func (x *InviteOrgMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InviteOrgMemberRequest.ProtoReflect.Descriptor instead.
 func (*InviteOrgMemberRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{27}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *InviteOrgMemberRequest) GetOrganizationName() string {
@@ -1739,7 +1882,7 @@ type InviteOrgMemberResponse struct {
 
 func (x *InviteOrgMemberResponse) Reset() {
 	*x = InviteOrgMemberResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[28]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1751,7 +1894,7 @@ func (x *InviteOrgMemberResponse) String() string {
 func (*InviteOrgMemberResponse) ProtoMessage() {}
 
 func (x *InviteOrgMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[28]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1764,7 +1907,7 @@ func (x *InviteOrgMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InviteOrgMemberResponse.ProtoReflect.Descriptor instead.
 func (*InviteOrgMemberResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{28}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *InviteOrgMemberResponse) GetAcceptToken() string {
@@ -1790,7 +1933,7 @@ type AcceptInviteRequest struct {
 
 func (x *AcceptInviteRequest) Reset() {
 	*x = AcceptInviteRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[29]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1802,7 +1945,7 @@ func (x *AcceptInviteRequest) String() string {
 func (*AcceptInviteRequest) ProtoMessage() {}
 
 func (x *AcceptInviteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[29]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1815,7 +1958,7 @@ func (x *AcceptInviteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptInviteRequest.ProtoReflect.Descriptor instead.
 func (*AcceptInviteRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{29}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *AcceptInviteRequest) GetAcceptToken() string {
@@ -1835,7 +1978,7 @@ type SetInitialPasswordRequest struct {
 
 func (x *SetInitialPasswordRequest) Reset() {
 	*x = SetInitialPasswordRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[30]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1847,7 +1990,7 @@ func (x *SetInitialPasswordRequest) String() string {
 func (*SetInitialPasswordRequest) ProtoMessage() {}
 
 func (x *SetInitialPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[30]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1860,7 +2003,7 @@ func (x *SetInitialPasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetInitialPasswordRequest.ProtoReflect.Descriptor instead.
 func (*SetInitialPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{30}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *SetInitialPasswordRequest) GetNewPassword() string {
@@ -1878,7 +2021,7 @@ type SetInitialPasswordResponse struct {
 
 func (x *SetInitialPasswordResponse) Reset() {
 	*x = SetInitialPasswordResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[31]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1890,7 +2033,7 @@ func (x *SetInitialPasswordResponse) String() string {
 func (*SetInitialPasswordResponse) ProtoMessage() {}
 
 func (x *SetInitialPasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[31]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1903,7 +2046,7 @@ func (x *SetInitialPasswordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetInitialPasswordResponse.ProtoReflect.Descriptor instead.
 func (*SetInitialPasswordResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{31}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{32}
 }
 
 type AcceptInviteResponse struct {
@@ -1923,7 +2066,7 @@ type AcceptInviteResponse struct {
 
 func (x *AcceptInviteResponse) Reset() {
 	*x = AcceptInviteResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[32]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1935,7 +2078,7 @@ func (x *AcceptInviteResponse) String() string {
 func (*AcceptInviteResponse) ProtoMessage() {}
 
 func (x *AcceptInviteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[32]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1948,7 +2091,7 @@ func (x *AcceptInviteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptInviteResponse.ProtoReflect.Descriptor instead.
 func (*AcceptInviteResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{32}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *AcceptInviteResponse) GetOrganizationName() string {
@@ -1997,7 +2140,7 @@ type ListOrgMembersRequest struct {
 
 func (x *ListOrgMembersRequest) Reset() {
 	*x = ListOrgMembersRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[33]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2009,7 +2152,7 @@ func (x *ListOrgMembersRequest) String() string {
 func (*ListOrgMembersRequest) ProtoMessage() {}
 
 func (x *ListOrgMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[33]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2022,7 +2165,7 @@ func (x *ListOrgMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrgMembersRequest.ProtoReflect.Descriptor instead.
 func (*ListOrgMembersRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{33}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListOrgMembersRequest) GetOrganizationName() string {
@@ -2066,7 +2209,7 @@ type OrgMember struct {
 
 func (x *OrgMember) Reset() {
 	*x = OrgMember{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[34]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2078,7 +2221,7 @@ func (x *OrgMember) String() string {
 func (*OrgMember) ProtoMessage() {}
 
 func (x *OrgMember) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[34]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2091,7 +2234,7 @@ func (x *OrgMember) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrgMember.ProtoReflect.Descriptor instead.
 func (*OrgMember) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{34}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *OrgMember) GetPrincipal() string {
@@ -2153,7 +2296,7 @@ type ListOrgMembersResponse struct {
 
 func (x *ListOrgMembersResponse) Reset() {
 	*x = ListOrgMembersResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[35]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2165,7 +2308,7 @@ func (x *ListOrgMembersResponse) String() string {
 func (*ListOrgMembersResponse) ProtoMessage() {}
 
 func (x *ListOrgMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[35]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2178,7 +2321,7 @@ func (x *ListOrgMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrgMembersResponse.ProtoReflect.Descriptor instead.
 func (*ListOrgMembersResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{35}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListOrgMembersResponse) GetOrgMembers() []*OrgMember {
@@ -2205,7 +2348,7 @@ type RemoveOrgMemberRequest struct {
 
 func (x *RemoveOrgMemberRequest) Reset() {
 	*x = RemoveOrgMemberRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[36]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2217,7 +2360,7 @@ func (x *RemoveOrgMemberRequest) String() string {
 func (*RemoveOrgMemberRequest) ProtoMessage() {}
 
 func (x *RemoveOrgMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[36]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2230,7 +2373,7 @@ func (x *RemoveOrgMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveOrgMemberRequest.ProtoReflect.Descriptor instead.
 func (*RemoveOrgMemberRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{36}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *RemoveOrgMemberRequest) GetOrganizationName() string {
@@ -2255,7 +2398,7 @@ type RemoveOrgMemberResponse struct {
 
 func (x *RemoveOrgMemberResponse) Reset() {
 	*x = RemoveOrgMemberResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[37]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2267,7 +2410,7 @@ func (x *RemoveOrgMemberResponse) String() string {
 func (*RemoveOrgMemberResponse) ProtoMessage() {}
 
 func (x *RemoveOrgMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[37]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2280,7 +2423,7 @@ func (x *RemoveOrgMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveOrgMemberResponse.ProtoReflect.Descriptor instead.
 func (*RemoveOrgMemberResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{37}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{38}
 }
 
 type UpdateOrgMemberRoleRequest struct {
@@ -2297,7 +2440,7 @@ type UpdateOrgMemberRoleRequest struct {
 
 func (x *UpdateOrgMemberRoleRequest) Reset() {
 	*x = UpdateOrgMemberRoleRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[38]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2309,7 +2452,7 @@ func (x *UpdateOrgMemberRoleRequest) String() string {
 func (*UpdateOrgMemberRoleRequest) ProtoMessage() {}
 
 func (x *UpdateOrgMemberRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[38]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2322,7 +2465,7 @@ func (x *UpdateOrgMemberRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrgMemberRoleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOrgMemberRoleRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{38}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *UpdateOrgMemberRoleRequest) GetOrganizationName() string {
@@ -2355,7 +2498,7 @@ type UpdateOrgMemberRoleResponse struct {
 
 func (x *UpdateOrgMemberRoleResponse) Reset() {
 	*x = UpdateOrgMemberRoleResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[39]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2367,7 +2510,7 @@ func (x *UpdateOrgMemberRoleResponse) String() string {
 func (*UpdateOrgMemberRoleResponse) ProtoMessage() {}
 
 func (x *UpdateOrgMemberRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[39]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2380,7 +2523,7 @@ func (x *UpdateOrgMemberRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrgMemberRoleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateOrgMemberRoleResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{39}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *UpdateOrgMemberRoleResponse) GetMember() *OrgMember {
@@ -2411,7 +2554,7 @@ type PendingInvite struct {
 
 func (x *PendingInvite) Reset() {
 	*x = PendingInvite{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[40]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2423,7 +2566,7 @@ func (x *PendingInvite) String() string {
 func (*PendingInvite) ProtoMessage() {}
 
 func (x *PendingInvite) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[40]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2436,7 +2579,7 @@ func (x *PendingInvite) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PendingInvite.ProtoReflect.Descriptor instead.
 func (*PendingInvite) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{40}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *PendingInvite) GetId() string {
@@ -2506,7 +2649,7 @@ type ListPendingInvitesRequest struct {
 
 func (x *ListPendingInvitesRequest) Reset() {
 	*x = ListPendingInvitesRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[41]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2518,7 +2661,7 @@ func (x *ListPendingInvitesRequest) String() string {
 func (*ListPendingInvitesRequest) ProtoMessage() {}
 
 func (x *ListPendingInvitesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[41]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2531,7 +2674,7 @@ func (x *ListPendingInvitesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPendingInvitesRequest.ProtoReflect.Descriptor instead.
 func (*ListPendingInvitesRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{41}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ListPendingInvitesRequest) GetOrganizationName() string {
@@ -2565,7 +2708,7 @@ type ListPendingInvitesResponse struct {
 
 func (x *ListPendingInvitesResponse) Reset() {
 	*x = ListPendingInvitesResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[42]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2577,7 +2720,7 @@ func (x *ListPendingInvitesResponse) String() string {
 func (*ListPendingInvitesResponse) ProtoMessage() {}
 
 func (x *ListPendingInvitesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[42]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2590,7 +2733,7 @@ func (x *ListPendingInvitesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPendingInvitesResponse.ProtoReflect.Descriptor instead.
 func (*ListPendingInvitesResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{42}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ListPendingInvitesResponse) GetInvites() []*PendingInvite {
@@ -2616,7 +2759,7 @@ type ListMyOrganizationsRequest struct {
 
 func (x *ListMyOrganizationsRequest) Reset() {
 	*x = ListMyOrganizationsRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[43]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2628,7 +2771,7 @@ func (x *ListMyOrganizationsRequest) String() string {
 func (*ListMyOrganizationsRequest) ProtoMessage() {}
 
 func (x *ListMyOrganizationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[43]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2641,7 +2784,7 @@ func (x *ListMyOrganizationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyOrganizationsRequest.ProtoReflect.Descriptor instead.
 func (*ListMyOrganizationsRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{43}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{44}
 }
 
 type OrgMembership struct {
@@ -2656,7 +2799,7 @@ type OrgMembership struct {
 
 func (x *OrgMembership) Reset() {
 	*x = OrgMembership{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[44]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2668,7 +2811,7 @@ func (x *OrgMembership) String() string {
 func (*OrgMembership) ProtoMessage() {}
 
 func (x *OrgMembership) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[44]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2681,7 +2824,7 @@ func (x *OrgMembership) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrgMembership.ProtoReflect.Descriptor instead.
 func (*OrgMembership) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{44}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *OrgMembership) GetOrganizationName() string {
@@ -2721,7 +2864,7 @@ type ListMyOrganizationsResponse struct {
 
 func (x *ListMyOrganizationsResponse) Reset() {
 	*x = ListMyOrganizationsResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[45]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2733,7 +2876,7 @@ func (x *ListMyOrganizationsResponse) String() string {
 func (*ListMyOrganizationsResponse) ProtoMessage() {}
 
 func (x *ListMyOrganizationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[45]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2746,7 +2889,7 @@ func (x *ListMyOrganizationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyOrganizationsResponse.ProtoReflect.Descriptor instead.
 func (*ListMyOrganizationsResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{45}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ListMyOrganizationsResponse) GetOrganizations() []*OrgMembership {
@@ -2764,7 +2907,7 @@ type ListMyInvitesRequest struct {
 
 func (x *ListMyInvitesRequest) Reset() {
 	*x = ListMyInvitesRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[46]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2776,7 +2919,7 @@ func (x *ListMyInvitesRequest) String() string {
 func (*ListMyInvitesRequest) ProtoMessage() {}
 
 func (x *ListMyInvitesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[46]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2789,7 +2932,7 @@ func (x *ListMyInvitesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyInvitesRequest.ProtoReflect.Descriptor instead.
 func (*ListMyInvitesRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{46}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{47}
 }
 
 type MyInvite struct {
@@ -2806,7 +2949,7 @@ type MyInvite struct {
 
 func (x *MyInvite) Reset() {
 	*x = MyInvite{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[47]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2818,7 +2961,7 @@ func (x *MyInvite) String() string {
 func (*MyInvite) ProtoMessage() {}
 
 func (x *MyInvite) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[47]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2831,7 +2974,7 @@ func (x *MyInvite) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MyInvite.ProtoReflect.Descriptor instead.
 func (*MyInvite) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{47}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *MyInvite) GetInviteId() string {
@@ -2885,7 +3028,7 @@ type ListMyInvitesResponse struct {
 
 func (x *ListMyInvitesResponse) Reset() {
 	*x = ListMyInvitesResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[48]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2897,7 +3040,7 @@ func (x *ListMyInvitesResponse) String() string {
 func (*ListMyInvitesResponse) ProtoMessage() {}
 
 func (x *ListMyInvitesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[48]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2910,7 +3053,7 @@ func (x *ListMyInvitesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyInvitesResponse.ProtoReflect.Descriptor instead.
 func (*ListMyInvitesResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{48}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *ListMyInvitesResponse) GetInvites() []*MyInvite {
@@ -2929,7 +3072,7 @@ type AcceptMyInviteRequest struct {
 
 func (x *AcceptMyInviteRequest) Reset() {
 	*x = AcceptMyInviteRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[49]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2941,7 +3084,7 @@ func (x *AcceptMyInviteRequest) String() string {
 func (*AcceptMyInviteRequest) ProtoMessage() {}
 
 func (x *AcceptMyInviteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[49]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2954,7 +3097,7 @@ func (x *AcceptMyInviteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptMyInviteRequest.ProtoReflect.Descriptor instead.
 func (*AcceptMyInviteRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{49}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *AcceptMyInviteRequest) GetInviteId() string {
@@ -2973,7 +3116,7 @@ type AcceptMyInviteResponse struct {
 
 func (x *AcceptMyInviteResponse) Reset() {
 	*x = AcceptMyInviteResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[50]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2985,7 +3128,7 @@ func (x *AcceptMyInviteResponse) String() string {
 func (*AcceptMyInviteResponse) ProtoMessage() {}
 
 func (x *AcceptMyInviteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[50]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2998,7 +3141,7 @@ func (x *AcceptMyInviteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptMyInviteResponse.ProtoReflect.Descriptor instead.
 func (*AcceptMyInviteResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{50}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *AcceptMyInviteResponse) GetOrganizationName() string {
@@ -3017,7 +3160,7 @@ type DeclineMyInviteRequest struct {
 
 func (x *DeclineMyInviteRequest) Reset() {
 	*x = DeclineMyInviteRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[51]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3029,7 +3172,7 @@ func (x *DeclineMyInviteRequest) String() string {
 func (*DeclineMyInviteRequest) ProtoMessage() {}
 
 func (x *DeclineMyInviteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[51]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3042,7 +3185,7 @@ func (x *DeclineMyInviteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeclineMyInviteRequest.ProtoReflect.Descriptor instead.
 func (*DeclineMyInviteRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{51}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *DeclineMyInviteRequest) GetInviteId() string {
@@ -3060,7 +3203,7 @@ type DeclineMyInviteResponse struct {
 
 func (x *DeclineMyInviteResponse) Reset() {
 	*x = DeclineMyInviteResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[52]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3072,7 +3215,7 @@ func (x *DeclineMyInviteResponse) String() string {
 func (*DeclineMyInviteResponse) ProtoMessage() {}
 
 func (x *DeclineMyInviteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[52]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3085,7 +3228,7 @@ func (x *DeclineMyInviteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeclineMyInviteResponse.ProtoReflect.Descriptor instead.
 func (*DeclineMyInviteResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{52}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{53}
 }
 
 type RevokeInviteRequest struct {
@@ -3099,7 +3242,7 @@ type RevokeInviteRequest struct {
 
 func (x *RevokeInviteRequest) Reset() {
 	*x = RevokeInviteRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[53]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3111,7 +3254,7 @@ func (x *RevokeInviteRequest) String() string {
 func (*RevokeInviteRequest) ProtoMessage() {}
 
 func (x *RevokeInviteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[53]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3124,7 +3267,7 @@ func (x *RevokeInviteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeInviteRequest.ProtoReflect.Descriptor instead.
 func (*RevokeInviteRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{53}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *RevokeInviteRequest) GetOrganizationName() string {
@@ -3149,7 +3292,7 @@ type RevokeInviteResponse struct {
 
 func (x *RevokeInviteResponse) Reset() {
 	*x = RevokeInviteResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[54]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3161,7 +3304,7 @@ func (x *RevokeInviteResponse) String() string {
 func (*RevokeInviteResponse) ProtoMessage() {}
 
 func (x *RevokeInviteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[54]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3174,7 +3317,7 @@ func (x *RevokeInviteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeInviteResponse.ProtoReflect.Descriptor instead.
 func (*RevokeInviteResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{54}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{55}
 }
 
 type RotateApiKeyRequest struct {
@@ -3189,7 +3332,7 @@ type RotateApiKeyRequest struct {
 
 func (x *RotateApiKeyRequest) Reset() {
 	*x = RotateApiKeyRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[55]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3201,7 +3344,7 @@ func (x *RotateApiKeyRequest) String() string {
 func (*RotateApiKeyRequest) ProtoMessage() {}
 
 func (x *RotateApiKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[55]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3214,7 +3357,7 @@ func (x *RotateApiKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RotateApiKeyRequest.ProtoReflect.Descriptor instead.
 func (*RotateApiKeyRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{55}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *RotateApiKeyRequest) GetKeyPrefix() string {
@@ -3243,7 +3386,7 @@ type RotateApiKeyResponse struct {
 
 func (x *RotateApiKeyResponse) Reset() {
 	*x = RotateApiKeyResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[56]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3255,7 +3398,7 @@ func (x *RotateApiKeyResponse) String() string {
 func (*RotateApiKeyResponse) ProtoMessage() {}
 
 func (x *RotateApiKeyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[56]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3268,7 +3411,7 @@ func (x *RotateApiKeyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RotateApiKeyResponse.ProtoReflect.Descriptor instead.
 func (*RotateApiKeyResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{56}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *RotateApiKeyResponse) GetNewApiKey() *ApiKey {
@@ -3297,14 +3440,17 @@ type StartOidcLoginRequest struct {
 	// Provider name (`oidc-providers/{slug}`) — a platform-configured OIDC provider slug.
 	ProviderName string `protobuf:"bytes,1,opt,name=provider_name,json=providerName,proto3" json:"provider_name,omitempty"`
 	// Where the IdP should redirect after auth — typically the gateway's /oauth/callback.
-	RedirectUri   string `protobuf:"bytes,2,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
+	RedirectUri string `protobuf:"bytes,2,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
+	// Optional marketing attribution captured on the website at first visit. Applied only when
+	// this sign-in creates a brand-new account; ignored on sign-ins to existing accounts.
+	Attribution   *SignupAttribution `protobuf:"bytes,3,opt,name=attribution,proto3" json:"attribution,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *StartOidcLoginRequest) Reset() {
 	*x = StartOidcLoginRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[57]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3316,7 +3462,7 @@ func (x *StartOidcLoginRequest) String() string {
 func (*StartOidcLoginRequest) ProtoMessage() {}
 
 func (x *StartOidcLoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[57]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3329,7 +3475,7 @@ func (x *StartOidcLoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartOidcLoginRequest.ProtoReflect.Descriptor instead.
 func (*StartOidcLoginRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{57}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *StartOidcLoginRequest) GetProviderName() string {
@@ -3346,6 +3492,13 @@ func (x *StartOidcLoginRequest) GetRedirectUri() string {
 	return ""
 }
 
+func (x *StartOidcLoginRequest) GetAttribution() *SignupAttribution {
+	if x != nil {
+		return x.Attribution
+	}
+	return nil
+}
+
 type StartOidcLoginResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Browser navigates here. Metalhost-generated state token is embedded; gateway preserves it
@@ -3358,7 +3511,7 @@ type StartOidcLoginResponse struct {
 
 func (x *StartOidcLoginResponse) Reset() {
 	*x = StartOidcLoginResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[58]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3370,7 +3523,7 @@ func (x *StartOidcLoginResponse) String() string {
 func (*StartOidcLoginResponse) ProtoMessage() {}
 
 func (x *StartOidcLoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[58]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3383,7 +3536,7 @@ func (x *StartOidcLoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartOidcLoginResponse.ProtoReflect.Descriptor instead.
 func (*StartOidcLoginResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{58}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *StartOidcLoginResponse) GetAuthorizeUrl() string {
@@ -3414,7 +3567,7 @@ type CompleteOidcLoginRequest struct {
 
 func (x *CompleteOidcLoginRequest) Reset() {
 	*x = CompleteOidcLoginRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[59]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3426,7 +3579,7 @@ func (x *CompleteOidcLoginRequest) String() string {
 func (*CompleteOidcLoginRequest) ProtoMessage() {}
 
 func (x *CompleteOidcLoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[59]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3439,7 +3592,7 @@ func (x *CompleteOidcLoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteOidcLoginRequest.ProtoReflect.Descriptor instead.
 func (*CompleteOidcLoginRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{59}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *CompleteOidcLoginRequest) GetProviderName() string {
@@ -3485,7 +3638,7 @@ type CompleteOidcLoginResponse struct {
 
 func (x *CompleteOidcLoginResponse) Reset() {
 	*x = CompleteOidcLoginResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[60]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3497,7 +3650,7 @@ func (x *CompleteOidcLoginResponse) String() string {
 func (*CompleteOidcLoginResponse) ProtoMessage() {}
 
 func (x *CompleteOidcLoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[60]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3510,7 +3663,7 @@ func (x *CompleteOidcLoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteOidcLoginResponse.ProtoReflect.Descriptor instead.
 func (*CompleteOidcLoginResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{60}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *CompleteOidcLoginResponse) GetPrincipal() string {
@@ -3555,7 +3708,7 @@ type CreateWorkspaceRequest struct {
 
 func (x *CreateWorkspaceRequest) Reset() {
 	*x = CreateWorkspaceRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[61]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3567,7 +3720,7 @@ func (x *CreateWorkspaceRequest) String() string {
 func (*CreateWorkspaceRequest) ProtoMessage() {}
 
 func (x *CreateWorkspaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[61]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3580,7 +3733,7 @@ func (x *CreateWorkspaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWorkspaceRequest.ProtoReflect.Descriptor instead.
 func (*CreateWorkspaceRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{61}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *CreateWorkspaceRequest) GetSlug() string {
@@ -3607,7 +3760,7 @@ type CreateWorkspaceResponse struct {
 
 func (x *CreateWorkspaceResponse) Reset() {
 	*x = CreateWorkspaceResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[62]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3619,7 +3772,7 @@ func (x *CreateWorkspaceResponse) String() string {
 func (*CreateWorkspaceResponse) ProtoMessage() {}
 
 func (x *CreateWorkspaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[62]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3632,7 +3785,7 @@ func (x *CreateWorkspaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWorkspaceResponse.ProtoReflect.Descriptor instead.
 func (*CreateWorkspaceResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{62}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *CreateWorkspaceResponse) GetOrganizationName() string {
@@ -3658,7 +3811,7 @@ type MFADevice struct {
 
 func (x *MFADevice) Reset() {
 	*x = MFADevice{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[63]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3670,7 +3823,7 @@ func (x *MFADevice) String() string {
 func (*MFADevice) ProtoMessage() {}
 
 func (x *MFADevice) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[63]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3683,7 +3836,7 @@ func (x *MFADevice) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MFADevice.ProtoReflect.Descriptor instead.
 func (*MFADevice) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{63}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *MFADevice) GetName() string {
@@ -3744,7 +3897,7 @@ type EnrollMFARequest struct {
 
 func (x *EnrollMFARequest) Reset() {
 	*x = EnrollMFARequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[64]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3756,7 +3909,7 @@ func (x *EnrollMFARequest) String() string {
 func (*EnrollMFARequest) ProtoMessage() {}
 
 func (x *EnrollMFARequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[64]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3769,7 +3922,7 @@ func (x *EnrollMFARequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnrollMFARequest.ProtoReflect.Descriptor instead.
 func (*EnrollMFARequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{64}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *EnrollMFARequest) GetDisplayName() string {
@@ -3794,7 +3947,7 @@ type EnrollMFAResponse struct {
 
 func (x *EnrollMFAResponse) Reset() {
 	*x = EnrollMFAResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[65]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3806,7 +3959,7 @@ func (x *EnrollMFAResponse) String() string {
 func (*EnrollMFAResponse) ProtoMessage() {}
 
 func (x *EnrollMFAResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[65]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3819,7 +3972,7 @@ func (x *EnrollMFAResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnrollMFAResponse.ProtoReflect.Descriptor instead.
 func (*EnrollMFAResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{65}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *EnrollMFAResponse) GetDevice() *MFADevice {
@@ -3854,7 +4007,7 @@ type VerifyMFAEnrollmentRequest struct {
 
 func (x *VerifyMFAEnrollmentRequest) Reset() {
 	*x = VerifyMFAEnrollmentRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[66]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3866,7 +4019,7 @@ func (x *VerifyMFAEnrollmentRequest) String() string {
 func (*VerifyMFAEnrollmentRequest) ProtoMessage() {}
 
 func (x *VerifyMFAEnrollmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[66]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3879,7 +4032,7 @@ func (x *VerifyMFAEnrollmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyMFAEnrollmentRequest.ProtoReflect.Descriptor instead.
 func (*VerifyMFAEnrollmentRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{66}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *VerifyMFAEnrollmentRequest) GetName() string {
@@ -3908,7 +4061,7 @@ type VerifyMFAEnrollmentResponse struct {
 
 func (x *VerifyMFAEnrollmentResponse) Reset() {
 	*x = VerifyMFAEnrollmentResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[67]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3920,7 +4073,7 @@ func (x *VerifyMFAEnrollmentResponse) String() string {
 func (*VerifyMFAEnrollmentResponse) ProtoMessage() {}
 
 func (x *VerifyMFAEnrollmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[67]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3933,7 +4086,7 @@ func (x *VerifyMFAEnrollmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyMFAEnrollmentResponse.ProtoReflect.Descriptor instead.
 func (*VerifyMFAEnrollmentResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{67}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *VerifyMFAEnrollmentResponse) GetDevice() *MFADevice {
@@ -3958,7 +4111,7 @@ type ListMFADevicesRequest struct {
 
 func (x *ListMFADevicesRequest) Reset() {
 	*x = ListMFADevicesRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[68]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3970,7 +4123,7 @@ func (x *ListMFADevicesRequest) String() string {
 func (*ListMFADevicesRequest) ProtoMessage() {}
 
 func (x *ListMFADevicesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[68]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3983,7 +4136,7 @@ func (x *ListMFADevicesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMFADevicesRequest.ProtoReflect.Descriptor instead.
 func (*ListMFADevicesRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{68}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{69}
 }
 
 type ListMFADevicesResponse struct {
@@ -3995,7 +4148,7 @@ type ListMFADevicesResponse struct {
 
 func (x *ListMFADevicesResponse) Reset() {
 	*x = ListMFADevicesResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[69]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4007,7 +4160,7 @@ func (x *ListMFADevicesResponse) String() string {
 func (*ListMFADevicesResponse) ProtoMessage() {}
 
 func (x *ListMFADevicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[69]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4020,7 +4173,7 @@ func (x *ListMFADevicesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMFADevicesResponse.ProtoReflect.Descriptor instead.
 func (*ListMFADevicesResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{69}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *ListMFADevicesResponse) GetMfaDevices() []*MFADevice {
@@ -4039,7 +4192,7 @@ type RevokeMFADeviceRequest struct {
 
 func (x *RevokeMFADeviceRequest) Reset() {
 	*x = RevokeMFADeviceRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[70]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4051,7 +4204,7 @@ func (x *RevokeMFADeviceRequest) String() string {
 func (*RevokeMFADeviceRequest) ProtoMessage() {}
 
 func (x *RevokeMFADeviceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[70]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4064,7 +4217,7 @@ func (x *RevokeMFADeviceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeMFADeviceRequest.ProtoReflect.Descriptor instead.
 func (*RevokeMFADeviceRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{70}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *RevokeMFADeviceRequest) GetName() string {
@@ -4082,7 +4235,7 @@ type RevokeMFADeviceResponse struct {
 
 func (x *RevokeMFADeviceResponse) Reset() {
 	*x = RevokeMFADeviceResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[71]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4094,7 +4247,7 @@ func (x *RevokeMFADeviceResponse) String() string {
 func (*RevokeMFADeviceResponse) ProtoMessage() {}
 
 func (x *RevokeMFADeviceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[71]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4107,7 +4260,7 @@ func (x *RevokeMFADeviceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeMFADeviceResponse.ProtoReflect.Descriptor instead.
 func (*RevokeMFADeviceResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{71}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{72}
 }
 
 type Session struct {
@@ -4132,7 +4285,7 @@ type Session struct {
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[72]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4144,7 +4297,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[72]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4157,7 +4310,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{72}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *Session) GetName() string {
@@ -4238,7 +4391,7 @@ type ListSessionsRequest struct {
 
 func (x *ListSessionsRequest) Reset() {
 	*x = ListSessionsRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[73]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4250,7 +4403,7 @@ func (x *ListSessionsRequest) String() string {
 func (*ListSessionsRequest) ProtoMessage() {}
 
 func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[73]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4263,7 +4416,7 @@ func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsRequest.ProtoReflect.Descriptor instead.
 func (*ListSessionsRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{73}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{74}
 }
 
 type ListSessionsResponse struct {
@@ -4275,7 +4428,7 @@ type ListSessionsResponse struct {
 
 func (x *ListSessionsResponse) Reset() {
 	*x = ListSessionsResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[74]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4287,7 +4440,7 @@ func (x *ListSessionsResponse) String() string {
 func (*ListSessionsResponse) ProtoMessage() {}
 
 func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[74]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4300,7 +4453,7 @@ func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsResponse.ProtoReflect.Descriptor instead.
 func (*ListSessionsResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{74}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *ListSessionsResponse) GetSessions() []*Session {
@@ -4319,7 +4472,7 @@ type RevokeSessionRequest struct {
 
 func (x *RevokeSessionRequest) Reset() {
 	*x = RevokeSessionRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[75]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4331,7 +4484,7 @@ func (x *RevokeSessionRequest) String() string {
 func (*RevokeSessionRequest) ProtoMessage() {}
 
 func (x *RevokeSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[75]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4344,7 +4497,7 @@ func (x *RevokeSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeSessionRequest.ProtoReflect.Descriptor instead.
 func (*RevokeSessionRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{75}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *RevokeSessionRequest) GetName() string {
@@ -4362,7 +4515,7 @@ type RevokeSessionResponse struct {
 
 func (x *RevokeSessionResponse) Reset() {
 	*x = RevokeSessionResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[76]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4374,7 +4527,7 @@ func (x *RevokeSessionResponse) String() string {
 func (*RevokeSessionResponse) ProtoMessage() {}
 
 func (x *RevokeSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[76]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4387,7 +4540,7 @@ func (x *RevokeSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeSessionResponse.ProtoReflect.Descriptor instead.
 func (*RevokeSessionResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{76}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{77}
 }
 
 type RevokeAllOtherSessionsRequest struct {
@@ -4398,7 +4551,7 @@ type RevokeAllOtherSessionsRequest struct {
 
 func (x *RevokeAllOtherSessionsRequest) Reset() {
 	*x = RevokeAllOtherSessionsRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[77]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4410,7 +4563,7 @@ func (x *RevokeAllOtherSessionsRequest) String() string {
 func (*RevokeAllOtherSessionsRequest) ProtoMessage() {}
 
 func (x *RevokeAllOtherSessionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[77]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4423,7 +4576,7 @@ func (x *RevokeAllOtherSessionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeAllOtherSessionsRequest.ProtoReflect.Descriptor instead.
 func (*RevokeAllOtherSessionsRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{77}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{78}
 }
 
 type RevokeAllOtherSessionsResponse struct {
@@ -4436,7 +4589,7 @@ type RevokeAllOtherSessionsResponse struct {
 
 func (x *RevokeAllOtherSessionsResponse) Reset() {
 	*x = RevokeAllOtherSessionsResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[78]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4448,7 +4601,7 @@ func (x *RevokeAllOtherSessionsResponse) String() string {
 func (*RevokeAllOtherSessionsResponse) ProtoMessage() {}
 
 func (x *RevokeAllOtherSessionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[78]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4461,7 +4614,7 @@ func (x *RevokeAllOtherSessionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeAllOtherSessionsResponse.ProtoReflect.Descriptor instead.
 func (*RevokeAllOtherSessionsResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{78}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *RevokeAllOtherSessionsResponse) GetRevokedCount() int32 {
@@ -4493,7 +4646,7 @@ type User struct {
 
 func (x *User) Reset() {
 	*x = User{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[79]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4505,7 +4658,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[79]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4518,7 +4671,7 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use User.ProtoReflect.Descriptor instead.
 func (*User) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{79}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *User) GetName() string {
@@ -4579,7 +4732,7 @@ type RequestPasswordResetRequest struct {
 
 func (x *RequestPasswordResetRequest) Reset() {
 	*x = RequestPasswordResetRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[80]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4591,7 +4744,7 @@ func (x *RequestPasswordResetRequest) String() string {
 func (*RequestPasswordResetRequest) ProtoMessage() {}
 
 func (x *RequestPasswordResetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[80]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4604,7 +4757,7 @@ func (x *RequestPasswordResetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestPasswordResetRequest.ProtoReflect.Descriptor instead.
 func (*RequestPasswordResetRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{80}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *RequestPasswordResetRequest) GetEmail() string {
@@ -4626,7 +4779,7 @@ type RequestPasswordResetResponse struct {
 
 func (x *RequestPasswordResetResponse) Reset() {
 	*x = RequestPasswordResetResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[81]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4638,7 +4791,7 @@ func (x *RequestPasswordResetResponse) String() string {
 func (*RequestPasswordResetResponse) ProtoMessage() {}
 
 func (x *RequestPasswordResetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[81]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4651,7 +4804,7 @@ func (x *RequestPasswordResetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestPasswordResetResponse.ProtoReflect.Descriptor instead.
 func (*RequestPasswordResetResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{81}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *RequestPasswordResetResponse) GetOk() bool {
@@ -4672,7 +4825,7 @@ type ResetPasswordRequest struct {
 
 func (x *ResetPasswordRequest) Reset() {
 	*x = ResetPasswordRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[82]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4684,7 +4837,7 @@ func (x *ResetPasswordRequest) String() string {
 func (*ResetPasswordRequest) ProtoMessage() {}
 
 func (x *ResetPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[82]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4697,7 +4850,7 @@ func (x *ResetPasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetPasswordRequest.ProtoReflect.Descriptor instead.
 func (*ResetPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{82}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *ResetPasswordRequest) GetToken() string {
@@ -4725,7 +4878,7 @@ type ResetPasswordResponse struct {
 
 func (x *ResetPasswordResponse) Reset() {
 	*x = ResetPasswordResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[83]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4737,7 +4890,7 @@ func (x *ResetPasswordResponse) String() string {
 func (*ResetPasswordResponse) ProtoMessage() {}
 
 func (x *ResetPasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[83]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4750,7 +4903,7 @@ func (x *ResetPasswordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetPasswordResponse.ProtoReflect.Descriptor instead.
 func (*ResetPasswordResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{83}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *ResetPasswordResponse) GetPrincipal() string {
@@ -4770,7 +4923,7 @@ type GetUserRequest struct {
 
 func (x *GetUserRequest) Reset() {
 	*x = GetUserRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[84]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4782,7 +4935,7 @@ func (x *GetUserRequest) String() string {
 func (*GetUserRequest) ProtoMessage() {}
 
 func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[84]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4795,7 +4948,7 @@ func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{84}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *GetUserRequest) GetName() string {
@@ -4814,7 +4967,7 @@ type GetUserResponse struct {
 
 func (x *GetUserResponse) Reset() {
 	*x = GetUserResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[85]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4826,7 +4979,7 @@ func (x *GetUserResponse) String() string {
 func (*GetUserResponse) ProtoMessage() {}
 
 func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[85]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4839,7 +4992,7 @@ func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserResponse.ProtoReflect.Descriptor instead.
 func (*GetUserResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{85}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *GetUserResponse) GetUser() *User {
@@ -4860,7 +5013,7 @@ type UpdateUserRequest struct {
 
 func (x *UpdateUserRequest) Reset() {
 	*x = UpdateUserRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[86]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4872,7 +5025,7 @@ func (x *UpdateUserRequest) String() string {
 func (*UpdateUserRequest) ProtoMessage() {}
 
 func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[86]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4885,7 +5038,7 @@ func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{86}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *UpdateUserRequest) GetName() string {
@@ -4911,7 +5064,7 @@ type UpdateUserResponse struct {
 
 func (x *UpdateUserResponse) Reset() {
 	*x = UpdateUserResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[87]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4923,7 +5076,7 @@ func (x *UpdateUserResponse) String() string {
 func (*UpdateUserResponse) ProtoMessage() {}
 
 func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[87]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4936,7 +5089,7 @@ func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{87}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *UpdateUserResponse) GetUser() *User {
@@ -4956,7 +5109,7 @@ type ChangePasswordRequest struct {
 
 func (x *ChangePasswordRequest) Reset() {
 	*x = ChangePasswordRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[88]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4968,7 +5121,7 @@ func (x *ChangePasswordRequest) String() string {
 func (*ChangePasswordRequest) ProtoMessage() {}
 
 func (x *ChangePasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[88]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4981,7 +5134,7 @@ func (x *ChangePasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChangePasswordRequest.ProtoReflect.Descriptor instead.
 func (*ChangePasswordRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{88}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *ChangePasswordRequest) GetCurrentPassword() string {
@@ -5006,7 +5159,7 @@ type ChangePasswordResponse struct {
 
 func (x *ChangePasswordResponse) Reset() {
 	*x = ChangePasswordResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[89]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5018,7 +5171,7 @@ func (x *ChangePasswordResponse) String() string {
 func (*ChangePasswordResponse) ProtoMessage() {}
 
 func (x *ChangePasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[89]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5031,7 +5184,7 @@ func (x *ChangePasswordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChangePasswordResponse.ProtoReflect.Descriptor instead.
 func (*ChangePasswordResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{89}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{90}
 }
 
 type RequestEmailChangeRequest struct {
@@ -5044,7 +5197,7 @@ type RequestEmailChangeRequest struct {
 
 func (x *RequestEmailChangeRequest) Reset() {
 	*x = RequestEmailChangeRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[90]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5056,7 +5209,7 @@ func (x *RequestEmailChangeRequest) String() string {
 func (*RequestEmailChangeRequest) ProtoMessage() {}
 
 func (x *RequestEmailChangeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[90]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5069,7 +5222,7 @@ func (x *RequestEmailChangeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestEmailChangeRequest.ProtoReflect.Descriptor instead.
 func (*RequestEmailChangeRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{90}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *RequestEmailChangeRequest) GetNewEmail() string {
@@ -5087,7 +5240,7 @@ type RequestEmailChangeResponse struct {
 
 func (x *RequestEmailChangeResponse) Reset() {
 	*x = RequestEmailChangeResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[91]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5099,7 +5252,7 @@ func (x *RequestEmailChangeResponse) String() string {
 func (*RequestEmailChangeResponse) ProtoMessage() {}
 
 func (x *RequestEmailChangeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[91]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5112,7 +5265,7 @@ func (x *RequestEmailChangeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestEmailChangeResponse.ProtoReflect.Descriptor instead.
 func (*RequestEmailChangeResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{91}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{92}
 }
 
 type LogoutRequest struct {
@@ -5123,7 +5276,7 @@ type LogoutRequest struct {
 
 func (x *LogoutRequest) Reset() {
 	*x = LogoutRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[92]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5135,7 +5288,7 @@ func (x *LogoutRequest) String() string {
 func (*LogoutRequest) ProtoMessage() {}
 
 func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[92]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5148,7 +5301,7 @@ func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
 func (*LogoutRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{92}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{93}
 }
 
 type LogoutResponse struct {
@@ -5159,7 +5312,7 @@ type LogoutResponse struct {
 
 func (x *LogoutResponse) Reset() {
 	*x = LogoutResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[93]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5171,7 +5324,7 @@ func (x *LogoutResponse) String() string {
 func (*LogoutResponse) ProtoMessage() {}
 
 func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[93]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5184,7 +5337,7 @@ func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
 func (*LogoutResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{93}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{94}
 }
 
 type GetOrgMemberRequest struct {
@@ -5199,7 +5352,7 @@ type GetOrgMemberRequest struct {
 
 func (x *GetOrgMemberRequest) Reset() {
 	*x = GetOrgMemberRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[94]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5211,7 +5364,7 @@ func (x *GetOrgMemberRequest) String() string {
 func (*GetOrgMemberRequest) ProtoMessage() {}
 
 func (x *GetOrgMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[94]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5224,7 +5377,7 @@ func (x *GetOrgMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrgMemberRequest.ProtoReflect.Descriptor instead.
 func (*GetOrgMemberRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{94}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *GetOrgMemberRequest) GetOrganizationName() string {
@@ -5250,7 +5403,7 @@ type GetOrgMemberResponse struct {
 
 func (x *GetOrgMemberResponse) Reset() {
 	*x = GetOrgMemberResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[95]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5262,7 +5415,7 @@ func (x *GetOrgMemberResponse) String() string {
 func (*GetOrgMemberResponse) ProtoMessage() {}
 
 func (x *GetOrgMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[95]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5275,7 +5428,7 @@ func (x *GetOrgMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrgMemberResponse.ProtoReflect.Descriptor instead.
 func (*GetOrgMemberResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{95}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *GetOrgMemberResponse) GetMember() *OrgMember {
@@ -5309,7 +5462,7 @@ type ImportGitHubSshKeysRequest struct {
 
 func (x *ImportGitHubSshKeysRequest) Reset() {
 	*x = ImportGitHubSshKeysRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[96]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5321,7 +5474,7 @@ func (x *ImportGitHubSshKeysRequest) String() string {
 func (*ImportGitHubSshKeysRequest) ProtoMessage() {}
 
 func (x *ImportGitHubSshKeysRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[96]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5334,7 +5487,7 @@ func (x *ImportGitHubSshKeysRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportGitHubSshKeysRequest.ProtoReflect.Descriptor instead.
 func (*ImportGitHubSshKeysRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{96}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *ImportGitHubSshKeysRequest) GetProjectName() string {
@@ -5378,7 +5531,7 @@ type ImportGitHubSshKeysResponse struct {
 
 func (x *ImportGitHubSshKeysResponse) Reset() {
 	*x = ImportGitHubSshKeysResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[97]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5390,7 +5543,7 @@ func (x *ImportGitHubSshKeysResponse) String() string {
 func (*ImportGitHubSshKeysResponse) ProtoMessage() {}
 
 func (x *ImportGitHubSshKeysResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[97]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5403,7 +5556,7 @@ func (x *ImportGitHubSshKeysResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportGitHubSshKeysResponse.ProtoReflect.Descriptor instead.
 func (*ImportGitHubSshKeysResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{97}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *ImportGitHubSshKeysResponse) GetCreatedSshKeyNames() []string {
@@ -5432,7 +5585,7 @@ type SetSessionDefaultProjectRequest struct {
 
 func (x *SetSessionDefaultProjectRequest) Reset() {
 	*x = SetSessionDefaultProjectRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[98]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5444,7 +5597,7 @@ func (x *SetSessionDefaultProjectRequest) String() string {
 func (*SetSessionDefaultProjectRequest) ProtoMessage() {}
 
 func (x *SetSessionDefaultProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[98]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5457,7 +5610,7 @@ func (x *SetSessionDefaultProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetSessionDefaultProjectRequest.ProtoReflect.Descriptor instead.
 func (*SetSessionDefaultProjectRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{98}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *SetSessionDefaultProjectRequest) GetProjectName() string {
@@ -5478,7 +5631,7 @@ type SetSessionDefaultProjectResponse struct {
 
 func (x *SetSessionDefaultProjectResponse) Reset() {
 	*x = SetSessionDefaultProjectResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[99]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5490,7 +5643,7 @@ func (x *SetSessionDefaultProjectResponse) String() string {
 func (*SetSessionDefaultProjectResponse) ProtoMessage() {}
 
 func (x *SetSessionDefaultProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[99]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5503,7 +5656,7 @@ func (x *SetSessionDefaultProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetSessionDefaultProjectResponse.ProtoReflect.Descriptor instead.
 func (*SetSessionDefaultProjectResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{99}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *SetSessionDefaultProjectResponse) GetProjectName() string {
@@ -5531,7 +5684,7 @@ type ListNotificationsRequest struct {
 
 func (x *ListNotificationsRequest) Reset() {
 	*x = ListNotificationsRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[100]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5543,7 +5696,7 @@ func (x *ListNotificationsRequest) String() string {
 func (*ListNotificationsRequest) ProtoMessage() {}
 
 func (x *ListNotificationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[100]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5556,7 +5709,7 @@ func (x *ListNotificationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNotificationsRequest.ProtoReflect.Descriptor instead.
 func (*ListNotificationsRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{100}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *ListNotificationsRequest) GetOrganizationName() string {
@@ -5608,7 +5761,7 @@ type Notification struct {
 
 func (x *Notification) Reset() {
 	*x = Notification{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[101]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5620,7 +5773,7 @@ func (x *Notification) String() string {
 func (*Notification) ProtoMessage() {}
 
 func (x *Notification) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[101]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5633,7 +5786,7 @@ func (x *Notification) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Notification.ProtoReflect.Descriptor instead.
 func (*Notification) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{101}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *Notification) GetId() string {
@@ -5704,7 +5857,7 @@ type ListNotificationsResponse struct {
 
 func (x *ListNotificationsResponse) Reset() {
 	*x = ListNotificationsResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[102]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5716,7 +5869,7 @@ func (x *ListNotificationsResponse) String() string {
 func (*ListNotificationsResponse) ProtoMessage() {}
 
 func (x *ListNotificationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[102]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5729,7 +5882,7 @@ func (x *ListNotificationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNotificationsResponse.ProtoReflect.Descriptor instead.
 func (*ListNotificationsResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{102}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *ListNotificationsResponse) GetNotifications() []*Notification {
@@ -5769,7 +5922,7 @@ type MarkNotificationsReadRequest struct {
 
 func (x *MarkNotificationsReadRequest) Reset() {
 	*x = MarkNotificationsReadRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[103]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5781,7 +5934,7 @@ func (x *MarkNotificationsReadRequest) String() string {
 func (*MarkNotificationsReadRequest) ProtoMessage() {}
 
 func (x *MarkNotificationsReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[103]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5794,7 +5947,7 @@ func (x *MarkNotificationsReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkNotificationsReadRequest.ProtoReflect.Descriptor instead.
 func (*MarkNotificationsReadRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{103}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *MarkNotificationsReadRequest) GetOrganizationName() string {
@@ -5827,7 +5980,7 @@ type MarkNotificationsReadResponse struct {
 
 func (x *MarkNotificationsReadResponse) Reset() {
 	*x = MarkNotificationsReadResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[104]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5839,7 +5992,7 @@ func (x *MarkNotificationsReadResponse) String() string {
 func (*MarkNotificationsReadResponse) ProtoMessage() {}
 
 func (x *MarkNotificationsReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[104]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5852,7 +6005,7 @@ func (x *MarkNotificationsReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkNotificationsReadResponse.ProtoReflect.Descriptor instead.
 func (*MarkNotificationsReadResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{104}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *MarkNotificationsReadResponse) GetMarkedCount() int32 {
@@ -5872,7 +6025,7 @@ type RegenerateRecoveryCodesRequest struct {
 
 func (x *RegenerateRecoveryCodesRequest) Reset() {
 	*x = RegenerateRecoveryCodesRequest{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[105]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5884,7 +6037,7 @@ func (x *RegenerateRecoveryCodesRequest) String() string {
 func (*RegenerateRecoveryCodesRequest) ProtoMessage() {}
 
 func (x *RegenerateRecoveryCodesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[105]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5897,7 +6050,7 @@ func (x *RegenerateRecoveryCodesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegenerateRecoveryCodesRequest.ProtoReflect.Descriptor instead.
 func (*RegenerateRecoveryCodesRequest) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{105}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *RegenerateRecoveryCodesRequest) GetTotpCode() string {
@@ -5917,7 +6070,7 @@ type RegenerateRecoveryCodesResponse struct {
 
 func (x *RegenerateRecoveryCodesResponse) Reset() {
 	*x = RegenerateRecoveryCodesResponse{}
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[106]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5929,7 +6082,7 @@ func (x *RegenerateRecoveryCodesResponse) String() string {
 func (*RegenerateRecoveryCodesResponse) ProtoMessage() {}
 
 func (x *RegenerateRecoveryCodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_iam_v1_iam_proto_msgTypes[106]
+	mi := &file_aes_iam_v1_iam_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5942,7 +6095,7 @@ func (x *RegenerateRecoveryCodesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegenerateRecoveryCodesResponse.ProtoReflect.Descriptor instead.
 func (*RegenerateRecoveryCodesResponse) Descriptor() ([]byte, []int) {
-	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{106}
+	return file_aes_iam_v1_iam_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *RegenerateRecoveryCodesResponse) GetRecoveryCodes() []string {
@@ -6021,12 +6174,29 @@ const file_aes_iam_v1_iam_proto_rawDesc = "" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\")\n" +
 	"\x13RevokeApiKeyRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"\x16\n" +
-	"\x14RevokeApiKeyResponse\"\x81\x01\n" +
+	"\x14RevokeApiKeyResponse\"\xeb\x01\n" +
 	"\rSignUpRequest\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
 	"\bpassword\x18\x03 \x01(\tR\bpassword\x12\x1b\n" +
-	"\tfull_name\x18\x04 \x01(\tR\bfullName\"\xf6\x01\n" +
+	"\tfull_name\x18\x04 \x01(\tR\bfullName\x12?\n" +
+	"\vattribution\x18\x05 \x01(\v2\x1d.aes.iam.v1.SignupAttributionR\vattribution\x12'\n" +
+	"\x0fturnstile_token\x18\x06 \x01(\tR\x0eturnstileToken\"\xcd\x02\n" +
+	"\x11SignupAttribution\x12\x1d\n" +
+	"\n" +
+	"utm_source\x18\x01 \x01(\tR\tutmSource\x12\x1d\n" +
+	"\n" +
+	"utm_medium\x18\x02 \x01(\tR\tutmMedium\x12!\n" +
+	"\futm_campaign\x18\x03 \x01(\tR\vutmCampaign\x12\x19\n" +
+	"\butm_term\x18\x04 \x01(\tR\autmTerm\x12\x1f\n" +
+	"\vutm_content\x18\x05 \x01(\tR\n" +
+	"utmContent\x12\x14\n" +
+	"\x05gclid\x18\x06 \x01(\tR\x05gclid\x12\x17\n" +
+	"\ardt_cid\x18\a \x01(\tR\x06rdtCid\x12!\n" +
+	"\flanding_page\x18\b \x01(\tR\vlandingPage\x12\x1a\n" +
+	"\breferrer\x18\t \x01(\tR\breferrer\x12-\n" +
+	"\x13first_touch_at_unix\x18\n" +
+	" \x01(\x03R\x10firstTouchAtUnix\"\xf6\x01\n" +
 	"\x0eSignUpResponse\x12+\n" +
 	"\x11organization_name\x18\x01 \x01(\tR\x10organizationName\x12!\n" +
 	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12\x1c\n" +
@@ -6165,10 +6335,11 @@ const file_aes_iam_v1_iam_proto_rawDesc = "" +
 	"\vnew_api_key\x18\x01 \x01(\v2\x12.aes.iam.v1.ApiKeyR\tnewApiKey\x12\x1d\n" +
 	"\n" +
 	"new_secret\x18\x02 \x01(\tR\tnewSecret\x12,\n" +
-	"\x12revoked_key_prefix\x18\x03 \x01(\tR\x10revokedKeyPrefix\"_\n" +
+	"\x12revoked_key_prefix\x18\x03 \x01(\tR\x10revokedKeyPrefix\"\xa0\x01\n" +
 	"\x15StartOidcLoginRequest\x12#\n" +
 	"\rprovider_name\x18\x01 \x01(\tR\fproviderName\x12!\n" +
-	"\fredirect_uri\x18\x02 \x01(\tR\vredirectUri\"S\n" +
+	"\fredirect_uri\x18\x02 \x01(\tR\vredirectUri\x12?\n" +
+	"\vattribution\x18\x03 \x01(\v2\x1d.aes.iam.v1.SignupAttributionR\vattribution\"S\n" +
 	"\x16StartOidcLoginResponse\x12#\n" +
 	"\rauthorize_url\x18\x01 \x01(\tR\fauthorizeUrl\x12\x14\n" +
 	"\x05state\x18\x02 \x01(\tR\x05state\"\x8c\x01\n" +
@@ -6384,7 +6555,7 @@ func file_aes_iam_v1_iam_proto_rawDescGZIP() []byte {
 	return file_aes_iam_v1_iam_proto_rawDescData
 }
 
-var file_aes_iam_v1_iam_proto_msgTypes = make([]protoimpl.MessageInfo, 108)
+var file_aes_iam_v1_iam_proto_msgTypes = make([]protoimpl.MessageInfo, 109)
 var file_aes_iam_v1_iam_proto_goTypes = []any{
 	(*ValidateApiKeyRequest)(nil),            // 0: aes.iam.v1.ValidateApiKeyRequest
 	(*ValidateApiKeyResponse)(nil),           // 1: aes.iam.v1.ValidateApiKeyResponse
@@ -6404,212 +6575,215 @@ var file_aes_iam_v1_iam_proto_goTypes = []any{
 	(*RevokeApiKeyRequest)(nil),              // 15: aes.iam.v1.RevokeApiKeyRequest
 	(*RevokeApiKeyResponse)(nil),             // 16: aes.iam.v1.RevokeApiKeyResponse
 	(*SignUpRequest)(nil),                    // 17: aes.iam.v1.SignUpRequest
-	(*SignUpResponse)(nil),                   // 18: aes.iam.v1.SignUpResponse
-	(*VerifyEmailRequest)(nil),               // 19: aes.iam.v1.VerifyEmailRequest
-	(*VerifyEmailResponse)(nil),              // 20: aes.iam.v1.VerifyEmailResponse
-	(*LoginRequest)(nil),                     // 21: aes.iam.v1.LoginRequest
-	(*LoginResponse)(nil),                    // 22: aes.iam.v1.LoginResponse
-	(*SubmitMFAChallengeRequest)(nil),        // 23: aes.iam.v1.SubmitMFAChallengeRequest
-	(*SubmitMFAChallengeResponse)(nil),       // 24: aes.iam.v1.SubmitMFAChallengeResponse
-	(*LinkOidcProviderRequest)(nil),          // 25: aes.iam.v1.LinkOidcProviderRequest
-	(*LinkOidcProviderResponse)(nil),         // 26: aes.iam.v1.LinkOidcProviderResponse
-	(*InviteOrgMemberRequest)(nil),           // 27: aes.iam.v1.InviteOrgMemberRequest
-	(*InviteOrgMemberResponse)(nil),          // 28: aes.iam.v1.InviteOrgMemberResponse
-	(*AcceptInviteRequest)(nil),              // 29: aes.iam.v1.AcceptInviteRequest
-	(*SetInitialPasswordRequest)(nil),        // 30: aes.iam.v1.SetInitialPasswordRequest
-	(*SetInitialPasswordResponse)(nil),       // 31: aes.iam.v1.SetInitialPasswordResponse
-	(*AcceptInviteResponse)(nil),             // 32: aes.iam.v1.AcceptInviteResponse
-	(*ListOrgMembersRequest)(nil),            // 33: aes.iam.v1.ListOrgMembersRequest
-	(*OrgMember)(nil),                        // 34: aes.iam.v1.OrgMember
-	(*ListOrgMembersResponse)(nil),           // 35: aes.iam.v1.ListOrgMembersResponse
-	(*RemoveOrgMemberRequest)(nil),           // 36: aes.iam.v1.RemoveOrgMemberRequest
-	(*RemoveOrgMemberResponse)(nil),          // 37: aes.iam.v1.RemoveOrgMemberResponse
-	(*UpdateOrgMemberRoleRequest)(nil),       // 38: aes.iam.v1.UpdateOrgMemberRoleRequest
-	(*UpdateOrgMemberRoleResponse)(nil),      // 39: aes.iam.v1.UpdateOrgMemberRoleResponse
-	(*PendingInvite)(nil),                    // 40: aes.iam.v1.PendingInvite
-	(*ListPendingInvitesRequest)(nil),        // 41: aes.iam.v1.ListPendingInvitesRequest
-	(*ListPendingInvitesResponse)(nil),       // 42: aes.iam.v1.ListPendingInvitesResponse
-	(*ListMyOrganizationsRequest)(nil),       // 43: aes.iam.v1.ListMyOrganizationsRequest
-	(*OrgMembership)(nil),                    // 44: aes.iam.v1.OrgMembership
-	(*ListMyOrganizationsResponse)(nil),      // 45: aes.iam.v1.ListMyOrganizationsResponse
-	(*ListMyInvitesRequest)(nil),             // 46: aes.iam.v1.ListMyInvitesRequest
-	(*MyInvite)(nil),                         // 47: aes.iam.v1.MyInvite
-	(*ListMyInvitesResponse)(nil),            // 48: aes.iam.v1.ListMyInvitesResponse
-	(*AcceptMyInviteRequest)(nil),            // 49: aes.iam.v1.AcceptMyInviteRequest
-	(*AcceptMyInviteResponse)(nil),           // 50: aes.iam.v1.AcceptMyInviteResponse
-	(*DeclineMyInviteRequest)(nil),           // 51: aes.iam.v1.DeclineMyInviteRequest
-	(*DeclineMyInviteResponse)(nil),          // 52: aes.iam.v1.DeclineMyInviteResponse
-	(*RevokeInviteRequest)(nil),              // 53: aes.iam.v1.RevokeInviteRequest
-	(*RevokeInviteResponse)(nil),             // 54: aes.iam.v1.RevokeInviteResponse
-	(*RotateApiKeyRequest)(nil),              // 55: aes.iam.v1.RotateApiKeyRequest
-	(*RotateApiKeyResponse)(nil),             // 56: aes.iam.v1.RotateApiKeyResponse
-	(*StartOidcLoginRequest)(nil),            // 57: aes.iam.v1.StartOidcLoginRequest
-	(*StartOidcLoginResponse)(nil),           // 58: aes.iam.v1.StartOidcLoginResponse
-	(*CompleteOidcLoginRequest)(nil),         // 59: aes.iam.v1.CompleteOidcLoginRequest
-	(*CompleteOidcLoginResponse)(nil),        // 60: aes.iam.v1.CompleteOidcLoginResponse
-	(*CreateWorkspaceRequest)(nil),           // 61: aes.iam.v1.CreateWorkspaceRequest
-	(*CreateWorkspaceResponse)(nil),          // 62: aes.iam.v1.CreateWorkspaceResponse
-	(*MFADevice)(nil),                        // 63: aes.iam.v1.MFADevice
-	(*EnrollMFARequest)(nil),                 // 64: aes.iam.v1.EnrollMFARequest
-	(*EnrollMFAResponse)(nil),                // 65: aes.iam.v1.EnrollMFAResponse
-	(*VerifyMFAEnrollmentRequest)(nil),       // 66: aes.iam.v1.VerifyMFAEnrollmentRequest
-	(*VerifyMFAEnrollmentResponse)(nil),      // 67: aes.iam.v1.VerifyMFAEnrollmentResponse
-	(*ListMFADevicesRequest)(nil),            // 68: aes.iam.v1.ListMFADevicesRequest
-	(*ListMFADevicesResponse)(nil),           // 69: aes.iam.v1.ListMFADevicesResponse
-	(*RevokeMFADeviceRequest)(nil),           // 70: aes.iam.v1.RevokeMFADeviceRequest
-	(*RevokeMFADeviceResponse)(nil),          // 71: aes.iam.v1.RevokeMFADeviceResponse
-	(*Session)(nil),                          // 72: aes.iam.v1.Session
-	(*ListSessionsRequest)(nil),              // 73: aes.iam.v1.ListSessionsRequest
-	(*ListSessionsResponse)(nil),             // 74: aes.iam.v1.ListSessionsResponse
-	(*RevokeSessionRequest)(nil),             // 75: aes.iam.v1.RevokeSessionRequest
-	(*RevokeSessionResponse)(nil),            // 76: aes.iam.v1.RevokeSessionResponse
-	(*RevokeAllOtherSessionsRequest)(nil),    // 77: aes.iam.v1.RevokeAllOtherSessionsRequest
-	(*RevokeAllOtherSessionsResponse)(nil),   // 78: aes.iam.v1.RevokeAllOtherSessionsResponse
-	(*User)(nil),                             // 79: aes.iam.v1.User
-	(*RequestPasswordResetRequest)(nil),      // 80: aes.iam.v1.RequestPasswordResetRequest
-	(*RequestPasswordResetResponse)(nil),     // 81: aes.iam.v1.RequestPasswordResetResponse
-	(*ResetPasswordRequest)(nil),             // 82: aes.iam.v1.ResetPasswordRequest
-	(*ResetPasswordResponse)(nil),            // 83: aes.iam.v1.ResetPasswordResponse
-	(*GetUserRequest)(nil),                   // 84: aes.iam.v1.GetUserRequest
-	(*GetUserResponse)(nil),                  // 85: aes.iam.v1.GetUserResponse
-	(*UpdateUserRequest)(nil),                // 86: aes.iam.v1.UpdateUserRequest
-	(*UpdateUserResponse)(nil),               // 87: aes.iam.v1.UpdateUserResponse
-	(*ChangePasswordRequest)(nil),            // 88: aes.iam.v1.ChangePasswordRequest
-	(*ChangePasswordResponse)(nil),           // 89: aes.iam.v1.ChangePasswordResponse
-	(*RequestEmailChangeRequest)(nil),        // 90: aes.iam.v1.RequestEmailChangeRequest
-	(*RequestEmailChangeResponse)(nil),       // 91: aes.iam.v1.RequestEmailChangeResponse
-	(*LogoutRequest)(nil),                    // 92: aes.iam.v1.LogoutRequest
-	(*LogoutResponse)(nil),                   // 93: aes.iam.v1.LogoutResponse
-	(*GetOrgMemberRequest)(nil),              // 94: aes.iam.v1.GetOrgMemberRequest
-	(*GetOrgMemberResponse)(nil),             // 95: aes.iam.v1.GetOrgMemberResponse
-	(*ImportGitHubSshKeysRequest)(nil),       // 96: aes.iam.v1.ImportGitHubSshKeysRequest
-	(*ImportGitHubSshKeysResponse)(nil),      // 97: aes.iam.v1.ImportGitHubSshKeysResponse
-	(*SetSessionDefaultProjectRequest)(nil),  // 98: aes.iam.v1.SetSessionDefaultProjectRequest
-	(*SetSessionDefaultProjectResponse)(nil), // 99: aes.iam.v1.SetSessionDefaultProjectResponse
-	(*ListNotificationsRequest)(nil),         // 100: aes.iam.v1.ListNotificationsRequest
-	(*Notification)(nil),                     // 101: aes.iam.v1.Notification
-	(*ListNotificationsResponse)(nil),        // 102: aes.iam.v1.ListNotificationsResponse
-	(*MarkNotificationsReadRequest)(nil),     // 103: aes.iam.v1.MarkNotificationsReadRequest
-	(*MarkNotificationsReadResponse)(nil),    // 104: aes.iam.v1.MarkNotificationsReadResponse
-	(*RegenerateRecoveryCodesRequest)(nil),   // 105: aes.iam.v1.RegenerateRecoveryCodesRequest
-	(*RegenerateRecoveryCodesResponse)(nil),  // 106: aes.iam.v1.RegenerateRecoveryCodesResponse
-	nil,                                      // 107: aes.iam.v1.ValidateOidcTokenResponse.ClaimsEntry
+	(*SignupAttribution)(nil),                // 18: aes.iam.v1.SignupAttribution
+	(*SignUpResponse)(nil),                   // 19: aes.iam.v1.SignUpResponse
+	(*VerifyEmailRequest)(nil),               // 20: aes.iam.v1.VerifyEmailRequest
+	(*VerifyEmailResponse)(nil),              // 21: aes.iam.v1.VerifyEmailResponse
+	(*LoginRequest)(nil),                     // 22: aes.iam.v1.LoginRequest
+	(*LoginResponse)(nil),                    // 23: aes.iam.v1.LoginResponse
+	(*SubmitMFAChallengeRequest)(nil),        // 24: aes.iam.v1.SubmitMFAChallengeRequest
+	(*SubmitMFAChallengeResponse)(nil),       // 25: aes.iam.v1.SubmitMFAChallengeResponse
+	(*LinkOidcProviderRequest)(nil),          // 26: aes.iam.v1.LinkOidcProviderRequest
+	(*LinkOidcProviderResponse)(nil),         // 27: aes.iam.v1.LinkOidcProviderResponse
+	(*InviteOrgMemberRequest)(nil),           // 28: aes.iam.v1.InviteOrgMemberRequest
+	(*InviteOrgMemberResponse)(nil),          // 29: aes.iam.v1.InviteOrgMemberResponse
+	(*AcceptInviteRequest)(nil),              // 30: aes.iam.v1.AcceptInviteRequest
+	(*SetInitialPasswordRequest)(nil),        // 31: aes.iam.v1.SetInitialPasswordRequest
+	(*SetInitialPasswordResponse)(nil),       // 32: aes.iam.v1.SetInitialPasswordResponse
+	(*AcceptInviteResponse)(nil),             // 33: aes.iam.v1.AcceptInviteResponse
+	(*ListOrgMembersRequest)(nil),            // 34: aes.iam.v1.ListOrgMembersRequest
+	(*OrgMember)(nil),                        // 35: aes.iam.v1.OrgMember
+	(*ListOrgMembersResponse)(nil),           // 36: aes.iam.v1.ListOrgMembersResponse
+	(*RemoveOrgMemberRequest)(nil),           // 37: aes.iam.v1.RemoveOrgMemberRequest
+	(*RemoveOrgMemberResponse)(nil),          // 38: aes.iam.v1.RemoveOrgMemberResponse
+	(*UpdateOrgMemberRoleRequest)(nil),       // 39: aes.iam.v1.UpdateOrgMemberRoleRequest
+	(*UpdateOrgMemberRoleResponse)(nil),      // 40: aes.iam.v1.UpdateOrgMemberRoleResponse
+	(*PendingInvite)(nil),                    // 41: aes.iam.v1.PendingInvite
+	(*ListPendingInvitesRequest)(nil),        // 42: aes.iam.v1.ListPendingInvitesRequest
+	(*ListPendingInvitesResponse)(nil),       // 43: aes.iam.v1.ListPendingInvitesResponse
+	(*ListMyOrganizationsRequest)(nil),       // 44: aes.iam.v1.ListMyOrganizationsRequest
+	(*OrgMembership)(nil),                    // 45: aes.iam.v1.OrgMembership
+	(*ListMyOrganizationsResponse)(nil),      // 46: aes.iam.v1.ListMyOrganizationsResponse
+	(*ListMyInvitesRequest)(nil),             // 47: aes.iam.v1.ListMyInvitesRequest
+	(*MyInvite)(nil),                         // 48: aes.iam.v1.MyInvite
+	(*ListMyInvitesResponse)(nil),            // 49: aes.iam.v1.ListMyInvitesResponse
+	(*AcceptMyInviteRequest)(nil),            // 50: aes.iam.v1.AcceptMyInviteRequest
+	(*AcceptMyInviteResponse)(nil),           // 51: aes.iam.v1.AcceptMyInviteResponse
+	(*DeclineMyInviteRequest)(nil),           // 52: aes.iam.v1.DeclineMyInviteRequest
+	(*DeclineMyInviteResponse)(nil),          // 53: aes.iam.v1.DeclineMyInviteResponse
+	(*RevokeInviteRequest)(nil),              // 54: aes.iam.v1.RevokeInviteRequest
+	(*RevokeInviteResponse)(nil),             // 55: aes.iam.v1.RevokeInviteResponse
+	(*RotateApiKeyRequest)(nil),              // 56: aes.iam.v1.RotateApiKeyRequest
+	(*RotateApiKeyResponse)(nil),             // 57: aes.iam.v1.RotateApiKeyResponse
+	(*StartOidcLoginRequest)(nil),            // 58: aes.iam.v1.StartOidcLoginRequest
+	(*StartOidcLoginResponse)(nil),           // 59: aes.iam.v1.StartOidcLoginResponse
+	(*CompleteOidcLoginRequest)(nil),         // 60: aes.iam.v1.CompleteOidcLoginRequest
+	(*CompleteOidcLoginResponse)(nil),        // 61: aes.iam.v1.CompleteOidcLoginResponse
+	(*CreateWorkspaceRequest)(nil),           // 62: aes.iam.v1.CreateWorkspaceRequest
+	(*CreateWorkspaceResponse)(nil),          // 63: aes.iam.v1.CreateWorkspaceResponse
+	(*MFADevice)(nil),                        // 64: aes.iam.v1.MFADevice
+	(*EnrollMFARequest)(nil),                 // 65: aes.iam.v1.EnrollMFARequest
+	(*EnrollMFAResponse)(nil),                // 66: aes.iam.v1.EnrollMFAResponse
+	(*VerifyMFAEnrollmentRequest)(nil),       // 67: aes.iam.v1.VerifyMFAEnrollmentRequest
+	(*VerifyMFAEnrollmentResponse)(nil),      // 68: aes.iam.v1.VerifyMFAEnrollmentResponse
+	(*ListMFADevicesRequest)(nil),            // 69: aes.iam.v1.ListMFADevicesRequest
+	(*ListMFADevicesResponse)(nil),           // 70: aes.iam.v1.ListMFADevicesResponse
+	(*RevokeMFADeviceRequest)(nil),           // 71: aes.iam.v1.RevokeMFADeviceRequest
+	(*RevokeMFADeviceResponse)(nil),          // 72: aes.iam.v1.RevokeMFADeviceResponse
+	(*Session)(nil),                          // 73: aes.iam.v1.Session
+	(*ListSessionsRequest)(nil),              // 74: aes.iam.v1.ListSessionsRequest
+	(*ListSessionsResponse)(nil),             // 75: aes.iam.v1.ListSessionsResponse
+	(*RevokeSessionRequest)(nil),             // 76: aes.iam.v1.RevokeSessionRequest
+	(*RevokeSessionResponse)(nil),            // 77: aes.iam.v1.RevokeSessionResponse
+	(*RevokeAllOtherSessionsRequest)(nil),    // 78: aes.iam.v1.RevokeAllOtherSessionsRequest
+	(*RevokeAllOtherSessionsResponse)(nil),   // 79: aes.iam.v1.RevokeAllOtherSessionsResponse
+	(*User)(nil),                             // 80: aes.iam.v1.User
+	(*RequestPasswordResetRequest)(nil),      // 81: aes.iam.v1.RequestPasswordResetRequest
+	(*RequestPasswordResetResponse)(nil),     // 82: aes.iam.v1.RequestPasswordResetResponse
+	(*ResetPasswordRequest)(nil),             // 83: aes.iam.v1.ResetPasswordRequest
+	(*ResetPasswordResponse)(nil),            // 84: aes.iam.v1.ResetPasswordResponse
+	(*GetUserRequest)(nil),                   // 85: aes.iam.v1.GetUserRequest
+	(*GetUserResponse)(nil),                  // 86: aes.iam.v1.GetUserResponse
+	(*UpdateUserRequest)(nil),                // 87: aes.iam.v1.UpdateUserRequest
+	(*UpdateUserResponse)(nil),               // 88: aes.iam.v1.UpdateUserResponse
+	(*ChangePasswordRequest)(nil),            // 89: aes.iam.v1.ChangePasswordRequest
+	(*ChangePasswordResponse)(nil),           // 90: aes.iam.v1.ChangePasswordResponse
+	(*RequestEmailChangeRequest)(nil),        // 91: aes.iam.v1.RequestEmailChangeRequest
+	(*RequestEmailChangeResponse)(nil),       // 92: aes.iam.v1.RequestEmailChangeResponse
+	(*LogoutRequest)(nil),                    // 93: aes.iam.v1.LogoutRequest
+	(*LogoutResponse)(nil),                   // 94: aes.iam.v1.LogoutResponse
+	(*GetOrgMemberRequest)(nil),              // 95: aes.iam.v1.GetOrgMemberRequest
+	(*GetOrgMemberResponse)(nil),             // 96: aes.iam.v1.GetOrgMemberResponse
+	(*ImportGitHubSshKeysRequest)(nil),       // 97: aes.iam.v1.ImportGitHubSshKeysRequest
+	(*ImportGitHubSshKeysResponse)(nil),      // 98: aes.iam.v1.ImportGitHubSshKeysResponse
+	(*SetSessionDefaultProjectRequest)(nil),  // 99: aes.iam.v1.SetSessionDefaultProjectRequest
+	(*SetSessionDefaultProjectResponse)(nil), // 100: aes.iam.v1.SetSessionDefaultProjectResponse
+	(*ListNotificationsRequest)(nil),         // 101: aes.iam.v1.ListNotificationsRequest
+	(*Notification)(nil),                     // 102: aes.iam.v1.Notification
+	(*ListNotificationsResponse)(nil),        // 103: aes.iam.v1.ListNotificationsResponse
+	(*MarkNotificationsReadRequest)(nil),     // 104: aes.iam.v1.MarkNotificationsReadRequest
+	(*MarkNotificationsReadResponse)(nil),    // 105: aes.iam.v1.MarkNotificationsReadResponse
+	(*RegenerateRecoveryCodesRequest)(nil),   // 106: aes.iam.v1.RegenerateRecoveryCodesRequest
+	(*RegenerateRecoveryCodesResponse)(nil),  // 107: aes.iam.v1.RegenerateRecoveryCodesResponse
+	nil,                                      // 108: aes.iam.v1.ValidateOidcTokenResponse.ClaimsEntry
 }
 var file_aes_iam_v1_iam_proto_depIdxs = []int32{
-	107, // 0: aes.iam.v1.ValidateOidcTokenResponse.claims:type_name -> aes.iam.v1.ValidateOidcTokenResponse.ClaimsEntry
+	108, // 0: aes.iam.v1.ValidateOidcTokenResponse.claims:type_name -> aes.iam.v1.ValidateOidcTokenResponse.ClaimsEntry
 	10,  // 1: aes.iam.v1.CreateApiKeyResponse.api_key:type_name -> aes.iam.v1.ApiKey
 	10,  // 2: aes.iam.v1.ListApiKeysResponse.api_keys:type_name -> aes.iam.v1.ApiKey
-	10,  // 3: aes.iam.v1.SignUpResponse.api_key:type_name -> aes.iam.v1.ApiKey
-	10,  // 4: aes.iam.v1.VerifyEmailResponse.api_key:type_name -> aes.iam.v1.ApiKey
-	10,  // 5: aes.iam.v1.LoginResponse.api_key:type_name -> aes.iam.v1.ApiKey
-	10,  // 6: aes.iam.v1.SubmitMFAChallengeResponse.api_key:type_name -> aes.iam.v1.ApiKey
-	10,  // 7: aes.iam.v1.AcceptInviteResponse.api_key:type_name -> aes.iam.v1.ApiKey
-	34,  // 8: aes.iam.v1.ListOrgMembersResponse.org_members:type_name -> aes.iam.v1.OrgMember
-	34,  // 9: aes.iam.v1.UpdateOrgMemberRoleResponse.member:type_name -> aes.iam.v1.OrgMember
-	40,  // 10: aes.iam.v1.ListPendingInvitesResponse.invites:type_name -> aes.iam.v1.PendingInvite
-	44,  // 11: aes.iam.v1.ListMyOrganizationsResponse.organizations:type_name -> aes.iam.v1.OrgMembership
-	47,  // 12: aes.iam.v1.ListMyInvitesResponse.invites:type_name -> aes.iam.v1.MyInvite
-	10,  // 13: aes.iam.v1.RotateApiKeyResponse.new_api_key:type_name -> aes.iam.v1.ApiKey
-	10,  // 14: aes.iam.v1.CompleteOidcLoginResponse.api_key:type_name -> aes.iam.v1.ApiKey
-	63,  // 15: aes.iam.v1.EnrollMFAResponse.device:type_name -> aes.iam.v1.MFADevice
-	63,  // 16: aes.iam.v1.VerifyMFAEnrollmentResponse.device:type_name -> aes.iam.v1.MFADevice
-	63,  // 17: aes.iam.v1.ListMFADevicesResponse.mfa_devices:type_name -> aes.iam.v1.MFADevice
-	72,  // 18: aes.iam.v1.ListSessionsResponse.sessions:type_name -> aes.iam.v1.Session
-	79,  // 19: aes.iam.v1.GetUserResponse.user:type_name -> aes.iam.v1.User
-	79,  // 20: aes.iam.v1.UpdateUserResponse.user:type_name -> aes.iam.v1.User
-	34,  // 21: aes.iam.v1.GetOrgMemberResponse.member:type_name -> aes.iam.v1.OrgMember
-	101, // 22: aes.iam.v1.ListNotificationsResponse.notifications:type_name -> aes.iam.v1.Notification
-	4,   // 23: aes.iam.v1.IamService.GetCallerIdentity:input_type -> aes.iam.v1.GetCallerIdentityRequest
-	11,  // 24: aes.iam.v1.IamService.CreateApiKey:input_type -> aes.iam.v1.CreateApiKeyRequest
-	13,  // 25: aes.iam.v1.IamService.ListApiKeys:input_type -> aes.iam.v1.ListApiKeysRequest
-	15,  // 26: aes.iam.v1.IamService.RevokeApiKey:input_type -> aes.iam.v1.RevokeApiKeyRequest
-	17,  // 27: aes.iam.v1.IamService.SignUp:input_type -> aes.iam.v1.SignUpRequest
-	19,  // 28: aes.iam.v1.IamService.VerifyEmail:input_type -> aes.iam.v1.VerifyEmailRequest
-	21,  // 29: aes.iam.v1.IamService.Login:input_type -> aes.iam.v1.LoginRequest
-	23,  // 30: aes.iam.v1.IamService.SubmitMFAChallenge:input_type -> aes.iam.v1.SubmitMFAChallengeRequest
-	25,  // 31: aes.iam.v1.IamService.LinkOidcProvider:input_type -> aes.iam.v1.LinkOidcProviderRequest
-	27,  // 32: aes.iam.v1.IamService.InviteOrgMember:input_type -> aes.iam.v1.InviteOrgMemberRequest
-	29,  // 33: aes.iam.v1.IamService.AcceptInvite:input_type -> aes.iam.v1.AcceptInviteRequest
-	30,  // 34: aes.iam.v1.IamService.SetInitialPassword:input_type -> aes.iam.v1.SetInitialPasswordRequest
-	33,  // 35: aes.iam.v1.IamService.ListOrgMembers:input_type -> aes.iam.v1.ListOrgMembersRequest
-	36,  // 36: aes.iam.v1.IamService.RemoveOrgMember:input_type -> aes.iam.v1.RemoveOrgMemberRequest
-	38,  // 37: aes.iam.v1.IamService.UpdateOrgMemberRole:input_type -> aes.iam.v1.UpdateOrgMemberRoleRequest
-	41,  // 38: aes.iam.v1.IamService.ListPendingInvites:input_type -> aes.iam.v1.ListPendingInvitesRequest
-	53,  // 39: aes.iam.v1.IamService.RevokeInvite:input_type -> aes.iam.v1.RevokeInviteRequest
-	43,  // 40: aes.iam.v1.IamService.ListMyOrganizations:input_type -> aes.iam.v1.ListMyOrganizationsRequest
-	46,  // 41: aes.iam.v1.IamService.ListMyInvites:input_type -> aes.iam.v1.ListMyInvitesRequest
-	49,  // 42: aes.iam.v1.IamService.AcceptMyInvite:input_type -> aes.iam.v1.AcceptMyInviteRequest
-	51,  // 43: aes.iam.v1.IamService.DeclineMyInvite:input_type -> aes.iam.v1.DeclineMyInviteRequest
-	55,  // 44: aes.iam.v1.IamService.RotateApiKey:input_type -> aes.iam.v1.RotateApiKeyRequest
-	57,  // 45: aes.iam.v1.IamService.StartOidcLogin:input_type -> aes.iam.v1.StartOidcLoginRequest
-	59,  // 46: aes.iam.v1.IamService.CompleteOidcLogin:input_type -> aes.iam.v1.CompleteOidcLoginRequest
-	61,  // 47: aes.iam.v1.IamService.CreateWorkspace:input_type -> aes.iam.v1.CreateWorkspaceRequest
-	64,  // 48: aes.iam.v1.IamService.EnrollMFA:input_type -> aes.iam.v1.EnrollMFARequest
-	66,  // 49: aes.iam.v1.IamService.VerifyMFAEnrollment:input_type -> aes.iam.v1.VerifyMFAEnrollmentRequest
-	68,  // 50: aes.iam.v1.IamService.ListMFADevices:input_type -> aes.iam.v1.ListMFADevicesRequest
-	70,  // 51: aes.iam.v1.IamService.RevokeMFADevice:input_type -> aes.iam.v1.RevokeMFADeviceRequest
-	105, // 52: aes.iam.v1.IamService.RegenerateRecoveryCodes:input_type -> aes.iam.v1.RegenerateRecoveryCodesRequest
-	73,  // 53: aes.iam.v1.IamService.ListSessions:input_type -> aes.iam.v1.ListSessionsRequest
-	75,  // 54: aes.iam.v1.IamService.RevokeSession:input_type -> aes.iam.v1.RevokeSessionRequest
-	77,  // 55: aes.iam.v1.IamService.RevokeAllOtherSessions:input_type -> aes.iam.v1.RevokeAllOtherSessionsRequest
-	92,  // 56: aes.iam.v1.IamService.Logout:input_type -> aes.iam.v1.LogoutRequest
-	80,  // 57: aes.iam.v1.IamService.RequestPasswordReset:input_type -> aes.iam.v1.RequestPasswordResetRequest
-	82,  // 58: aes.iam.v1.IamService.ResetPassword:input_type -> aes.iam.v1.ResetPasswordRequest
-	84,  // 59: aes.iam.v1.IamService.GetUser:input_type -> aes.iam.v1.GetUserRequest
-	86,  // 60: aes.iam.v1.IamService.UpdateUser:input_type -> aes.iam.v1.UpdateUserRequest
-	88,  // 61: aes.iam.v1.IamService.ChangePassword:input_type -> aes.iam.v1.ChangePasswordRequest
-	90,  // 62: aes.iam.v1.IamService.RequestEmailChange:input_type -> aes.iam.v1.RequestEmailChangeRequest
-	96,  // 63: aes.iam.v1.IamService.ImportGitHubSshKeys:input_type -> aes.iam.v1.ImportGitHubSshKeysRequest
-	100, // 64: aes.iam.v1.IamService.ListNotifications:input_type -> aes.iam.v1.ListNotificationsRequest
-	103, // 65: aes.iam.v1.IamService.MarkNotificationsRead:input_type -> aes.iam.v1.MarkNotificationsReadRequest
-	5,   // 66: aes.iam.v1.IamService.GetCallerIdentity:output_type -> aes.iam.v1.GetCallerIdentityResponse
-	12,  // 67: aes.iam.v1.IamService.CreateApiKey:output_type -> aes.iam.v1.CreateApiKeyResponse
-	14,  // 68: aes.iam.v1.IamService.ListApiKeys:output_type -> aes.iam.v1.ListApiKeysResponse
-	16,  // 69: aes.iam.v1.IamService.RevokeApiKey:output_type -> aes.iam.v1.RevokeApiKeyResponse
-	18,  // 70: aes.iam.v1.IamService.SignUp:output_type -> aes.iam.v1.SignUpResponse
-	20,  // 71: aes.iam.v1.IamService.VerifyEmail:output_type -> aes.iam.v1.VerifyEmailResponse
-	22,  // 72: aes.iam.v1.IamService.Login:output_type -> aes.iam.v1.LoginResponse
-	24,  // 73: aes.iam.v1.IamService.SubmitMFAChallenge:output_type -> aes.iam.v1.SubmitMFAChallengeResponse
-	26,  // 74: aes.iam.v1.IamService.LinkOidcProvider:output_type -> aes.iam.v1.LinkOidcProviderResponse
-	28,  // 75: aes.iam.v1.IamService.InviteOrgMember:output_type -> aes.iam.v1.InviteOrgMemberResponse
-	32,  // 76: aes.iam.v1.IamService.AcceptInvite:output_type -> aes.iam.v1.AcceptInviteResponse
-	31,  // 77: aes.iam.v1.IamService.SetInitialPassword:output_type -> aes.iam.v1.SetInitialPasswordResponse
-	35,  // 78: aes.iam.v1.IamService.ListOrgMembers:output_type -> aes.iam.v1.ListOrgMembersResponse
-	37,  // 79: aes.iam.v1.IamService.RemoveOrgMember:output_type -> aes.iam.v1.RemoveOrgMemberResponse
-	39,  // 80: aes.iam.v1.IamService.UpdateOrgMemberRole:output_type -> aes.iam.v1.UpdateOrgMemberRoleResponse
-	42,  // 81: aes.iam.v1.IamService.ListPendingInvites:output_type -> aes.iam.v1.ListPendingInvitesResponse
-	54,  // 82: aes.iam.v1.IamService.RevokeInvite:output_type -> aes.iam.v1.RevokeInviteResponse
-	45,  // 83: aes.iam.v1.IamService.ListMyOrganizations:output_type -> aes.iam.v1.ListMyOrganizationsResponse
-	48,  // 84: aes.iam.v1.IamService.ListMyInvites:output_type -> aes.iam.v1.ListMyInvitesResponse
-	50,  // 85: aes.iam.v1.IamService.AcceptMyInvite:output_type -> aes.iam.v1.AcceptMyInviteResponse
-	52,  // 86: aes.iam.v1.IamService.DeclineMyInvite:output_type -> aes.iam.v1.DeclineMyInviteResponse
-	56,  // 87: aes.iam.v1.IamService.RotateApiKey:output_type -> aes.iam.v1.RotateApiKeyResponse
-	58,  // 88: aes.iam.v1.IamService.StartOidcLogin:output_type -> aes.iam.v1.StartOidcLoginResponse
-	60,  // 89: aes.iam.v1.IamService.CompleteOidcLogin:output_type -> aes.iam.v1.CompleteOidcLoginResponse
-	62,  // 90: aes.iam.v1.IamService.CreateWorkspace:output_type -> aes.iam.v1.CreateWorkspaceResponse
-	65,  // 91: aes.iam.v1.IamService.EnrollMFA:output_type -> aes.iam.v1.EnrollMFAResponse
-	67,  // 92: aes.iam.v1.IamService.VerifyMFAEnrollment:output_type -> aes.iam.v1.VerifyMFAEnrollmentResponse
-	69,  // 93: aes.iam.v1.IamService.ListMFADevices:output_type -> aes.iam.v1.ListMFADevicesResponse
-	71,  // 94: aes.iam.v1.IamService.RevokeMFADevice:output_type -> aes.iam.v1.RevokeMFADeviceResponse
-	106, // 95: aes.iam.v1.IamService.RegenerateRecoveryCodes:output_type -> aes.iam.v1.RegenerateRecoveryCodesResponse
-	74,  // 96: aes.iam.v1.IamService.ListSessions:output_type -> aes.iam.v1.ListSessionsResponse
-	76,  // 97: aes.iam.v1.IamService.RevokeSession:output_type -> aes.iam.v1.RevokeSessionResponse
-	78,  // 98: aes.iam.v1.IamService.RevokeAllOtherSessions:output_type -> aes.iam.v1.RevokeAllOtherSessionsResponse
-	93,  // 99: aes.iam.v1.IamService.Logout:output_type -> aes.iam.v1.LogoutResponse
-	81,  // 100: aes.iam.v1.IamService.RequestPasswordReset:output_type -> aes.iam.v1.RequestPasswordResetResponse
-	83,  // 101: aes.iam.v1.IamService.ResetPassword:output_type -> aes.iam.v1.ResetPasswordResponse
-	85,  // 102: aes.iam.v1.IamService.GetUser:output_type -> aes.iam.v1.GetUserResponse
-	87,  // 103: aes.iam.v1.IamService.UpdateUser:output_type -> aes.iam.v1.UpdateUserResponse
-	89,  // 104: aes.iam.v1.IamService.ChangePassword:output_type -> aes.iam.v1.ChangePasswordResponse
-	91,  // 105: aes.iam.v1.IamService.RequestEmailChange:output_type -> aes.iam.v1.RequestEmailChangeResponse
-	97,  // 106: aes.iam.v1.IamService.ImportGitHubSshKeys:output_type -> aes.iam.v1.ImportGitHubSshKeysResponse
-	102, // 107: aes.iam.v1.IamService.ListNotifications:output_type -> aes.iam.v1.ListNotificationsResponse
-	104, // 108: aes.iam.v1.IamService.MarkNotificationsRead:output_type -> aes.iam.v1.MarkNotificationsReadResponse
-	66,  // [66:109] is the sub-list for method output_type
-	23,  // [23:66] is the sub-list for method input_type
-	23,  // [23:23] is the sub-list for extension type_name
-	23,  // [23:23] is the sub-list for extension extendee
-	0,   // [0:23] is the sub-list for field type_name
+	18,  // 3: aes.iam.v1.SignUpRequest.attribution:type_name -> aes.iam.v1.SignupAttribution
+	10,  // 4: aes.iam.v1.SignUpResponse.api_key:type_name -> aes.iam.v1.ApiKey
+	10,  // 5: aes.iam.v1.VerifyEmailResponse.api_key:type_name -> aes.iam.v1.ApiKey
+	10,  // 6: aes.iam.v1.LoginResponse.api_key:type_name -> aes.iam.v1.ApiKey
+	10,  // 7: aes.iam.v1.SubmitMFAChallengeResponse.api_key:type_name -> aes.iam.v1.ApiKey
+	10,  // 8: aes.iam.v1.AcceptInviteResponse.api_key:type_name -> aes.iam.v1.ApiKey
+	35,  // 9: aes.iam.v1.ListOrgMembersResponse.org_members:type_name -> aes.iam.v1.OrgMember
+	35,  // 10: aes.iam.v1.UpdateOrgMemberRoleResponse.member:type_name -> aes.iam.v1.OrgMember
+	41,  // 11: aes.iam.v1.ListPendingInvitesResponse.invites:type_name -> aes.iam.v1.PendingInvite
+	45,  // 12: aes.iam.v1.ListMyOrganizationsResponse.organizations:type_name -> aes.iam.v1.OrgMembership
+	48,  // 13: aes.iam.v1.ListMyInvitesResponse.invites:type_name -> aes.iam.v1.MyInvite
+	10,  // 14: aes.iam.v1.RotateApiKeyResponse.new_api_key:type_name -> aes.iam.v1.ApiKey
+	18,  // 15: aes.iam.v1.StartOidcLoginRequest.attribution:type_name -> aes.iam.v1.SignupAttribution
+	10,  // 16: aes.iam.v1.CompleteOidcLoginResponse.api_key:type_name -> aes.iam.v1.ApiKey
+	64,  // 17: aes.iam.v1.EnrollMFAResponse.device:type_name -> aes.iam.v1.MFADevice
+	64,  // 18: aes.iam.v1.VerifyMFAEnrollmentResponse.device:type_name -> aes.iam.v1.MFADevice
+	64,  // 19: aes.iam.v1.ListMFADevicesResponse.mfa_devices:type_name -> aes.iam.v1.MFADevice
+	73,  // 20: aes.iam.v1.ListSessionsResponse.sessions:type_name -> aes.iam.v1.Session
+	80,  // 21: aes.iam.v1.GetUserResponse.user:type_name -> aes.iam.v1.User
+	80,  // 22: aes.iam.v1.UpdateUserResponse.user:type_name -> aes.iam.v1.User
+	35,  // 23: aes.iam.v1.GetOrgMemberResponse.member:type_name -> aes.iam.v1.OrgMember
+	102, // 24: aes.iam.v1.ListNotificationsResponse.notifications:type_name -> aes.iam.v1.Notification
+	4,   // 25: aes.iam.v1.IamService.GetCallerIdentity:input_type -> aes.iam.v1.GetCallerIdentityRequest
+	11,  // 26: aes.iam.v1.IamService.CreateApiKey:input_type -> aes.iam.v1.CreateApiKeyRequest
+	13,  // 27: aes.iam.v1.IamService.ListApiKeys:input_type -> aes.iam.v1.ListApiKeysRequest
+	15,  // 28: aes.iam.v1.IamService.RevokeApiKey:input_type -> aes.iam.v1.RevokeApiKeyRequest
+	17,  // 29: aes.iam.v1.IamService.SignUp:input_type -> aes.iam.v1.SignUpRequest
+	20,  // 30: aes.iam.v1.IamService.VerifyEmail:input_type -> aes.iam.v1.VerifyEmailRequest
+	22,  // 31: aes.iam.v1.IamService.Login:input_type -> aes.iam.v1.LoginRequest
+	24,  // 32: aes.iam.v1.IamService.SubmitMFAChallenge:input_type -> aes.iam.v1.SubmitMFAChallengeRequest
+	26,  // 33: aes.iam.v1.IamService.LinkOidcProvider:input_type -> aes.iam.v1.LinkOidcProviderRequest
+	28,  // 34: aes.iam.v1.IamService.InviteOrgMember:input_type -> aes.iam.v1.InviteOrgMemberRequest
+	30,  // 35: aes.iam.v1.IamService.AcceptInvite:input_type -> aes.iam.v1.AcceptInviteRequest
+	31,  // 36: aes.iam.v1.IamService.SetInitialPassword:input_type -> aes.iam.v1.SetInitialPasswordRequest
+	34,  // 37: aes.iam.v1.IamService.ListOrgMembers:input_type -> aes.iam.v1.ListOrgMembersRequest
+	37,  // 38: aes.iam.v1.IamService.RemoveOrgMember:input_type -> aes.iam.v1.RemoveOrgMemberRequest
+	39,  // 39: aes.iam.v1.IamService.UpdateOrgMemberRole:input_type -> aes.iam.v1.UpdateOrgMemberRoleRequest
+	42,  // 40: aes.iam.v1.IamService.ListPendingInvites:input_type -> aes.iam.v1.ListPendingInvitesRequest
+	54,  // 41: aes.iam.v1.IamService.RevokeInvite:input_type -> aes.iam.v1.RevokeInviteRequest
+	44,  // 42: aes.iam.v1.IamService.ListMyOrganizations:input_type -> aes.iam.v1.ListMyOrganizationsRequest
+	47,  // 43: aes.iam.v1.IamService.ListMyInvites:input_type -> aes.iam.v1.ListMyInvitesRequest
+	50,  // 44: aes.iam.v1.IamService.AcceptMyInvite:input_type -> aes.iam.v1.AcceptMyInviteRequest
+	52,  // 45: aes.iam.v1.IamService.DeclineMyInvite:input_type -> aes.iam.v1.DeclineMyInviteRequest
+	56,  // 46: aes.iam.v1.IamService.RotateApiKey:input_type -> aes.iam.v1.RotateApiKeyRequest
+	58,  // 47: aes.iam.v1.IamService.StartOidcLogin:input_type -> aes.iam.v1.StartOidcLoginRequest
+	60,  // 48: aes.iam.v1.IamService.CompleteOidcLogin:input_type -> aes.iam.v1.CompleteOidcLoginRequest
+	62,  // 49: aes.iam.v1.IamService.CreateWorkspace:input_type -> aes.iam.v1.CreateWorkspaceRequest
+	65,  // 50: aes.iam.v1.IamService.EnrollMFA:input_type -> aes.iam.v1.EnrollMFARequest
+	67,  // 51: aes.iam.v1.IamService.VerifyMFAEnrollment:input_type -> aes.iam.v1.VerifyMFAEnrollmentRequest
+	69,  // 52: aes.iam.v1.IamService.ListMFADevices:input_type -> aes.iam.v1.ListMFADevicesRequest
+	71,  // 53: aes.iam.v1.IamService.RevokeMFADevice:input_type -> aes.iam.v1.RevokeMFADeviceRequest
+	106, // 54: aes.iam.v1.IamService.RegenerateRecoveryCodes:input_type -> aes.iam.v1.RegenerateRecoveryCodesRequest
+	74,  // 55: aes.iam.v1.IamService.ListSessions:input_type -> aes.iam.v1.ListSessionsRequest
+	76,  // 56: aes.iam.v1.IamService.RevokeSession:input_type -> aes.iam.v1.RevokeSessionRequest
+	78,  // 57: aes.iam.v1.IamService.RevokeAllOtherSessions:input_type -> aes.iam.v1.RevokeAllOtherSessionsRequest
+	93,  // 58: aes.iam.v1.IamService.Logout:input_type -> aes.iam.v1.LogoutRequest
+	81,  // 59: aes.iam.v1.IamService.RequestPasswordReset:input_type -> aes.iam.v1.RequestPasswordResetRequest
+	83,  // 60: aes.iam.v1.IamService.ResetPassword:input_type -> aes.iam.v1.ResetPasswordRequest
+	85,  // 61: aes.iam.v1.IamService.GetUser:input_type -> aes.iam.v1.GetUserRequest
+	87,  // 62: aes.iam.v1.IamService.UpdateUser:input_type -> aes.iam.v1.UpdateUserRequest
+	89,  // 63: aes.iam.v1.IamService.ChangePassword:input_type -> aes.iam.v1.ChangePasswordRequest
+	91,  // 64: aes.iam.v1.IamService.RequestEmailChange:input_type -> aes.iam.v1.RequestEmailChangeRequest
+	97,  // 65: aes.iam.v1.IamService.ImportGitHubSshKeys:input_type -> aes.iam.v1.ImportGitHubSshKeysRequest
+	101, // 66: aes.iam.v1.IamService.ListNotifications:input_type -> aes.iam.v1.ListNotificationsRequest
+	104, // 67: aes.iam.v1.IamService.MarkNotificationsRead:input_type -> aes.iam.v1.MarkNotificationsReadRequest
+	5,   // 68: aes.iam.v1.IamService.GetCallerIdentity:output_type -> aes.iam.v1.GetCallerIdentityResponse
+	12,  // 69: aes.iam.v1.IamService.CreateApiKey:output_type -> aes.iam.v1.CreateApiKeyResponse
+	14,  // 70: aes.iam.v1.IamService.ListApiKeys:output_type -> aes.iam.v1.ListApiKeysResponse
+	16,  // 71: aes.iam.v1.IamService.RevokeApiKey:output_type -> aes.iam.v1.RevokeApiKeyResponse
+	19,  // 72: aes.iam.v1.IamService.SignUp:output_type -> aes.iam.v1.SignUpResponse
+	21,  // 73: aes.iam.v1.IamService.VerifyEmail:output_type -> aes.iam.v1.VerifyEmailResponse
+	23,  // 74: aes.iam.v1.IamService.Login:output_type -> aes.iam.v1.LoginResponse
+	25,  // 75: aes.iam.v1.IamService.SubmitMFAChallenge:output_type -> aes.iam.v1.SubmitMFAChallengeResponse
+	27,  // 76: aes.iam.v1.IamService.LinkOidcProvider:output_type -> aes.iam.v1.LinkOidcProviderResponse
+	29,  // 77: aes.iam.v1.IamService.InviteOrgMember:output_type -> aes.iam.v1.InviteOrgMemberResponse
+	33,  // 78: aes.iam.v1.IamService.AcceptInvite:output_type -> aes.iam.v1.AcceptInviteResponse
+	32,  // 79: aes.iam.v1.IamService.SetInitialPassword:output_type -> aes.iam.v1.SetInitialPasswordResponse
+	36,  // 80: aes.iam.v1.IamService.ListOrgMembers:output_type -> aes.iam.v1.ListOrgMembersResponse
+	38,  // 81: aes.iam.v1.IamService.RemoveOrgMember:output_type -> aes.iam.v1.RemoveOrgMemberResponse
+	40,  // 82: aes.iam.v1.IamService.UpdateOrgMemberRole:output_type -> aes.iam.v1.UpdateOrgMemberRoleResponse
+	43,  // 83: aes.iam.v1.IamService.ListPendingInvites:output_type -> aes.iam.v1.ListPendingInvitesResponse
+	55,  // 84: aes.iam.v1.IamService.RevokeInvite:output_type -> aes.iam.v1.RevokeInviteResponse
+	46,  // 85: aes.iam.v1.IamService.ListMyOrganizations:output_type -> aes.iam.v1.ListMyOrganizationsResponse
+	49,  // 86: aes.iam.v1.IamService.ListMyInvites:output_type -> aes.iam.v1.ListMyInvitesResponse
+	51,  // 87: aes.iam.v1.IamService.AcceptMyInvite:output_type -> aes.iam.v1.AcceptMyInviteResponse
+	53,  // 88: aes.iam.v1.IamService.DeclineMyInvite:output_type -> aes.iam.v1.DeclineMyInviteResponse
+	57,  // 89: aes.iam.v1.IamService.RotateApiKey:output_type -> aes.iam.v1.RotateApiKeyResponse
+	59,  // 90: aes.iam.v1.IamService.StartOidcLogin:output_type -> aes.iam.v1.StartOidcLoginResponse
+	61,  // 91: aes.iam.v1.IamService.CompleteOidcLogin:output_type -> aes.iam.v1.CompleteOidcLoginResponse
+	63,  // 92: aes.iam.v1.IamService.CreateWorkspace:output_type -> aes.iam.v1.CreateWorkspaceResponse
+	66,  // 93: aes.iam.v1.IamService.EnrollMFA:output_type -> aes.iam.v1.EnrollMFAResponse
+	68,  // 94: aes.iam.v1.IamService.VerifyMFAEnrollment:output_type -> aes.iam.v1.VerifyMFAEnrollmentResponse
+	70,  // 95: aes.iam.v1.IamService.ListMFADevices:output_type -> aes.iam.v1.ListMFADevicesResponse
+	72,  // 96: aes.iam.v1.IamService.RevokeMFADevice:output_type -> aes.iam.v1.RevokeMFADeviceResponse
+	107, // 97: aes.iam.v1.IamService.RegenerateRecoveryCodes:output_type -> aes.iam.v1.RegenerateRecoveryCodesResponse
+	75,  // 98: aes.iam.v1.IamService.ListSessions:output_type -> aes.iam.v1.ListSessionsResponse
+	77,  // 99: aes.iam.v1.IamService.RevokeSession:output_type -> aes.iam.v1.RevokeSessionResponse
+	79,  // 100: aes.iam.v1.IamService.RevokeAllOtherSessions:output_type -> aes.iam.v1.RevokeAllOtherSessionsResponse
+	94,  // 101: aes.iam.v1.IamService.Logout:output_type -> aes.iam.v1.LogoutResponse
+	82,  // 102: aes.iam.v1.IamService.RequestPasswordReset:output_type -> aes.iam.v1.RequestPasswordResetResponse
+	84,  // 103: aes.iam.v1.IamService.ResetPassword:output_type -> aes.iam.v1.ResetPasswordResponse
+	86,  // 104: aes.iam.v1.IamService.GetUser:output_type -> aes.iam.v1.GetUserResponse
+	88,  // 105: aes.iam.v1.IamService.UpdateUser:output_type -> aes.iam.v1.UpdateUserResponse
+	90,  // 106: aes.iam.v1.IamService.ChangePassword:output_type -> aes.iam.v1.ChangePasswordResponse
+	92,  // 107: aes.iam.v1.IamService.RequestEmailChange:output_type -> aes.iam.v1.RequestEmailChangeResponse
+	98,  // 108: aes.iam.v1.IamService.ImportGitHubSshKeys:output_type -> aes.iam.v1.ImportGitHubSshKeysResponse
+	103, // 109: aes.iam.v1.IamService.ListNotifications:output_type -> aes.iam.v1.ListNotificationsResponse
+	105, // 110: aes.iam.v1.IamService.MarkNotificationsRead:output_type -> aes.iam.v1.MarkNotificationsReadResponse
+	68,  // [68:111] is the sub-list for method output_type
+	25,  // [25:68] is the sub-list for method input_type
+	25,  // [25:25] is the sub-list for extension type_name
+	25,  // [25:25] is the sub-list for extension extendee
+	0,   // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_aes_iam_v1_iam_proto_init() }
@@ -6617,14 +6791,14 @@ func file_aes_iam_v1_iam_proto_init() {
 	if File_aes_iam_v1_iam_proto != nil {
 		return
 	}
-	file_aes_iam_v1_iam_proto_msgTypes[86].OneofWrappers = []any{}
+	file_aes_iam_v1_iam_proto_msgTypes[87].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_iam_v1_iam_proto_rawDesc), len(file_aes_iam_v1_iam_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   108,
+			NumMessages:   109,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

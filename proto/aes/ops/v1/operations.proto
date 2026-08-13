@@ -11,7 +11,7 @@ package aes.ops.v1;
 // cleanup that a blind cancel can't guarantee.
 service OperationsService {
   rpc GetOperation(GetOperationRequest) returns (GetOperationResponse);
-  // Lists operations in name order (opaque page_token is the last-seen name).
+  // Lists operations newest-first (reverse name order; opaque page_token is the last-seen name).
   rpc ListOperations(ListOperationsRequest) returns (ListOperationsResponse);
 }
 
@@ -121,19 +121,47 @@ message CreateOperationRequest {
   // the number of whole GPUs. Empty/0 = CPU-only VM.
   string vm_gpu_model = 44;
   int32 vm_gpu_count = 45;
-  // Bare-metal ISO URL import (kind=bm_iso_import). The org-prefix-confined object key + the
-  // source URL are computed + quota-checked at the BareMetalService API edge, then handed here so
-  // the durable ISOImportWorkflow's activity can stream the bytes into object storage with live
-  // byte-progress (surfaced on the Operation metadata + ListBareMetalISOs).
+  // Bare-metal ISO URL import (kind=bm_iso_import). The object key and source URL are
+  // validated and quota-checked by BareMetalService; import byte-progress is surfaced on
+  // the Operation metadata and ListBareMetalISOs.
   string iso_project_name = 46;
   string iso_source_url = 47;
   string iso_object_key = 48;
   string iso_filename = 49;
-  // Customer-networking-v1 (VM provisioning). Threaded so async-provisioned VMs persist the
-  // same networking the sync path writes. vm_security_groups: internal security groups to
-  // attach at create; vm_private_only: no public NIC at all (no public v4/v6).
+  // VM networking at provision time. vm_security_groups: security groups to attach at
+  // create; vm_private_only: no public NIC at all (no public v4/v6).
   repeated string vm_security_groups = 50;
   bool vm_private_only = 51;
+  // Live-migration-specific (kind=vm_migrate). Passed alongside vm_name. Empty target =
+  // any eligible node in the VM's cpu-class pool is chosen automatically.
+  string vm_migrate_target_node = 52;
+  // Drain-specific (kind=host_drain). Passed alongside host_name + datacenter_name.
+  // host_node_name identifies the node being drained and is resolved by DrainHost.
+  string drain_reason = 53;
+  string host_node_name = 54;
+  // Fleet orchestrator kinds. All carry fleet_proposal_name so the operation's
+  // terminal stages can stamp the proposal's outcome (empty when an admin runs
+  // the same operation directly).
+  //   host_role_convert:      host_name + datacenter_name + convert_target_role
+  //                           ('baremetal_pool' | 'hypervisor').
+  //   host_drain_maintenance: host_name + datacenter_name + host_node_name +
+  //                           drain_reason — cordon + full live-migration drain,
+  //                           then park the host in role 'bench' with the
+  //                           maintenance note.
+  //   host_bench_power:       host_name + datacenter_name + bench_power_action
+  //                           ('down' = graceful off into bench, 'up' = power on
+  //                           + rejoin from bench).
+  //   defrag_pass:            datacenter_name + defrag_plan_json — the literal
+  //                           migration set from the approved proposal (execution
+  //                           is never re-planned at run time), bounded by
+  //                           defrag_budget.
+  string fleet_proposal_name = 55;
+  string convert_target_role = 56;
+  string bench_power_action = 57;
+  string defrag_plan_json = 58;
+  int32 defrag_budget = 59;
+  // Requested runtime state for this lifecycle operation.
+  string vm_runtime_target_state = 60;
 }
 
 message CreateOperationResponse {
