@@ -30,6 +30,14 @@ service StorageService {
   // reservation grows as a paid upgrade: the difference for the remaining term is charged
   // immediately on resize — due_now_minor is that amount. 0 for hourly-billed disks.
   rpc QuoteDiskResize(QuoteDiskResizeRequest) returns (QuoteDiskResizeResponse);
+  rpc CreateSnapshot(CreateSnapshotRequest) returns (CreateSnapshotResponse);
+  rpc GetSnapshot(GetSnapshotRequest) returns (GetSnapshotResponse);
+  rpc ListSnapshots(ListSnapshotsRequest) returns (ListSnapshotsResponse);
+  rpc DeleteSnapshot(DeleteSnapshotRequest) returns (DeleteSnapshotResponse);
+  rpc CreateSnapshotSchedule(CreateSnapshotScheduleRequest) returns (CreateSnapshotScheduleResponse);
+  rpc ListSnapshotSchedules(ListSnapshotSchedulesRequest) returns (ListSnapshotSchedulesResponse);
+  rpc UpdateSnapshotSchedule(UpdateSnapshotScheduleRequest) returns (UpdateSnapshotScheduleResponse);
+  rpc DeleteSnapshotSchedule(DeleteSnapshotScheduleRequest) returns (DeleteSnapshotScheduleResponse);
 
   // File shares — RWX NFS volumes that multiple VMs in the same tenant network can mount
   // concurrently. Access is restricted to the tenant network, so any VM on that network can
@@ -99,7 +107,90 @@ message CreateDiskRequest {
   // The image is written byte-for-byte; the disk flips to AVAILABLE once import completes.
   // Billed from AVAILABLE/ATTACHED — PROVISIONING is not metered, so no charge during import.
   string from_image_url = 4;
+  // Same project, DC and network as the snapshot. Mutually exclusive with from_image_url.
+  string from_snapshot = 5;
 }
+
+// DC-local copy; survives source disk deletion, but not loss of the storage cluster.
+message DiskSnapshot {
+  string name = 1;
+  string display_name = 2;
+  string project_name = 3;
+  string datacenter_name = 4;
+  string source_disk = 5;
+  int32 size_gib = 6;
+  string storage_class = 7;
+  string state = 8;
+  int64 create_time_unix = 9;
+  int64 update_time_unix = 10;
+  map<string, string> labels = 11;
+  map<string, string> annotations = 12;
+  string network_name = 13;
+  string created_by_schedule = 14;
+  string consistency = 15;
+}
+message CreateSnapshotRequest {
+  string source_disk = 1;
+  string display_name = 2;
+  map<string, string> labels = 3;
+  map<string, string> annotations = 4;
+}
+message CreateSnapshotResponse { DiskSnapshot snapshot = 1; }
+message GetSnapshotRequest { string name = 1; }
+message GetSnapshotResponse { DiskSnapshot snapshot = 1; }
+message ListSnapshotsRequest {
+  string project_name = 1;
+  string source_disk = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+}
+message ListSnapshotsResponse {
+  repeated DiskSnapshot disk_snapshots = 1;
+  string next_page_token = 2;
+}
+message DeleteSnapshotRequest { string name = 1; }
+message DeleteSnapshotResponse {}
+
+// A project target dynamically includes every VM and each unattached disk. Keep-N is
+// per source and schedule, counts successful copies only, and excludes manual copies.
+message SnapshotSchedule {
+  string name = 1;
+  string project_name = 2;
+  // Project, VM, or disk resource name. Immutable.
+  string target = 3;
+  // HOURLY, DAILY, WEEKLY. Times below are UTC.
+  string cadence = 4;
+  int32 hour_utc = 5;
+  int32 minute_utc = 6;
+  // Sunday=0 through Saturday=6; used for WEEKLY.
+  int32 weekday_utc = 7;
+  int32 retention_count = 8;
+  bool enabled = 9;
+  string display_name = 10;
+  int64 next_run_at_unix = 11;
+  string last_run_status = 12;
+  string last_run_error = 13;
+  int64 last_run_at_unix = 14;
+}
+message CreateSnapshotScheduleRequest { SnapshotSchedule schedule = 1; }
+message CreateSnapshotScheduleResponse { SnapshotSchedule schedule = 1; }
+message ListSnapshotSchedulesRequest {
+  string project_name = 1;
+  string target = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+}
+message ListSnapshotSchedulesResponse {
+  repeated SnapshotSchedule schedules = 1;
+  string next_page_token = 2;
+}
+message UpdateSnapshotScheduleRequest {
+  SnapshotSchedule schedule = 1;
+  google.protobuf.FieldMask update_mask = 2;
+}
+message UpdateSnapshotScheduleResponse { SnapshotSchedule schedule = 1; }
+message DeleteSnapshotScheduleRequest { string name = 1; }
+message DeleteSnapshotScheduleResponse {}
 
 message CreateDiskResponse {
   Disk disk = 1;

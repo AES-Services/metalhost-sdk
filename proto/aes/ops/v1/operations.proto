@@ -162,6 +162,8 @@ message CreateOperationRequest {
   int32 defrag_budget = 59;
   // Requested runtime state for this lifecycle operation.
   string vm_runtime_target_state = 60;
+  // Internal restore source, validated against project/DC before dispatch.
+  string vm_backup_name = 61;
 }
 
 message CreateOperationResponse {

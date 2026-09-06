@@ -165,11 +165,9 @@ type ComputeServiceClient interface {
 	// per-VM, not per-stack). Boot disk only — any attached DATA disks on the source are NOT
 	// cloned (tracked as a follow-on, mirrors CreateVirtualMachineFromBackup).
 	CloneVirtualMachine(context.Context, *connect.Request[v1.CloneVirtualMachineRequest]) (*connect.Response[v1.CloneVirtualMachineResponse], error)
-	// CreateVirtualMachineFromBackup spins up a new VM whose boot disk is materialized from
-	// a previously-taken VmSnapshot. Same project, same DC as the source backup. Boot disk
-	// only in v1 — data disks from the source aren't re-attached (tracked as a follow-on).
-	// The source VM is untouched; the new VM's boot disk is built from the snapshot's
-	// preserved boot volume.
+	// CreateVirtualMachineFromBackup asynchronously restores every captured disk into a
+	// new VM in the backup's project, network and datacenter. The source is untouched.
+	// All disks are attached before first boot. Reservations and IPs are not copied.
 	CreateVirtualMachineFromBackup(context.Context, *connect.Request[v1.CreateVirtualMachineFromBackupRequest]) (*connect.Response[v1.CreateVirtualMachineFromBackupResponse], error)
 }
 
@@ -511,11 +509,9 @@ type ComputeServiceHandler interface {
 	// per-VM, not per-stack). Boot disk only — any attached DATA disks on the source are NOT
 	// cloned (tracked as a follow-on, mirrors CreateVirtualMachineFromBackup).
 	CloneVirtualMachine(context.Context, *connect.Request[v1.CloneVirtualMachineRequest]) (*connect.Response[v1.CloneVirtualMachineResponse], error)
-	// CreateVirtualMachineFromBackup spins up a new VM whose boot disk is materialized from
-	// a previously-taken VmSnapshot. Same project, same DC as the source backup. Boot disk
-	// only in v1 — data disks from the source aren't re-attached (tracked as a follow-on).
-	// The source VM is untouched; the new VM's boot disk is built from the snapshot's
-	// preserved boot volume.
+	// CreateVirtualMachineFromBackup asynchronously restores every captured disk into a
+	// new VM in the backup's project, network and datacenter. The source is untouched.
+	// All disks are attached before first boot. Reservations and IPs are not copied.
 	CreateVirtualMachineFromBackup(context.Context, *connect.Request[v1.CreateVirtualMachineFromBackupRequest]) (*connect.Response[v1.CreateVirtualMachineFromBackupResponse], error)
 }
 

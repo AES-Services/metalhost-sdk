@@ -4248,10 +4248,10 @@ type QueryUsageRequest struct {
 	OrganizationName string `protobuf:"bytes,2,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
 	// Optional filter — only meters matching this prefix.
 	MeterPrefix string `protobuf:"bytes,3,opt,name=meter_prefix,json=meterPrefix,proto3" json:"meter_prefix,omitempty"`
-	// Time bounds (Unix seconds). end exclusive.
+	// Unix-second bounds, normalized outward to whole UTC days. end remains exclusive.
 	StartTimeUnix int64 `protobuf:"varint,4,opt,name=start_time_unix,json=startTimeUnix,proto3" json:"start_time_unix,omitempty"`
 	EndTimeUnix   int64 `protobuf:"varint,5,opt,name=end_time_unix,json=endTimeUnix,proto3" json:"end_time_unix,omitempty"`
-	// Bucket size — "hour" | "day" | "month". Defaults to "day".
+	// Bucket size — "day" | "month". Defaults to "day".
 	Bucket string `protobuf:"bytes,6,opt,name=bucket,proto3" json:"bucket,omitempty"`
 	// Group-by dimensions — any subset of {"project", "meter", "resource", "datacenter"}.
 	GroupBy       []string `protobuf:"bytes,7,rep,name=group_by,json=groupBy,proto3" json:"group_by,omitempty"`
@@ -4480,9 +4480,9 @@ type QueryUsageResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Rows          []*UsageRow            `protobuf:"bytes,1,rep,name=rows,proto3" json:"rows,omitempty"`
 	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
-	// Per-project monthly egress free-tier allowance in GiB (server policy, env-configurable via
-	// METALHOST_PROJECT_EGRESS_FREE_GIB). Surfaced here so the transfer/usage UI doesn't hardcode
-	// it. 0 = no free tier (every byte bills).
+	// Organization-wide monthly combined ingress+egress allowance in GiB. This compatibility
+	// field is returned once per query and must not be duplicated or subtracted per project.
+	// 0 = no free tier (every byte bills).
 	EgressFreeGib int64 `protobuf:"varint,3,opt,name=egress_free_gib,json=egressFreeGib,proto3" json:"egress_free_gib,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -4544,8 +4544,9 @@ type ExportUsageRequest struct {
 	ProjectName      string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
 	OrganizationName string                 `protobuf:"bytes,2,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
 	MeterPrefix      string                 `protobuf:"bytes,3,opt,name=meter_prefix,json=meterPrefix,proto3" json:"meter_prefix,omitempty"`
-	StartTimeUnix    int64                  `protobuf:"varint,4,opt,name=start_time_unix,json=startTimeUnix,proto3" json:"start_time_unix,omitempty"`
-	EndTimeUnix      int64                  `protobuf:"varint,5,opt,name=end_time_unix,json=endTimeUnix,proto3" json:"end_time_unix,omitempty"`
+	// Unix-second bounds, normalized outward to whole UTC days. end remains exclusive.
+	StartTimeUnix int64 `protobuf:"varint,4,opt,name=start_time_unix,json=startTimeUnix,proto3" json:"start_time_unix,omitempty"`
+	EndTimeUnix   int64 `protobuf:"varint,5,opt,name=end_time_unix,json=endTimeUnix,proto3" json:"end_time_unix,omitempty"`
 	// "csv" | "ndjson". Default "csv".
 	Format        string `protobuf:"bytes,6,opt,name=format,proto3" json:"format,omitempty"`
 	MaxRows       int32  `protobuf:"varint,7,opt,name=max_rows,json=maxRows,proto3" json:"max_rows,omitempty"`

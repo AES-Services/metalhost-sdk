@@ -75,11 +75,9 @@ service ComputeService {
   // cloned (tracked as a follow-on, mirrors CreateVirtualMachineFromBackup).
   rpc CloneVirtualMachine(CloneVirtualMachineRequest) returns (CloneVirtualMachineResponse);
 
-  // CreateVirtualMachineFromBackup spins up a new VM whose boot disk is materialized from
-  // a previously-taken VmSnapshot. Same project, same DC as the source backup. Boot disk
-  // only in v1 — data disks from the source aren't re-attached (tracked as a follow-on).
-  // The source VM is untouched; the new VM's boot disk is built from the snapshot's
-  // preserved boot volume.
+  // CreateVirtualMachineFromBackup asynchronously restores every captured disk into a
+  // new VM in the backup's project, network and datacenter. The source is untouched.
+  // All disks are attached before first boot. Reservations and IPs are not copied.
   rpc CreateVirtualMachineFromBackup(CreateVirtualMachineFromBackupRequest) returns (CreateVirtualMachineFromBackupResponse);
 }
 
@@ -327,7 +325,8 @@ message UserSpec {
   // cloud-init seed. NEVER persisted plaintext and never echoed back on Get/List. When any user
   // has a password, cloud-init `ssh_pwauth` is enabled; otherwise it stays disabled.
   string password = 2;
-  // Grant passwordless sudo (ALL=(ALL) NOPASSWD:ALL).
+  // Grant passwordless sudo (ALL=(ALL) NOPASSWD:ALL). When false, a user with a password
+  // receives password-authenticated sudo; a key-only user receives no sudo access.
   bool sudo = 3;
   // Registered SSHKey resource refs (`projects/{p}/ssh-keys/{id}`), merged into this user's
   // ssh_authorized_keys.
@@ -589,6 +588,22 @@ message VmSnapshot {
   // Convenience: monthly rate at 730 hours/month. Same precision rules; the
   // SPA displays this directly so the customer doesn't have to multiply.
   string monthly_cost_minor_decimal = 13;
+  // QUIESCED, CRASH_CONSISTENT, or OFFLINE; empty until captured.
+  string consistency = 14;
+  repeated BackupVolume volumes = 15;
+  string created_by_schedule = 16;
+  string error_message = 17;
+  string gpu_model = 18;
+  int32 gpu_count = 19;
+  string network_name = 20;
+  bool private_only = 21;
+}
+
+message BackupVolume {
+  string source_disk = 1;
+  string role = 2;
+  int32 size_gib = 3;
+  string display_name = 4;
 }
 
 message SnapshotVirtualMachineRequest {

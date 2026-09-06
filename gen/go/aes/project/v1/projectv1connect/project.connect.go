@@ -90,7 +90,7 @@ type ProjectServiceClient interface {
 	CreateProject(context.Context, *connect.Request[v1.CreateProjectRequest]) (*connect.Response[v1.CreateProjectResponse], error)
 	UpdateProject(context.Context, *connect.Request[v1.UpdateProjectRequest]) (*connect.Response[v1.UpdateProjectResponse], error)
 	// DeleteProject soft-deletes the project. Cascading FKs on compute_instances / tenant_networks /
-	// service_accounts wipe project resources via ON DELETE CASCADE; usage_events keep the project_name
+	// service_accounts wipe project resources via ON DELETE CASCADE; compact billing history keeps the project_name
 	// as history (FK is ON DELETE SET NULL).
 	DeleteProject(context.Context, *connect.Request[v1.DeleteProjectRequest]) (*connect.Response[v1.DeleteProjectResponse], error)
 	// ListOrgActivity returns a humanized stream of recent events across the org — VM created,
@@ -314,7 +314,7 @@ type ProjectServiceHandler interface {
 	CreateProject(context.Context, *connect.Request[v1.CreateProjectRequest]) (*connect.Response[v1.CreateProjectResponse], error)
 	UpdateProject(context.Context, *connect.Request[v1.UpdateProjectRequest]) (*connect.Response[v1.UpdateProjectResponse], error)
 	// DeleteProject soft-deletes the project. Cascading FKs on compute_instances / tenant_networks /
-	// service_accounts wipe project resources via ON DELETE CASCADE; usage_events keep the project_name
+	// service_accounts wipe project resources via ON DELETE CASCADE; compact billing history keeps the project_name
 	// as history (FK is ON DELETE SET NULL).
 	DeleteProject(context.Context, *connect.Request[v1.DeleteProjectRequest]) (*connect.Response[v1.DeleteProjectResponse], error)
 	// ListOrgActivity returns a humanized stream of recent events across the org — VM created,

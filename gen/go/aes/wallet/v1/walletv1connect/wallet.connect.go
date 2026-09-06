@@ -179,9 +179,8 @@ type WalletServiceClient interface {
 	CreateCoinbaseTopUpCheckout(context.Context, *connect.Request[v1.CreateCoinbaseTopUpCheckoutRequest]) (*connect.Response[v1.CreateCoinbaseTopUpCheckoutResponse], error)
 	ListTopUps(context.Context, *connect.Request[v1.ListTopUpsRequest]) (*connect.Response[v1.ListTopUpsResponse], error)
 	GetTopUp(context.Context, *connect.Request[v1.GetTopUpRequest]) (*connect.Response[v1.GetTopUpResponse], error)
-	// Usage query / export. QueryUsage aggregates usage_events by meter / project / time-bucket
-	// and returns rows; ExportUsage materializes a CSV/NDJSON file in object storage and returns
-	// a time-limited presigned download URL.
+	// Usage query / export. QueryUsage aggregates compact daily V2 accruals by meter / project /
+	// time-bucket; ExportUsage materializes CSV/NDJSON in object storage and returns a presigned URL.
 	QueryUsage(context.Context, *connect.Request[v1.QueryUsageRequest]) (*connect.Response[v1.QueryUsageResponse], error)
 	ExportUsage(context.Context, *connect.Request[v1.ExportUsageRequest]) (*connect.Response[v1.ExportUsageResponse], error)
 	// Promotions. RedeemPromotionCode accepts a single-use coupon code or a shared campaign
@@ -600,9 +599,8 @@ type WalletServiceHandler interface {
 	CreateCoinbaseTopUpCheckout(context.Context, *connect.Request[v1.CreateCoinbaseTopUpCheckoutRequest]) (*connect.Response[v1.CreateCoinbaseTopUpCheckoutResponse], error)
 	ListTopUps(context.Context, *connect.Request[v1.ListTopUpsRequest]) (*connect.Response[v1.ListTopUpsResponse], error)
 	GetTopUp(context.Context, *connect.Request[v1.GetTopUpRequest]) (*connect.Response[v1.GetTopUpResponse], error)
-	// Usage query / export. QueryUsage aggregates usage_events by meter / project / time-bucket
-	// and returns rows; ExportUsage materializes a CSV/NDJSON file in object storage and returns
-	// a time-limited presigned download URL.
+	// Usage query / export. QueryUsage aggregates compact daily V2 accruals by meter / project /
+	// time-bucket; ExportUsage materializes CSV/NDJSON in object storage and returns a presigned URL.
 	QueryUsage(context.Context, *connect.Request[v1.QueryUsageRequest]) (*connect.Response[v1.QueryUsageResponse], error)
 	ExportUsage(context.Context, *connect.Request[v1.ExportUsageRequest]) (*connect.Response[v1.ExportUsageResponse], error)
 	// Promotions. RedeemPromotionCode accepts a single-use coupon code or a shared campaign

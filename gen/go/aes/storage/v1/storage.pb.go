@@ -207,7 +207,9 @@ type CreateDiskRequest struct {
 	// image from this URL (e.g. an Ubuntu cloud image) into the new disk during PROVISIONING.
 	// The image is written byte-for-byte; the disk flips to AVAILABLE once import completes.
 	// Billed from AVAILABLE/ATTACHED — PROVISIONING is not metered, so no charge during import.
-	FromImageUrl  string `protobuf:"bytes,4,opt,name=from_image_url,json=fromImageUrl,proto3" json:"from_image_url,omitempty"`
+	FromImageUrl string `protobuf:"bytes,4,opt,name=from_image_url,json=fromImageUrl,proto3" json:"from_image_url,omitempty"`
+	// Same project, DC and network as the snapshot. Mutually exclusive with from_image_url.
+	FromSnapshot  string `protobuf:"bytes,5,opt,name=from_snapshot,json=fromSnapshot,proto3" json:"from_snapshot,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -270,6 +272,1107 @@ func (x *CreateDiskRequest) GetFromImageUrl() string {
 	return ""
 }
 
+func (x *CreateDiskRequest) GetFromSnapshot() string {
+	if x != nil {
+		return x.FromSnapshot
+	}
+	return ""
+}
+
+// DC-local copy; survives source disk deletion, but not loss of the storage cluster.
+type DiskSnapshot struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Name              string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	DisplayName       string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	ProjectName       string                 `protobuf:"bytes,3,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	DatacenterName    string                 `protobuf:"bytes,4,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	SourceDisk        string                 `protobuf:"bytes,5,opt,name=source_disk,json=sourceDisk,proto3" json:"source_disk,omitempty"`
+	SizeGib           int32                  `protobuf:"varint,6,opt,name=size_gib,json=sizeGib,proto3" json:"size_gib,omitempty"`
+	StorageClass      string                 `protobuf:"bytes,7,opt,name=storage_class,json=storageClass,proto3" json:"storage_class,omitempty"`
+	State             string                 `protobuf:"bytes,8,opt,name=state,proto3" json:"state,omitempty"`
+	CreateTimeUnix    int64                  `protobuf:"varint,9,opt,name=create_time_unix,json=createTimeUnix,proto3" json:"create_time_unix,omitempty"`
+	UpdateTimeUnix    int64                  `protobuf:"varint,10,opt,name=update_time_unix,json=updateTimeUnix,proto3" json:"update_time_unix,omitempty"`
+	Labels            map[string]string      `protobuf:"bytes,11,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Annotations       map[string]string      `protobuf:"bytes,12,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	NetworkName       string                 `protobuf:"bytes,13,opt,name=network_name,json=networkName,proto3" json:"network_name,omitempty"`
+	CreatedBySchedule string                 `protobuf:"bytes,14,opt,name=created_by_schedule,json=createdBySchedule,proto3" json:"created_by_schedule,omitempty"`
+	Consistency       string                 `protobuf:"bytes,15,opt,name=consistency,proto3" json:"consistency,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *DiskSnapshot) Reset() {
+	*x = DiskSnapshot{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DiskSnapshot) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DiskSnapshot) ProtoMessage() {}
+
+func (x *DiskSnapshot) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DiskSnapshot.ProtoReflect.Descriptor instead.
+func (*DiskSnapshot) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *DiskSnapshot) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DiskSnapshot) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *DiskSnapshot) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *DiskSnapshot) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *DiskSnapshot) GetSourceDisk() string {
+	if x != nil {
+		return x.SourceDisk
+	}
+	return ""
+}
+
+func (x *DiskSnapshot) GetSizeGib() int32 {
+	if x != nil {
+		return x.SizeGib
+	}
+	return 0
+}
+
+func (x *DiskSnapshot) GetStorageClass() string {
+	if x != nil {
+		return x.StorageClass
+	}
+	return ""
+}
+
+func (x *DiskSnapshot) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *DiskSnapshot) GetCreateTimeUnix() int64 {
+	if x != nil {
+		return x.CreateTimeUnix
+	}
+	return 0
+}
+
+func (x *DiskSnapshot) GetUpdateTimeUnix() int64 {
+	if x != nil {
+		return x.UpdateTimeUnix
+	}
+	return 0
+}
+
+func (x *DiskSnapshot) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *DiskSnapshot) GetAnnotations() map[string]string {
+	if x != nil {
+		return x.Annotations
+	}
+	return nil
+}
+
+func (x *DiskSnapshot) GetNetworkName() string {
+	if x != nil {
+		return x.NetworkName
+	}
+	return ""
+}
+
+func (x *DiskSnapshot) GetCreatedBySchedule() string {
+	if x != nil {
+		return x.CreatedBySchedule
+	}
+	return ""
+}
+
+func (x *DiskSnapshot) GetConsistency() string {
+	if x != nil {
+		return x.Consistency
+	}
+	return ""
+}
+
+type CreateSnapshotRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SourceDisk    string                 `protobuf:"bytes,1,opt,name=source_disk,json=sourceDisk,proto3" json:"source_disk,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Labels        map[string]string      `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Annotations   map[string]string      `protobuf:"bytes,4,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSnapshotRequest) Reset() {
+	*x = CreateSnapshotRequest{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSnapshotRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSnapshotRequest) ProtoMessage() {}
+
+func (x *CreateSnapshotRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSnapshotRequest.ProtoReflect.Descriptor instead.
+func (*CreateSnapshotRequest) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *CreateSnapshotRequest) GetSourceDisk() string {
+	if x != nil {
+		return x.SourceDisk
+	}
+	return ""
+}
+
+func (x *CreateSnapshotRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *CreateSnapshotRequest) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *CreateSnapshotRequest) GetAnnotations() map[string]string {
+	if x != nil {
+		return x.Annotations
+	}
+	return nil
+}
+
+type CreateSnapshotResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Snapshot      *DiskSnapshot          `protobuf:"bytes,1,opt,name=snapshot,proto3" json:"snapshot,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSnapshotResponse) Reset() {
+	*x = CreateSnapshotResponse{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSnapshotResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSnapshotResponse) ProtoMessage() {}
+
+func (x *CreateSnapshotResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSnapshotResponse.ProtoReflect.Descriptor instead.
+func (*CreateSnapshotResponse) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *CreateSnapshotResponse) GetSnapshot() *DiskSnapshot {
+	if x != nil {
+		return x.Snapshot
+	}
+	return nil
+}
+
+type GetSnapshotRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSnapshotRequest) Reset() {
+	*x = GetSnapshotRequest{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSnapshotRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSnapshotRequest) ProtoMessage() {}
+
+func (x *GetSnapshotRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSnapshotRequest.ProtoReflect.Descriptor instead.
+func (*GetSnapshotRequest) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetSnapshotRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetSnapshotResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Snapshot      *DiskSnapshot          `protobuf:"bytes,1,opt,name=snapshot,proto3" json:"snapshot,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSnapshotResponse) Reset() {
+	*x = GetSnapshotResponse{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSnapshotResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSnapshotResponse) ProtoMessage() {}
+
+func (x *GetSnapshotResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSnapshotResponse.ProtoReflect.Descriptor instead.
+func (*GetSnapshotResponse) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetSnapshotResponse) GetSnapshot() *DiskSnapshot {
+	if x != nil {
+		return x.Snapshot
+	}
+	return nil
+}
+
+type ListSnapshotsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	SourceDisk    string                 `protobuf:"bytes,2,opt,name=source_disk,json=sourceDisk,proto3" json:"source_disk,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,4,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSnapshotsRequest) Reset() {
+	*x = ListSnapshotsRequest{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSnapshotsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSnapshotsRequest) ProtoMessage() {}
+
+func (x *ListSnapshotsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSnapshotsRequest.ProtoReflect.Descriptor instead.
+func (*ListSnapshotsRequest) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ListSnapshotsRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *ListSnapshotsRequest) GetSourceDisk() string {
+	if x != nil {
+		return x.SourceDisk
+	}
+	return ""
+}
+
+func (x *ListSnapshotsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListSnapshotsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListSnapshotsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DiskSnapshots []*DiskSnapshot        `protobuf:"bytes,1,rep,name=disk_snapshots,json=diskSnapshots,proto3" json:"disk_snapshots,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSnapshotsResponse) Reset() {
+	*x = ListSnapshotsResponse{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSnapshotsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSnapshotsResponse) ProtoMessage() {}
+
+func (x *ListSnapshotsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSnapshotsResponse.ProtoReflect.Descriptor instead.
+func (*ListSnapshotsResponse) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListSnapshotsResponse) GetDiskSnapshots() []*DiskSnapshot {
+	if x != nil {
+		return x.DiskSnapshots
+	}
+	return nil
+}
+
+func (x *ListSnapshotsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type DeleteSnapshotRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSnapshotRequest) Reset() {
+	*x = DeleteSnapshotRequest{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSnapshotRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSnapshotRequest) ProtoMessage() {}
+
+func (x *DeleteSnapshotRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSnapshotRequest.ProtoReflect.Descriptor instead.
+func (*DeleteSnapshotRequest) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DeleteSnapshotRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type DeleteSnapshotResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSnapshotResponse) Reset() {
+	*x = DeleteSnapshotResponse{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSnapshotResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSnapshotResponse) ProtoMessage() {}
+
+func (x *DeleteSnapshotResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSnapshotResponse.ProtoReflect.Descriptor instead.
+func (*DeleteSnapshotResponse) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{10}
+}
+
+// A project target dynamically includes every VM and each unattached disk. Keep-N is
+// per source and schedule, counts successful copies only, and excludes manual copies.
+type SnapshotSchedule struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Name        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ProjectName string                 `protobuf:"bytes,2,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	// Project, VM, or disk resource name. Immutable.
+	Target string `protobuf:"bytes,3,opt,name=target,proto3" json:"target,omitempty"`
+	// HOURLY, DAILY, WEEKLY. Times below are UTC.
+	Cadence   string `protobuf:"bytes,4,opt,name=cadence,proto3" json:"cadence,omitempty"`
+	HourUtc   int32  `protobuf:"varint,5,opt,name=hour_utc,json=hourUtc,proto3" json:"hour_utc,omitempty"`
+	MinuteUtc int32  `protobuf:"varint,6,opt,name=minute_utc,json=minuteUtc,proto3" json:"minute_utc,omitempty"`
+	// Sunday=0 through Saturday=6; used for WEEKLY.
+	WeekdayUtc     int32  `protobuf:"varint,7,opt,name=weekday_utc,json=weekdayUtc,proto3" json:"weekday_utc,omitempty"`
+	RetentionCount int32  `protobuf:"varint,8,opt,name=retention_count,json=retentionCount,proto3" json:"retention_count,omitempty"`
+	Enabled        bool   `protobuf:"varint,9,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	DisplayName    string `protobuf:"bytes,10,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	NextRunAtUnix  int64  `protobuf:"varint,11,opt,name=next_run_at_unix,json=nextRunAtUnix,proto3" json:"next_run_at_unix,omitempty"`
+	LastRunStatus  string `protobuf:"bytes,12,opt,name=last_run_status,json=lastRunStatus,proto3" json:"last_run_status,omitempty"`
+	LastRunError   string `protobuf:"bytes,13,opt,name=last_run_error,json=lastRunError,proto3" json:"last_run_error,omitempty"`
+	LastRunAtUnix  int64  `protobuf:"varint,14,opt,name=last_run_at_unix,json=lastRunAtUnix,proto3" json:"last_run_at_unix,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *SnapshotSchedule) Reset() {
+	*x = SnapshotSchedule{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SnapshotSchedule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SnapshotSchedule) ProtoMessage() {}
+
+func (x *SnapshotSchedule) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SnapshotSchedule.ProtoReflect.Descriptor instead.
+func (*SnapshotSchedule) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SnapshotSchedule) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SnapshotSchedule) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *SnapshotSchedule) GetTarget() string {
+	if x != nil {
+		return x.Target
+	}
+	return ""
+}
+
+func (x *SnapshotSchedule) GetCadence() string {
+	if x != nil {
+		return x.Cadence
+	}
+	return ""
+}
+
+func (x *SnapshotSchedule) GetHourUtc() int32 {
+	if x != nil {
+		return x.HourUtc
+	}
+	return 0
+}
+
+func (x *SnapshotSchedule) GetMinuteUtc() int32 {
+	if x != nil {
+		return x.MinuteUtc
+	}
+	return 0
+}
+
+func (x *SnapshotSchedule) GetWeekdayUtc() int32 {
+	if x != nil {
+		return x.WeekdayUtc
+	}
+	return 0
+}
+
+func (x *SnapshotSchedule) GetRetentionCount() int32 {
+	if x != nil {
+		return x.RetentionCount
+	}
+	return 0
+}
+
+func (x *SnapshotSchedule) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *SnapshotSchedule) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *SnapshotSchedule) GetNextRunAtUnix() int64 {
+	if x != nil {
+		return x.NextRunAtUnix
+	}
+	return 0
+}
+
+func (x *SnapshotSchedule) GetLastRunStatus() string {
+	if x != nil {
+		return x.LastRunStatus
+	}
+	return ""
+}
+
+func (x *SnapshotSchedule) GetLastRunError() string {
+	if x != nil {
+		return x.LastRunError
+	}
+	return ""
+}
+
+func (x *SnapshotSchedule) GetLastRunAtUnix() int64 {
+	if x != nil {
+		return x.LastRunAtUnix
+	}
+	return 0
+}
+
+type CreateSnapshotScheduleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Schedule      *SnapshotSchedule      `protobuf:"bytes,1,opt,name=schedule,proto3" json:"schedule,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSnapshotScheduleRequest) Reset() {
+	*x = CreateSnapshotScheduleRequest{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSnapshotScheduleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSnapshotScheduleRequest) ProtoMessage() {}
+
+func (x *CreateSnapshotScheduleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSnapshotScheduleRequest.ProtoReflect.Descriptor instead.
+func (*CreateSnapshotScheduleRequest) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *CreateSnapshotScheduleRequest) GetSchedule() *SnapshotSchedule {
+	if x != nil {
+		return x.Schedule
+	}
+	return nil
+}
+
+type CreateSnapshotScheduleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Schedule      *SnapshotSchedule      `protobuf:"bytes,1,opt,name=schedule,proto3" json:"schedule,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSnapshotScheduleResponse) Reset() {
+	*x = CreateSnapshotScheduleResponse{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSnapshotScheduleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSnapshotScheduleResponse) ProtoMessage() {}
+
+func (x *CreateSnapshotScheduleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSnapshotScheduleResponse.ProtoReflect.Descriptor instead.
+func (*CreateSnapshotScheduleResponse) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *CreateSnapshotScheduleResponse) GetSchedule() *SnapshotSchedule {
+	if x != nil {
+		return x.Schedule
+	}
+	return nil
+}
+
+type ListSnapshotSchedulesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	Target        string                 `protobuf:"bytes,2,opt,name=target,proto3" json:"target,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,4,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSnapshotSchedulesRequest) Reset() {
+	*x = ListSnapshotSchedulesRequest{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSnapshotSchedulesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSnapshotSchedulesRequest) ProtoMessage() {}
+
+func (x *ListSnapshotSchedulesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSnapshotSchedulesRequest.ProtoReflect.Descriptor instead.
+func (*ListSnapshotSchedulesRequest) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListSnapshotSchedulesRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *ListSnapshotSchedulesRequest) GetTarget() string {
+	if x != nil {
+		return x.Target
+	}
+	return ""
+}
+
+func (x *ListSnapshotSchedulesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListSnapshotSchedulesRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListSnapshotSchedulesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Schedules     []*SnapshotSchedule    `protobuf:"bytes,1,rep,name=schedules,proto3" json:"schedules,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSnapshotSchedulesResponse) Reset() {
+	*x = ListSnapshotSchedulesResponse{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSnapshotSchedulesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSnapshotSchedulesResponse) ProtoMessage() {}
+
+func (x *ListSnapshotSchedulesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSnapshotSchedulesResponse.ProtoReflect.Descriptor instead.
+func (*ListSnapshotSchedulesResponse) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ListSnapshotSchedulesResponse) GetSchedules() []*SnapshotSchedule {
+	if x != nil {
+		return x.Schedules
+	}
+	return nil
+}
+
+func (x *ListSnapshotSchedulesResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type UpdateSnapshotScheduleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Schedule      *SnapshotSchedule      `protobuf:"bytes,1,opt,name=schedule,proto3" json:"schedule,omitempty"`
+	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSnapshotScheduleRequest) Reset() {
+	*x = UpdateSnapshotScheduleRequest{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSnapshotScheduleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSnapshotScheduleRequest) ProtoMessage() {}
+
+func (x *UpdateSnapshotScheduleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSnapshotScheduleRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSnapshotScheduleRequest) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *UpdateSnapshotScheduleRequest) GetSchedule() *SnapshotSchedule {
+	if x != nil {
+		return x.Schedule
+	}
+	return nil
+}
+
+func (x *UpdateSnapshotScheduleRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.UpdateMask
+	}
+	return nil
+}
+
+type UpdateSnapshotScheduleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Schedule      *SnapshotSchedule      `protobuf:"bytes,1,opt,name=schedule,proto3" json:"schedule,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSnapshotScheduleResponse) Reset() {
+	*x = UpdateSnapshotScheduleResponse{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSnapshotScheduleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSnapshotScheduleResponse) ProtoMessage() {}
+
+func (x *UpdateSnapshotScheduleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSnapshotScheduleResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSnapshotScheduleResponse) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *UpdateSnapshotScheduleResponse) GetSchedule() *SnapshotSchedule {
+	if x != nil {
+		return x.Schedule
+	}
+	return nil
+}
+
+type DeleteSnapshotScheduleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSnapshotScheduleRequest) Reset() {
+	*x = DeleteSnapshotScheduleRequest{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSnapshotScheduleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSnapshotScheduleRequest) ProtoMessage() {}
+
+func (x *DeleteSnapshotScheduleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSnapshotScheduleRequest.ProtoReflect.Descriptor instead.
+func (*DeleteSnapshotScheduleRequest) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *DeleteSnapshotScheduleRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type DeleteSnapshotScheduleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSnapshotScheduleResponse) Reset() {
+	*x = DeleteSnapshotScheduleResponse{}
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSnapshotScheduleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSnapshotScheduleResponse) ProtoMessage() {}
+
+func (x *DeleteSnapshotScheduleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSnapshotScheduleResponse.ProtoReflect.Descriptor instead.
+func (*DeleteSnapshotScheduleResponse) Descriptor() ([]byte, []int) {
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{19}
+}
+
 type CreateDiskResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Disk          *Disk                  `protobuf:"bytes,1,opt,name=disk,proto3" json:"disk,omitempty"`
@@ -279,7 +1382,7 @@ type CreateDiskResponse struct {
 
 func (x *CreateDiskResponse) Reset() {
 	*x = CreateDiskResponse{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[2]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -291,7 +1394,7 @@ func (x *CreateDiskResponse) String() string {
 func (*CreateDiskResponse) ProtoMessage() {}
 
 func (x *CreateDiskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[2]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -304,7 +1407,7 @@ func (x *CreateDiskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDiskResponse.ProtoReflect.Descriptor instead.
 func (*CreateDiskResponse) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{2}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CreateDiskResponse) GetDisk() *Disk {
@@ -323,7 +1426,7 @@ type GetDiskRequest struct {
 
 func (x *GetDiskRequest) Reset() {
 	*x = GetDiskRequest{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[3]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -335,7 +1438,7 @@ func (x *GetDiskRequest) String() string {
 func (*GetDiskRequest) ProtoMessage() {}
 
 func (x *GetDiskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[3]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -348,7 +1451,7 @@ func (x *GetDiskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDiskRequest.ProtoReflect.Descriptor instead.
 func (*GetDiskRequest) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{3}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetDiskRequest) GetName() string {
@@ -367,7 +1470,7 @@ type GetDiskResponse struct {
 
 func (x *GetDiskResponse) Reset() {
 	*x = GetDiskResponse{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[4]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -379,7 +1482,7 @@ func (x *GetDiskResponse) String() string {
 func (*GetDiskResponse) ProtoMessage() {}
 
 func (x *GetDiskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[4]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -392,7 +1495,7 @@ func (x *GetDiskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDiskResponse.ProtoReflect.Descriptor instead.
 func (*GetDiskResponse) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{4}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetDiskResponse) GetDisk() *Disk {
@@ -413,7 +1516,7 @@ type ListDisksRequest struct {
 
 func (x *ListDisksRequest) Reset() {
 	*x = ListDisksRequest{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[5]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -425,7 +1528,7 @@ func (x *ListDisksRequest) String() string {
 func (*ListDisksRequest) ProtoMessage() {}
 
 func (x *ListDisksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[5]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -438,7 +1541,7 @@ func (x *ListDisksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDisksRequest.ProtoReflect.Descriptor instead.
 func (*ListDisksRequest) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{5}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListDisksRequest) GetProjectName() string {
@@ -472,7 +1575,7 @@ type ListDisksResponse struct {
 
 func (x *ListDisksResponse) Reset() {
 	*x = ListDisksResponse{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[6]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -484,7 +1587,7 @@ func (x *ListDisksResponse) String() string {
 func (*ListDisksResponse) ProtoMessage() {}
 
 func (x *ListDisksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[6]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -497,7 +1600,7 @@ func (x *ListDisksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDisksResponse.ProtoReflect.Descriptor instead.
 func (*ListDisksResponse) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{6}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ListDisksResponse) GetDisks() []*Disk {
@@ -529,7 +1632,7 @@ type UpdateDiskRequest struct {
 
 func (x *UpdateDiskRequest) Reset() {
 	*x = UpdateDiskRequest{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[7]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -541,7 +1644,7 @@ func (x *UpdateDiskRequest) String() string {
 func (*UpdateDiskRequest) ProtoMessage() {}
 
 func (x *UpdateDiskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[7]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -554,7 +1657,7 @@ func (x *UpdateDiskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDiskRequest.ProtoReflect.Descriptor instead.
 func (*UpdateDiskRequest) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{7}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *UpdateDiskRequest) GetDisk() *Disk {
@@ -580,7 +1683,7 @@ type UpdateDiskResponse struct {
 
 func (x *UpdateDiskResponse) Reset() {
 	*x = UpdateDiskResponse{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[8]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -592,7 +1695,7 @@ func (x *UpdateDiskResponse) String() string {
 func (*UpdateDiskResponse) ProtoMessage() {}
 
 func (x *UpdateDiskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[8]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -605,7 +1708,7 @@ func (x *UpdateDiskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDiskResponse.ProtoReflect.Descriptor instead.
 func (*UpdateDiskResponse) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{8}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UpdateDiskResponse) GetDisk() *Disk {
@@ -624,7 +1727,7 @@ type DeleteDiskRequest struct {
 
 func (x *DeleteDiskRequest) Reset() {
 	*x = DeleteDiskRequest{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[9]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -636,7 +1739,7 @@ func (x *DeleteDiskRequest) String() string {
 func (*DeleteDiskRequest) ProtoMessage() {}
 
 func (x *DeleteDiskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[9]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -649,7 +1752,7 @@ func (x *DeleteDiskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDiskRequest.ProtoReflect.Descriptor instead.
 func (*DeleteDiskRequest) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{9}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *DeleteDiskRequest) GetName() string {
@@ -667,7 +1770,7 @@ type DeleteDiskResponse struct {
 
 func (x *DeleteDiskResponse) Reset() {
 	*x = DeleteDiskResponse{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[10]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -679,7 +1782,7 @@ func (x *DeleteDiskResponse) String() string {
 func (*DeleteDiskResponse) ProtoMessage() {}
 
 func (x *DeleteDiskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[10]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -692,7 +1795,7 @@ func (x *DeleteDiskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDiskResponse.ProtoReflect.Descriptor instead.
 func (*DeleteDiskResponse) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{10}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{28}
 }
 
 type AttachDiskRequest struct {
@@ -706,7 +1809,7 @@ type AttachDiskRequest struct {
 
 func (x *AttachDiskRequest) Reset() {
 	*x = AttachDiskRequest{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[11]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -718,7 +1821,7 @@ func (x *AttachDiskRequest) String() string {
 func (*AttachDiskRequest) ProtoMessage() {}
 
 func (x *AttachDiskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[11]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -731,7 +1834,7 @@ func (x *AttachDiskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachDiskRequest.ProtoReflect.Descriptor instead.
 func (*AttachDiskRequest) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{11}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *AttachDiskRequest) GetDiskName() string {
@@ -757,7 +1860,7 @@ type AttachDiskResponse struct {
 
 func (x *AttachDiskResponse) Reset() {
 	*x = AttachDiskResponse{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[12]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -769,7 +1872,7 @@ func (x *AttachDiskResponse) String() string {
 func (*AttachDiskResponse) ProtoMessage() {}
 
 func (x *AttachDiskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[12]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -782,7 +1885,7 @@ func (x *AttachDiskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachDiskResponse.ProtoReflect.Descriptor instead.
 func (*AttachDiskResponse) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{12}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *AttachDiskResponse) GetDisk() *Disk {
@@ -801,7 +1904,7 @@ type DetachDiskRequest struct {
 
 func (x *DetachDiskRequest) Reset() {
 	*x = DetachDiskRequest{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[13]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -813,7 +1916,7 @@ func (x *DetachDiskRequest) String() string {
 func (*DetachDiskRequest) ProtoMessage() {}
 
 func (x *DetachDiskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[13]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -826,7 +1929,7 @@ func (x *DetachDiskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachDiskRequest.ProtoReflect.Descriptor instead.
 func (*DetachDiskRequest) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{13}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *DetachDiskRequest) GetDiskName() string {
@@ -845,7 +1948,7 @@ type DetachDiskResponse struct {
 
 func (x *DetachDiskResponse) Reset() {
 	*x = DetachDiskResponse{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[14]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -857,7 +1960,7 @@ func (x *DetachDiskResponse) String() string {
 func (*DetachDiskResponse) ProtoMessage() {}
 
 func (x *DetachDiskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[14]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -870,7 +1973,7 @@ func (x *DetachDiskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachDiskResponse.ProtoReflect.Descriptor instead.
 func (*DetachDiskResponse) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{14}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *DetachDiskResponse) GetDisk() *Disk {
@@ -891,7 +1994,7 @@ type ResizeDiskRequest struct {
 
 func (x *ResizeDiskRequest) Reset() {
 	*x = ResizeDiskRequest{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[15]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -903,7 +2006,7 @@ func (x *ResizeDiskRequest) String() string {
 func (*ResizeDiskRequest) ProtoMessage() {}
 
 func (x *ResizeDiskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[15]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -916,7 +2019,7 @@ func (x *ResizeDiskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResizeDiskRequest.ProtoReflect.Descriptor instead.
 func (*ResizeDiskRequest) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{15}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ResizeDiskRequest) GetDiskName() string {
@@ -942,7 +2045,7 @@ type ResizeDiskResponse struct {
 
 func (x *ResizeDiskResponse) Reset() {
 	*x = ResizeDiskResponse{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[16]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -954,7 +2057,7 @@ func (x *ResizeDiskResponse) String() string {
 func (*ResizeDiskResponse) ProtoMessage() {}
 
 func (x *ResizeDiskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[16]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -967,7 +2070,7 @@ func (x *ResizeDiskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResizeDiskResponse.ProtoReflect.Descriptor instead.
 func (*ResizeDiskResponse) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{16}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ResizeDiskResponse) GetDisk() *Disk {
@@ -988,7 +2091,7 @@ type QuoteDiskResizeRequest struct {
 
 func (x *QuoteDiskResizeRequest) Reset() {
 	*x = QuoteDiskResizeRequest{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[17]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1000,7 +2103,7 @@ func (x *QuoteDiskResizeRequest) String() string {
 func (*QuoteDiskResizeRequest) ProtoMessage() {}
 
 func (x *QuoteDiskResizeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[17]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1013,7 +2116,7 @@ func (x *QuoteDiskResizeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuoteDiskResizeRequest.ProtoReflect.Descriptor instead.
 func (*QuoteDiskResizeRequest) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{17}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *QuoteDiskResizeRequest) GetDiskName() string {
@@ -1045,7 +2148,7 @@ type QuoteDiskResizeResponse struct {
 
 func (x *QuoteDiskResizeResponse) Reset() {
 	*x = QuoteDiskResizeResponse{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[18]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1057,7 +2160,7 @@ func (x *QuoteDiskResizeResponse) String() string {
 func (*QuoteDiskResizeResponse) ProtoMessage() {}
 
 func (x *QuoteDiskResizeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[18]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1070,7 +2173,7 @@ func (x *QuoteDiskResizeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuoteDiskResizeResponse.ProtoReflect.Descriptor instead.
 func (*QuoteDiskResizeResponse) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{18}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *QuoteDiskResizeResponse) GetReserved() bool {
@@ -1134,7 +2237,7 @@ type FileShare struct {
 
 func (x *FileShare) Reset() {
 	*x = FileShare{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[19]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1146,7 +2249,7 @@ func (x *FileShare) String() string {
 func (*FileShare) ProtoMessage() {}
 
 func (x *FileShare) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[19]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1159,7 +2262,7 @@ func (x *FileShare) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileShare.ProtoReflect.Descriptor instead.
 func (*FileShare) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{19}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *FileShare) GetName() string {
@@ -1276,7 +2379,7 @@ type CreateFileShareRequest struct {
 
 func (x *CreateFileShareRequest) Reset() {
 	*x = CreateFileShareRequest{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[20]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1288,7 +2391,7 @@ func (x *CreateFileShareRequest) String() string {
 func (*CreateFileShareRequest) ProtoMessage() {}
 
 func (x *CreateFileShareRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[20]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1301,7 +2404,7 @@ func (x *CreateFileShareRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateFileShareRequest.ProtoReflect.Descriptor instead.
 func (*CreateFileShareRequest) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{20}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *CreateFileShareRequest) GetProjectName() string {
@@ -1362,7 +2465,7 @@ type CreateFileShareResponse struct {
 
 func (x *CreateFileShareResponse) Reset() {
 	*x = CreateFileShareResponse{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[21]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1374,7 +2477,7 @@ func (x *CreateFileShareResponse) String() string {
 func (*CreateFileShareResponse) ProtoMessage() {}
 
 func (x *CreateFileShareResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[21]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1387,7 +2490,7 @@ func (x *CreateFileShareResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateFileShareResponse.ProtoReflect.Descriptor instead.
 func (*CreateFileShareResponse) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{21}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *CreateFileShareResponse) GetFileShare() *FileShare {
@@ -1408,7 +2511,7 @@ type ListFileSharesRequest struct {
 
 func (x *ListFileSharesRequest) Reset() {
 	*x = ListFileSharesRequest{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[22]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1420,7 +2523,7 @@ func (x *ListFileSharesRequest) String() string {
 func (*ListFileSharesRequest) ProtoMessage() {}
 
 func (x *ListFileSharesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[22]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1433,7 +2536,7 @@ func (x *ListFileSharesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFileSharesRequest.ProtoReflect.Descriptor instead.
 func (*ListFileSharesRequest) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{22}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListFileSharesRequest) GetProjectName() string {
@@ -1467,7 +2570,7 @@ type ListFileSharesResponse struct {
 
 func (x *ListFileSharesResponse) Reset() {
 	*x = ListFileSharesResponse{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[23]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1479,7 +2582,7 @@ func (x *ListFileSharesResponse) String() string {
 func (*ListFileSharesResponse) ProtoMessage() {}
 
 func (x *ListFileSharesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[23]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1492,7 +2595,7 @@ func (x *ListFileSharesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFileSharesResponse.ProtoReflect.Descriptor instead.
 func (*ListFileSharesResponse) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{23}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *ListFileSharesResponse) GetFileShares() []*FileShare {
@@ -1518,7 +2621,7 @@ type DeleteFileShareRequest struct {
 
 func (x *DeleteFileShareRequest) Reset() {
 	*x = DeleteFileShareRequest{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[24]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1530,7 +2633,7 @@ func (x *DeleteFileShareRequest) String() string {
 func (*DeleteFileShareRequest) ProtoMessage() {}
 
 func (x *DeleteFileShareRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[24]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1543,7 +2646,7 @@ func (x *DeleteFileShareRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteFileShareRequest.ProtoReflect.Descriptor instead.
 func (*DeleteFileShareRequest) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{24}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *DeleteFileShareRequest) GetName() string {
@@ -1561,7 +2664,7 @@ type DeleteFileShareResponse struct {
 
 func (x *DeleteFileShareResponse) Reset() {
 	*x = DeleteFileShareResponse{}
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[25]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1573,7 +2676,7 @@ func (x *DeleteFileShareResponse) String() string {
 func (*DeleteFileShareResponse) ProtoMessage() {}
 
 func (x *DeleteFileShareResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_storage_v1_storage_proto_msgTypes[25]
+	mi := &file_aes_storage_v1_storage_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1586,7 +2689,7 @@ func (x *DeleteFileShareResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteFileShareResponse.ProtoReflect.Descriptor instead.
 func (*DeleteFileShareResponse) Descriptor() ([]byte, []int) {
-	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{25}
+	return file_aes_storage_v1_storage_proto_rawDescGZIP(), []int{43}
 }
 
 var File_aes_storage_v1_storage_proto protoreflect.FileDescriptor
@@ -1615,12 +2718,108 @@ const file_aes_storage_v1_storage_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x94\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb9\x01\n" +
 	"\x11CreateDiskRequest\x12\x16\n" +
 	"\x06parent\x18\x01 \x01(\tR\x06parent\x12(\n" +
 	"\x04disk\x18\x02 \x01(\v2\x14.aes.storage.v1.DiskR\x04disk\x12\x17\n" +
 	"\adisk_id\x18\x03 \x01(\tR\x06diskId\x12$\n" +
-	"\x0efrom_image_url\x18\x04 \x01(\tR\ffromImageUrl\">\n" +
+	"\x0efrom_image_url\x18\x04 \x01(\tR\ffromImageUrl\x12#\n" +
+	"\rfrom_snapshot\x18\x05 \x01(\tR\ffromSnapshot\"\xdf\x05\n" +
+	"\fDiskSnapshot\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12!\n" +
+	"\fproject_name\x18\x03 \x01(\tR\vprojectName\x12'\n" +
+	"\x0fdatacenter_name\x18\x04 \x01(\tR\x0edatacenterName\x12\x1f\n" +
+	"\vsource_disk\x18\x05 \x01(\tR\n" +
+	"sourceDisk\x12\x19\n" +
+	"\bsize_gib\x18\x06 \x01(\x05R\asizeGib\x12#\n" +
+	"\rstorage_class\x18\a \x01(\tR\fstorageClass\x12\x14\n" +
+	"\x05state\x18\b \x01(\tR\x05state\x12(\n" +
+	"\x10create_time_unix\x18\t \x01(\x03R\x0ecreateTimeUnix\x12(\n" +
+	"\x10update_time_unix\x18\n" +
+	" \x01(\x03R\x0eupdateTimeUnix\x12@\n" +
+	"\x06labels\x18\v \x03(\v2(.aes.storage.v1.DiskSnapshot.LabelsEntryR\x06labels\x12O\n" +
+	"\vannotations\x18\f \x03(\v2-.aes.storage.v1.DiskSnapshot.AnnotationsEntryR\vannotations\x12!\n" +
+	"\fnetwork_name\x18\r \x01(\tR\vnetworkName\x12.\n" +
+	"\x13created_by_schedule\x18\x0e \x01(\tR\x11createdBySchedule\x12 \n" +
+	"\vconsistency\x18\x0f \x01(\tR\vconsistency\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
+	"\x10AnnotationsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xfb\x02\n" +
+	"\x15CreateSnapshotRequest\x12\x1f\n" +
+	"\vsource_disk\x18\x01 \x01(\tR\n" +
+	"sourceDisk\x12!\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12I\n" +
+	"\x06labels\x18\x03 \x03(\v21.aes.storage.v1.CreateSnapshotRequest.LabelsEntryR\x06labels\x12X\n" +
+	"\vannotations\x18\x04 \x03(\v26.aes.storage.v1.CreateSnapshotRequest.AnnotationsEntryR\vannotations\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
+	"\x10AnnotationsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"R\n" +
+	"\x16CreateSnapshotResponse\x128\n" +
+	"\bsnapshot\x18\x01 \x01(\v2\x1c.aes.storage.v1.DiskSnapshotR\bsnapshot\"(\n" +
+	"\x12GetSnapshotRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"O\n" +
+	"\x13GetSnapshotResponse\x128\n" +
+	"\bsnapshot\x18\x01 \x01(\v2\x1c.aes.storage.v1.DiskSnapshotR\bsnapshot\"\x96\x01\n" +
+	"\x14ListSnapshotsRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1f\n" +
+	"\vsource_disk\x18\x02 \x01(\tR\n" +
+	"sourceDisk\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x04 \x01(\tR\tpageToken\"\x84\x01\n" +
+	"\x15ListSnapshotsResponse\x12C\n" +
+	"\x0edisk_snapshots\x18\x01 \x03(\v2\x1c.aes.storage.v1.DiskSnapshotR\rdiskSnapshots\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"+\n" +
+	"\x15DeleteSnapshotRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"\x18\n" +
+	"\x16DeleteSnapshotResponse\"\xdc\x03\n" +
+	"\x10SnapshotSchedule\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12\x16\n" +
+	"\x06target\x18\x03 \x01(\tR\x06target\x12\x18\n" +
+	"\acadence\x18\x04 \x01(\tR\acadence\x12\x19\n" +
+	"\bhour_utc\x18\x05 \x01(\x05R\ahourUtc\x12\x1d\n" +
+	"\n" +
+	"minute_utc\x18\x06 \x01(\x05R\tminuteUtc\x12\x1f\n" +
+	"\vweekday_utc\x18\a \x01(\x05R\n" +
+	"weekdayUtc\x12'\n" +
+	"\x0fretention_count\x18\b \x01(\x05R\x0eretentionCount\x12\x18\n" +
+	"\aenabled\x18\t \x01(\bR\aenabled\x12!\n" +
+	"\fdisplay_name\x18\n" +
+	" \x01(\tR\vdisplayName\x12'\n" +
+	"\x10next_run_at_unix\x18\v \x01(\x03R\rnextRunAtUnix\x12&\n" +
+	"\x0flast_run_status\x18\f \x01(\tR\rlastRunStatus\x12$\n" +
+	"\x0elast_run_error\x18\r \x01(\tR\flastRunError\x12'\n" +
+	"\x10last_run_at_unix\x18\x0e \x01(\x03R\rlastRunAtUnix\"]\n" +
+	"\x1dCreateSnapshotScheduleRequest\x12<\n" +
+	"\bschedule\x18\x01 \x01(\v2 .aes.storage.v1.SnapshotScheduleR\bschedule\"^\n" +
+	"\x1eCreateSnapshotScheduleResponse\x12<\n" +
+	"\bschedule\x18\x01 \x01(\v2 .aes.storage.v1.SnapshotScheduleR\bschedule\"\x95\x01\n" +
+	"\x1cListSnapshotSchedulesRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x16\n" +
+	"\x06target\x18\x02 \x01(\tR\x06target\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x04 \x01(\tR\tpageToken\"\x87\x01\n" +
+	"\x1dListSnapshotSchedulesResponse\x12>\n" +
+	"\tschedules\x18\x01 \x03(\v2 .aes.storage.v1.SnapshotScheduleR\tschedules\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x9a\x01\n" +
+	"\x1dUpdateSnapshotScheduleRequest\x12<\n" +
+	"\bschedule\x18\x01 \x01(\v2 .aes.storage.v1.SnapshotScheduleR\bschedule\x12;\n" +
+	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
+	"updateMask\"^\n" +
+	"\x1eUpdateSnapshotScheduleResponse\x12<\n" +
+	"\bschedule\x18\x01 \x01(\v2 .aes.storage.v1.SnapshotScheduleR\bschedule\"3\n" +
+	"\x1dDeleteSnapshotScheduleRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\" \n" +
+	"\x1eDeleteSnapshotScheduleResponse\">\n" +
 	"\x12CreateDiskResponse\x12(\n" +
 	"\x04disk\x18\x01 \x01(\v2\x14.aes.storage.v1.DiskR\x04disk\"$\n" +
 	"\x0eGetDiskRequest\x12\x12\n" +
@@ -1718,7 +2917,7 @@ const file_aes_storage_v1_storage_proto_rawDesc = "" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\",\n" +
 	"\x16DeleteFileShareRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"\x19\n" +
-	"\x17DeleteFileShareResponse2\xb9\b\n" +
+	"\x17DeleteFileShareResponse2\x92\x0f\n" +
 	"\x0eStorageService\x12S\n" +
 	"\n" +
 	"CreateDisk\x12!.aes.storage.v1.CreateDiskRequest\x1a\".aes.storage.v1.CreateDiskResponse\x12J\n" +
@@ -1734,7 +2933,15 @@ const file_aes_storage_v1_storage_proto_rawDesc = "" +
 	"DetachDisk\x12!.aes.storage.v1.DetachDiskRequest\x1a\".aes.storage.v1.DetachDiskResponse\x12S\n" +
 	"\n" +
 	"ResizeDisk\x12!.aes.storage.v1.ResizeDiskRequest\x1a\".aes.storage.v1.ResizeDiskResponse\x12b\n" +
-	"\x0fQuoteDiskResize\x12&.aes.storage.v1.QuoteDiskResizeRequest\x1a'.aes.storage.v1.QuoteDiskResizeResponse\x12b\n" +
+	"\x0fQuoteDiskResize\x12&.aes.storage.v1.QuoteDiskResizeRequest\x1a'.aes.storage.v1.QuoteDiskResizeResponse\x12_\n" +
+	"\x0eCreateSnapshot\x12%.aes.storage.v1.CreateSnapshotRequest\x1a&.aes.storage.v1.CreateSnapshotResponse\x12V\n" +
+	"\vGetSnapshot\x12\".aes.storage.v1.GetSnapshotRequest\x1a#.aes.storage.v1.GetSnapshotResponse\x12\\\n" +
+	"\rListSnapshots\x12$.aes.storage.v1.ListSnapshotsRequest\x1a%.aes.storage.v1.ListSnapshotsResponse\x12_\n" +
+	"\x0eDeleteSnapshot\x12%.aes.storage.v1.DeleteSnapshotRequest\x1a&.aes.storage.v1.DeleteSnapshotResponse\x12w\n" +
+	"\x16CreateSnapshotSchedule\x12-.aes.storage.v1.CreateSnapshotScheduleRequest\x1a..aes.storage.v1.CreateSnapshotScheduleResponse\x12t\n" +
+	"\x15ListSnapshotSchedules\x12,.aes.storage.v1.ListSnapshotSchedulesRequest\x1a-.aes.storage.v1.ListSnapshotSchedulesResponse\x12w\n" +
+	"\x16UpdateSnapshotSchedule\x12-.aes.storage.v1.UpdateSnapshotScheduleRequest\x1a..aes.storage.v1.UpdateSnapshotScheduleResponse\x12w\n" +
+	"\x16DeleteSnapshotSchedule\x12-.aes.storage.v1.DeleteSnapshotScheduleRequest\x1a..aes.storage.v1.DeleteSnapshotScheduleResponse\x12b\n" +
 	"\x0fCreateFileShare\x12&.aes.storage.v1.CreateFileShareRequest\x1a'.aes.storage.v1.CreateFileShareResponse\x12_\n" +
 	"\x0eListFileShares\x12%.aes.storage.v1.ListFileSharesRequest\x1a&.aes.storage.v1.ListFileSharesResponse\x12b\n" +
 	"\x0fDeleteFileShare\x12&.aes.storage.v1.DeleteFileShareRequest\x1a'.aes.storage.v1.DeleteFileShareResponseB\xc3\x01\n" +
@@ -1752,90 +2959,141 @@ func file_aes_storage_v1_storage_proto_rawDescGZIP() []byte {
 	return file_aes_storage_v1_storage_proto_rawDescData
 }
 
-var file_aes_storage_v1_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
+var file_aes_storage_v1_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 54)
 var file_aes_storage_v1_storage_proto_goTypes = []any{
-	(*Disk)(nil),                    // 0: aes.storage.v1.Disk
-	(*CreateDiskRequest)(nil),       // 1: aes.storage.v1.CreateDiskRequest
-	(*CreateDiskResponse)(nil),      // 2: aes.storage.v1.CreateDiskResponse
-	(*GetDiskRequest)(nil),          // 3: aes.storage.v1.GetDiskRequest
-	(*GetDiskResponse)(nil),         // 4: aes.storage.v1.GetDiskResponse
-	(*ListDisksRequest)(nil),        // 5: aes.storage.v1.ListDisksRequest
-	(*ListDisksResponse)(nil),       // 6: aes.storage.v1.ListDisksResponse
-	(*UpdateDiskRequest)(nil),       // 7: aes.storage.v1.UpdateDiskRequest
-	(*UpdateDiskResponse)(nil),      // 8: aes.storage.v1.UpdateDiskResponse
-	(*DeleteDiskRequest)(nil),       // 9: aes.storage.v1.DeleteDiskRequest
-	(*DeleteDiskResponse)(nil),      // 10: aes.storage.v1.DeleteDiskResponse
-	(*AttachDiskRequest)(nil),       // 11: aes.storage.v1.AttachDiskRequest
-	(*AttachDiskResponse)(nil),      // 12: aes.storage.v1.AttachDiskResponse
-	(*DetachDiskRequest)(nil),       // 13: aes.storage.v1.DetachDiskRequest
-	(*DetachDiskResponse)(nil),      // 14: aes.storage.v1.DetachDiskResponse
-	(*ResizeDiskRequest)(nil),       // 15: aes.storage.v1.ResizeDiskRequest
-	(*ResizeDiskResponse)(nil),      // 16: aes.storage.v1.ResizeDiskResponse
-	(*QuoteDiskResizeRequest)(nil),  // 17: aes.storage.v1.QuoteDiskResizeRequest
-	(*QuoteDiskResizeResponse)(nil), // 18: aes.storage.v1.QuoteDiskResizeResponse
-	(*FileShare)(nil),               // 19: aes.storage.v1.FileShare
-	(*CreateFileShareRequest)(nil),  // 20: aes.storage.v1.CreateFileShareRequest
-	(*CreateFileShareResponse)(nil), // 21: aes.storage.v1.CreateFileShareResponse
-	(*ListFileSharesRequest)(nil),   // 22: aes.storage.v1.ListFileSharesRequest
-	(*ListFileSharesResponse)(nil),  // 23: aes.storage.v1.ListFileSharesResponse
-	(*DeleteFileShareRequest)(nil),  // 24: aes.storage.v1.DeleteFileShareRequest
-	(*DeleteFileShareResponse)(nil), // 25: aes.storage.v1.DeleteFileShareResponse
-	nil,                             // 26: aes.storage.v1.Disk.LabelsEntry
-	nil,                             // 27: aes.storage.v1.Disk.AnnotationsEntry
-	nil,                             // 28: aes.storage.v1.FileShare.LabelsEntry
-	nil,                             // 29: aes.storage.v1.FileShare.AnnotationsEntry
-	nil,                             // 30: aes.storage.v1.CreateFileShareRequest.LabelsEntry
-	nil,                             // 31: aes.storage.v1.CreateFileShareRequest.AnnotationsEntry
-	(*fieldmaskpb.FieldMask)(nil),   // 32: google.protobuf.FieldMask
+	(*Disk)(nil),                           // 0: aes.storage.v1.Disk
+	(*CreateDiskRequest)(nil),              // 1: aes.storage.v1.CreateDiskRequest
+	(*DiskSnapshot)(nil),                   // 2: aes.storage.v1.DiskSnapshot
+	(*CreateSnapshotRequest)(nil),          // 3: aes.storage.v1.CreateSnapshotRequest
+	(*CreateSnapshotResponse)(nil),         // 4: aes.storage.v1.CreateSnapshotResponse
+	(*GetSnapshotRequest)(nil),             // 5: aes.storage.v1.GetSnapshotRequest
+	(*GetSnapshotResponse)(nil),            // 6: aes.storage.v1.GetSnapshotResponse
+	(*ListSnapshotsRequest)(nil),           // 7: aes.storage.v1.ListSnapshotsRequest
+	(*ListSnapshotsResponse)(nil),          // 8: aes.storage.v1.ListSnapshotsResponse
+	(*DeleteSnapshotRequest)(nil),          // 9: aes.storage.v1.DeleteSnapshotRequest
+	(*DeleteSnapshotResponse)(nil),         // 10: aes.storage.v1.DeleteSnapshotResponse
+	(*SnapshotSchedule)(nil),               // 11: aes.storage.v1.SnapshotSchedule
+	(*CreateSnapshotScheduleRequest)(nil),  // 12: aes.storage.v1.CreateSnapshotScheduleRequest
+	(*CreateSnapshotScheduleResponse)(nil), // 13: aes.storage.v1.CreateSnapshotScheduleResponse
+	(*ListSnapshotSchedulesRequest)(nil),   // 14: aes.storage.v1.ListSnapshotSchedulesRequest
+	(*ListSnapshotSchedulesResponse)(nil),  // 15: aes.storage.v1.ListSnapshotSchedulesResponse
+	(*UpdateSnapshotScheduleRequest)(nil),  // 16: aes.storage.v1.UpdateSnapshotScheduleRequest
+	(*UpdateSnapshotScheduleResponse)(nil), // 17: aes.storage.v1.UpdateSnapshotScheduleResponse
+	(*DeleteSnapshotScheduleRequest)(nil),  // 18: aes.storage.v1.DeleteSnapshotScheduleRequest
+	(*DeleteSnapshotScheduleResponse)(nil), // 19: aes.storage.v1.DeleteSnapshotScheduleResponse
+	(*CreateDiskResponse)(nil),             // 20: aes.storage.v1.CreateDiskResponse
+	(*GetDiskRequest)(nil),                 // 21: aes.storage.v1.GetDiskRequest
+	(*GetDiskResponse)(nil),                // 22: aes.storage.v1.GetDiskResponse
+	(*ListDisksRequest)(nil),               // 23: aes.storage.v1.ListDisksRequest
+	(*ListDisksResponse)(nil),              // 24: aes.storage.v1.ListDisksResponse
+	(*UpdateDiskRequest)(nil),              // 25: aes.storage.v1.UpdateDiskRequest
+	(*UpdateDiskResponse)(nil),             // 26: aes.storage.v1.UpdateDiskResponse
+	(*DeleteDiskRequest)(nil),              // 27: aes.storage.v1.DeleteDiskRequest
+	(*DeleteDiskResponse)(nil),             // 28: aes.storage.v1.DeleteDiskResponse
+	(*AttachDiskRequest)(nil),              // 29: aes.storage.v1.AttachDiskRequest
+	(*AttachDiskResponse)(nil),             // 30: aes.storage.v1.AttachDiskResponse
+	(*DetachDiskRequest)(nil),              // 31: aes.storage.v1.DetachDiskRequest
+	(*DetachDiskResponse)(nil),             // 32: aes.storage.v1.DetachDiskResponse
+	(*ResizeDiskRequest)(nil),              // 33: aes.storage.v1.ResizeDiskRequest
+	(*ResizeDiskResponse)(nil),             // 34: aes.storage.v1.ResizeDiskResponse
+	(*QuoteDiskResizeRequest)(nil),         // 35: aes.storage.v1.QuoteDiskResizeRequest
+	(*QuoteDiskResizeResponse)(nil),        // 36: aes.storage.v1.QuoteDiskResizeResponse
+	(*FileShare)(nil),                      // 37: aes.storage.v1.FileShare
+	(*CreateFileShareRequest)(nil),         // 38: aes.storage.v1.CreateFileShareRequest
+	(*CreateFileShareResponse)(nil),        // 39: aes.storage.v1.CreateFileShareResponse
+	(*ListFileSharesRequest)(nil),          // 40: aes.storage.v1.ListFileSharesRequest
+	(*ListFileSharesResponse)(nil),         // 41: aes.storage.v1.ListFileSharesResponse
+	(*DeleteFileShareRequest)(nil),         // 42: aes.storage.v1.DeleteFileShareRequest
+	(*DeleteFileShareResponse)(nil),        // 43: aes.storage.v1.DeleteFileShareResponse
+	nil,                                    // 44: aes.storage.v1.Disk.LabelsEntry
+	nil,                                    // 45: aes.storage.v1.Disk.AnnotationsEntry
+	nil,                                    // 46: aes.storage.v1.DiskSnapshot.LabelsEntry
+	nil,                                    // 47: aes.storage.v1.DiskSnapshot.AnnotationsEntry
+	nil,                                    // 48: aes.storage.v1.CreateSnapshotRequest.LabelsEntry
+	nil,                                    // 49: aes.storage.v1.CreateSnapshotRequest.AnnotationsEntry
+	nil,                                    // 50: aes.storage.v1.FileShare.LabelsEntry
+	nil,                                    // 51: aes.storage.v1.FileShare.AnnotationsEntry
+	nil,                                    // 52: aes.storage.v1.CreateFileShareRequest.LabelsEntry
+	nil,                                    // 53: aes.storage.v1.CreateFileShareRequest.AnnotationsEntry
+	(*fieldmaskpb.FieldMask)(nil),          // 54: google.protobuf.FieldMask
 }
 var file_aes_storage_v1_storage_proto_depIdxs = []int32{
-	26, // 0: aes.storage.v1.Disk.labels:type_name -> aes.storage.v1.Disk.LabelsEntry
-	27, // 1: aes.storage.v1.Disk.annotations:type_name -> aes.storage.v1.Disk.AnnotationsEntry
+	44, // 0: aes.storage.v1.Disk.labels:type_name -> aes.storage.v1.Disk.LabelsEntry
+	45, // 1: aes.storage.v1.Disk.annotations:type_name -> aes.storage.v1.Disk.AnnotationsEntry
 	0,  // 2: aes.storage.v1.CreateDiskRequest.disk:type_name -> aes.storage.v1.Disk
-	0,  // 3: aes.storage.v1.CreateDiskResponse.disk:type_name -> aes.storage.v1.Disk
-	0,  // 4: aes.storage.v1.GetDiskResponse.disk:type_name -> aes.storage.v1.Disk
-	0,  // 5: aes.storage.v1.ListDisksResponse.disks:type_name -> aes.storage.v1.Disk
-	0,  // 6: aes.storage.v1.UpdateDiskRequest.disk:type_name -> aes.storage.v1.Disk
-	32, // 7: aes.storage.v1.UpdateDiskRequest.update_mask:type_name -> google.protobuf.FieldMask
-	0,  // 8: aes.storage.v1.UpdateDiskResponse.disk:type_name -> aes.storage.v1.Disk
-	0,  // 9: aes.storage.v1.AttachDiskResponse.disk:type_name -> aes.storage.v1.Disk
-	0,  // 10: aes.storage.v1.DetachDiskResponse.disk:type_name -> aes.storage.v1.Disk
-	0,  // 11: aes.storage.v1.ResizeDiskResponse.disk:type_name -> aes.storage.v1.Disk
-	28, // 12: aes.storage.v1.FileShare.labels:type_name -> aes.storage.v1.FileShare.LabelsEntry
-	29, // 13: aes.storage.v1.FileShare.annotations:type_name -> aes.storage.v1.FileShare.AnnotationsEntry
-	30, // 14: aes.storage.v1.CreateFileShareRequest.labels:type_name -> aes.storage.v1.CreateFileShareRequest.LabelsEntry
-	31, // 15: aes.storage.v1.CreateFileShareRequest.annotations:type_name -> aes.storage.v1.CreateFileShareRequest.AnnotationsEntry
-	19, // 16: aes.storage.v1.CreateFileShareResponse.file_share:type_name -> aes.storage.v1.FileShare
-	19, // 17: aes.storage.v1.ListFileSharesResponse.file_shares:type_name -> aes.storage.v1.FileShare
-	1,  // 18: aes.storage.v1.StorageService.CreateDisk:input_type -> aes.storage.v1.CreateDiskRequest
-	3,  // 19: aes.storage.v1.StorageService.GetDisk:input_type -> aes.storage.v1.GetDiskRequest
-	5,  // 20: aes.storage.v1.StorageService.ListDisks:input_type -> aes.storage.v1.ListDisksRequest
-	7,  // 21: aes.storage.v1.StorageService.UpdateDisk:input_type -> aes.storage.v1.UpdateDiskRequest
-	9,  // 22: aes.storage.v1.StorageService.DeleteDisk:input_type -> aes.storage.v1.DeleteDiskRequest
-	11, // 23: aes.storage.v1.StorageService.AttachDisk:input_type -> aes.storage.v1.AttachDiskRequest
-	13, // 24: aes.storage.v1.StorageService.DetachDisk:input_type -> aes.storage.v1.DetachDiskRequest
-	15, // 25: aes.storage.v1.StorageService.ResizeDisk:input_type -> aes.storage.v1.ResizeDiskRequest
-	17, // 26: aes.storage.v1.StorageService.QuoteDiskResize:input_type -> aes.storage.v1.QuoteDiskResizeRequest
-	20, // 27: aes.storage.v1.StorageService.CreateFileShare:input_type -> aes.storage.v1.CreateFileShareRequest
-	22, // 28: aes.storage.v1.StorageService.ListFileShares:input_type -> aes.storage.v1.ListFileSharesRequest
-	24, // 29: aes.storage.v1.StorageService.DeleteFileShare:input_type -> aes.storage.v1.DeleteFileShareRequest
-	2,  // 30: aes.storage.v1.StorageService.CreateDisk:output_type -> aes.storage.v1.CreateDiskResponse
-	4,  // 31: aes.storage.v1.StorageService.GetDisk:output_type -> aes.storage.v1.GetDiskResponse
-	6,  // 32: aes.storage.v1.StorageService.ListDisks:output_type -> aes.storage.v1.ListDisksResponse
-	8,  // 33: aes.storage.v1.StorageService.UpdateDisk:output_type -> aes.storage.v1.UpdateDiskResponse
-	10, // 34: aes.storage.v1.StorageService.DeleteDisk:output_type -> aes.storage.v1.DeleteDiskResponse
-	12, // 35: aes.storage.v1.StorageService.AttachDisk:output_type -> aes.storage.v1.AttachDiskResponse
-	14, // 36: aes.storage.v1.StorageService.DetachDisk:output_type -> aes.storage.v1.DetachDiskResponse
-	16, // 37: aes.storage.v1.StorageService.ResizeDisk:output_type -> aes.storage.v1.ResizeDiskResponse
-	18, // 38: aes.storage.v1.StorageService.QuoteDiskResize:output_type -> aes.storage.v1.QuoteDiskResizeResponse
-	21, // 39: aes.storage.v1.StorageService.CreateFileShare:output_type -> aes.storage.v1.CreateFileShareResponse
-	23, // 40: aes.storage.v1.StorageService.ListFileShares:output_type -> aes.storage.v1.ListFileSharesResponse
-	25, // 41: aes.storage.v1.StorageService.DeleteFileShare:output_type -> aes.storage.v1.DeleteFileShareResponse
-	30, // [30:42] is the sub-list for method output_type
-	18, // [18:30] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	46, // 3: aes.storage.v1.DiskSnapshot.labels:type_name -> aes.storage.v1.DiskSnapshot.LabelsEntry
+	47, // 4: aes.storage.v1.DiskSnapshot.annotations:type_name -> aes.storage.v1.DiskSnapshot.AnnotationsEntry
+	48, // 5: aes.storage.v1.CreateSnapshotRequest.labels:type_name -> aes.storage.v1.CreateSnapshotRequest.LabelsEntry
+	49, // 6: aes.storage.v1.CreateSnapshotRequest.annotations:type_name -> aes.storage.v1.CreateSnapshotRequest.AnnotationsEntry
+	2,  // 7: aes.storage.v1.CreateSnapshotResponse.snapshot:type_name -> aes.storage.v1.DiskSnapshot
+	2,  // 8: aes.storage.v1.GetSnapshotResponse.snapshot:type_name -> aes.storage.v1.DiskSnapshot
+	2,  // 9: aes.storage.v1.ListSnapshotsResponse.disk_snapshots:type_name -> aes.storage.v1.DiskSnapshot
+	11, // 10: aes.storage.v1.CreateSnapshotScheduleRequest.schedule:type_name -> aes.storage.v1.SnapshotSchedule
+	11, // 11: aes.storage.v1.CreateSnapshotScheduleResponse.schedule:type_name -> aes.storage.v1.SnapshotSchedule
+	11, // 12: aes.storage.v1.ListSnapshotSchedulesResponse.schedules:type_name -> aes.storage.v1.SnapshotSchedule
+	11, // 13: aes.storage.v1.UpdateSnapshotScheduleRequest.schedule:type_name -> aes.storage.v1.SnapshotSchedule
+	54, // 14: aes.storage.v1.UpdateSnapshotScheduleRequest.update_mask:type_name -> google.protobuf.FieldMask
+	11, // 15: aes.storage.v1.UpdateSnapshotScheduleResponse.schedule:type_name -> aes.storage.v1.SnapshotSchedule
+	0,  // 16: aes.storage.v1.CreateDiskResponse.disk:type_name -> aes.storage.v1.Disk
+	0,  // 17: aes.storage.v1.GetDiskResponse.disk:type_name -> aes.storage.v1.Disk
+	0,  // 18: aes.storage.v1.ListDisksResponse.disks:type_name -> aes.storage.v1.Disk
+	0,  // 19: aes.storage.v1.UpdateDiskRequest.disk:type_name -> aes.storage.v1.Disk
+	54, // 20: aes.storage.v1.UpdateDiskRequest.update_mask:type_name -> google.protobuf.FieldMask
+	0,  // 21: aes.storage.v1.UpdateDiskResponse.disk:type_name -> aes.storage.v1.Disk
+	0,  // 22: aes.storage.v1.AttachDiskResponse.disk:type_name -> aes.storage.v1.Disk
+	0,  // 23: aes.storage.v1.DetachDiskResponse.disk:type_name -> aes.storage.v1.Disk
+	0,  // 24: aes.storage.v1.ResizeDiskResponse.disk:type_name -> aes.storage.v1.Disk
+	50, // 25: aes.storage.v1.FileShare.labels:type_name -> aes.storage.v1.FileShare.LabelsEntry
+	51, // 26: aes.storage.v1.FileShare.annotations:type_name -> aes.storage.v1.FileShare.AnnotationsEntry
+	52, // 27: aes.storage.v1.CreateFileShareRequest.labels:type_name -> aes.storage.v1.CreateFileShareRequest.LabelsEntry
+	53, // 28: aes.storage.v1.CreateFileShareRequest.annotations:type_name -> aes.storage.v1.CreateFileShareRequest.AnnotationsEntry
+	37, // 29: aes.storage.v1.CreateFileShareResponse.file_share:type_name -> aes.storage.v1.FileShare
+	37, // 30: aes.storage.v1.ListFileSharesResponse.file_shares:type_name -> aes.storage.v1.FileShare
+	1,  // 31: aes.storage.v1.StorageService.CreateDisk:input_type -> aes.storage.v1.CreateDiskRequest
+	21, // 32: aes.storage.v1.StorageService.GetDisk:input_type -> aes.storage.v1.GetDiskRequest
+	23, // 33: aes.storage.v1.StorageService.ListDisks:input_type -> aes.storage.v1.ListDisksRequest
+	25, // 34: aes.storage.v1.StorageService.UpdateDisk:input_type -> aes.storage.v1.UpdateDiskRequest
+	27, // 35: aes.storage.v1.StorageService.DeleteDisk:input_type -> aes.storage.v1.DeleteDiskRequest
+	29, // 36: aes.storage.v1.StorageService.AttachDisk:input_type -> aes.storage.v1.AttachDiskRequest
+	31, // 37: aes.storage.v1.StorageService.DetachDisk:input_type -> aes.storage.v1.DetachDiskRequest
+	33, // 38: aes.storage.v1.StorageService.ResizeDisk:input_type -> aes.storage.v1.ResizeDiskRequest
+	35, // 39: aes.storage.v1.StorageService.QuoteDiskResize:input_type -> aes.storage.v1.QuoteDiskResizeRequest
+	3,  // 40: aes.storage.v1.StorageService.CreateSnapshot:input_type -> aes.storage.v1.CreateSnapshotRequest
+	5,  // 41: aes.storage.v1.StorageService.GetSnapshot:input_type -> aes.storage.v1.GetSnapshotRequest
+	7,  // 42: aes.storage.v1.StorageService.ListSnapshots:input_type -> aes.storage.v1.ListSnapshotsRequest
+	9,  // 43: aes.storage.v1.StorageService.DeleteSnapshot:input_type -> aes.storage.v1.DeleteSnapshotRequest
+	12, // 44: aes.storage.v1.StorageService.CreateSnapshotSchedule:input_type -> aes.storage.v1.CreateSnapshotScheduleRequest
+	14, // 45: aes.storage.v1.StorageService.ListSnapshotSchedules:input_type -> aes.storage.v1.ListSnapshotSchedulesRequest
+	16, // 46: aes.storage.v1.StorageService.UpdateSnapshotSchedule:input_type -> aes.storage.v1.UpdateSnapshotScheduleRequest
+	18, // 47: aes.storage.v1.StorageService.DeleteSnapshotSchedule:input_type -> aes.storage.v1.DeleteSnapshotScheduleRequest
+	38, // 48: aes.storage.v1.StorageService.CreateFileShare:input_type -> aes.storage.v1.CreateFileShareRequest
+	40, // 49: aes.storage.v1.StorageService.ListFileShares:input_type -> aes.storage.v1.ListFileSharesRequest
+	42, // 50: aes.storage.v1.StorageService.DeleteFileShare:input_type -> aes.storage.v1.DeleteFileShareRequest
+	20, // 51: aes.storage.v1.StorageService.CreateDisk:output_type -> aes.storage.v1.CreateDiskResponse
+	22, // 52: aes.storage.v1.StorageService.GetDisk:output_type -> aes.storage.v1.GetDiskResponse
+	24, // 53: aes.storage.v1.StorageService.ListDisks:output_type -> aes.storage.v1.ListDisksResponse
+	26, // 54: aes.storage.v1.StorageService.UpdateDisk:output_type -> aes.storage.v1.UpdateDiskResponse
+	28, // 55: aes.storage.v1.StorageService.DeleteDisk:output_type -> aes.storage.v1.DeleteDiskResponse
+	30, // 56: aes.storage.v1.StorageService.AttachDisk:output_type -> aes.storage.v1.AttachDiskResponse
+	32, // 57: aes.storage.v1.StorageService.DetachDisk:output_type -> aes.storage.v1.DetachDiskResponse
+	34, // 58: aes.storage.v1.StorageService.ResizeDisk:output_type -> aes.storage.v1.ResizeDiskResponse
+	36, // 59: aes.storage.v1.StorageService.QuoteDiskResize:output_type -> aes.storage.v1.QuoteDiskResizeResponse
+	4,  // 60: aes.storage.v1.StorageService.CreateSnapshot:output_type -> aes.storage.v1.CreateSnapshotResponse
+	6,  // 61: aes.storage.v1.StorageService.GetSnapshot:output_type -> aes.storage.v1.GetSnapshotResponse
+	8,  // 62: aes.storage.v1.StorageService.ListSnapshots:output_type -> aes.storage.v1.ListSnapshotsResponse
+	10, // 63: aes.storage.v1.StorageService.DeleteSnapshot:output_type -> aes.storage.v1.DeleteSnapshotResponse
+	13, // 64: aes.storage.v1.StorageService.CreateSnapshotSchedule:output_type -> aes.storage.v1.CreateSnapshotScheduleResponse
+	15, // 65: aes.storage.v1.StorageService.ListSnapshotSchedules:output_type -> aes.storage.v1.ListSnapshotSchedulesResponse
+	17, // 66: aes.storage.v1.StorageService.UpdateSnapshotSchedule:output_type -> aes.storage.v1.UpdateSnapshotScheduleResponse
+	19, // 67: aes.storage.v1.StorageService.DeleteSnapshotSchedule:output_type -> aes.storage.v1.DeleteSnapshotScheduleResponse
+	39, // 68: aes.storage.v1.StorageService.CreateFileShare:output_type -> aes.storage.v1.CreateFileShareResponse
+	41, // 69: aes.storage.v1.StorageService.ListFileShares:output_type -> aes.storage.v1.ListFileSharesResponse
+	43, // 70: aes.storage.v1.StorageService.DeleteFileShare:output_type -> aes.storage.v1.DeleteFileShareResponse
+	51, // [51:71] is the sub-list for method output_type
+	31, // [31:51] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_aes_storage_v1_storage_proto_init() }
@@ -1849,7 +3107,7 @@ func file_aes_storage_v1_storage_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_storage_v1_storage_proto_rawDesc), len(file_aes_storage_v1_storage_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   32,
+			NumMessages:   54,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -59,6 +59,30 @@ const (
 	// StorageServiceQuoteDiskResizeProcedure is the fully-qualified name of the StorageService's
 	// QuoteDiskResize RPC.
 	StorageServiceQuoteDiskResizeProcedure = "/aes.storage.v1.StorageService/QuoteDiskResize"
+	// StorageServiceCreateSnapshotProcedure is the fully-qualified name of the StorageService's
+	// CreateSnapshot RPC.
+	StorageServiceCreateSnapshotProcedure = "/aes.storage.v1.StorageService/CreateSnapshot"
+	// StorageServiceGetSnapshotProcedure is the fully-qualified name of the StorageService's
+	// GetSnapshot RPC.
+	StorageServiceGetSnapshotProcedure = "/aes.storage.v1.StorageService/GetSnapshot"
+	// StorageServiceListSnapshotsProcedure is the fully-qualified name of the StorageService's
+	// ListSnapshots RPC.
+	StorageServiceListSnapshotsProcedure = "/aes.storage.v1.StorageService/ListSnapshots"
+	// StorageServiceDeleteSnapshotProcedure is the fully-qualified name of the StorageService's
+	// DeleteSnapshot RPC.
+	StorageServiceDeleteSnapshotProcedure = "/aes.storage.v1.StorageService/DeleteSnapshot"
+	// StorageServiceCreateSnapshotScheduleProcedure is the fully-qualified name of the StorageService's
+	// CreateSnapshotSchedule RPC.
+	StorageServiceCreateSnapshotScheduleProcedure = "/aes.storage.v1.StorageService/CreateSnapshotSchedule"
+	// StorageServiceListSnapshotSchedulesProcedure is the fully-qualified name of the StorageService's
+	// ListSnapshotSchedules RPC.
+	StorageServiceListSnapshotSchedulesProcedure = "/aes.storage.v1.StorageService/ListSnapshotSchedules"
+	// StorageServiceUpdateSnapshotScheduleProcedure is the fully-qualified name of the StorageService's
+	// UpdateSnapshotSchedule RPC.
+	StorageServiceUpdateSnapshotScheduleProcedure = "/aes.storage.v1.StorageService/UpdateSnapshotSchedule"
+	// StorageServiceDeleteSnapshotScheduleProcedure is the fully-qualified name of the StorageService's
+	// DeleteSnapshotSchedule RPC.
+	StorageServiceDeleteSnapshotScheduleProcedure = "/aes.storage.v1.StorageService/DeleteSnapshotSchedule"
 	// StorageServiceCreateFileShareProcedure is the fully-qualified name of the StorageService's
 	// CreateFileShare RPC.
 	StorageServiceCreateFileShareProcedure = "/aes.storage.v1.StorageService/CreateFileShare"
@@ -90,6 +114,14 @@ type StorageServiceClient interface {
 	// reservation grows as a paid upgrade: the difference for the remaining term is charged
 	// immediately on resize — due_now_minor is that amount. 0 for hourly-billed disks.
 	QuoteDiskResize(context.Context, *connect.Request[v1.QuoteDiskResizeRequest]) (*connect.Response[v1.QuoteDiskResizeResponse], error)
+	CreateSnapshot(context.Context, *connect.Request[v1.CreateSnapshotRequest]) (*connect.Response[v1.CreateSnapshotResponse], error)
+	GetSnapshot(context.Context, *connect.Request[v1.GetSnapshotRequest]) (*connect.Response[v1.GetSnapshotResponse], error)
+	ListSnapshots(context.Context, *connect.Request[v1.ListSnapshotsRequest]) (*connect.Response[v1.ListSnapshotsResponse], error)
+	DeleteSnapshot(context.Context, *connect.Request[v1.DeleteSnapshotRequest]) (*connect.Response[v1.DeleteSnapshotResponse], error)
+	CreateSnapshotSchedule(context.Context, *connect.Request[v1.CreateSnapshotScheduleRequest]) (*connect.Response[v1.CreateSnapshotScheduleResponse], error)
+	ListSnapshotSchedules(context.Context, *connect.Request[v1.ListSnapshotSchedulesRequest]) (*connect.Response[v1.ListSnapshotSchedulesResponse], error)
+	UpdateSnapshotSchedule(context.Context, *connect.Request[v1.UpdateSnapshotScheduleRequest]) (*connect.Response[v1.UpdateSnapshotScheduleResponse], error)
+	DeleteSnapshotSchedule(context.Context, *connect.Request[v1.DeleteSnapshotScheduleRequest]) (*connect.Response[v1.DeleteSnapshotScheduleResponse], error)
 	// File shares — RWX NFS volumes that multiple VMs in the same tenant network can mount
 	// concurrently. Access is restricted to the tenant network, so any VM on that network can
 	// `mount -t nfs4` using the FileShare's `mount_command`. No attach/detach bookkeeping —
@@ -164,6 +196,54 @@ func NewStorageServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(storageServiceMethods.ByName("QuoteDiskResize")),
 			connect.WithClientOptions(opts...),
 		),
+		createSnapshot: connect.NewClient[v1.CreateSnapshotRequest, v1.CreateSnapshotResponse](
+			httpClient,
+			baseURL+StorageServiceCreateSnapshotProcedure,
+			connect.WithSchema(storageServiceMethods.ByName("CreateSnapshot")),
+			connect.WithClientOptions(opts...),
+		),
+		getSnapshot: connect.NewClient[v1.GetSnapshotRequest, v1.GetSnapshotResponse](
+			httpClient,
+			baseURL+StorageServiceGetSnapshotProcedure,
+			connect.WithSchema(storageServiceMethods.ByName("GetSnapshot")),
+			connect.WithClientOptions(opts...),
+		),
+		listSnapshots: connect.NewClient[v1.ListSnapshotsRequest, v1.ListSnapshotsResponse](
+			httpClient,
+			baseURL+StorageServiceListSnapshotsProcedure,
+			connect.WithSchema(storageServiceMethods.ByName("ListSnapshots")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteSnapshot: connect.NewClient[v1.DeleteSnapshotRequest, v1.DeleteSnapshotResponse](
+			httpClient,
+			baseURL+StorageServiceDeleteSnapshotProcedure,
+			connect.WithSchema(storageServiceMethods.ByName("DeleteSnapshot")),
+			connect.WithClientOptions(opts...),
+		),
+		createSnapshotSchedule: connect.NewClient[v1.CreateSnapshotScheduleRequest, v1.CreateSnapshotScheduleResponse](
+			httpClient,
+			baseURL+StorageServiceCreateSnapshotScheduleProcedure,
+			connect.WithSchema(storageServiceMethods.ByName("CreateSnapshotSchedule")),
+			connect.WithClientOptions(opts...),
+		),
+		listSnapshotSchedules: connect.NewClient[v1.ListSnapshotSchedulesRequest, v1.ListSnapshotSchedulesResponse](
+			httpClient,
+			baseURL+StorageServiceListSnapshotSchedulesProcedure,
+			connect.WithSchema(storageServiceMethods.ByName("ListSnapshotSchedules")),
+			connect.WithClientOptions(opts...),
+		),
+		updateSnapshotSchedule: connect.NewClient[v1.UpdateSnapshotScheduleRequest, v1.UpdateSnapshotScheduleResponse](
+			httpClient,
+			baseURL+StorageServiceUpdateSnapshotScheduleProcedure,
+			connect.WithSchema(storageServiceMethods.ByName("UpdateSnapshotSchedule")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteSnapshotSchedule: connect.NewClient[v1.DeleteSnapshotScheduleRequest, v1.DeleteSnapshotScheduleResponse](
+			httpClient,
+			baseURL+StorageServiceDeleteSnapshotScheduleProcedure,
+			connect.WithSchema(storageServiceMethods.ByName("DeleteSnapshotSchedule")),
+			connect.WithClientOptions(opts...),
+		),
 		createFileShare: connect.NewClient[v1.CreateFileShareRequest, v1.CreateFileShareResponse](
 			httpClient,
 			baseURL+StorageServiceCreateFileShareProcedure,
@@ -187,18 +267,26 @@ func NewStorageServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 
 // storageServiceClient implements StorageServiceClient.
 type storageServiceClient struct {
-	createDisk      *connect.Client[v1.CreateDiskRequest, v1.CreateDiskResponse]
-	getDisk         *connect.Client[v1.GetDiskRequest, v1.GetDiskResponse]
-	listDisks       *connect.Client[v1.ListDisksRequest, v1.ListDisksResponse]
-	updateDisk      *connect.Client[v1.UpdateDiskRequest, v1.UpdateDiskResponse]
-	deleteDisk      *connect.Client[v1.DeleteDiskRequest, v1.DeleteDiskResponse]
-	attachDisk      *connect.Client[v1.AttachDiskRequest, v1.AttachDiskResponse]
-	detachDisk      *connect.Client[v1.DetachDiskRequest, v1.DetachDiskResponse]
-	resizeDisk      *connect.Client[v1.ResizeDiskRequest, v1.ResizeDiskResponse]
-	quoteDiskResize *connect.Client[v1.QuoteDiskResizeRequest, v1.QuoteDiskResizeResponse]
-	createFileShare *connect.Client[v1.CreateFileShareRequest, v1.CreateFileShareResponse]
-	listFileShares  *connect.Client[v1.ListFileSharesRequest, v1.ListFileSharesResponse]
-	deleteFileShare *connect.Client[v1.DeleteFileShareRequest, v1.DeleteFileShareResponse]
+	createDisk             *connect.Client[v1.CreateDiskRequest, v1.CreateDiskResponse]
+	getDisk                *connect.Client[v1.GetDiskRequest, v1.GetDiskResponse]
+	listDisks              *connect.Client[v1.ListDisksRequest, v1.ListDisksResponse]
+	updateDisk             *connect.Client[v1.UpdateDiskRequest, v1.UpdateDiskResponse]
+	deleteDisk             *connect.Client[v1.DeleteDiskRequest, v1.DeleteDiskResponse]
+	attachDisk             *connect.Client[v1.AttachDiskRequest, v1.AttachDiskResponse]
+	detachDisk             *connect.Client[v1.DetachDiskRequest, v1.DetachDiskResponse]
+	resizeDisk             *connect.Client[v1.ResizeDiskRequest, v1.ResizeDiskResponse]
+	quoteDiskResize        *connect.Client[v1.QuoteDiskResizeRequest, v1.QuoteDiskResizeResponse]
+	createSnapshot         *connect.Client[v1.CreateSnapshotRequest, v1.CreateSnapshotResponse]
+	getSnapshot            *connect.Client[v1.GetSnapshotRequest, v1.GetSnapshotResponse]
+	listSnapshots          *connect.Client[v1.ListSnapshotsRequest, v1.ListSnapshotsResponse]
+	deleteSnapshot         *connect.Client[v1.DeleteSnapshotRequest, v1.DeleteSnapshotResponse]
+	createSnapshotSchedule *connect.Client[v1.CreateSnapshotScheduleRequest, v1.CreateSnapshotScheduleResponse]
+	listSnapshotSchedules  *connect.Client[v1.ListSnapshotSchedulesRequest, v1.ListSnapshotSchedulesResponse]
+	updateSnapshotSchedule *connect.Client[v1.UpdateSnapshotScheduleRequest, v1.UpdateSnapshotScheduleResponse]
+	deleteSnapshotSchedule *connect.Client[v1.DeleteSnapshotScheduleRequest, v1.DeleteSnapshotScheduleResponse]
+	createFileShare        *connect.Client[v1.CreateFileShareRequest, v1.CreateFileShareResponse]
+	listFileShares         *connect.Client[v1.ListFileSharesRequest, v1.ListFileSharesResponse]
+	deleteFileShare        *connect.Client[v1.DeleteFileShareRequest, v1.DeleteFileShareResponse]
 }
 
 // CreateDisk calls aes.storage.v1.StorageService.CreateDisk.
@@ -246,6 +334,46 @@ func (c *storageServiceClient) QuoteDiskResize(ctx context.Context, req *connect
 	return c.quoteDiskResize.CallUnary(ctx, req)
 }
 
+// CreateSnapshot calls aes.storage.v1.StorageService.CreateSnapshot.
+func (c *storageServiceClient) CreateSnapshot(ctx context.Context, req *connect.Request[v1.CreateSnapshotRequest]) (*connect.Response[v1.CreateSnapshotResponse], error) {
+	return c.createSnapshot.CallUnary(ctx, req)
+}
+
+// GetSnapshot calls aes.storage.v1.StorageService.GetSnapshot.
+func (c *storageServiceClient) GetSnapshot(ctx context.Context, req *connect.Request[v1.GetSnapshotRequest]) (*connect.Response[v1.GetSnapshotResponse], error) {
+	return c.getSnapshot.CallUnary(ctx, req)
+}
+
+// ListSnapshots calls aes.storage.v1.StorageService.ListSnapshots.
+func (c *storageServiceClient) ListSnapshots(ctx context.Context, req *connect.Request[v1.ListSnapshotsRequest]) (*connect.Response[v1.ListSnapshotsResponse], error) {
+	return c.listSnapshots.CallUnary(ctx, req)
+}
+
+// DeleteSnapshot calls aes.storage.v1.StorageService.DeleteSnapshot.
+func (c *storageServiceClient) DeleteSnapshot(ctx context.Context, req *connect.Request[v1.DeleteSnapshotRequest]) (*connect.Response[v1.DeleteSnapshotResponse], error) {
+	return c.deleteSnapshot.CallUnary(ctx, req)
+}
+
+// CreateSnapshotSchedule calls aes.storage.v1.StorageService.CreateSnapshotSchedule.
+func (c *storageServiceClient) CreateSnapshotSchedule(ctx context.Context, req *connect.Request[v1.CreateSnapshotScheduleRequest]) (*connect.Response[v1.CreateSnapshotScheduleResponse], error) {
+	return c.createSnapshotSchedule.CallUnary(ctx, req)
+}
+
+// ListSnapshotSchedules calls aes.storage.v1.StorageService.ListSnapshotSchedules.
+func (c *storageServiceClient) ListSnapshotSchedules(ctx context.Context, req *connect.Request[v1.ListSnapshotSchedulesRequest]) (*connect.Response[v1.ListSnapshotSchedulesResponse], error) {
+	return c.listSnapshotSchedules.CallUnary(ctx, req)
+}
+
+// UpdateSnapshotSchedule calls aes.storage.v1.StorageService.UpdateSnapshotSchedule.
+func (c *storageServiceClient) UpdateSnapshotSchedule(ctx context.Context, req *connect.Request[v1.UpdateSnapshotScheduleRequest]) (*connect.Response[v1.UpdateSnapshotScheduleResponse], error) {
+	return c.updateSnapshotSchedule.CallUnary(ctx, req)
+}
+
+// DeleteSnapshotSchedule calls aes.storage.v1.StorageService.DeleteSnapshotSchedule.
+func (c *storageServiceClient) DeleteSnapshotSchedule(ctx context.Context, req *connect.Request[v1.DeleteSnapshotScheduleRequest]) (*connect.Response[v1.DeleteSnapshotScheduleResponse], error) {
+	return c.deleteSnapshotSchedule.CallUnary(ctx, req)
+}
+
 // CreateFileShare calls aes.storage.v1.StorageService.CreateFileShare.
 func (c *storageServiceClient) CreateFileShare(ctx context.Context, req *connect.Request[v1.CreateFileShareRequest]) (*connect.Response[v1.CreateFileShareResponse], error) {
 	return c.createFileShare.CallUnary(ctx, req)
@@ -281,6 +409,14 @@ type StorageServiceHandler interface {
 	// reservation grows as a paid upgrade: the difference for the remaining term is charged
 	// immediately on resize — due_now_minor is that amount. 0 for hourly-billed disks.
 	QuoteDiskResize(context.Context, *connect.Request[v1.QuoteDiskResizeRequest]) (*connect.Response[v1.QuoteDiskResizeResponse], error)
+	CreateSnapshot(context.Context, *connect.Request[v1.CreateSnapshotRequest]) (*connect.Response[v1.CreateSnapshotResponse], error)
+	GetSnapshot(context.Context, *connect.Request[v1.GetSnapshotRequest]) (*connect.Response[v1.GetSnapshotResponse], error)
+	ListSnapshots(context.Context, *connect.Request[v1.ListSnapshotsRequest]) (*connect.Response[v1.ListSnapshotsResponse], error)
+	DeleteSnapshot(context.Context, *connect.Request[v1.DeleteSnapshotRequest]) (*connect.Response[v1.DeleteSnapshotResponse], error)
+	CreateSnapshotSchedule(context.Context, *connect.Request[v1.CreateSnapshotScheduleRequest]) (*connect.Response[v1.CreateSnapshotScheduleResponse], error)
+	ListSnapshotSchedules(context.Context, *connect.Request[v1.ListSnapshotSchedulesRequest]) (*connect.Response[v1.ListSnapshotSchedulesResponse], error)
+	UpdateSnapshotSchedule(context.Context, *connect.Request[v1.UpdateSnapshotScheduleRequest]) (*connect.Response[v1.UpdateSnapshotScheduleResponse], error)
+	DeleteSnapshotSchedule(context.Context, *connect.Request[v1.DeleteSnapshotScheduleRequest]) (*connect.Response[v1.DeleteSnapshotScheduleResponse], error)
 	// File shares — RWX NFS volumes that multiple VMs in the same tenant network can mount
 	// concurrently. Access is restricted to the tenant network, so any VM on that network can
 	// `mount -t nfs4` using the FileShare's `mount_command`. No attach/detach bookkeeping —
@@ -351,6 +487,54 @@ func NewStorageServiceHandler(svc StorageServiceHandler, opts ...connect.Handler
 		connect.WithSchema(storageServiceMethods.ByName("QuoteDiskResize")),
 		connect.WithHandlerOptions(opts...),
 	)
+	storageServiceCreateSnapshotHandler := connect.NewUnaryHandler(
+		StorageServiceCreateSnapshotProcedure,
+		svc.CreateSnapshot,
+		connect.WithSchema(storageServiceMethods.ByName("CreateSnapshot")),
+		connect.WithHandlerOptions(opts...),
+	)
+	storageServiceGetSnapshotHandler := connect.NewUnaryHandler(
+		StorageServiceGetSnapshotProcedure,
+		svc.GetSnapshot,
+		connect.WithSchema(storageServiceMethods.ByName("GetSnapshot")),
+		connect.WithHandlerOptions(opts...),
+	)
+	storageServiceListSnapshotsHandler := connect.NewUnaryHandler(
+		StorageServiceListSnapshotsProcedure,
+		svc.ListSnapshots,
+		connect.WithSchema(storageServiceMethods.ByName("ListSnapshots")),
+		connect.WithHandlerOptions(opts...),
+	)
+	storageServiceDeleteSnapshotHandler := connect.NewUnaryHandler(
+		StorageServiceDeleteSnapshotProcedure,
+		svc.DeleteSnapshot,
+		connect.WithSchema(storageServiceMethods.ByName("DeleteSnapshot")),
+		connect.WithHandlerOptions(opts...),
+	)
+	storageServiceCreateSnapshotScheduleHandler := connect.NewUnaryHandler(
+		StorageServiceCreateSnapshotScheduleProcedure,
+		svc.CreateSnapshotSchedule,
+		connect.WithSchema(storageServiceMethods.ByName("CreateSnapshotSchedule")),
+		connect.WithHandlerOptions(opts...),
+	)
+	storageServiceListSnapshotSchedulesHandler := connect.NewUnaryHandler(
+		StorageServiceListSnapshotSchedulesProcedure,
+		svc.ListSnapshotSchedules,
+		connect.WithSchema(storageServiceMethods.ByName("ListSnapshotSchedules")),
+		connect.WithHandlerOptions(opts...),
+	)
+	storageServiceUpdateSnapshotScheduleHandler := connect.NewUnaryHandler(
+		StorageServiceUpdateSnapshotScheduleProcedure,
+		svc.UpdateSnapshotSchedule,
+		connect.WithSchema(storageServiceMethods.ByName("UpdateSnapshotSchedule")),
+		connect.WithHandlerOptions(opts...),
+	)
+	storageServiceDeleteSnapshotScheduleHandler := connect.NewUnaryHandler(
+		StorageServiceDeleteSnapshotScheduleProcedure,
+		svc.DeleteSnapshotSchedule,
+		connect.WithSchema(storageServiceMethods.ByName("DeleteSnapshotSchedule")),
+		connect.WithHandlerOptions(opts...),
+	)
 	storageServiceCreateFileShareHandler := connect.NewUnaryHandler(
 		StorageServiceCreateFileShareProcedure,
 		svc.CreateFileShare,
@@ -389,6 +573,22 @@ func NewStorageServiceHandler(svc StorageServiceHandler, opts ...connect.Handler
 			storageServiceResizeDiskHandler.ServeHTTP(w, r)
 		case StorageServiceQuoteDiskResizeProcedure:
 			storageServiceQuoteDiskResizeHandler.ServeHTTP(w, r)
+		case StorageServiceCreateSnapshotProcedure:
+			storageServiceCreateSnapshotHandler.ServeHTTP(w, r)
+		case StorageServiceGetSnapshotProcedure:
+			storageServiceGetSnapshotHandler.ServeHTTP(w, r)
+		case StorageServiceListSnapshotsProcedure:
+			storageServiceListSnapshotsHandler.ServeHTTP(w, r)
+		case StorageServiceDeleteSnapshotProcedure:
+			storageServiceDeleteSnapshotHandler.ServeHTTP(w, r)
+		case StorageServiceCreateSnapshotScheduleProcedure:
+			storageServiceCreateSnapshotScheduleHandler.ServeHTTP(w, r)
+		case StorageServiceListSnapshotSchedulesProcedure:
+			storageServiceListSnapshotSchedulesHandler.ServeHTTP(w, r)
+		case StorageServiceUpdateSnapshotScheduleProcedure:
+			storageServiceUpdateSnapshotScheduleHandler.ServeHTTP(w, r)
+		case StorageServiceDeleteSnapshotScheduleProcedure:
+			storageServiceDeleteSnapshotScheduleHandler.ServeHTTP(w, r)
 		case StorageServiceCreateFileShareProcedure:
 			storageServiceCreateFileShareHandler.ServeHTTP(w, r)
 		case StorageServiceListFileSharesProcedure:
@@ -438,6 +638,38 @@ func (UnimplementedStorageServiceHandler) ResizeDisk(context.Context, *connect.R
 
 func (UnimplementedStorageServiceHandler) QuoteDiskResize(context.Context, *connect.Request[v1.QuoteDiskResizeRequest]) (*connect.Response[v1.QuoteDiskResizeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.QuoteDiskResize is not implemented"))
+}
+
+func (UnimplementedStorageServiceHandler) CreateSnapshot(context.Context, *connect.Request[v1.CreateSnapshotRequest]) (*connect.Response[v1.CreateSnapshotResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.CreateSnapshot is not implemented"))
+}
+
+func (UnimplementedStorageServiceHandler) GetSnapshot(context.Context, *connect.Request[v1.GetSnapshotRequest]) (*connect.Response[v1.GetSnapshotResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.GetSnapshot is not implemented"))
+}
+
+func (UnimplementedStorageServiceHandler) ListSnapshots(context.Context, *connect.Request[v1.ListSnapshotsRequest]) (*connect.Response[v1.ListSnapshotsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.ListSnapshots is not implemented"))
+}
+
+func (UnimplementedStorageServiceHandler) DeleteSnapshot(context.Context, *connect.Request[v1.DeleteSnapshotRequest]) (*connect.Response[v1.DeleteSnapshotResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.DeleteSnapshot is not implemented"))
+}
+
+func (UnimplementedStorageServiceHandler) CreateSnapshotSchedule(context.Context, *connect.Request[v1.CreateSnapshotScheduleRequest]) (*connect.Response[v1.CreateSnapshotScheduleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.CreateSnapshotSchedule is not implemented"))
+}
+
+func (UnimplementedStorageServiceHandler) ListSnapshotSchedules(context.Context, *connect.Request[v1.ListSnapshotSchedulesRequest]) (*connect.Response[v1.ListSnapshotSchedulesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.ListSnapshotSchedules is not implemented"))
+}
+
+func (UnimplementedStorageServiceHandler) UpdateSnapshotSchedule(context.Context, *connect.Request[v1.UpdateSnapshotScheduleRequest]) (*connect.Response[v1.UpdateSnapshotScheduleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.UpdateSnapshotSchedule is not implemented"))
+}
+
+func (UnimplementedStorageServiceHandler) DeleteSnapshotSchedule(context.Context, *connect.Request[v1.DeleteSnapshotScheduleRequest]) (*connect.Response[v1.DeleteSnapshotScheduleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.DeleteSnapshotSchedule is not implemented"))
 }
 
 func (UnimplementedStorageServiceHandler) CreateFileShare(context.Context, *connect.Request[v1.CreateFileShareRequest]) (*connect.Response[v1.CreateFileShareResponse], error) {

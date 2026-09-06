@@ -81,9 +81,8 @@ service WalletService {
   // I spend in period X" need (B2B accounting, tax documentation); statements would have
   // been a B2C UX nicety duplicating the same data. Use ListInvoices + ListTopUps instead.
 
-  // Usage query / export. QueryUsage aggregates usage_events by meter / project / time-bucket
-  // and returns rows; ExportUsage materializes a CSV/NDJSON file in object storage and returns
-  // a time-limited presigned download URL.
+  // Usage query / export. QueryUsage aggregates compact daily V2 accruals by meter / project /
+  // time-bucket; ExportUsage materializes CSV/NDJSON in object storage and returns a presigned URL.
   rpc QueryUsage(QueryUsageRequest) returns (QueryUsageResponse);
   rpc ExportUsage(ExportUsageRequest) returns (ExportUsageResponse);
 
@@ -606,10 +605,10 @@ message QueryUsageRequest {
   string organization_name = 2;
   // Optional filter — only meters matching this prefix.
   string meter_prefix = 3;
-  // Time bounds (Unix seconds). end exclusive.
+  // Unix-second bounds, normalized outward to whole UTC days. end remains exclusive.
   int64 start_time_unix = 4;
   int64 end_time_unix = 5;
-  // Bucket size — "hour" | "day" | "month". Defaults to "day".
+  // Bucket size — "day" | "month". Defaults to "day".
   string bucket = 6;
   // Group-by dimensions — any subset of {"project", "meter", "resource", "datacenter"}.
   repeated string group_by = 7;
@@ -639,9 +638,9 @@ message UsageRow {
 message QueryUsageResponse {
   repeated UsageRow rows = 1;
   string next_page_token = 2;
-  // Per-project monthly egress free-tier allowance in GiB (server policy, env-configurable via
-  // METALHOST_PROJECT_EGRESS_FREE_GIB). Surfaced here so the transfer/usage UI doesn't hardcode
-  // it. 0 = no free tier (every byte bills).
+  // Organization-wide monthly combined ingress+egress allowance in GiB. This compatibility
+  // field is returned once per query and must not be duplicated or subtracted per project.
+  // 0 = no free tier (every byte bills).
   int64 egress_free_gib = 3;
 }
 
@@ -649,6 +648,7 @@ message ExportUsageRequest {
   string project_name = 1;
   string organization_name = 2;
   string meter_prefix = 3;
+  // Unix-second bounds, normalized outward to whole UTC days. end remains exclusive.
   int64 start_time_unix = 4;
   int64 end_time_unix = 5;
   // "csv" | "ndjson". Default "csv".
