@@ -22,7 +22,7 @@ service ProjectService {
   rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse);
   rpc UpdateProject(UpdateProjectRequest) returns (UpdateProjectResponse);
   // DeleteProject soft-deletes the project. Cascading FKs on compute_instances / tenant_networks /
-  // service_accounts wipe project resources via ON DELETE CASCADE; usage_events keep the project_name
+  // service_accounts wipe project resources via ON DELETE CASCADE; compact billing history keeps the project_name
   // as history (FK is ON DELETE SET NULL).
   rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse);
 

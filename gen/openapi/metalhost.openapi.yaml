@@ -1119,11 +1119,9 @@ paths:
         - aes.compute.v1.ComputeService
       summary: CreateVirtualMachineFromBackup
       description: |-
-        CreateVirtualMachineFromBackup spins up a new VM whose boot disk is materialized from
-         a previously-taken VmSnapshot. Same project, same DC as the source backup. Boot disk
-         only in v1 — data disks from the source aren't re-attached (tracked as a follow-on).
-         The source VM is untouched; the new VM's boot disk is built from the snapshot's
-         preserved boot volume.
+        CreateVirtualMachineFromBackup asynchronously restores every captured disk into a
+         new VM in the backup's project, network and datacenter. The source is untouched.
+         All disks are attached before first boot. Reservations and IPs are not copied.
       operationId: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup
       parameters:
         - name: Connect-Protocol-Version
@@ -4266,7 +4264,7 @@ paths:
       summary: DeleteProject
       description: |-
         DeleteProject soft-deletes the project. Cascading FKs on compute_instances / tenant_networks /
-         service_accounts wipe project resources via ON DELETE CASCADE; usage_events keep the project_name
+         service_accounts wipe project resources via ON DELETE CASCADE; compact billing history keeps the project_name
          as history (FK is ON DELETE SET NULL).
       operationId: aes.project.v1.ProjectService.DeleteProject
       parameters:
@@ -4848,6 +4846,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.storage.v1.CreateFileShareResponse'
+  /aes.storage.v1.StorageService/CreateSnapshot:
+    post:
+      tags:
+        - aes.storage.v1.StorageService
+      summary: CreateSnapshot
+      operationId: aes.storage.v1.StorageService.CreateSnapshot
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.storage.v1.CreateSnapshotRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.storage.v1.CreateSnapshotResponse'
+  /aes.storage.v1.StorageService/CreateSnapshotSchedule:
+    post:
+      tags:
+        - aes.storage.v1.StorageService
+      summary: CreateSnapshotSchedule
+      operationId: aes.storage.v1.StorageService.CreateSnapshotSchedule
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.storage.v1.CreateSnapshotScheduleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.storage.v1.CreateSnapshotScheduleResponse'
   /aes.storage.v1.StorageService/DeleteDisk:
     post:
       tags:
@@ -4918,6 +4986,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.storage.v1.DeleteFileShareResponse'
+  /aes.storage.v1.StorageService/DeleteSnapshot:
+    post:
+      tags:
+        - aes.storage.v1.StorageService
+      summary: DeleteSnapshot
+      operationId: aes.storage.v1.StorageService.DeleteSnapshot
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.storage.v1.DeleteSnapshotRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.storage.v1.DeleteSnapshotResponse'
+  /aes.storage.v1.StorageService/DeleteSnapshotSchedule:
+    post:
+      tags:
+        - aes.storage.v1.StorageService
+      summary: DeleteSnapshotSchedule
+      operationId: aes.storage.v1.StorageService.DeleteSnapshotSchedule
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.storage.v1.DeleteSnapshotScheduleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.storage.v1.DeleteSnapshotScheduleResponse'
   /aes.storage.v1.StorageService/DetachDisk:
     post:
       tags:
@@ -4989,6 +5127,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.storage.v1.GetDiskResponse'
+  /aes.storage.v1.StorageService/GetSnapshot:
+    post:
+      tags:
+        - aes.storage.v1.StorageService
+      summary: GetSnapshot
+      operationId: aes.storage.v1.StorageService.GetSnapshot
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.storage.v1.GetSnapshotRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.storage.v1.GetSnapshotResponse'
   /aes.storage.v1.StorageService/ListDisks:
     post:
       tags:
@@ -5059,6 +5232,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.storage.v1.ListFileSharesResponse'
+  /aes.storage.v1.StorageService/ListSnapshotSchedules:
+    post:
+      tags:
+        - aes.storage.v1.StorageService
+      summary: ListSnapshotSchedules
+      operationId: aes.storage.v1.StorageService.ListSnapshotSchedules
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.storage.v1.ListSnapshotSchedulesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.storage.v1.ListSnapshotSchedulesResponse'
+  /aes.storage.v1.StorageService/ListSnapshots:
+    post:
+      tags:
+        - aes.storage.v1.StorageService
+      summary: ListSnapshots
+      operationId: aes.storage.v1.StorageService.ListSnapshots
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.storage.v1.ListSnapshotsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.storage.v1.ListSnapshotsResponse'
   /aes.storage.v1.StorageService/QuoteDiskResize:
     post:
       tags:
@@ -5172,6 +5415,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.storage.v1.UpdateDiskResponse'
+  /aes.storage.v1.StorageService/UpdateSnapshotSchedule:
+    post:
+      tags:
+        - aes.storage.v1.StorageService
+      summary: UpdateSnapshotSchedule
+      operationId: aes.storage.v1.StorageService.UpdateSnapshotSchedule
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.storage.v1.UpdateSnapshotScheduleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.storage.v1.UpdateSnapshotScheduleResponse'
   /aes.support.v1.SupportService/CloseTicket:
     post:
       tags:
@@ -6257,9 +6535,8 @@ paths:
         - aes.wallet.v1.WalletService
       summary: QueryUsage
       description: |-
-        Usage query / export. QueryUsage aggregates usage_events by meter / project / time-bucket
-         and returns rows; ExportUsage materializes a CSV/NDJSON file in object storage and returns
-         a time-limited presigned download URL.
+        Usage query / export. QueryUsage aggregates compact daily V2 accruals by meter / project /
+         time-bucket; ExportUsage materializes CSV/NDJSON in object storage and returns a presigned URL.
       operationId: aes.wallet.v1.WalletService.QueryUsage
       parameters:
         - name: Connect-Protocol-Version
@@ -8385,6 +8662,24 @@ components:
       title: VMClassCapacity
       additionalProperties: false
       description: VMClassCapacity is the sellable capacity of one pool = (datacenter, cpu_class).
+    aes.compute.v1.BackupVolume:
+      type: object
+      properties:
+        sourceDisk:
+          type: string
+          title: source_disk
+        role:
+          type: string
+          title: role
+        sizeGib:
+          type: integer
+          title: size_gib
+          format: int32
+        displayName:
+          type: string
+          title: display_name
+      title: BackupVolume
+      additionalProperties: false
     aes.compute.v1.BillingMode:
       type: string
       title: BillingMode
@@ -9439,7 +9734,9 @@ components:
         sudo:
           type: boolean
           title: sudo
-          description: Grant passwordless sudo (ALL=(ALL) NOPASSWD:ALL).
+          description: |-
+            Grant passwordless sudo (ALL=(ALL) NOPASSWD:ALL). When false, a user with a password
+             receives password-authenticated sudo; a key-only user receives no sudo access.
         sshKeys:
           type: array
           items:
@@ -10028,6 +10325,34 @@ components:
           description: |-
             Convenience: monthly rate at 730 hours/month. Same precision rules; the
              SPA displays this directly so the customer doesn't have to multiply.
+        consistency:
+          type: string
+          title: consistency
+          description: QUIESCED, CRASH_CONSISTENT, or OFFLINE; empty until captured.
+        volumes:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.compute.v1.BackupVolume'
+          title: volumes
+        createdBySchedule:
+          type: string
+          title: created_by_schedule
+        errorMessage:
+          type: string
+          title: error_message
+        gpuModel:
+          type: string
+          title: gpu_model
+        gpuCount:
+          type: integer
+          title: gpu_count
+          format: int32
+        networkName:
+          type: string
+          title: network_name
+        privateOnly:
+          type: boolean
+          title: private_only
       title: VmSnapshot
       additionalProperties: false
       description: |-
@@ -12909,6 +13234,10 @@ components:
           type: string
           title: vm_runtime_target_state
           description: Requested runtime state for this lifecycle operation.
+        vmBackupName:
+          type: string
+          title: vm_backup_name
+          description: Internal restore source, validated against project/DC before dispatch.
       title: CreateOperationRequest
       additionalProperties: false
     aes.ops.v1.CreateOperationRequest.VmAnnotationsEntry:
@@ -13720,6 +14049,10 @@ components:
              image from this URL (e.g. an Ubuntu cloud image) into the new disk during PROVISIONING.
              The image is written byte-for-byte; the disk flips to AVAILABLE once import completes.
              Billed from AVAILABLE/ATTACHED — PROVISIONING is not metered, so no charge during import.
+        fromSnapshot:
+          type: string
+          title: from_snapshot
+          description: Same project, DC and network as the snapshot. Mutually exclusive with from_image_url.
       title: CreateDiskRequest
       additionalProperties: false
       description: |-
@@ -13798,6 +14131,75 @@ components:
           $ref: '#/components/schemas/aes.storage.v1.FileShare'
       title: CreateFileShareResponse
       additionalProperties: false
+    aes.storage.v1.CreateSnapshotRequest:
+      type: object
+      properties:
+        sourceDisk:
+          type: string
+          title: source_disk
+        displayName:
+          type: string
+          title: display_name
+        labels:
+          type: object
+          title: labels
+          additionalProperties:
+            type: string
+            title: value
+        annotations:
+          type: object
+          title: annotations
+          additionalProperties:
+            type: string
+            title: value
+      title: CreateSnapshotRequest
+      additionalProperties: false
+    aes.storage.v1.CreateSnapshotRequest.AnnotationsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: AnnotationsEntry
+      additionalProperties: false
+    aes.storage.v1.CreateSnapshotRequest.LabelsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: LabelsEntry
+      additionalProperties: false
+    aes.storage.v1.CreateSnapshotResponse:
+      type: object
+      properties:
+        snapshot:
+          title: snapshot
+          $ref: '#/components/schemas/aes.storage.v1.DiskSnapshot'
+      title: CreateSnapshotResponse
+      additionalProperties: false
+    aes.storage.v1.CreateSnapshotScheduleRequest:
+      type: object
+      properties:
+        schedule:
+          title: schedule
+          $ref: '#/components/schemas/aes.storage.v1.SnapshotSchedule'
+      title: CreateSnapshotScheduleRequest
+      additionalProperties: false
+    aes.storage.v1.CreateSnapshotScheduleResponse:
+      type: object
+      properties:
+        schedule:
+          title: schedule
+          $ref: '#/components/schemas/aes.storage.v1.SnapshotSchedule'
+      title: CreateSnapshotScheduleResponse
+      additionalProperties: false
     aes.storage.v1.DeleteDiskRequest:
       type: object
       properties:
@@ -13821,6 +14223,30 @@ components:
     aes.storage.v1.DeleteFileShareResponse:
       type: object
       title: DeleteFileShareResponse
+      additionalProperties: false
+    aes.storage.v1.DeleteSnapshotRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: DeleteSnapshotRequest
+      additionalProperties: false
+    aes.storage.v1.DeleteSnapshotResponse:
+      type: object
+      title: DeleteSnapshotResponse
+      additionalProperties: false
+    aes.storage.v1.DeleteSnapshotScheduleRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: DeleteSnapshotScheduleRequest
+      additionalProperties: false
+    aes.storage.v1.DeleteSnapshotScheduleResponse:
+      type: object
+      title: DeleteSnapshotScheduleResponse
       additionalProperties: false
     aes.storage.v1.DetachDiskRequest:
       type: object
@@ -13946,6 +14372,92 @@ components:
           title: value
       title: LabelsEntry
       additionalProperties: false
+    aes.storage.v1.DiskSnapshot:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        displayName:
+          type: string
+          title: display_name
+        projectName:
+          type: string
+          title: project_name
+        datacenterName:
+          type: string
+          title: datacenter_name
+        sourceDisk:
+          type: string
+          title: source_disk
+        sizeGib:
+          type: integer
+          title: size_gib
+          format: int32
+        storageClass:
+          type: string
+          title: storage_class
+        state:
+          type: string
+          title: state
+        createTimeUnix:
+          type:
+            - integer
+            - string
+          title: create_time_unix
+          format: int64
+        updateTimeUnix:
+          type:
+            - integer
+            - string
+          title: update_time_unix
+          format: int64
+        labels:
+          type: object
+          title: labels
+          additionalProperties:
+            type: string
+            title: value
+        annotations:
+          type: object
+          title: annotations
+          additionalProperties:
+            type: string
+            title: value
+        networkName:
+          type: string
+          title: network_name
+        createdBySchedule:
+          type: string
+          title: created_by_schedule
+        consistency:
+          type: string
+          title: consistency
+      title: DiskSnapshot
+      additionalProperties: false
+      description: DC-local copy; survives source disk deletion, but not loss of the storage cluster.
+    aes.storage.v1.DiskSnapshot.AnnotationsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: AnnotationsEntry
+      additionalProperties: false
+    aes.storage.v1.DiskSnapshot.LabelsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: LabelsEntry
+      additionalProperties: false
     aes.storage.v1.FileShare:
       type: object
       properties:
@@ -14058,6 +14570,22 @@ components:
           $ref: '#/components/schemas/aes.storage.v1.Disk'
       title: GetDiskResponse
       additionalProperties: false
+    aes.storage.v1.GetSnapshotRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: GetSnapshotRequest
+      additionalProperties: false
+    aes.storage.v1.GetSnapshotResponse:
+      type: object
+      properties:
+        snapshot:
+          title: snapshot
+          $ref: '#/components/schemas/aes.storage.v1.DiskSnapshot'
+      title: GetSnapshotResponse
+      additionalProperties: false
     aes.storage.v1.ListDisksRequest:
       type: object
       properties:
@@ -14113,6 +14641,68 @@ components:
           type: string
           title: next_page_token
       title: ListFileSharesResponse
+      additionalProperties: false
+    aes.storage.v1.ListSnapshotSchedulesRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        target:
+          type: string
+          title: target
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListSnapshotSchedulesRequest
+      additionalProperties: false
+    aes.storage.v1.ListSnapshotSchedulesResponse:
+      type: object
+      properties:
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.storage.v1.SnapshotSchedule'
+          title: schedules
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListSnapshotSchedulesResponse
+      additionalProperties: false
+    aes.storage.v1.ListSnapshotsRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        sourceDisk:
+          type: string
+          title: source_disk
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListSnapshotsRequest
+      additionalProperties: false
+    aes.storage.v1.ListSnapshotsResponse:
+      type: object
+      properties:
+        diskSnapshots:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.storage.v1.DiskSnapshot'
+          title: disk_snapshots
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListSnapshotsResponse
       additionalProperties: false
     aes.storage.v1.QuoteDiskResizeRequest:
       type: object
@@ -14174,6 +14764,69 @@ components:
           $ref: '#/components/schemas/aes.storage.v1.Disk'
       title: ResizeDiskResponse
       additionalProperties: false
+    aes.storage.v1.SnapshotSchedule:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        projectName:
+          type: string
+          title: project_name
+        target:
+          type: string
+          title: target
+          description: Project, VM, or disk resource name. Immutable.
+        cadence:
+          type: string
+          title: cadence
+          description: HOURLY, DAILY, WEEKLY. Times below are UTC.
+        hourUtc:
+          type: integer
+          title: hour_utc
+          format: int32
+        minuteUtc:
+          type: integer
+          title: minute_utc
+          format: int32
+        weekdayUtc:
+          type: integer
+          title: weekday_utc
+          format: int32
+          description: Sunday=0 through Saturday=6; used for WEEKLY.
+        retentionCount:
+          type: integer
+          title: retention_count
+          format: int32
+        enabled:
+          type: boolean
+          title: enabled
+        displayName:
+          type: string
+          title: display_name
+        nextRunAtUnix:
+          type:
+            - integer
+            - string
+          title: next_run_at_unix
+          format: int64
+        lastRunStatus:
+          type: string
+          title: last_run_status
+        lastRunError:
+          type: string
+          title: last_run_error
+        lastRunAtUnix:
+          type:
+            - integer
+            - string
+          title: last_run_at_unix
+          format: int64
+      title: SnapshotSchedule
+      additionalProperties: false
+      description: |-
+        A project target dynamically includes every VM and each unattached disk. Keep-N is
+         per source and schedule, counts successful copies only, and excludes manual copies.
     aes.storage.v1.UpdateDiskRequest:
       type: object
       properties:
@@ -14198,6 +14851,25 @@ components:
           title: disk
           $ref: '#/components/schemas/aes.storage.v1.Disk'
       title: UpdateDiskResponse
+      additionalProperties: false
+    aes.storage.v1.UpdateSnapshotScheduleRequest:
+      type: object
+      properties:
+        schedule:
+          title: schedule
+          $ref: '#/components/schemas/aes.storage.v1.SnapshotSchedule'
+        updateMask:
+          title: update_mask
+          $ref: '#/components/schemas/google.protobuf.FieldMask'
+      title: UpdateSnapshotScheduleRequest
+      additionalProperties: false
+    aes.storage.v1.UpdateSnapshotScheduleResponse:
+      type: object
+      properties:
+        schedule:
+          title: schedule
+          $ref: '#/components/schemas/aes.storage.v1.SnapshotSchedule'
+      title: UpdateSnapshotScheduleResponse
       additionalProperties: false
     aes.support.v1.AuthorKind:
       type: string
@@ -14926,6 +15598,7 @@ components:
             - string
           title: start_time_unix
           format: int64
+          description: Unix-second bounds, normalized outward to whole UTC days. end remains exclusive.
         endTimeUnix:
           type:
             - integer
@@ -15593,7 +16266,7 @@ components:
             - string
           title: start_time_unix
           format: int64
-          description: Time bounds (Unix seconds). end exclusive.
+          description: Unix-second bounds, normalized outward to whole UTC days. end remains exclusive.
         endTimeUnix:
           type:
             - integer
@@ -15603,7 +16276,7 @@ components:
         bucket:
           type: string
           title: bucket
-          description: Bucket size — "hour" | "day" | "month". Defaults to "day".
+          description: Bucket size — "day" | "month". Defaults to "day".
         groupBy:
           type: array
           items:
@@ -15637,9 +16310,9 @@ components:
           title: egress_free_gib
           format: int64
           description: |-
-            Per-project monthly egress free-tier allowance in GiB (server policy, env-configurable via
-             METALHOST_PROJECT_EGRESS_FREE_GIB). Surfaced here so the transfer/usage UI doesn't hardcode
-             it. 0 = no free tier (every byte bills).
+            Organization-wide monthly combined ingress+egress allowance in GiB. This compatibility
+             field is returned once per query and must not be duplicated or subtracted per project.
+             0 = no free tier (every byte bills).
       title: QueryUsageResponse
       additionalProperties: false
     aes.wallet.v1.RecordJournalEntryRequest:

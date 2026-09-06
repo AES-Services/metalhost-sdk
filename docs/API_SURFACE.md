@@ -60,3 +60,10 @@ Imports for that example are `connectrpc.com/connect`, `github.com/AES-Services/
 - `gen/openapi/metalhost.openapi.yaml` is the generated HTTP/OpenAPI representation of the same public RPCs.
 
 Generated code is part of each tagged release but should not be edited by hand.
+
+## Backups (v1.1.0)
+
+Compute exposes whole-VM backup capture and restore, including captured disk
+manifests and consistency. Storage exposes single-disk backup CRUD, disk restore
+via `from_snapshot`, and automatic backup schedules with keep-N retention.
+See [Backups API](BACKUPS.md) for retry, billing, timing, and restore semantics.
