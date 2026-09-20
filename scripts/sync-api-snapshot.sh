@@ -57,6 +57,7 @@ for pkg in \
   compute \
   health \
   iam \
+  monitoring \
   network \
   ops \
   project \

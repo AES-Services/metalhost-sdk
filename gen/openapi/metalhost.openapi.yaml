@@ -1967,6 +1967,708 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.health.v1.CheckResponse'
+  /aes.iam.v1.AutomationService/BeginGitHubSetup:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: BeginGitHubSetup
+      operationId: aes.iam.v1.AutomationService.BeginGitHubSetup
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.BeginGitHubSetupRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.BeginGitHubSetupResponse'
+  /aes.iam.v1.AutomationService/CreateCredential:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: CreateCredential
+      operationId: aes.iam.v1.AutomationService.CreateCredential
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.CreateCredentialRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.CreateCredentialResponse'
+  /aes.iam.v1.AutomationService/CreateGitHubTrust:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: CreateGitHubTrust
+      operationId: aes.iam.v1.AutomationService.CreateGitHubTrust
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.CreateGitHubTrustRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.CreateGitHubTrustResponse'
+  /aes.iam.v1.AutomationService/CreateServiceAccount:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: CreateServiceAccount
+      operationId: aes.iam.v1.AutomationService.CreateServiceAccount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.CreateServiceAccountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.CreateServiceAccountResponse'
+  /aes.iam.v1.AutomationService/DeleteGitHubTrust:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: DeleteGitHubTrust
+      operationId: aes.iam.v1.AutomationService.DeleteGitHubTrust
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.DeleteGitHubTrustRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.DeleteGitHubTrustResponse'
+  /aes.iam.v1.AutomationService/DeleteServiceAccount:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: DeleteServiceAccount
+      operationId: aes.iam.v1.AutomationService.DeleteServiceAccount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.DeleteServiceAccountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.DeleteServiceAccountResponse'
+  /aes.iam.v1.AutomationService/ExchangeGitHubToken:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: ExchangeGitHubToken
+      description: Authenticates the signed GitHub assertion, not a Metalhost session.
+      operationId: aes.iam.v1.AutomationService.ExchangeGitHubToken
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.ExchangeGitHubTokenRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.ExchangeGitHubTokenResponse'
+  /aes.iam.v1.AutomationService/GetGitHubSetup:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: GetGitHubSetup
+      operationId: aes.iam.v1.AutomationService.GetGitHubSetup
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.GetGitHubSetupRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.GetGitHubSetupResponse'
+  /aes.iam.v1.AutomationService/GetServiceAccount:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: GetServiceAccount
+      operationId: aes.iam.v1.AutomationService.GetServiceAccount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.GetServiceAccountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.GetServiceAccountResponse'
+  /aes.iam.v1.AutomationService/ListCapabilities:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: ListCapabilities
+      operationId: aes.iam.v1.AutomationService.ListCapabilities
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.ListCapabilitiesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.ListCapabilitiesResponse'
+  /aes.iam.v1.AutomationService/ListCredentials:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: ListCredentials
+      operationId: aes.iam.v1.AutomationService.ListCredentials
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.ListCredentialsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.ListCredentialsResponse'
+  /aes.iam.v1.AutomationService/ListGitHubTrusts:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: ListGitHubTrusts
+      operationId: aes.iam.v1.AutomationService.ListGitHubTrusts
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.ListGitHubTrustsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.ListGitHubTrustsResponse'
+  /aes.iam.v1.AutomationService/ListServiceAccounts:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: ListServiceAccounts
+      operationId: aes.iam.v1.AutomationService.ListServiceAccounts
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.ListServiceAccountsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.ListServiceAccountsResponse'
+  /aes.iam.v1.AutomationService/RevokeCredential:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: RevokeCredential
+      operationId: aes.iam.v1.AutomationService.RevokeCredential
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.RevokeCredentialRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.RevokeCredentialResponse'
+  /aes.iam.v1.AutomationService/RotateCredential:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: RotateCredential
+      operationId: aes.iam.v1.AutomationService.RotateCredential
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.RotateCredentialRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.RotateCredentialResponse'
+  /aes.iam.v1.AutomationService/SetGitHubTrustState:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: SetGitHubTrustState
+      operationId: aes.iam.v1.AutomationService.SetGitHubTrustState
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.SetGitHubTrustStateRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.SetGitHubTrustStateResponse'
+  /aes.iam.v1.AutomationService/SetServiceAccountState:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: SetServiceAccountState
+      operationId: aes.iam.v1.AutomationService.SetServiceAccountState
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.SetServiceAccountStateRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.SetServiceAccountStateResponse'
+  /aes.iam.v1.AutomationService/SubmitGitHubSetup:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: SubmitGitHubSetup
+      description: Verifies claims for a pending setup; never issues a credential or creates trust.
+      operationId: aes.iam.v1.AutomationService.SubmitGitHubSetup
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.SubmitGitHubSetupRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.SubmitGitHubSetupResponse'
+  /aes.iam.v1.AutomationService/UpdateGitHubTrust:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: UpdateGitHubTrust
+      operationId: aes.iam.v1.AutomationService.UpdateGitHubTrust
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.UpdateGitHubTrustRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.UpdateGitHubTrustResponse'
+  /aes.iam.v1.AutomationService/UpdateServiceAccount:
+    post:
+      tags:
+        - aes.iam.v1.AutomationService
+      summary: UpdateServiceAccount
+      operationId: aes.iam.v1.AutomationService.UpdateServiceAccount
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.iam.v1.UpdateServiceAccountRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.iam.v1.UpdateServiceAccountResponse'
   /aes.iam.v1.IamService/AcceptInvite:
     post:
       tags:
@@ -3608,6 +4310,811 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.iam.v1.VerifyMFAEnrollmentResponse'
+  /aes.monitoring.v1.AlertService/DeleteAlertDestination:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: DeleteAlertDestination
+      operationId: aes.monitoring.v1.AlertService.DeleteAlertDestination
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.DeleteAlertDestinationRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.DeleteAlertDestinationResponse'
+  /aes.monitoring.v1.AlertService/DeleteAlertRule:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: DeleteAlertRule
+      operationId: aes.monitoring.v1.AlertService.DeleteAlertRule
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.DeleteAlertRuleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.DeleteAlertRuleResponse'
+  /aes.monitoring.v1.AlertService/GetDestinationTest:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: GetDestinationTest
+      operationId: aes.monitoring.v1.AlertService.GetDestinationTest
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.GetDestinationTestRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.GetDestinationTestResponse'
+  /aes.monitoring.v1.AlertService/GetIncident:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: GetIncident
+      operationId: aes.monitoring.v1.AlertService.GetIncident
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.GetIncidentRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.GetIncidentResponse'
+  /aes.monitoring.v1.AlertService/GetIncidentSummary:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: GetIncidentSummary
+      operationId: aes.monitoring.v1.AlertService.GetIncidentSummary
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.GetIncidentSummaryRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.GetIncidentSummaryResponse'
+  /aes.monitoring.v1.AlertService/ListAlertDestinationCandidates:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: ListAlertDestinationCandidates
+      operationId: aes.monitoring.v1.AlertService.ListAlertDestinationCandidates
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.ListAlertDestinationCandidatesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.ListAlertDestinationCandidatesResponse'
+  /aes.monitoring.v1.AlertService/ListAlertDestinations:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: ListAlertDestinations
+      operationId: aes.monitoring.v1.AlertService.ListAlertDestinations
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.ListAlertDestinationsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.ListAlertDestinationsResponse'
+  /aes.monitoring.v1.AlertService/ListAlertInstances:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: ListAlertInstances
+      operationId: aes.monitoring.v1.AlertService.ListAlertInstances
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.ListAlertInstancesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.ListAlertInstancesResponse'
+  /aes.monitoring.v1.AlertService/ListAlertRules:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: ListAlertRules
+      operationId: aes.monitoring.v1.AlertService.ListAlertRules
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.ListAlertRulesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.ListAlertRulesResponse'
+  /aes.monitoring.v1.AlertService/ListIncidents:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: ListIncidents
+      operationId: aes.monitoring.v1.AlertService.ListIncidents
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.ListIncidentsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.ListIncidentsResponse'
+  /aes.monitoring.v1.AlertService/PreviewAlertRule:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: PreviewAlertRule
+      operationId: aes.monitoring.v1.AlertService.PreviewAlertRule
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.PreviewAlertRuleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.PreviewAlertRuleResponse'
+  /aes.monitoring.v1.AlertService/RequestDestinationVerification:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: RequestDestinationVerification
+      operationId: aes.monitoring.v1.AlertService.RequestDestinationVerification
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.RequestDestinationVerificationRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.RequestDestinationVerificationResponse'
+  /aes.monitoring.v1.AlertService/SaveAlertDestination:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: SaveAlertDestination
+      operationId: aes.monitoring.v1.AlertService.SaveAlertDestination
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.SaveAlertDestinationRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.SaveAlertDestinationResponse'
+  /aes.monitoring.v1.AlertService/SaveAlertRule:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: SaveAlertRule
+      operationId: aes.monitoring.v1.AlertService.SaveAlertRule
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.SaveAlertRuleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.SaveAlertRuleResponse'
+  /aes.monitoring.v1.AlertService/TestAlertDestination:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: TestAlertDestination
+      operationId: aes.monitoring.v1.AlertService.TestAlertDestination
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.TestAlertDestinationRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.TestAlertDestinationResponse'
+  /aes.monitoring.v1.AlertService/UpdateIncident:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: UpdateIncident
+      operationId: aes.monitoring.v1.AlertService.UpdateIncident
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.UpdateIncidentRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.UpdateIncidentResponse'
+  /aes.monitoring.v1.AlertService/VerifyAlertDestination:
+    post:
+      tags:
+        - aes.monitoring.v1.AlertService
+      summary: VerifyAlertDestination
+      operationId: aes.monitoring.v1.AlertService.VerifyAlertDestination
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.VerifyAlertDestinationRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.VerifyAlertDestinationResponse'
+  /aes.monitoring.v1.MonitoringService/EnableEnhancedMonitoring:
+    post:
+      tags:
+        - aes.monitoring.v1.MonitoringService
+      summary: EnableEnhancedMonitoring
+      operationId: aes.monitoring.v1.MonitoringService.EnableEnhancedMonitoring
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.EnableEnhancedMonitoringRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.EnableEnhancedMonitoringResponse'
+  /aes.monitoring.v1.MonitoringService/GetEnhancedMonitoring:
+    post:
+      tags:
+        - aes.monitoring.v1.MonitoringService
+      summary: GetEnhancedMonitoring
+      operationId: aes.monitoring.v1.MonitoringService.GetEnhancedMonitoring
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.GetEnhancedMonitoringRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.GetEnhancedMonitoringResponse'
+  /aes.monitoring.v1.MonitoringService/ListMetricDescriptors:
+    post:
+      tags:
+        - aes.monitoring.v1.MonitoringService
+      summary: ListMetricDescriptors
+      operationId: aes.monitoring.v1.MonitoringService.ListMetricDescriptors
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.ListMetricDescriptorsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.ListMetricDescriptorsResponse'
+  /aes.monitoring.v1.MonitoringService/ListVMMonitoring:
+    post:
+      tags:
+        - aes.monitoring.v1.MonitoringService
+      summary: ListVMMonitoring
+      operationId: aes.monitoring.v1.MonitoringService.ListVMMonitoring
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.ListVMMonitoringRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.ListVMMonitoringResponse'
+  /aes.monitoring.v1.MonitoringService/QueryVMMonitoring:
+    post:
+      tags:
+        - aes.monitoring.v1.MonitoringService
+      summary: QueryVMMonitoring
+      operationId: aes.monitoring.v1.MonitoringService.QueryVMMonitoring
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.QueryVMMonitoringRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.QueryVMMonitoringResponse'
+  /aes.monitoring.v1.MonitoringService/RevokeEnhancedMonitoring:
+    post:
+      tags:
+        - aes.monitoring.v1.MonitoringService
+      summary: RevokeEnhancedMonitoring
+      operationId: aes.monitoring.v1.MonitoringService.RevokeEnhancedMonitoring
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.RevokeEnhancedMonitoringRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.RevokeEnhancedMonitoringResponse'
   /aes.network.v1.NetworkService/AddVmToSecurityGroup:
     post:
       tags:
@@ -5455,9 +6962,7 @@ paths:
       tags:
         - aes.support.v1.SupportService
       summary: CloseTicket
-      description: |-
-        CloseTicket transitions the ticket to CLOSED. Customer can close from any non-CLOSED
-         status. Staff may mark a ticket RESOLVED before the customer closes it.
+      description: CloseTicket closes the conversation. ReplyTicket with reopen=true can reopen it at any time.
       operationId: aes.support.v1.SupportService.CloseTicket
       parameters:
         - name: Connect-Protocol-Version
@@ -6821,6 +8326,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.webhooks.v1.ListSubscriptionsResponse'
+  /aes.webhooks.v1.WebhooksService/RotateSubscriptionSecret:
+    post:
+      tags:
+        - aes.webhooks.v1.WebhooksService
+      summary: RotateSubscriptionSecret
+      operationId: aes.webhooks.v1.WebhooksService.RotateSubscriptionSecret
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.webhooks.v1.RotateSubscriptionSecretRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.webhooks.v1.RotateSubscriptionSecretResponse'
   /aes.webhooks.v1.WebhooksService/UpdateSubscription:
     post:
       tags:
@@ -10513,6 +12053,98 @@ components:
       description: |-
         ApiKey describes a key without exposing the secret. Used in ListApiKeys and as the metadata
          half of CreateApiKey's response (the secret half is on CreateApiKeyResponse.secret).
+    aes.iam.v1.AutomationCredential:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        principal:
+          type: string
+          title: principal
+        projectName:
+          type: string
+          title: project_name
+        displayName:
+          type: string
+          title: display_name
+        permissions:
+          type: array
+          items:
+            type: string
+          title: permissions
+        kind:
+          type: string
+          title: kind
+        createTimeUnix:
+          type:
+            - integer
+            - string
+          title: create_time_unix
+          format: int64
+        expiresAtUnix:
+          type:
+            - integer
+            - string
+          title: expires_at_unix
+          format: int64
+        revokedAtUnix:
+          type:
+            - integer
+            - string
+          title: revoked_at_unix
+          format: int64
+        lastUsedAtUnix:
+          type:
+            - integer
+            - string
+          title: last_used_at_unix
+          format: int64
+        rotatedAtUnix:
+          type:
+            - integer
+            - string
+          title: rotated_at_unix
+          format: int64
+      title: AutomationCredential
+      additionalProperties: false
+    aes.iam.v1.BeginGitHubSetupRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        id:
+          type: string
+          title: id
+        pairingCode:
+          type: string
+          title: pairing_code
+          description: Browser-generated 32-byte random base64url pairing code; stored only hashed.
+      title: BeginGitHubSetupRequest
+      additionalProperties: false
+    aes.iam.v1.BeginGitHubSetupResponse:
+      type: object
+      properties:
+        setup:
+          title: setup
+          $ref: '#/components/schemas/aes.iam.v1.GitHubSetup'
+      title: BeginGitHubSetupResponse
+      additionalProperties: false
+    aes.iam.v1.Capability:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        displayName:
+          type: string
+          title: display_name
+        description:
+          type: string
+          title: description
+      title: Capability
+      additionalProperties: false
     aes.iam.v1.ChangePasswordRequest:
       type: object
       properties:
@@ -10632,6 +12264,103 @@ components:
              expose only metadata.
       title: CreateApiKeyResponse
       additionalProperties: false
+    aes.iam.v1.CreateCredentialRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        serviceAccount:
+          type: string
+          title: service_account
+          description: Empty issues a personal credential; service accounts require project admin.
+        displayName:
+          type: string
+          title: display_name
+        permissions:
+          type: array
+          items:
+            type: string
+          title: permissions
+        expiresAtUnix:
+          type:
+            - integer
+            - string
+          title: expires_at_unix
+          format: int64
+          description: Zero selects 90 days; otherwise between 15 minutes and one year from now.
+        requestId:
+          type: string
+          title: request_id
+      title: CreateCredentialRequest
+      additionalProperties: false
+    aes.iam.v1.CreateCredentialResponse:
+      type: object
+      properties:
+        credential:
+          title: credential
+          $ref: '#/components/schemas/aes.iam.v1.AutomationCredential'
+        secret:
+          type: string
+          title: secret
+          description: Returned once, never persisted in plaintext.
+        secretUnavailable:
+          type: boolean
+          title: secret_unavailable
+          description: A repeated request returns current metadata, never the original secret.
+      title: CreateCredentialResponse
+      additionalProperties: false
+    aes.iam.v1.CreateGitHubTrustRequest:
+      type: object
+      properties:
+        trust:
+          title: trust
+          $ref: '#/components/schemas/aes.iam.v1.GitHubTrust'
+        setupId:
+          type: string
+          title: setup_id
+          description: Optional verified workflow discovery; confirmation is retry-safe by setup ID.
+        requestId:
+          type: string
+          title: request_id
+          description: Optional for older callers; supply a stable UUID for direct-create recovery.
+      title: CreateGitHubTrustRequest
+      additionalProperties: false
+    aes.iam.v1.CreateGitHubTrustResponse:
+      type: object
+      properties:
+        trust:
+          title: trust
+          $ref: '#/components/schemas/aes.iam.v1.GitHubTrust'
+      title: CreateGitHubTrustResponse
+      additionalProperties: false
+    aes.iam.v1.CreateServiceAccountRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        displayName:
+          type: string
+          title: display_name
+        permissions:
+          type: array
+          items:
+            type: string
+          title: permissions
+        requestId:
+          type: string
+          title: request_id
+      title: CreateServiceAccountRequest
+      additionalProperties: false
+    aes.iam.v1.CreateServiceAccountResponse:
+      type: object
+      properties:
+        serviceAccount:
+          title: service_account
+          $ref: '#/components/schemas/aes.iam.v1.ServiceAccount'
+      title: CreateServiceAccountResponse
+      additionalProperties: false
     aes.iam.v1.CreateWorkspaceRequest:
       type: object
       properties:
@@ -10670,6 +12399,42 @@ components:
       type: object
       title: DeclineMyInviteResponse
       additionalProperties: false
+    aes.iam.v1.DeleteGitHubTrustRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+      title: DeleteGitHubTrustRequest
+      additionalProperties: false
+    aes.iam.v1.DeleteGitHubTrustResponse:
+      type: object
+      title: DeleteGitHubTrustResponse
+      additionalProperties: false
+    aes.iam.v1.DeleteServiceAccountRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+      title: DeleteServiceAccountRequest
+      additionalProperties: false
+    aes.iam.v1.DeleteServiceAccountResponse:
+      type: object
+      title: DeleteServiceAccountResponse
+      additionalProperties: false
     aes.iam.v1.EnrollMFARequest:
       type: object
       properties:
@@ -10698,6 +12463,42 @@ components:
             Provisioning URI: `otpauth://totp/{Issuer}:{Account}?secret=...&issuer={Issuer}` — most
              authenticator apps render this as a QR code.
       title: EnrollMFAResponse
+      additionalProperties: false
+    aes.iam.v1.ExchangeGitHubTokenRequest:
+      type: object
+      properties:
+        trustName:
+          type: string
+          title: trust_name
+        assertion:
+          type: string
+          title: assertion
+      title: ExchangeGitHubTokenRequest
+      additionalProperties: false
+    aes.iam.v1.ExchangeGitHubTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          title: access_token
+        tokenType:
+          type: string
+          title: token_type
+        expiresAtUnix:
+          type:
+            - integer
+            - string
+          title: expires_at_unix
+          format: int64
+        projectName:
+          type: string
+          title: project_name
+        permissions:
+          type: array
+          items:
+            type: string
+          title: permissions
+      title: ExchangeGitHubTokenResponse
       additionalProperties: false
     aes.iam.v1.GetAuthMetadataRequest:
       type: object
@@ -10762,6 +12563,22 @@ components:
              account; very rare).
       title: GetCallerIdentityResponse
       additionalProperties: false
+    aes.iam.v1.GetGitHubSetupRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+      title: GetGitHubSetupRequest
+      additionalProperties: false
+    aes.iam.v1.GetGitHubSetupResponse:
+      type: object
+      properties:
+        setup:
+          title: setup
+          $ref: '#/components/schemas/aes.iam.v1.GitHubSetup'
+      title: GetGitHubSetupResponse
+      additionalProperties: false
     aes.iam.v1.GetOrgMemberRequest:
       type: object
       properties:
@@ -10783,6 +12600,22 @@ components:
           $ref: '#/components/schemas/aes.iam.v1.OrgMember'
       title: GetOrgMemberResponse
       additionalProperties: false
+    aes.iam.v1.GetServiceAccountRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: GetServiceAccountRequest
+      additionalProperties: false
+    aes.iam.v1.GetServiceAccountResponse:
+      type: object
+      properties:
+        serviceAccount:
+          title: service_account
+          $ref: '#/components/schemas/aes.iam.v1.ServiceAccount'
+      title: GetServiceAccountResponse
+      additionalProperties: false
     aes.iam.v1.GetUserRequest:
       type: object
       properties:
@@ -10799,6 +12632,104 @@ components:
           title: user
           $ref: '#/components/schemas/aes.iam.v1.User'
       title: GetUserResponse
+      additionalProperties: false
+    aes.iam.v1.GitHubSetup:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+        projectName:
+          type: string
+          title: project_name
+        audience:
+          type: string
+          title: audience
+        expiresAtUnix:
+          type:
+            - integer
+            - string
+          title: expires_at_unix
+          format: int64
+        state:
+          type: string
+          title: state
+        identity:
+          title: identity
+          $ref: '#/components/schemas/aes.iam.v1.GitHubTrust'
+        confirmedTrustName:
+          type: string
+          title: confirmed_trust_name
+      title: GitHubSetup
+      additionalProperties: false
+    aes.iam.v1.GitHubTrust:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        projectName:
+          type: string
+          title: project_name
+        serviceAccount:
+          type: string
+          title: service_account
+        displayName:
+          type: string
+          title: display_name
+        repository:
+          type: string
+          title: repository
+        repositoryId:
+          type: string
+          title: repository_id
+        repositoryOwnerId:
+          type: string
+          title: repository_owner_id
+        subject:
+          type: string
+          title: subject
+        ref:
+          type: string
+          title: ref
+        environment:
+          type: string
+          title: environment
+        workflowRef:
+          type: string
+          title: workflow_ref
+        jobWorkflowRef:
+          type: string
+          title: job_workflow_ref
+        events:
+          type: array
+          items:
+            type: string
+          title: events
+        permissions:
+          type: array
+          items:
+            type: string
+          title: permissions
+        state:
+          type: string
+          title: state
+        version:
+          type:
+            - integer
+            - string
+          title: version
+          format: int64
+        createTimeUnix:
+          type:
+            - integer
+            - string
+          title: create_time_unix
+          format: int64
+        audience:
+          type: string
+          title: audience
+      title: GitHubTrust
       additionalProperties: false
     aes.iam.v1.ImportGitHubSshKeysRequest:
       type: object
@@ -10939,6 +12870,79 @@ components:
           type: string
           title: next_page_token
       title: ListApiKeysResponse
+      additionalProperties: false
+    aes.iam.v1.ListCapabilitiesRequest:
+      type: object
+      title: ListCapabilitiesRequest
+      additionalProperties: false
+    aes.iam.v1.ListCapabilitiesResponse:
+      type: object
+      properties:
+        capabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.iam.v1.Capability'
+          title: capabilities
+      title: ListCapabilitiesResponse
+      additionalProperties: false
+    aes.iam.v1.ListCredentialsRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        serviceAccount:
+          type: string
+          title: service_account
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListCredentialsRequest
+      additionalProperties: false
+    aes.iam.v1.ListCredentialsResponse:
+      type: object
+      properties:
+        credentials:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.iam.v1.AutomationCredential'
+          title: credentials
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListCredentialsResponse
+      additionalProperties: false
+    aes.iam.v1.ListGitHubTrustsRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListGitHubTrustsRequest
+      additionalProperties: false
+    aes.iam.v1.ListGitHubTrustsResponse:
+      type: object
+      properties:
+        trusts:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.iam.v1.GitHubTrust'
+          title: trusts
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListGitHubTrustsResponse
       additionalProperties: false
     aes.iam.v1.ListMFADevicesRequest:
       type: object
@@ -11082,6 +13086,34 @@ components:
           type: string
           title: next_page_token
       title: ListPendingInvitesResponse
+      additionalProperties: false
+    aes.iam.v1.ListServiceAccountsRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListServiceAccountsRequest
+      additionalProperties: false
+    aes.iam.v1.ListServiceAccountsResponse:
+      type: object
+      properties:
+        serviceAccounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.iam.v1.ServiceAccount'
+          title: service_accounts
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListServiceAccountsResponse
       additionalProperties: false
     aes.iam.v1.ListSessionsRequest:
       type: object
@@ -11491,6 +13523,18 @@ components:
       type: object
       title: RevokeApiKeyResponse
       additionalProperties: false
+    aes.iam.v1.RevokeCredentialRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: RevokeCredentialRequest
+      additionalProperties: false
+    aes.iam.v1.RevokeCredentialResponse:
+      type: object
+      title: RevokeCredentialResponse
+      additionalProperties: false
     aes.iam.v1.RevokeInviteRequest:
       type: object
       properties:
@@ -11561,6 +13605,76 @@ components:
           description: The prefix of the key that was revoked.
       title: RotateApiKeyResponse
       additionalProperties: false
+    aes.iam.v1.RotateCredentialRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        overlapSeconds:
+          type: integer
+          title: overlap_seconds
+          format: int32
+          description: Zero revokes immediately; otherwise overlap is capped at 24h and old expiry.
+        requestId:
+          type: string
+          title: request_id
+      title: RotateCredentialRequest
+      additionalProperties: false
+    aes.iam.v1.RotateCredentialResponse:
+      type: object
+      properties:
+        credential:
+          title: credential
+          $ref: '#/components/schemas/aes.iam.v1.AutomationCredential'
+        secret:
+          type: string
+          title: secret
+        previousExpiresAtUnix:
+          type:
+            - integer
+            - string
+          title: previous_expires_at_unix
+          format: int64
+        secretUnavailable:
+          type: boolean
+          title: secret_unavailable
+      title: RotateCredentialResponse
+      additionalProperties: false
+    aes.iam.v1.ServiceAccount:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        projectName:
+          type: string
+          title: project_name
+        displayName:
+          type: string
+          title: display_name
+        permissions:
+          type: array
+          items:
+            type: string
+          title: permissions
+        state:
+          type: string
+          title: state
+        version:
+          type:
+            - integer
+            - string
+          title: version
+          format: int64
+        createTimeUnix:
+          type:
+            - integer
+            - string
+          title: create_time_unix
+          format: int64
+      title: ServiceAccount
+      additionalProperties: false
     aes.iam.v1.Session:
       type: object
       properties:
@@ -11612,6 +13726,31 @@ components:
           description: True for the session the caller is using right now.
       title: Session
       additionalProperties: false
+    aes.iam.v1.SetGitHubTrustStateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        state:
+          type: string
+          title: state
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+      title: SetGitHubTrustStateRequest
+      additionalProperties: false
+    aes.iam.v1.SetGitHubTrustStateResponse:
+      type: object
+      properties:
+        trust:
+          title: trust
+          $ref: '#/components/schemas/aes.iam.v1.GitHubTrust'
+      title: SetGitHubTrustStateResponse
+      additionalProperties: false
     aes.iam.v1.SetInitialPasswordRequest:
       type: object
       properties:
@@ -11624,6 +13763,32 @@ components:
     aes.iam.v1.SetInitialPasswordResponse:
       type: object
       title: SetInitialPasswordResponse
+      additionalProperties: false
+    aes.iam.v1.SetServiceAccountStateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        state:
+          type: string
+          title: state
+          description: ACTIVE or DISABLED; a customer cannot clear a security LOCKED state.
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+      title: SetServiceAccountStateRequest
+      additionalProperties: false
+    aes.iam.v1.SetServiceAccountStateResponse:
+      type: object
+      properties:
+        serviceAccount:
+          title: service_account
+          $ref: '#/components/schemas/aes.iam.v1.ServiceAccount'
+      title: SetServiceAccountStateResponse
       additionalProperties: false
     aes.iam.v1.SetSessionDefaultProjectRequest:
       type: object
@@ -11693,6 +13858,13 @@ components:
           description: |-
             Cloudflare Turnstile widget token. Required when the deployment has bot protection
              enabled; safe to omit otherwise.
+        survey:
+          title: survey
+          description: |-
+            Optional "What brings you to Metal Host?" answer from the sign-up form. Stored on the
+             account at creation; never updated afterwards. Rides email_verifications until
+             VerifyEmail materializes the user (same path as attribution).
+          $ref: '#/components/schemas/aes.iam.v1.SignupSurvey'
       title: SignUpRequest
       additionalProperties: false
     aes.iam.v1.SignUpResponse:
@@ -11773,6 +13945,32 @@ components:
       description: |-
         Marketing attribution for a new account: UTM parameters and ad click IDs captured on the
          website at first visit. All fields optional.
+    aes.iam.v1.SignupIntent:
+      type: string
+      title: SignupIntent
+      enum:
+        - SIGNUP_INTENT_UNSPECIFIED
+        - SIGNUP_INTENT_MOVING_WORKLOAD
+        - SIGNUP_INTENT_STARTING_NEW
+        - SIGNUP_INTENT_ADDING_CAPACITY
+        - SIGNUP_INTENT_COMPARING_PROVIDERS
+        - SIGNUP_INTENT_SOMETHING_ELSE
+      description: Why the customer is signing up. Captured on the website; values match the sign-up form copy.
+    aes.iam.v1.SignupSurvey:
+      type: object
+      properties:
+        intent:
+          title: intent
+          $ref: '#/components/schemas/aes.iam.v1.SignupIntent'
+        somethingElse:
+          type: string
+          title: something_else
+          description: |-
+            Free-text when intent is SIGNUP_INTENT_SOMETHING_ELSE. Server truncates to 100
+             characters. Ignored for any other intent.
+      title: SignupSurvey
+      additionalProperties: false
+      description: Single-question signup survey. Optional; empty/unspecified is stored as SQL NULL.
     aes.iam.v1.StartOidcLoginRequest:
       type: object
       properties:
@@ -11790,6 +13988,13 @@ components:
             Optional marketing attribution captured on the website at first visit. Applied only when
              this sign-in creates a brand-new account; ignored on sign-ins to existing accounts.
           $ref: '#/components/schemas/aes.iam.v1.SignupAttribution'
+        survey:
+          title: survey
+          description: |-
+            Optional "What brings you to Metal Host?" answer. Applied only when this sign-in creates
+             a brand-new account; ignored on sign-ins to existing accounts. Rides oidc_login_sessions
+             because the OAuth redirect drops URL params.
+          $ref: '#/components/schemas/aes.iam.v1.SignupSurvey'
       title: StartOidcLoginRequest
       additionalProperties: false
     aes.iam.v1.StartOidcLoginResponse:
@@ -11805,6 +14010,24 @@ components:
           type: string
           title: state
       title: StartOidcLoginResponse
+      additionalProperties: false
+    aes.iam.v1.SubmitGitHubSetupRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+        pairingCode:
+          type: string
+          title: pairing_code
+        assertion:
+          type: string
+          title: assertion
+      title: SubmitGitHubSetupRequest
+      additionalProperties: false
+    aes.iam.v1.SubmitGitHubSetupResponse:
+      type: object
+      title: SubmitGitHubSetupResponse
       additionalProperties: false
     aes.iam.v1.SubmitMFAChallengeRequest:
       type: object
@@ -11848,6 +14071,39 @@ components:
              fresh device — recovery codes are one-shot and don't re-mint).
       title: SubmitMFAChallengeResponse
       additionalProperties: false
+    aes.iam.v1.UpdateGitHubTrustRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        displayName:
+          type: string
+          title: display_name
+        permissions:
+          type: array
+          items:
+            type: string
+          title: permissions
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+      title: UpdateGitHubTrustRequest
+      additionalProperties: false
+    aes.iam.v1.UpdateGitHubTrustResponse:
+      type: object
+      properties:
+        trust:
+          title: trust
+          $ref: '#/components/schemas/aes.iam.v1.GitHubTrust'
+      title: UpdateGitHubTrustResponse
+      additionalProperties: false
     aes.iam.v1.UpdateOrgMemberRoleRequest:
       type: object
       properties:
@@ -11872,6 +14128,36 @@ components:
           title: member
           $ref: '#/components/schemas/aes.iam.v1.OrgMember'
       title: UpdateOrgMemberRoleResponse
+      additionalProperties: false
+    aes.iam.v1.UpdateServiceAccountRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        displayName:
+          type: string
+          title: display_name
+        permissions:
+          type: array
+          items:
+            type: string
+          title: permissions
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+      title: UpdateServiceAccountRequest
+      additionalProperties: false
+    aes.iam.v1.UpdateServiceAccountResponse:
+      type: object
+      properties:
+        serviceAccount:
+          title: service_account
+          $ref: '#/components/schemas/aes.iam.v1.ServiceAccount'
+      title: UpdateServiceAccountResponse
       additionalProperties: false
     aes.iam.v1.UpdateUserRequest:
       type: object
@@ -12049,6 +14335,1282 @@ components:
             One-shot recovery codes. Returned exactly once on first successful verification — store
              these somewhere safe; each can be used once if the authenticator is lost.
       title: VerifyMFAEnrollmentResponse
+      additionalProperties: false
+    aes.monitoring.v1.AlertDestination:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        projectName:
+          type: string
+          title: project_name
+        displayName:
+          type: string
+          title: display_name
+        kind:
+          type: string
+          title: kind
+          description: EMAIL selects an existing verified project member; WEBHOOK an existing subscription.
+        principal:
+          type: string
+          title: principal
+        subscriptionName:
+          type: string
+          title: subscription_name
+        enabled:
+          type: boolean
+          title: enabled
+        version:
+          type:
+            - integer
+            - string
+          title: version
+          format: int64
+        verificationStatus:
+          type: string
+          title: verification_status
+          description: VERIFIED, PENDING, or NOT_REQUIRED for a webhook subscription.
+        pendingVerificationId:
+          type: string
+          title: pending_verification_id
+          description: Only populated for the current recipient's own unexpired verification.
+        lastTest:
+          title: last_test
+          description: Most recent test within retained history; absence is not delivery success.
+          $ref: '#/components/schemas/aes.monitoring.v1.DestinationTest'
+      title: AlertDestination
+      additionalProperties: false
+    aes.monitoring.v1.AlertDestinationCandidate:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        displayName:
+          type: string
+          title: display_name
+        kind:
+          type: string
+          title: kind
+          description: EMAIL or WEBHOOK. The name is an existing user or subscription resource.
+        address:
+          type: string
+          title: address
+      title: AlertDestinationCandidate
+      additionalProperties: false
+    aes.monitoring.v1.AlertInstance:
+      type: object
+      properties:
+        ruleId:
+          type: string
+          title: rule_id
+        ruleVersion:
+          type:
+            - integer
+            - string
+          title: rule_version
+          format: int64
+        vmName:
+          type: string
+          title: vm_name
+        health:
+          type: string
+          title: health
+        condition:
+          type: string
+          title: condition
+        incidentId:
+          type: string
+          title: incident_id
+        transitionTimeUnix:
+          type:
+            - integer
+            - string
+          title: transition_time_unix
+          format: int64
+      title: AlertInstance
+      additionalProperties: false
+    aes.monitoring.v1.AlertPreviewResource:
+      type: object
+      properties:
+        vmName:
+          type: string
+          title: vm_name
+        displayName:
+          type: string
+          title: display_name
+        status:
+          type: string
+          title: status
+          description: AVAILABLE, AWAITING_DATA, SUPPRESSED, UNKNOWN intent/placement, or ERROR.
+        value:
+          type:
+            - number
+            - "null"
+          title: value
+          format: double
+        conditionMet:
+          type: boolean
+          title: condition_met
+      title: AlertPreviewResource
+      additionalProperties: false
+    aes.monitoring.v1.AlertRule:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+        projectName:
+          type: string
+          title: project_name
+        spec:
+          title: spec
+          $ref: '#/components/schemas/aes.monitoring.v1.AlertRuleSpec'
+        version:
+          type:
+            - integer
+            - string
+          title: version
+          format: int64
+        appliedVersion:
+          type:
+            - integer
+            - string
+          title: applied_version
+          format: int64
+        syncStatus:
+          type: string
+          title: sync_status
+          description: PENDING, APPLIED, ERROR, LIMITED, or RETIRED. Saving is not engine acceptance.
+        syncError:
+          type: string
+          title: sync_error
+        createTimeUnix:
+          type:
+            - integer
+            - string
+          title: create_time_unix
+          format: int64
+        updateTimeUnix:
+          type:
+            - integer
+            - string
+          title: update_time_unix
+          format: int64
+        lastEvaluatedAtUnix:
+          type:
+            - integer
+            - string
+          title: last_evaluated_at_unix
+          format: int64
+      title: AlertRule
+      additionalProperties: false
+    aes.monitoring.v1.AlertRuleSpec:
+      type: object
+      properties:
+        displayName:
+          type: string
+          title: display_name
+        metricId:
+          type: string
+          title: metric_id
+          description: One of the metric IDs returned by the alert template catalog.
+        operator:
+          type: string
+          title: operator
+          description: GREATER_THAN or LESS_THAN. Availability templates use GREATER_THAN 0.
+        threshold:
+          type: number
+          title: threshold
+          format: double
+        sustainedSeconds:
+          type: integer
+          title: sustained_seconds
+          format: int32
+        severity:
+          type: string
+          title: severity
+          description: WARNING or CRITICAL.
+        allVms:
+          type: boolean
+          title: all_vms
+        vmNames:
+          type: array
+          items:
+            type: string
+          title: vm_names
+        enabled:
+          type: boolean
+          title: enabled
+        repeatIntervalSeconds:
+          type: integer
+          title: repeat_interval_seconds
+          format: int32
+        destinationNames:
+          type: array
+          items:
+            type: string
+          title: destination_names
+      title: AlertRuleSpec
+      additionalProperties: false
+    aes.monitoring.v1.DeleteAlertDestinationRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        name:
+          type: string
+          title: name
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+      title: DeleteAlertDestinationRequest
+      additionalProperties: false
+    aes.monitoring.v1.DeleteAlertDestinationResponse:
+      type: object
+      title: DeleteAlertDestinationResponse
+      additionalProperties: false
+    aes.monitoring.v1.DeleteAlertRuleRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        id:
+          type: string
+          title: id
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+      title: DeleteAlertRuleRequest
+      additionalProperties: false
+    aes.monitoring.v1.DeleteAlertRuleResponse:
+      type: object
+      title: DeleteAlertRuleResponse
+      additionalProperties: false
+    aes.monitoring.v1.DestinationTest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+        destinationName:
+          type: string
+          title: destination_name
+        state:
+          type: string
+          title: state
+          description: PENDING, SENDING, SENT, FAILED, EXPIRED, or SKIPPED. SENT means provider acceptance.
+        attemptCount:
+          type: integer
+          title: attempt_count
+          format: int32
+        lastError:
+          type: string
+          title: last_error
+        createTimeUnix:
+          type:
+            - integer
+            - string
+          title: create_time_unix
+          format: int64
+      title: DestinationTest
+      additionalProperties: false
+    aes.monitoring.v1.EnableEnhancedMonitoringRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        requestId:
+          type: string
+          title: request_id
+        confirmDeviceAttachment:
+          type: boolean
+          title: confirm_device_attachment
+          description: |-
+            When the device is absent, the VM must already have completed its normal
+             stop operation. This RPC never stops, starts or restarts a VM itself.
+      title: EnableEnhancedMonitoringRequest
+      additionalProperties: false
+    aes.monitoring.v1.EnableEnhancedMonitoringResponse:
+      type: object
+      properties:
+        monitoring:
+          title: monitoring
+          $ref: '#/components/schemas/aes.monitoring.v1.EnhancedMonitoring'
+      title: EnableEnhancedMonitoringResponse
+      additionalProperties: false
+    aes.monitoring.v1.EnhancedMonitoring:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        installationId:
+          type: string
+          title: installation_id
+        resourceId:
+          type: string
+          title: resource_id
+        status:
+          type: string
+          title: status
+          description: DISABLED, AWAITING_INSTALLATION, CONNECTED, STALE, REVOKED, UNSUPPORTED.
+        deviceReady:
+          type: boolean
+          title: device_ready
+        restartRequired:
+          type: boolean
+          title: restart_required
+        collectorVersion:
+          type: string
+          title: collector_version
+        capabilities:
+          type: array
+          items:
+            type: string
+          title: capabilities
+        lastSeenAtUnix:
+          type:
+            - integer
+            - string
+          title: last_seen_at_unix
+          format: int64
+        revokedAtUnix:
+          type:
+            - integer
+            - string
+          title: revoked_at_unix
+          format: int64
+        configurationJson:
+          type: string
+          title: configuration_json
+          description: |-
+            Public installation identity, not a bearer credential. Requires the trusted
+             VMI-bound collection path; copying this configuration grants no authority.
+        runtimeState:
+          type: string
+          title: runtime_state
+      title: EnhancedMonitoring
+      additionalProperties: false
+    aes.monitoring.v1.GetDestinationTestRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        id:
+          type: string
+          title: id
+      title: GetDestinationTestRequest
+      additionalProperties: false
+    aes.monitoring.v1.GetDestinationTestResponse:
+      type: object
+      properties:
+        test:
+          title: test
+          $ref: '#/components/schemas/aes.monitoring.v1.DestinationTest'
+      title: GetDestinationTestResponse
+      additionalProperties: false
+    aes.monitoring.v1.GetEnhancedMonitoringRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: GetEnhancedMonitoringRequest
+      additionalProperties: false
+    aes.monitoring.v1.GetEnhancedMonitoringResponse:
+      type: object
+      properties:
+        monitoring:
+          title: monitoring
+          $ref: '#/components/schemas/aes.monitoring.v1.EnhancedMonitoring'
+      title: GetEnhancedMonitoringResponse
+      additionalProperties: false
+    aes.monitoring.v1.GetIncidentRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        id:
+          type: string
+          title: id
+        pageToken:
+          type: string
+          title: page_token
+          description: Cursor for older transitions; each page includes up to 50 transitions and their deliveries.
+      title: GetIncidentRequest
+      additionalProperties: false
+    aes.monitoring.v1.GetIncidentResponse:
+      type: object
+      properties:
+        incident:
+          title: incident
+          $ref: '#/components/schemas/aes.monitoring.v1.Incident'
+        transitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.IncidentTransition'
+          title: transitions
+        deliveries:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.IncidentDelivery'
+          title: deliveries
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: GetIncidentResponse
+      additionalProperties: false
+    aes.monitoring.v1.GetIncidentSummaryRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+      title: GetIncidentSummaryRequest
+      additionalProperties: false
+    aes.monitoring.v1.GetIncidentSummaryResponse:
+      type: object
+      properties:
+        openCount:
+          type: integer
+          title: open_count
+          format: int32
+        criticalCount:
+          type: integer
+          title: critical_count
+          format: int32
+        incidents:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.Incident'
+          title: incidents
+          description: At most five recent open incidents. Reading never acknowledges or resolves them.
+      title: GetIncidentSummaryResponse
+      additionalProperties: false
+    aes.monitoring.v1.Incident:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+        projectName:
+          type: string
+          title: project_name
+        ruleId:
+          type: string
+          title: rule_id
+        ruleVersion:
+          type:
+            - integer
+            - string
+          title: rule_version
+          format: int64
+        vmName:
+          type: string
+          title: vm_name
+        state:
+          type: string
+          title: state
+          description: OPEN, RECOVERED, or RETIRED. Acknowledgement does not resolve an incident.
+        openedAtUnix:
+          type:
+            - integer
+            - string
+          title: opened_at_unix
+          format: int64
+        closedAtUnix:
+          type:
+            - integer
+            - string
+          title: closed_at_unix
+          format: int64
+        closeReason:
+          type: string
+          title: close_reason
+        acknowledgedBy:
+          type: string
+          title: acknowledged_by
+        acknowledgedAtUnix:
+          type:
+            - integer
+            - string
+          title: acknowledged_at_unix
+          format: int64
+        snoozedUntilUnix:
+          type:
+            - integer
+            - string
+          title: snoozed_until_unix
+          format: int64
+        version:
+          type:
+            - integer
+            - string
+          title: version
+          format: int64
+        snapshot:
+          title: snapshot
+          $ref: '#/components/schemas/aes.monitoring.v1.IncidentSnapshot'
+        evaluationHealth:
+          type: string
+          title: evaluation_health
+          description: Current evaluation health, independent of the incident's lifecycle.
+        vmDisplayName:
+          type: string
+          title: vm_display_name
+          description: Current hostname only when the immutable resource still matches this incident.
+      title: Incident
+      additionalProperties: false
+    aes.monitoring.v1.IncidentDelivery:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+        transitionId:
+          type: string
+          title: transition_id
+        destinationName:
+          type: string
+          title: destination_name
+        state:
+          type: string
+          title: state
+        attemptCount:
+          type: integer
+          title: attempt_count
+          format: int32
+        createTimeUnix:
+          type:
+            - integer
+            - string
+          title: create_time_unix
+          format: int64
+        completedAtUnix:
+          type:
+            - integer
+            - string
+          title: completed_at_unix
+          format: int64
+        lastError:
+          type: string
+          title: last_error
+      title: IncidentDelivery
+      additionalProperties: false
+    aes.monitoring.v1.IncidentSnapshot:
+      type: object
+      properties:
+        ruleName:
+          type: string
+          title: rule_name
+        metricId:
+          type: string
+          title: metric_id
+        operator:
+          type: string
+          title: operator
+        threshold:
+          type: number
+          title: threshold
+          format: double
+        sustainedSeconds:
+          type: integer
+          title: sustained_seconds
+          format: int32
+        severity:
+          type: string
+          title: severity
+        value:
+          type:
+            - number
+            - "null"
+          title: value
+          format: double
+        datacenterName:
+          type: string
+          title: datacenter_name
+        observedAtUnix:
+          type:
+            - integer
+            - string
+          title: observed_at_unix
+          format: int64
+      title: IncidentSnapshot
+      additionalProperties: false
+    aes.monitoring.v1.IncidentTransition:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+        kind:
+          type: string
+          title: kind
+        createTimeUnix:
+          type:
+            - integer
+            - string
+          title: create_time_unix
+          format: int64
+        principal:
+          type: string
+          title: principal
+        snapshot:
+          title: snapshot
+          $ref: '#/components/schemas/aes.monitoring.v1.IncidentSnapshot'
+      title: IncidentTransition
+      additionalProperties: false
+    aes.monitoring.v1.ListAlertDestinationCandidatesRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        kind:
+          type: string
+          title: kind
+        search:
+          type: string
+          title: search
+        pageToken:
+          type: string
+          title: page_token
+      title: ListAlertDestinationCandidatesRequest
+      additionalProperties: false
+    aes.monitoring.v1.ListAlertDestinationCandidatesResponse:
+      type: object
+      properties:
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.AlertDestinationCandidate'
+          title: candidates
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListAlertDestinationCandidatesResponse
+      additionalProperties: false
+    aes.monitoring.v1.ListAlertDestinationsRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+      title: ListAlertDestinationsRequest
+      additionalProperties: false
+    aes.monitoring.v1.ListAlertDestinationsResponse:
+      type: object
+      properties:
+        destinations:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.AlertDestination'
+          title: destinations
+        limit:
+          type: integer
+          title: limit
+          format: int32
+        callerPrincipal:
+          type: string
+          title: caller_principal
+        emailAvailable:
+          type: boolean
+          title: email_available
+        webhookAvailable:
+          type: boolean
+          title: webhook_available
+      title: ListAlertDestinationsResponse
+      additionalProperties: false
+    aes.monitoring.v1.ListAlertInstancesRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        ruleId:
+          type: string
+          title: rule_id
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListAlertInstancesRequest
+      additionalProperties: false
+    aes.monitoring.v1.ListAlertInstancesResponse:
+      type: object
+      properties:
+        instances:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.AlertInstance'
+          title: instances
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListAlertInstancesResponse
+      additionalProperties: false
+    aes.monitoring.v1.ListAlertRulesRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+      title: ListAlertRulesRequest
+      additionalProperties: false
+    aes.monitoring.v1.ListAlertRulesResponse:
+      type: object
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.AlertRule'
+          title: rules
+        ruleLimit:
+          type: integer
+          title: rule_limit
+          format: int32
+        evaluatedInstanceLimit:
+          type: integer
+          title: evaluated_instance_limit
+          format: int32
+        canManage:
+          type: boolean
+          title: can_manage
+      title: ListAlertRulesResponse
+      additionalProperties: false
+    aes.monitoring.v1.ListIncidentsRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        state:
+          type: string
+          title: state
+          description: Empty for all; otherwise OPEN, RECOVERED, or RETIRED.
+        vmName:
+          type: string
+          title: vm_name
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListIncidentsRequest
+      additionalProperties: false
+    aes.monitoring.v1.ListIncidentsResponse:
+      type: object
+      properties:
+        incidents:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.Incident'
+          title: incidents
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListIncidentsResponse
+      additionalProperties: false
+    aes.monitoring.v1.ListMetricDescriptorsRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+      title: ListMetricDescriptorsRequest
+      additionalProperties: false
+    aes.monitoring.v1.ListMetricDescriptorsResponse:
+      type: object
+      properties:
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.MetricDescriptor'
+          title: metrics
+        retentionDays:
+          type: integer
+          title: retention_days
+          format: int32
+        sampleIntervalSeconds:
+          type: integer
+          title: sample_interval_seconds
+          format: int32
+      title: ListMetricDescriptorsResponse
+      additionalProperties: false
+    aes.monitoring.v1.ListVMMonitoringRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+        search:
+          type: string
+          title: search
+        datacenterName:
+          type: string
+          title: datacenter_name
+        state:
+          type: string
+          title: state
+        inventoryOnly:
+          type: boolean
+          title: inventory_only
+          description: Record pickers can skip time-series queries. Status is then NOT_REQUESTED.
+      title: ListVMMonitoringRequest
+      additionalProperties: false
+    aes.monitoring.v1.ListVMMonitoringResponse:
+      type: object
+      properties:
+        vms:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.MonitoredVM'
+          title: vms
+        nextPageToken:
+          type: string
+          title: next_page_token
+        queryStatus:
+          type: string
+          title: query_status
+      title: ListVMMonitoringResponse
+      additionalProperties: false
+    aes.monitoring.v1.MetricDescriptor:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+        displayName:
+          type: string
+          title: display_name
+        unit:
+          type: string
+          title: unit
+        description:
+          type: string
+          title: description
+        source:
+          type: string
+          title: source
+      title: MetricDescriptor
+      additionalProperties: false
+    aes.monitoring.v1.MetricQuality:
+      type: object
+      properties:
+        metricId:
+          type: string
+          title: metric_id
+        status:
+          type: string
+          title: status
+          description: AVAILABLE, STALE, AWAITING_DATA, UNSUPPORTED, or ERROR.
+        observedAtUnix:
+          type:
+            - integer
+            - string
+          title: observed_at_unix
+          format: int64
+        description:
+          type: string
+          title: description
+      title: MetricQuality
+      additionalProperties: false
+    aes.monitoring.v1.MonitoredVM:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        displayName:
+          type: string
+          title: display_name
+        datacenterName:
+          type: string
+          title: datacenter_name
+        state:
+          type: string
+          title: state
+        collectionStatus:
+          type: string
+          title: collection_status
+          description: AVAILABLE, STALE, AWAITING_DATA, or ERROR; never infer VM health from this.
+        observedAtUnix:
+          type:
+            - integer
+            - string
+          title: observed_at_unix
+          format: int64
+        enhancedStatus:
+          type: string
+          title: enhanced_status
+        cpuUtilizationPercent:
+          type:
+            - number
+            - "null"
+          title: cpu_utilization_percent
+          format: double
+        memoryUsedBytes:
+          type:
+            - number
+            - "null"
+          title: memory_used_bytes
+          format: double
+        filesystemUsedPercent:
+          type:
+            - number
+            - "null"
+          title: filesystem_used_percent
+          format: double
+      title: MonitoredVM
+      additionalProperties: false
+    aes.monitoring.v1.PreviewAlertRuleRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        spec:
+          title: spec
+          $ref: '#/components/schemas/aes.monitoring.v1.AlertRuleSpec'
+      title: PreviewAlertRuleRequest
+      additionalProperties: false
+    aes.monitoring.v1.PreviewAlertRuleResponse:
+      type: object
+      properties:
+        matchedResourceCount:
+          type: integer
+          title: matched_resource_count
+          format: int32
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.AlertPreviewResource'
+          title: resources
+        sampleOnly:
+          type: boolean
+          title: sample_only
+        queryStatus:
+          type: string
+          title: query_status
+        explanation:
+          type: string
+          title: explanation
+      title: PreviewAlertRuleResponse
+      additionalProperties: false
+    aes.monitoring.v1.QueryVMMonitoringRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        metricIds:
+          type: array
+          items:
+            type: string
+          title: metric_ids
+        startTimeUnix:
+          type:
+            - integer
+            - string
+          title: start_time_unix
+          format: int64
+        endTimeUnix:
+          type:
+            - integer
+            - string
+          title: end_time_unix
+          format: int64
+        stepSeconds:
+          type: integer
+          title: step_seconds
+          format: int32
+      title: QueryVMMonitoringRequest
+      additionalProperties: false
+    aes.monitoring.v1.QueryVMMonitoringResponse:
+      type: object
+      properties:
+        series:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.Series'
+          title: series
+        quality:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.MetricQuality'
+          title: quality
+        startTimeUnix:
+          type:
+            - integer
+            - string
+          title: start_time_unix
+          format: int64
+        endTimeUnix:
+          type:
+            - integer
+            - string
+          title: end_time_unix
+          format: int64
+        stepSeconds:
+          type: integer
+          title: step_seconds
+          format: int32
+      title: QueryVMMonitoringResponse
+      additionalProperties: false
+    aes.monitoring.v1.RequestDestinationVerificationRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        name:
+          type: string
+          title: name
+        requestId:
+          type: string
+          title: request_id
+      title: RequestDestinationVerificationRequest
+      additionalProperties: false
+    aes.monitoring.v1.RequestDestinationVerificationResponse:
+      type: object
+      properties:
+        verificationId:
+          type: string
+          title: verification_id
+      title: RequestDestinationVerificationResponse
+      additionalProperties: false
+    aes.monitoring.v1.RevokeEnhancedMonitoringRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        installationId:
+          type: string
+          title: installation_id
+          description: Compare-and-revoke prevents an old dialog revoking a replacement install.
+      title: RevokeEnhancedMonitoringRequest
+      additionalProperties: false
+    aes.monitoring.v1.RevokeEnhancedMonitoringResponse:
+      type: object
+      title: RevokeEnhancedMonitoringResponse
+      additionalProperties: false
+    aes.monitoring.v1.Sample:
+      type: object
+      properties:
+        timestampUnix:
+          type:
+            - integer
+            - string
+          title: timestamp_unix
+          format: int64
+        value:
+          type: number
+          title: value
+          format: double
+      title: Sample
+      additionalProperties: false
+    aes.monitoring.v1.SaveAlertDestinationRequest:
+      type: object
+      properties:
+        destination:
+          title: destination
+          $ref: '#/components/schemas/aes.monitoring.v1.AlertDestination'
+        requestId:
+          type: string
+          title: request_id
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+          description: Zero for create; otherwise the version last read.
+      title: SaveAlertDestinationRequest
+      additionalProperties: false
+    aes.monitoring.v1.SaveAlertDestinationResponse:
+      type: object
+      properties:
+        destination:
+          title: destination
+          $ref: '#/components/schemas/aes.monitoring.v1.AlertDestination'
+      title: SaveAlertDestinationResponse
+      additionalProperties: false
+    aes.monitoring.v1.SaveAlertRuleRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        id:
+          type: string
+          title: id
+          description: Client-generated UUID, retained on retry. Never reused after deletion.
+        spec:
+          title: spec
+          $ref: '#/components/schemas/aes.monitoring.v1.AlertRuleSpec'
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+          description: Zero for create; otherwise the last version read.
+        requestId:
+          type: string
+          title: request_id
+          description: Client-generated UUID identifying this mutation; reuse on an ambiguous retry.
+      title: SaveAlertRuleRequest
+      additionalProperties: false
+    aes.monitoring.v1.SaveAlertRuleResponse:
+      type: object
+      properties:
+        rule:
+          title: rule
+          $ref: '#/components/schemas/aes.monitoring.v1.AlertRule'
+      title: SaveAlertRuleResponse
+      additionalProperties: false
+    aes.monitoring.v1.Series:
+      type: object
+      properties:
+        metricId:
+          type: string
+          title: metric_id
+        dimensions:
+          type: object
+          title: dimensions
+          additionalProperties:
+            type: string
+            title: value
+        samples:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.Sample'
+          title: samples
+      title: Series
+      additionalProperties: false
+    aes.monitoring.v1.Series.DimensionsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: DimensionsEntry
+      additionalProperties: false
+    aes.monitoring.v1.TestAlertDestinationRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        destinationName:
+          type: string
+          title: destination_name
+        requestId:
+          type: string
+          title: request_id
+          description: Keep this UUID on retry; a new ID deliberately requests another test.
+      title: TestAlertDestinationRequest
+      additionalProperties: false
+    aes.monitoring.v1.TestAlertDestinationResponse:
+      type: object
+      properties:
+        test:
+          title: test
+          $ref: '#/components/schemas/aes.monitoring.v1.DestinationTest'
+      title: TestAlertDestinationResponse
+      additionalProperties: false
+    aes.monitoring.v1.UpdateIncidentRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        id:
+          type: string
+          title: id
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+        action:
+          type: string
+          title: action
+          description: ACKNOWLEDGE, SNOOZE, or UNSNOOZE. These never change OPEN to RECOVERED.
+        durationSeconds:
+          type: integer
+          title: duration_seconds
+          format: int32
+          description: 'SNOOZE only: 900, 3600, 14400, or 86400 seconds.'
+      title: UpdateIncidentRequest
+      additionalProperties: false
+    aes.monitoring.v1.UpdateIncidentResponse:
+      type: object
+      properties:
+        incident:
+          title: incident
+          $ref: '#/components/schemas/aes.monitoring.v1.Incident'
+      title: UpdateIncidentResponse
+      additionalProperties: false
+    aes.monitoring.v1.VerifyAlertDestinationRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        name:
+          type: string
+          title: name
+        verificationId:
+          type: string
+          title: verification_id
+        code:
+          type: string
+          title: code
+      title: VerifyAlertDestinationRequest
+      additionalProperties: false
+    aes.monitoring.v1.VerifyAlertDestinationResponse:
+      type: object
+      title: VerifyAlertDestinationResponse
       additionalProperties: false
     aes.network.v1.AddVmToSecurityGroupRequest:
       type: object
@@ -14891,6 +18453,13 @@ components:
           type: string
           title: body
           description: Optional final customer-side message recorded before close.
+        requestId:
+          type: string
+          title: request_id
+        expectedUpdatedAt:
+          title: expected_updated_at
+          description: Reject closing when another participant has changed the ticket since it was read.
+          $ref: '#/components/schemas/google.protobuf.Timestamp'
       title: CloseTicketRequest
       additionalProperties: false
     aes.support.v1.CloseTicketResponse:
@@ -14926,6 +18495,9 @@ components:
           items:
             $ref: '#/components/schemas/aes.support.v1.ResourceRef'
           title: resource_refs
+        requestId:
+          type: string
+          title: request_id
       title: CreateTicketRequest
       additionalProperties: false
     aes.support.v1.CreateTicketResponse:
@@ -15005,6 +18577,13 @@ components:
         body:
           type: string
           title: body
+        reopen:
+          type: boolean
+          title: reopen
+          description: Explicit consent to reopen a closed conversation. There is no expiry window.
+        requestId:
+          type: string
+          title: request_id
       title: ReplyTicketRequest
       additionalProperties: false
     aes.support.v1.ReplyTicketResponse:
@@ -15103,6 +18682,10 @@ components:
         escalatedAt:
           title: escalated_at
           $ref: '#/components/schemas/google.protobuf.Timestamp'
+        closedAt:
+          title: closed_at
+          description: Last closure time, preserved when the conversation is reopened.
+          $ref: '#/components/schemas/google.protobuf.Timestamp'
       title: Ticket
       additionalProperties: false
     aes.support.v1.TicketCategory:
@@ -15181,12 +18764,7 @@ components:
         - TICKET_STATUS_PENDING_STAFF
         - TICKET_STATUS_RESOLVED
         - TICKET_STATUS_CLOSED
-      description: |-
-        Lifecycle states. PENDING_CUSTOMER means staff replied and we're waiting on the user;
-         PENDING_STAFF means the user replied and we owe them a response. RESOLVED is set by staff;
-         CLOSED is the terminal state — set when the customer
-         confirms or auto-closes after an inactivity window. Customer-side CloseTicket goes
-         directly to CLOSED.
+      description: CLOSED is the only finished state. RESOLVED remains a deprecated wire-compatible alias.
     aes.wallet.v1.ActivePromotion:
       type: object
       properties:
@@ -16813,6 +20391,44 @@ components:
           title: next_page_token
       title: ListSubscriptionsResponse
       additionalProperties: false
+    aes.webhooks.v1.RotateSubscriptionSecretRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        expectedSecretVersion:
+          type:
+            - integer
+            - string
+          title: expected_secret_version
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+          description: Stable UUID for recovery after a lost response. Retries never reveal secrets.
+        overlapSeconds:
+          type: integer
+          title: overlap_seconds
+          format: int32
+          description: 0 immediately invalidates the old secret; maximum 86400 (24 hours).
+      title: RotateSubscriptionSecretRequest
+      additionalProperties: false
+    aes.webhooks.v1.RotateSubscriptionSecretResponse:
+      type: object
+      properties:
+        subscription:
+          title: subscription
+          $ref: '#/components/schemas/aes.webhooks.v1.Subscription'
+        secret:
+          type: string
+          title: secret
+        secretUnavailable:
+          type: boolean
+          title: secret_unavailable
+          description: A committed request was retried. Recover by deliberately rotating again.
+      title: RotateSubscriptionSecretResponse
+      additionalProperties: false
     aes.webhooks.v1.Subscription:
       type: object
       properties:
@@ -16857,6 +20473,19 @@ components:
           type: string
           title: secret_prefix
           description: Per-subscription identifier returned via the X-Metalhost-Subscription header in deliveries.
+        secretVersion:
+          type:
+            - integer
+            - string
+          title: secret_version
+          format: int64
+        previousSecretExpiresAtUnix:
+          type:
+            - integer
+            - string
+          title: previous_secret_expires_at_unix
+          format: int64
+          description: Zero when no overlap exists. Expired previous secrets are never used to sign.
       title: Subscription
       additionalProperties: false
     aes.webhooks.v1.UpdateSubscriptionRequest:
@@ -17312,6 +20941,7 @@ tags:
        removed entirely; customers paste cloud-init YAML directly on the VM create form.
   - name: aes.health.v1.HealthService
     description: Liveness/readiness for load balancers and ops.
+  - name: aes.iam.v1.AutomationService
   - name: aes.iam.v1.IamService
     description: |-
       IamService holds identity primitives for customer orgs and projects.
@@ -17319,6 +20949,8 @@ tags:
        The public API intentionally omits token-validation helpers, per-button permission
        pre-checks, and deployment-metadata endpoints — callers rely on request-time
        PermissionDenied instead. ListOrgMembers covers single-member lookups.
+  - name: aes.monitoring.v1.AlertService
+  - name: aes.monitoring.v1.MonitoringService
   - name: aes.network.v1.NetworkService
     description: |-
       NetworkService manages tenant-facing networks for tenant-private connectivity. Each Network

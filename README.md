@@ -54,6 +54,10 @@ func check(ctx context.Context) error {
 
 Generated service constructors and request/response types remain the primary SDK surface; the helper does not hide authorization, validation, pagination, operations, or billing behavior.
 
+For the coordinated, unreleased September APIs, see [Observability](docs/OBSERVABILITY.md):
+scoped automation/GitHub identity, monitoring endpoints, Grafana, alerts, and
+timestamped webhook verification with overlapping rotation.
+
 ## Keep the API snapshot synchronized
 
 Install pinned generation tools once:

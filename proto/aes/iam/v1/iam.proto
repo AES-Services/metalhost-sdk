@@ -338,6 +338,33 @@ message SignUpRequest {
   // Cloudflare Turnstile widget token. Required when the deployment has bot protection
   // enabled; safe to omit otherwise.
   string turnstile_token = 6;
+  // Optional "What brings you to Metal Host?" answer from the sign-up form. Stored on the
+  // account at creation; never updated afterwards. Rides email_verifications until
+  // VerifyEmail materializes the user (same path as attribution).
+  SignupSurvey survey = 7;
+}
+
+// Why the customer is signing up. Captured on the website; values match the sign-up form copy.
+enum SignupIntent {
+  SIGNUP_INTENT_UNSPECIFIED = 0;
+  // Moving an existing workload from another provider.
+  SIGNUP_INTENT_MOVING_WORKLOAD = 1;
+  // Starting something new.
+  SIGNUP_INTENT_STARTING_NEW = 2;
+  // Adding capacity next to my current setup.
+  SIGNUP_INTENT_ADDING_CAPACITY = 3;
+  // Comparing providers, nothing to deploy yet.
+  SIGNUP_INTENT_COMPARING_PROVIDERS = 4;
+  // Something else — see SignupSurvey.something_else.
+  SIGNUP_INTENT_SOMETHING_ELSE = 5;
+}
+
+// Single-question signup survey. Optional; empty/unspecified is stored as SQL NULL.
+message SignupSurvey {
+  SignupIntent intent = 1;
+  // Free-text when intent is SIGNUP_INTENT_SOMETHING_ELSE. Server truncates to 100
+  // characters. Ignored for any other intent.
+  string something_else = 2;
 }
 
 // Marketing attribution for a new account: UTM parameters and ad click IDs captured on the
@@ -621,6 +648,10 @@ message StartOidcLoginRequest {
   // Optional marketing attribution captured on the website at first visit. Applied only when
   // this sign-in creates a brand-new account; ignored on sign-ins to existing accounts.
   SignupAttribution attribution = 3;
+  // Optional "What brings you to Metal Host?" answer. Applied only when this sign-in creates
+  // a brand-new account; ignored on sign-ins to existing accounts. Rides oidc_login_sessions
+  // because the OAuth redirect drops URL params.
+  SignupSurvey survey = 4;
 }
 
 message StartOidcLoginResponse {

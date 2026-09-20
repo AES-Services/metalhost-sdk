@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package aes.monitoring.v1;
+
+service MonitoringService {
+  rpc ListMetricDescriptors(ListMetricDescriptorsRequest) returns (ListMetricDescriptorsResponse);
+  rpc ListVMMonitoring(ListVMMonitoringRequest) returns (ListVMMonitoringResponse);
+  rpc QueryVMMonitoring(QueryVMMonitoringRequest) returns (QueryVMMonitoringResponse);
+  rpc GetEnhancedMonitoring(GetEnhancedMonitoringRequest) returns (GetEnhancedMonitoringResponse);
+  rpc EnableEnhancedMonitoring(EnableEnhancedMonitoringRequest) returns (EnableEnhancedMonitoringResponse);
+  rpc RevokeEnhancedMonitoring(RevokeEnhancedMonitoringRequest) returns (RevokeEnhancedMonitoringResponse);
+}
+
+message MetricDescriptor {
+  string id = 1;
+  string display_name = 2;
+  string unit = 3;
+  string description = 4;
+  string source = 5;
+}
+message ListMetricDescriptorsRequest { string project_name = 1; }
+message ListMetricDescriptorsResponse {
+  repeated MetricDescriptor metrics = 1;
+  int32 retention_days = 2;
+  int32 sample_interval_seconds = 3;
+}
+message ListVMMonitoringRequest {
+  string project_name = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+  string search = 4;
+  string datacenter_name = 5;
+  string state = 6;
+  // Record pickers can skip time-series queries. Status is then NOT_REQUESTED.
+  bool inventory_only = 7;
+}
+message MonitoredVM {
+  string name = 1;
+  string display_name = 2;
+  string datacenter_name = 3;
+  string state = 4;
+  // AVAILABLE, STALE, AWAITING_DATA, or ERROR; never infer VM health from this.
+  string collection_status = 5;
+  int64 observed_at_unix = 6;
+  string enhanced_status = 7;
+  optional double cpu_utilization_percent = 8;
+  optional double memory_used_bytes = 9;
+  optional double filesystem_used_percent = 10;
+}
+message ListVMMonitoringResponse {
+  repeated MonitoredVM vms = 1;
+  string next_page_token = 2;
+  string query_status = 3;
+}
+message QueryVMMonitoringRequest {
+  string name = 1;
+  repeated string metric_ids = 2;
+  int64 start_time_unix = 3;
+  int64 end_time_unix = 4;
+  int32 step_seconds = 5;
+}
+message Sample {
+  int64 timestamp_unix = 1;
+  double value = 2;
+}
+message Series {
+  string metric_id = 1;
+  map<string, string> dimensions = 2;
+  repeated Sample samples = 3;
+}
+message MetricQuality {
+  string metric_id = 1;
+  // AVAILABLE, STALE, AWAITING_DATA, UNSUPPORTED, or ERROR.
+  string status = 2;
+  int64 observed_at_unix = 3;
+  string description = 4;
+}
+message QueryVMMonitoringResponse {
+  repeated Series series = 1;
+  repeated MetricQuality quality = 2;
+  int64 start_time_unix = 3;
+  int64 end_time_unix = 4;
+  int32 step_seconds = 5;
+}
+
+message EnhancedMonitoring {
+  string name = 1;
+  string installation_id = 2;
+  string resource_id = 3;
+  // DISABLED, AWAITING_INSTALLATION, CONNECTED, STALE, REVOKED, UNSUPPORTED.
+  string status = 4;
+  bool device_ready = 5;
+  bool restart_required = 6;
+  string collector_version = 7;
+  repeated string capabilities = 8;
+  int64 last_seen_at_unix = 9;
+  int64 revoked_at_unix = 10;
+  // Public installation identity, not a bearer credential. Requires the trusted
+  // VMI-bound collection path; copying this configuration grants no authority.
+  string configuration_json = 11;
+  string runtime_state = 12;
+}
+message GetEnhancedMonitoringRequest { string name = 1; }
+message GetEnhancedMonitoringResponse { EnhancedMonitoring monitoring = 1; }
+message EnableEnhancedMonitoringRequest {
+  string name = 1;
+  string request_id = 2;
+  // When the device is absent, the VM must already have completed its normal
+  // stop operation. This RPC never stops, starts or restarts a VM itself.
+  bool confirm_device_attachment = 3;
+}
+message EnableEnhancedMonitoringResponse { EnhancedMonitoring monitoring = 1; }
+message RevokeEnhancedMonitoringRequest {
+  string name = 1;
+  // Compare-and-revoke prevents an old dialog revoking a replacement install.
+  string installation_id = 2;
+}
+message RevokeEnhancedMonitoringResponse {}

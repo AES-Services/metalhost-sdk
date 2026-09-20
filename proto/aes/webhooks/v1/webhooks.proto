@@ -19,6 +19,7 @@ service WebhooksService {
   rpc ListSubscriptions(ListSubscriptionsRequest) returns (ListSubscriptionsResponse);
   rpc UpdateSubscription(UpdateSubscriptionRequest) returns (UpdateSubscriptionResponse);
   rpc DeleteSubscription(DeleteSubscriptionRequest) returns (DeleteSubscriptionResponse);
+  rpc RotateSubscriptionSecret(RotateSubscriptionSecretRequest) returns (RotateSubscriptionSecretResponse);
   // ListDeliveries shows recent attempts for a subscription — status code, response body
   // snippet, retry count. Bounded ring (last 100 per subscription).
   rpc ListDeliveries(ListDeliveriesRequest) returns (ListDeliveriesResponse);
@@ -40,6 +41,25 @@ message Subscription {
   int64 update_time_unix = 7;
   // Per-subscription identifier returned via the X-Metalhost-Subscription header in deliveries.
   string secret_prefix = 8;
+  int64 secret_version = 9;
+  // Zero when no overlap exists. Expired previous secrets are never used to sign.
+  int64 previous_secret_expires_at_unix = 10;
+}
+
+message RotateSubscriptionSecretRequest {
+  string name = 1;
+  int64 expected_secret_version = 2;
+  // Stable UUID for recovery after a lost response. Retries never reveal secrets.
+  string request_id = 3;
+  // 0 immediately invalidates the old secret; maximum 86400 (24 hours).
+  int32 overlap_seconds = 4;
+}
+
+message RotateSubscriptionSecretResponse {
+  Subscription subscription = 1;
+  string secret = 2;
+  // A committed request was retried. Recover by deliberately rotating again.
+  bool secret_unavailable = 3;
 }
 
 message CreateSubscriptionRequest {

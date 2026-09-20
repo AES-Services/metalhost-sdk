@@ -22,22 +22,17 @@ service SupportService {
   // ReplyTicket appends a customer message and transitions status to PENDING_STAFF when the
   // ticket was previously PENDING_CUSTOMER. No-op transition otherwise.
   rpc ReplyTicket(ReplyTicketRequest) returns (ReplyTicketResponse);
-  // CloseTicket transitions the ticket to CLOSED. Customer can close from any non-CLOSED
-  // status. Staff may mark a ticket RESOLVED before the customer closes it.
+  // CloseTicket closes the conversation. ReplyTicket with reopen=true can reopen it at any time.
   rpc CloseTicket(CloseTicketRequest) returns (CloseTicketResponse);
 }
 
-// Lifecycle states. PENDING_CUSTOMER means staff replied and we're waiting on the user;
-// PENDING_STAFF means the user replied and we owe them a response. RESOLVED is set by staff;
-// CLOSED is the terminal state — set when the customer
-// confirms or auto-closes after an inactivity window. Customer-side CloseTicket goes
-// directly to CLOSED.
+// CLOSED is the only finished state. RESOLVED remains a deprecated wire-compatible alias.
 enum TicketStatus {
   TICKET_STATUS_UNSPECIFIED = 0;
   TICKET_STATUS_OPEN = 1;
   TICKET_STATUS_PENDING_CUSTOMER = 2;
   TICKET_STATUS_PENDING_STAFF = 3;
-  TICKET_STATUS_RESOLVED = 4;
+  TICKET_STATUS_RESOLVED = 4 [deprecated = true];
   TICKET_STATUS_CLOSED = 5;
 }
 
@@ -106,6 +101,8 @@ message Ticket {
   // Set on creation per plan tier; null = no SLA. Breach monitoring is applied automatically.
   google.protobuf.Timestamp sla_due_at = 15;
   google.protobuf.Timestamp escalated_at = 16;
+  // Last closure time, preserved when the conversation is reopened.
+  google.protobuf.Timestamp closed_at = 19;
 }
 
 message TicketMessage {
@@ -140,6 +137,7 @@ message CreateTicketRequest {
   // Optional. Defaults to TICKET_PRIORITY_NORMAL when unspecified.
   TicketPriority priority = 5;
   repeated ResourceRef resource_refs = 6;
+  string request_id = 7;
 }
 
 message CreateTicketResponse {
@@ -162,7 +160,7 @@ message ListTicketsResponse {
 }
 
 message GetTicketRequest {
-  string name = 1;  // Resource name tickets/<id> (renamed from ticket_id in proto audit)
+  string name = 1; // Resource name tickets/<id> (renamed from ticket_id in proto audit)
 }
 
 message GetTicketResponse {
@@ -172,8 +170,11 @@ message GetTicketResponse {
 }
 
 message ReplyTicketRequest {
-  string name = 1;  // Resource name tickets/<id> (renamed from ticket_id in proto audit)
+  string name = 1; // Resource name tickets/<id> (renamed from ticket_id in proto audit)
   string body = 2;
+  // Explicit consent to reopen a closed conversation. There is no expiry window.
+  bool reopen = 3;
+  string request_id = 4;
 }
 
 message ReplyTicketResponse {
@@ -183,9 +184,12 @@ message ReplyTicketResponse {
 }
 
 message CloseTicketRequest {
-  string name = 1;  // Resource name tickets/<id> (renamed from ticket_id in proto audit)
+  string name = 1; // Resource name tickets/<id> (renamed from ticket_id in proto audit)
   // Optional final customer-side message recorded before close.
   string body = 2;
+  string request_id = 3;
+  // Reject closing when another participant has changed the ticket since it was read.
+  google.protobuf.Timestamp expected_updated_at = 4;
 }
 
 message CloseTicketResponse {

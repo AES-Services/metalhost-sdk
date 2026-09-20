@@ -63,8 +63,7 @@ type SupportServiceClient interface {
 	// ReplyTicket appends a customer message and transitions status to PENDING_STAFF when the
 	// ticket was previously PENDING_CUSTOMER. No-op transition otherwise.
 	ReplyTicket(context.Context, *connect.Request[v1.ReplyTicketRequest]) (*connect.Response[v1.ReplyTicketResponse], error)
-	// CloseTicket transitions the ticket to CLOSED. Customer can close from any non-CLOSED
-	// status. Staff may mark a ticket RESOLVED before the customer closes it.
+	// CloseTicket closes the conversation. ReplyTicket with reopen=true can reopen it at any time.
 	CloseTicket(context.Context, *connect.Request[v1.CloseTicketRequest]) (*connect.Response[v1.CloseTicketResponse], error)
 }
 
@@ -159,8 +158,7 @@ type SupportServiceHandler interface {
 	// ReplyTicket appends a customer message and transitions status to PENDING_STAFF when the
 	// ticket was previously PENDING_CUSTOMER. No-op transition otherwise.
 	ReplyTicket(context.Context, *connect.Request[v1.ReplyTicketRequest]) (*connect.Response[v1.ReplyTicketResponse], error)
-	// CloseTicket transitions the ticket to CLOSED. Customer can close from any non-CLOSED
-	// status. Staff may mark a ticket RESOLVED before the customer closes it.
+	// CloseTicket closes the conversation. ReplyTicket with reopen=true can reopen it at any time.
 	CloseTicket(context.Context, *connect.Request[v1.CloseTicketRequest]) (*connect.Response[v1.CloseTicketResponse], error)
 }
 
