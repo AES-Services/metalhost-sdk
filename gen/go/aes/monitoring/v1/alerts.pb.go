@@ -37,8 +37,10 @@ type AlertRuleSpec struct {
 	Enabled               bool     `protobuf:"varint,9,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	RepeatIntervalSeconds int32    `protobuf:"varint,10,opt,name=repeat_interval_seconds,json=repeatIntervalSeconds,proto3" json:"repeat_interval_seconds,omitempty"`
 	DestinationNames      []string `protobuf:"bytes,11,rep,name=destination_names,json=destinationNames,proto3" json:"destination_names,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	// Optional exact observed dimensions; never arbitrary PromQL or regex.
+	Dimensions    map[string]string `protobuf:"bytes,12,rep,name=dimensions,proto3" json:"dimensions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AlertRuleSpec) Reset() {
@@ -144,6 +146,13 @@ func (x *AlertRuleSpec) GetRepeatIntervalSeconds() int32 {
 func (x *AlertRuleSpec) GetDestinationNames() []string {
 	if x != nil {
 		return x.DestinationNames
+	}
+	return nil
+}
+
+func (x *AlertRuleSpec) GetDimensions() map[string]string {
+	if x != nil {
+		return x.Dimensions
 	}
 	return nil
 }
@@ -605,11 +614,13 @@ func (*DeleteAlertRuleResponse) Descriptor() ([]byte, []int) {
 }
 
 type PreviewAlertRuleRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
-	Spec          *AlertRuleSpec         `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	Spec        *AlertRuleSpec         `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	// Zero keeps the current-sample preview; otherwise 3600, 21600, or 86400.
+	HistorySeconds int32 `protobuf:"varint,3,opt,name=history_seconds,json=historySeconds,proto3" json:"history_seconds,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *PreviewAlertRuleRequest) Reset() {
@@ -656,16 +667,26 @@ func (x *PreviewAlertRuleRequest) GetSpec() *AlertRuleSpec {
 	return nil
 }
 
+func (x *PreviewAlertRuleRequest) GetHistorySeconds() int32 {
+	if x != nil {
+		return x.HistorySeconds
+	}
+	return 0
+}
+
 type AlertPreviewResource struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
 	VmName      string                 `protobuf:"bytes,1,opt,name=vm_name,json=vmName,proto3" json:"vm_name,omitempty"`
 	DisplayName string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	// AVAILABLE, AWAITING_DATA, SUPPRESSED, UNKNOWN intent/placement, or ERROR.
-	Status        string   `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
-	Value         *float64 `protobuf:"fixed64,4,opt,name=value,proto3,oneof" json:"value,omitempty"`
-	ConditionMet  bool     `protobuf:"varint,5,opt,name=condition_met,json=conditionMet,proto3" json:"condition_met,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// AVAILABLE, AWAITING_DATA, UNSUPPORTED, SUPPRESSED, UNKNOWN intent/placement, or ERROR.
+	Status                     string   `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Value                      *float64 `protobuf:"fixed64,4,opt,name=value,proto3,oneof" json:"value,omitempty"`
+	ConditionMet               bool     `protobuf:"varint,5,opt,name=condition_met,json=conditionMet,proto3" json:"condition_met,omitempty"`
+	HistoricalFiringEpisodes   int32    `protobuf:"varint,6,opt,name=historical_firing_episodes,json=historicalFiringEpisodes,proto3" json:"historical_firing_episodes,omitempty"`
+	HistoricalEvaluatedSamples int32    `protobuf:"varint,7,opt,name=historical_evaluated_samples,json=historicalEvaluatedSamples,proto3" json:"historical_evaluated_samples,omitempty"`
+	HistoricalExpectedSamples  int32    `protobuf:"varint,8,opt,name=historical_expected_samples,json=historicalExpectedSamples,proto3" json:"historical_expected_samples,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *AlertPreviewResource) Reset() {
@@ -733,6 +754,27 @@ func (x *AlertPreviewResource) GetConditionMet() bool {
 	return false
 }
 
+func (x *AlertPreviewResource) GetHistoricalFiringEpisodes() int32 {
+	if x != nil {
+		return x.HistoricalFiringEpisodes
+	}
+	return 0
+}
+
+func (x *AlertPreviewResource) GetHistoricalEvaluatedSamples() int32 {
+	if x != nil {
+		return x.HistoricalEvaluatedSamples
+	}
+	return 0
+}
+
+func (x *AlertPreviewResource) GetHistoricalExpectedSamples() int32 {
+	if x != nil {
+		return x.HistoricalExpectedSamples
+	}
+	return 0
+}
+
 type PreviewAlertRuleResponse struct {
 	state                protoimpl.MessageState  `protogen:"open.v1"`
 	MatchedResourceCount int32                   `protobuf:"varint,1,opt,name=matched_resource_count,json=matchedResourceCount,proto3" json:"matched_resource_count,omitempty"`
@@ -740,6 +782,10 @@ type PreviewAlertRuleResponse struct {
 	SampleOnly           bool                    `protobuf:"varint,3,opt,name=sample_only,json=sampleOnly,proto3" json:"sample_only,omitempty"`
 	QueryStatus          string                  `protobuf:"bytes,4,opt,name=query_status,json=queryStatus,proto3" json:"query_status,omitempty"`
 	Explanation          string                  `protobuf:"bytes,5,opt,name=explanation,proto3" json:"explanation,omitempty"`
+	HistoryStartUnix     int64                   `protobuf:"varint,6,opt,name=history_start_unix,json=historyStartUnix,proto3" json:"history_start_unix,omitempty"`
+	HistoryEndUnix       int64                   `protobuf:"varint,7,opt,name=history_end_unix,json=historyEndUnix,proto3" json:"history_end_unix,omitempty"`
+	HistoryStepSeconds   int32                   `protobuf:"varint,8,opt,name=history_step_seconds,json=historyStepSeconds,proto3" json:"history_step_seconds,omitempty"`
+	HistoryStatus        string                  `protobuf:"bytes,9,opt,name=history_status,json=historyStatus,proto3" json:"history_status,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -805,6 +851,34 @@ func (x *PreviewAlertRuleResponse) GetQueryStatus() string {
 func (x *PreviewAlertRuleResponse) GetExplanation() string {
 	if x != nil {
 		return x.Explanation
+	}
+	return ""
+}
+
+func (x *PreviewAlertRuleResponse) GetHistoryStartUnix() int64 {
+	if x != nil {
+		return x.HistoryStartUnix
+	}
+	return 0
+}
+
+func (x *PreviewAlertRuleResponse) GetHistoryEndUnix() int64 {
+	if x != nil {
+		return x.HistoryEndUnix
+	}
+	return 0
+}
+
+func (x *PreviewAlertRuleResponse) GetHistoryStepSeconds() int32 {
+	if x != nil {
+		return x.HistoryStepSeconds
+	}
+	return 0
+}
+
+func (x *PreviewAlertRuleResponse) GetHistoryStatus() string {
+	if x != nil {
+		return x.HistoryStatus
 	}
 	return ""
 }
@@ -3109,7 +3183,7 @@ var File_aes_monitoring_v1_alerts_proto protoreflect.FileDescriptor
 
 const file_aes_monitoring_v1_alerts_proto_rawDesc = "" +
 	"\n" +
-	"\x1eaes/monitoring/v1/alerts.proto\x12\x11aes.monitoring.v1\"\x85\x03\n" +
+	"\x1eaes/monitoring/v1/alerts.proto\x12\x11aes.monitoring.v1\"\x96\x04\n" +
 	"\rAlertRuleSpec\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x1b\n" +
 	"\tmetric_id\x18\x02 \x01(\tR\bmetricId\x12\x1a\n" +
@@ -3122,7 +3196,13 @@ const file_aes_monitoring_v1_alerts_proto_rawDesc = "" +
 	"\aenabled\x18\t \x01(\bR\aenabled\x126\n" +
 	"\x17repeat_interval_seconds\x18\n" +
 	" \x01(\x05R\x15repeatIntervalSeconds\x12+\n" +
-	"\x11destination_names\x18\v \x03(\tR\x10destinationNames\"\x80\x03\n" +
+	"\x11destination_names\x18\v \x03(\tR\x10destinationNames\x12P\n" +
+	"\n" +
+	"dimensions\x18\f \x03(\v20.aes.monitoring.v1.AlertRuleSpec.DimensionsEntryR\n" +
+	"dimensions\x1a=\n" +
+	"\x0fDimensionsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x80\x03\n" +
 	"\tAlertRule\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x124\n" +
@@ -3161,24 +3241,32 @@ const file_aes_monitoring_v1_alerts_proto_rawDesc = "" +
 	"\x10expected_version\x18\x03 \x01(\x03R\x0fexpectedVersion\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x04 \x01(\tR\trequestId\"\x19\n" +
-	"\x17DeleteAlertRuleResponse\"r\n" +
+	"\x17DeleteAlertRuleResponse\"\x9b\x01\n" +
 	"\x17PreviewAlertRuleRequest\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x124\n" +
-	"\x04spec\x18\x02 \x01(\v2 .aes.monitoring.v1.AlertRuleSpecR\x04spec\"\xb4\x01\n" +
+	"\x04spec\x18\x02 \x01(\v2 .aes.monitoring.v1.AlertRuleSpecR\x04spec\x12'\n" +
+	"\x0fhistory_seconds\x18\x03 \x01(\x05R\x0ehistorySeconds\"\xf4\x02\n" +
 	"\x14AlertPreviewResource\x12\x17\n" +
 	"\avm_name\x18\x01 \x01(\tR\x06vmName\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x16\n" +
 	"\x06status\x18\x03 \x01(\tR\x06status\x12\x19\n" +
 	"\x05value\x18\x04 \x01(\x01H\x00R\x05value\x88\x01\x01\x12#\n" +
-	"\rcondition_met\x18\x05 \x01(\bR\fconditionMetB\b\n" +
-	"\x06_value\"\xfd\x01\n" +
+	"\rcondition_met\x18\x05 \x01(\bR\fconditionMet\x12<\n" +
+	"\x1ahistorical_firing_episodes\x18\x06 \x01(\x05R\x18historicalFiringEpisodes\x12@\n" +
+	"\x1chistorical_evaluated_samples\x18\a \x01(\x05R\x1ahistoricalEvaluatedSamples\x12>\n" +
+	"\x1bhistorical_expected_samples\x18\b \x01(\x05R\x19historicalExpectedSamplesB\b\n" +
+	"\x06_value\"\xae\x03\n" +
 	"\x18PreviewAlertRuleResponse\x124\n" +
 	"\x16matched_resource_count\x18\x01 \x01(\x05R\x14matchedResourceCount\x12E\n" +
 	"\tresources\x18\x02 \x03(\v2'.aes.monitoring.v1.AlertPreviewResourceR\tresources\x12\x1f\n" +
 	"\vsample_only\x18\x03 \x01(\bR\n" +
 	"sampleOnly\x12!\n" +
 	"\fquery_status\x18\x04 \x01(\tR\vqueryStatus\x12 \n" +
-	"\vexplanation\x18\x05 \x01(\tR\vexplanation\"\xa9\x03\n" +
+	"\vexplanation\x18\x05 \x01(\tR\vexplanation\x12,\n" +
+	"\x12history_start_unix\x18\x06 \x01(\x03R\x10historyStartUnix\x12(\n" +
+	"\x10history_end_unix\x18\a \x01(\x03R\x0ehistoryEndUnix\x120\n" +
+	"\x14history_step_seconds\x18\b \x01(\x05R\x12historyStepSeconds\x12%\n" +
+	"\x0ehistory_status\x18\t \x01(\tR\rhistoryStatus\"\xa9\x03\n" +
 	"\x10AlertDestination\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12!\n" +
@@ -3397,7 +3485,7 @@ func file_aes_monitoring_v1_alerts_proto_rawDescGZIP() []byte {
 	return file_aes_monitoring_v1_alerts_proto_rawDescData
 }
 
-var file_aes_monitoring_v1_alerts_proto_msgTypes = make([]protoimpl.MessageInfo, 45)
+var file_aes_monitoring_v1_alerts_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
 var file_aes_monitoring_v1_alerts_proto_goTypes = []any{
 	(*AlertRuleSpec)(nil),                          // 0: aes.monitoring.v1.AlertRuleSpec
 	(*AlertRule)(nil),                              // 1: aes.monitoring.v1.AlertRule
@@ -3444,69 +3532,71 @@ var file_aes_monitoring_v1_alerts_proto_goTypes = []any{
 	(*TestAlertDestinationResponse)(nil),           // 42: aes.monitoring.v1.TestAlertDestinationResponse
 	(*GetDestinationTestRequest)(nil),              // 43: aes.monitoring.v1.GetDestinationTestRequest
 	(*GetDestinationTestResponse)(nil),             // 44: aes.monitoring.v1.GetDestinationTestResponse
+	nil,                                            // 45: aes.monitoring.v1.AlertRuleSpec.DimensionsEntry
 }
 var file_aes_monitoring_v1_alerts_proto_depIdxs = []int32{
-	0,  // 0: aes.monitoring.v1.AlertRule.spec:type_name -> aes.monitoring.v1.AlertRuleSpec
-	1,  // 1: aes.monitoring.v1.ListAlertRulesResponse.rules:type_name -> aes.monitoring.v1.AlertRule
-	0,  // 2: aes.monitoring.v1.SaveAlertRuleRequest.spec:type_name -> aes.monitoring.v1.AlertRuleSpec
-	1,  // 3: aes.monitoring.v1.SaveAlertRuleResponse.rule:type_name -> aes.monitoring.v1.AlertRule
-	0,  // 4: aes.monitoring.v1.PreviewAlertRuleRequest.spec:type_name -> aes.monitoring.v1.AlertRuleSpec
-	9,  // 5: aes.monitoring.v1.PreviewAlertRuleResponse.resources:type_name -> aes.monitoring.v1.AlertPreviewResource
-	40, // 6: aes.monitoring.v1.AlertDestination.last_test:type_name -> aes.monitoring.v1.DestinationTest
-	11, // 7: aes.monitoring.v1.ListAlertDestinationsResponse.destinations:type_name -> aes.monitoring.v1.AlertDestination
-	11, // 8: aes.monitoring.v1.SaveAlertDestinationRequest.destination:type_name -> aes.monitoring.v1.AlertDestination
-	11, // 9: aes.monitoring.v1.SaveAlertDestinationResponse.destination:type_name -> aes.monitoring.v1.AlertDestination
-	22, // 10: aes.monitoring.v1.Incident.snapshot:type_name -> aes.monitoring.v1.IncidentSnapshot
-	23, // 11: aes.monitoring.v1.GetIncidentSummaryResponse.incidents:type_name -> aes.monitoring.v1.Incident
-	22, // 12: aes.monitoring.v1.IncidentTransition.snapshot:type_name -> aes.monitoring.v1.IncidentSnapshot
-	23, // 13: aes.monitoring.v1.ListIncidentsResponse.incidents:type_name -> aes.monitoring.v1.Incident
-	23, // 14: aes.monitoring.v1.GetIncidentResponse.incident:type_name -> aes.monitoring.v1.Incident
-	26, // 15: aes.monitoring.v1.GetIncidentResponse.transitions:type_name -> aes.monitoring.v1.IncidentTransition
-	27, // 16: aes.monitoring.v1.GetIncidentResponse.deliveries:type_name -> aes.monitoring.v1.IncidentDelivery
-	23, // 17: aes.monitoring.v1.UpdateIncidentResponse.incident:type_name -> aes.monitoring.v1.Incident
-	34, // 18: aes.monitoring.v1.ListAlertInstancesResponse.instances:type_name -> aes.monitoring.v1.AlertInstance
-	37, // 19: aes.monitoring.v1.ListAlertDestinationCandidatesResponse.candidates:type_name -> aes.monitoring.v1.AlertDestinationCandidate
-	40, // 20: aes.monitoring.v1.TestAlertDestinationResponse.test:type_name -> aes.monitoring.v1.DestinationTest
-	40, // 21: aes.monitoring.v1.GetDestinationTestResponse.test:type_name -> aes.monitoring.v1.DestinationTest
-	2,  // 22: aes.monitoring.v1.AlertService.ListAlertRules:input_type -> aes.monitoring.v1.ListAlertRulesRequest
-	4,  // 23: aes.monitoring.v1.AlertService.SaveAlertRule:input_type -> aes.monitoring.v1.SaveAlertRuleRequest
-	6,  // 24: aes.monitoring.v1.AlertService.DeleteAlertRule:input_type -> aes.monitoring.v1.DeleteAlertRuleRequest
-	8,  // 25: aes.monitoring.v1.AlertService.PreviewAlertRule:input_type -> aes.monitoring.v1.PreviewAlertRuleRequest
-	12, // 26: aes.monitoring.v1.AlertService.ListAlertDestinations:input_type -> aes.monitoring.v1.ListAlertDestinationsRequest
-	14, // 27: aes.monitoring.v1.AlertService.SaveAlertDestination:input_type -> aes.monitoring.v1.SaveAlertDestinationRequest
-	16, // 28: aes.monitoring.v1.AlertService.DeleteAlertDestination:input_type -> aes.monitoring.v1.DeleteAlertDestinationRequest
-	18, // 29: aes.monitoring.v1.AlertService.RequestDestinationVerification:input_type -> aes.monitoring.v1.RequestDestinationVerificationRequest
-	20, // 30: aes.monitoring.v1.AlertService.VerifyAlertDestination:input_type -> aes.monitoring.v1.VerifyAlertDestinationRequest
-	28, // 31: aes.monitoring.v1.AlertService.ListIncidents:input_type -> aes.monitoring.v1.ListIncidentsRequest
-	24, // 32: aes.monitoring.v1.AlertService.GetIncidentSummary:input_type -> aes.monitoring.v1.GetIncidentSummaryRequest
-	30, // 33: aes.monitoring.v1.AlertService.GetIncident:input_type -> aes.monitoring.v1.GetIncidentRequest
-	32, // 34: aes.monitoring.v1.AlertService.UpdateIncident:input_type -> aes.monitoring.v1.UpdateIncidentRequest
-	35, // 35: aes.monitoring.v1.AlertService.ListAlertInstances:input_type -> aes.monitoring.v1.ListAlertInstancesRequest
-	38, // 36: aes.monitoring.v1.AlertService.ListAlertDestinationCandidates:input_type -> aes.monitoring.v1.ListAlertDestinationCandidatesRequest
-	41, // 37: aes.monitoring.v1.AlertService.TestAlertDestination:input_type -> aes.monitoring.v1.TestAlertDestinationRequest
-	43, // 38: aes.monitoring.v1.AlertService.GetDestinationTest:input_type -> aes.monitoring.v1.GetDestinationTestRequest
-	3,  // 39: aes.monitoring.v1.AlertService.ListAlertRules:output_type -> aes.monitoring.v1.ListAlertRulesResponse
-	5,  // 40: aes.monitoring.v1.AlertService.SaveAlertRule:output_type -> aes.monitoring.v1.SaveAlertRuleResponse
-	7,  // 41: aes.monitoring.v1.AlertService.DeleteAlertRule:output_type -> aes.monitoring.v1.DeleteAlertRuleResponse
-	10, // 42: aes.monitoring.v1.AlertService.PreviewAlertRule:output_type -> aes.monitoring.v1.PreviewAlertRuleResponse
-	13, // 43: aes.monitoring.v1.AlertService.ListAlertDestinations:output_type -> aes.monitoring.v1.ListAlertDestinationsResponse
-	15, // 44: aes.monitoring.v1.AlertService.SaveAlertDestination:output_type -> aes.monitoring.v1.SaveAlertDestinationResponse
-	17, // 45: aes.monitoring.v1.AlertService.DeleteAlertDestination:output_type -> aes.monitoring.v1.DeleteAlertDestinationResponse
-	19, // 46: aes.monitoring.v1.AlertService.RequestDestinationVerification:output_type -> aes.monitoring.v1.RequestDestinationVerificationResponse
-	21, // 47: aes.monitoring.v1.AlertService.VerifyAlertDestination:output_type -> aes.monitoring.v1.VerifyAlertDestinationResponse
-	29, // 48: aes.monitoring.v1.AlertService.ListIncidents:output_type -> aes.monitoring.v1.ListIncidentsResponse
-	25, // 49: aes.monitoring.v1.AlertService.GetIncidentSummary:output_type -> aes.monitoring.v1.GetIncidentSummaryResponse
-	31, // 50: aes.monitoring.v1.AlertService.GetIncident:output_type -> aes.monitoring.v1.GetIncidentResponse
-	33, // 51: aes.monitoring.v1.AlertService.UpdateIncident:output_type -> aes.monitoring.v1.UpdateIncidentResponse
-	36, // 52: aes.monitoring.v1.AlertService.ListAlertInstances:output_type -> aes.monitoring.v1.ListAlertInstancesResponse
-	39, // 53: aes.monitoring.v1.AlertService.ListAlertDestinationCandidates:output_type -> aes.monitoring.v1.ListAlertDestinationCandidatesResponse
-	42, // 54: aes.monitoring.v1.AlertService.TestAlertDestination:output_type -> aes.monitoring.v1.TestAlertDestinationResponse
-	44, // 55: aes.monitoring.v1.AlertService.GetDestinationTest:output_type -> aes.monitoring.v1.GetDestinationTestResponse
-	39, // [39:56] is the sub-list for method output_type
-	22, // [22:39] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	45, // 0: aes.monitoring.v1.AlertRuleSpec.dimensions:type_name -> aes.monitoring.v1.AlertRuleSpec.DimensionsEntry
+	0,  // 1: aes.monitoring.v1.AlertRule.spec:type_name -> aes.monitoring.v1.AlertRuleSpec
+	1,  // 2: aes.monitoring.v1.ListAlertRulesResponse.rules:type_name -> aes.monitoring.v1.AlertRule
+	0,  // 3: aes.monitoring.v1.SaveAlertRuleRequest.spec:type_name -> aes.monitoring.v1.AlertRuleSpec
+	1,  // 4: aes.monitoring.v1.SaveAlertRuleResponse.rule:type_name -> aes.monitoring.v1.AlertRule
+	0,  // 5: aes.monitoring.v1.PreviewAlertRuleRequest.spec:type_name -> aes.monitoring.v1.AlertRuleSpec
+	9,  // 6: aes.monitoring.v1.PreviewAlertRuleResponse.resources:type_name -> aes.monitoring.v1.AlertPreviewResource
+	40, // 7: aes.monitoring.v1.AlertDestination.last_test:type_name -> aes.monitoring.v1.DestinationTest
+	11, // 8: aes.monitoring.v1.ListAlertDestinationsResponse.destinations:type_name -> aes.monitoring.v1.AlertDestination
+	11, // 9: aes.monitoring.v1.SaveAlertDestinationRequest.destination:type_name -> aes.monitoring.v1.AlertDestination
+	11, // 10: aes.monitoring.v1.SaveAlertDestinationResponse.destination:type_name -> aes.monitoring.v1.AlertDestination
+	22, // 11: aes.monitoring.v1.Incident.snapshot:type_name -> aes.monitoring.v1.IncidentSnapshot
+	23, // 12: aes.monitoring.v1.GetIncidentSummaryResponse.incidents:type_name -> aes.monitoring.v1.Incident
+	22, // 13: aes.monitoring.v1.IncidentTransition.snapshot:type_name -> aes.monitoring.v1.IncidentSnapshot
+	23, // 14: aes.monitoring.v1.ListIncidentsResponse.incidents:type_name -> aes.monitoring.v1.Incident
+	23, // 15: aes.monitoring.v1.GetIncidentResponse.incident:type_name -> aes.monitoring.v1.Incident
+	26, // 16: aes.monitoring.v1.GetIncidentResponse.transitions:type_name -> aes.monitoring.v1.IncidentTransition
+	27, // 17: aes.monitoring.v1.GetIncidentResponse.deliveries:type_name -> aes.monitoring.v1.IncidentDelivery
+	23, // 18: aes.monitoring.v1.UpdateIncidentResponse.incident:type_name -> aes.monitoring.v1.Incident
+	34, // 19: aes.monitoring.v1.ListAlertInstancesResponse.instances:type_name -> aes.monitoring.v1.AlertInstance
+	37, // 20: aes.monitoring.v1.ListAlertDestinationCandidatesResponse.candidates:type_name -> aes.monitoring.v1.AlertDestinationCandidate
+	40, // 21: aes.monitoring.v1.TestAlertDestinationResponse.test:type_name -> aes.monitoring.v1.DestinationTest
+	40, // 22: aes.monitoring.v1.GetDestinationTestResponse.test:type_name -> aes.monitoring.v1.DestinationTest
+	2,  // 23: aes.monitoring.v1.AlertService.ListAlertRules:input_type -> aes.monitoring.v1.ListAlertRulesRequest
+	4,  // 24: aes.monitoring.v1.AlertService.SaveAlertRule:input_type -> aes.monitoring.v1.SaveAlertRuleRequest
+	6,  // 25: aes.monitoring.v1.AlertService.DeleteAlertRule:input_type -> aes.monitoring.v1.DeleteAlertRuleRequest
+	8,  // 26: aes.monitoring.v1.AlertService.PreviewAlertRule:input_type -> aes.monitoring.v1.PreviewAlertRuleRequest
+	12, // 27: aes.monitoring.v1.AlertService.ListAlertDestinations:input_type -> aes.monitoring.v1.ListAlertDestinationsRequest
+	14, // 28: aes.monitoring.v1.AlertService.SaveAlertDestination:input_type -> aes.monitoring.v1.SaveAlertDestinationRequest
+	16, // 29: aes.monitoring.v1.AlertService.DeleteAlertDestination:input_type -> aes.monitoring.v1.DeleteAlertDestinationRequest
+	18, // 30: aes.monitoring.v1.AlertService.RequestDestinationVerification:input_type -> aes.monitoring.v1.RequestDestinationVerificationRequest
+	20, // 31: aes.monitoring.v1.AlertService.VerifyAlertDestination:input_type -> aes.monitoring.v1.VerifyAlertDestinationRequest
+	28, // 32: aes.monitoring.v1.AlertService.ListIncidents:input_type -> aes.monitoring.v1.ListIncidentsRequest
+	24, // 33: aes.monitoring.v1.AlertService.GetIncidentSummary:input_type -> aes.monitoring.v1.GetIncidentSummaryRequest
+	30, // 34: aes.monitoring.v1.AlertService.GetIncident:input_type -> aes.monitoring.v1.GetIncidentRequest
+	32, // 35: aes.monitoring.v1.AlertService.UpdateIncident:input_type -> aes.monitoring.v1.UpdateIncidentRequest
+	35, // 36: aes.monitoring.v1.AlertService.ListAlertInstances:input_type -> aes.monitoring.v1.ListAlertInstancesRequest
+	38, // 37: aes.monitoring.v1.AlertService.ListAlertDestinationCandidates:input_type -> aes.monitoring.v1.ListAlertDestinationCandidatesRequest
+	41, // 38: aes.monitoring.v1.AlertService.TestAlertDestination:input_type -> aes.monitoring.v1.TestAlertDestinationRequest
+	43, // 39: aes.monitoring.v1.AlertService.GetDestinationTest:input_type -> aes.monitoring.v1.GetDestinationTestRequest
+	3,  // 40: aes.monitoring.v1.AlertService.ListAlertRules:output_type -> aes.monitoring.v1.ListAlertRulesResponse
+	5,  // 41: aes.monitoring.v1.AlertService.SaveAlertRule:output_type -> aes.monitoring.v1.SaveAlertRuleResponse
+	7,  // 42: aes.monitoring.v1.AlertService.DeleteAlertRule:output_type -> aes.monitoring.v1.DeleteAlertRuleResponse
+	10, // 43: aes.monitoring.v1.AlertService.PreviewAlertRule:output_type -> aes.monitoring.v1.PreviewAlertRuleResponse
+	13, // 44: aes.monitoring.v1.AlertService.ListAlertDestinations:output_type -> aes.monitoring.v1.ListAlertDestinationsResponse
+	15, // 45: aes.monitoring.v1.AlertService.SaveAlertDestination:output_type -> aes.monitoring.v1.SaveAlertDestinationResponse
+	17, // 46: aes.monitoring.v1.AlertService.DeleteAlertDestination:output_type -> aes.monitoring.v1.DeleteAlertDestinationResponse
+	19, // 47: aes.monitoring.v1.AlertService.RequestDestinationVerification:output_type -> aes.monitoring.v1.RequestDestinationVerificationResponse
+	21, // 48: aes.monitoring.v1.AlertService.VerifyAlertDestination:output_type -> aes.monitoring.v1.VerifyAlertDestinationResponse
+	29, // 49: aes.monitoring.v1.AlertService.ListIncidents:output_type -> aes.monitoring.v1.ListIncidentsResponse
+	25, // 50: aes.monitoring.v1.AlertService.GetIncidentSummary:output_type -> aes.monitoring.v1.GetIncidentSummaryResponse
+	31, // 51: aes.monitoring.v1.AlertService.GetIncident:output_type -> aes.monitoring.v1.GetIncidentResponse
+	33, // 52: aes.monitoring.v1.AlertService.UpdateIncident:output_type -> aes.monitoring.v1.UpdateIncidentResponse
+	36, // 53: aes.monitoring.v1.AlertService.ListAlertInstances:output_type -> aes.monitoring.v1.ListAlertInstancesResponse
+	39, // 54: aes.monitoring.v1.AlertService.ListAlertDestinationCandidates:output_type -> aes.monitoring.v1.ListAlertDestinationCandidatesResponse
+	42, // 55: aes.monitoring.v1.AlertService.TestAlertDestination:output_type -> aes.monitoring.v1.TestAlertDestinationResponse
+	44, // 56: aes.monitoring.v1.AlertService.GetDestinationTest:output_type -> aes.monitoring.v1.GetDestinationTestResponse
+	40, // [40:57] is the sub-list for method output_type
+	23, // [23:40] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_aes_monitoring_v1_alerts_proto_init() }
@@ -3522,7 +3612,7 @@ func file_aes_monitoring_v1_alerts_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_monitoring_v1_alerts_proto_rawDesc), len(file_aes_monitoring_v1_alerts_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   45,
+			NumMessages:   46,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

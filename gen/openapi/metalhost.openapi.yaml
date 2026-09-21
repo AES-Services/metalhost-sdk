@@ -14443,7 +14443,7 @@ components:
         status:
           type: string
           title: status
-          description: AVAILABLE, AWAITING_DATA, SUPPRESSED, UNKNOWN intent/placement, or ERROR.
+          description: AVAILABLE, AWAITING_DATA, UNSUPPORTED, SUPPRESSED, UNKNOWN intent/placement, or ERROR.
         value:
           type:
             - number
@@ -14453,6 +14453,18 @@ components:
         conditionMet:
           type: boolean
           title: condition_met
+        historicalFiringEpisodes:
+          type: integer
+          title: historical_firing_episodes
+          format: int32
+        historicalEvaluatedSamples:
+          type: integer
+          title: historical_evaluated_samples
+          format: int32
+        historicalExpectedSamples:
+          type: integer
+          title: historical_expected_samples
+          format: int32
       title: AlertPreviewResource
       additionalProperties: false
     aes.monitoring.v1.AlertRule:
@@ -14552,7 +14564,25 @@ components:
           items:
             type: string
           title: destination_names
+        dimensions:
+          type: object
+          title: dimensions
+          additionalProperties:
+            type: string
+            title: value
+          description: Optional exact observed dimensions; never arbitrary PromQL or regex.
       title: AlertRuleSpec
+      additionalProperties: false
+    aes.monitoring.v1.AlertRuleSpec.DimensionsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: DimensionsEntry
       additionalProperties: false
     aes.monitoring.v1.DeleteAlertDestinationRequest:
       type: object
@@ -14706,6 +14736,19 @@ components:
         runtimeState:
           type: string
           title: runtime_state
+        discoveredServices:
+          type: array
+          items:
+            type: string
+          title: discovered_services
+        selectedServices:
+          type: array
+          items:
+            type: string
+          title: selected_services
+        serviceDiscoveryStatus:
+          type: string
+          title: service_discovery_status
       title: EnhancedMonitoring
       additionalProperties: false
     aes.monitoring.v1.GetDestinationTestRequest:
@@ -15187,6 +15230,9 @@ components:
           type: boolean
           title: inventory_only
           description: Record pickers can skip time-series queries. Status is then NOT_REQUESTED.
+        includeOverview:
+          type: boolean
+          title: include_overview
       title: ListVMMonitoringRequest
       additionalProperties: false
     aes.monitoring.v1.ListVMMonitoringResponse:
@@ -15203,6 +15249,9 @@ components:
         queryStatus:
           type: string
           title: query_status
+        overview:
+          title: overview
+          $ref: '#/components/schemas/aes.monitoring.v1.MonitoringOverview'
       title: ListVMMonitoringResponse
       additionalProperties: false
     aes.monitoring.v1.MetricDescriptor:
@@ -15294,6 +15343,64 @@ components:
           format: double
       title: MonitoredVM
       additionalProperties: false
+    aes.monitoring.v1.MonitoringDatacenterSummary:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        displayName:
+          type: string
+          title: display_name
+        vmCount:
+          type:
+            - integer
+            - string
+          title: vm_count
+          format: int64
+      title: MonitoringDatacenterSummary
+      additionalProperties: false
+    aes.monitoring.v1.MonitoringOverview:
+      type: object
+      properties:
+        vmCount:
+          type:
+            - integer
+            - string
+          title: vm_count
+          format: int64
+          description: Whole project, independent of the current page and filters. Not VM health.
+        runningCount:
+          type:
+            - integer
+            - string
+          title: running_count
+          format: int64
+        enhancedConnectedCount:
+          type:
+            - integer
+            - string
+          title: enhanced_connected_count
+          format: int64
+        enhancedStaleCount:
+          type:
+            - integer
+            - string
+          title: enhanced_stale_count
+          format: int64
+        enhancedAwaitingCount:
+          type:
+            - integer
+            - string
+          title: enhanced_awaiting_count
+          format: int64
+        datacenters:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.monitoring.v1.MonitoringDatacenterSummary'
+          title: datacenters
+      title: MonitoringOverview
+      additionalProperties: false
     aes.monitoring.v1.PreviewAlertRuleRequest:
       type: object
       properties:
@@ -15303,6 +15410,11 @@ components:
         spec:
           title: spec
           $ref: '#/components/schemas/aes.monitoring.v1.AlertRuleSpec'
+        historySeconds:
+          type: integer
+          title: history_seconds
+          format: int32
+          description: Zero keeps the current-sample preview; otherwise 3600, 21600, or 86400.
       title: PreviewAlertRuleRequest
       additionalProperties: false
     aes.monitoring.v1.PreviewAlertRuleResponse:
@@ -15326,6 +15438,25 @@ components:
         explanation:
           type: string
           title: explanation
+        historyStartUnix:
+          type:
+            - integer
+            - string
+          title: history_start_unix
+          format: int64
+        historyEndUnix:
+          type:
+            - integer
+            - string
+          title: history_end_unix
+          format: int64
+        historyStepSeconds:
+          type: integer
+          title: history_step_seconds
+          format: int32
+        historyStatus:
+          type: string
+          title: history_status
       title: PreviewAlertRuleResponse
       additionalProperties: false
     aes.monitoring.v1.QueryVMMonitoringRequest:

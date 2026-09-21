@@ -68,7 +68,14 @@ chart responses with per-family quality. Metric samples are never invoices.
 `AlertService` manages structured rules, current/future VM selections, previews,
 incidents, verified destinations and explicit test deliveries. Rules reconcile
 asynchronously: check desired/applied version and evaluation health after save.
-Current-sample preview is not a historical simulation or delivery guarantee.
+Preview defaults to the current sample. Set `history_seconds` to 3600, 21600 or
+86400 for a bounded historical estimate on up to 50 matching VMs. Inspect
+`history_status` and each resource's evaluated/expected sample counts: missing
+retained running intent or fresh telemetry produces gaps, not healthy samples.
+The episode estimate applies the proposed threshold and sustained duration; it
+does not replay routing, delivery or predict future notifications.
+Enhanced templates accept only their allowlisted exact `dimensions`; obtain
+mount/service/GPU names from observations rather than constructing PromQL.
 Acknowledging or snoozing an incident does not resolve it. A missing metric or
 collector outage must not manufacture recovery.
 

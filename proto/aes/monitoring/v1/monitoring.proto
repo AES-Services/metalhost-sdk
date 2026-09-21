@@ -33,6 +33,7 @@ message ListVMMonitoringRequest {
   string state = 6;
   // Record pickers can skip time-series queries. Status is then NOT_REQUESTED.
   bool inventory_only = 7;
+  bool include_overview = 8;
 }
 message MonitoredVM {
   string name = 1;
@@ -51,6 +52,21 @@ message ListVMMonitoringResponse {
   repeated MonitoredVM vms = 1;
   string next_page_token = 2;
   string query_status = 3;
+  MonitoringOverview overview = 4;
+}
+message MonitoringDatacenterSummary {
+  string name = 1;
+  string display_name = 2;
+  int64 vm_count = 3;
+}
+message MonitoringOverview {
+  // Whole project, independent of the current page and filters. Not VM health.
+  int64 vm_count = 1;
+  int64 running_count = 2;
+  int64 enhanced_connected_count = 3;
+  int64 enhanced_stale_count = 4;
+  int64 enhanced_awaiting_count = 5;
+  repeated MonitoringDatacenterSummary datacenters = 6;
 }
 message QueryVMMonitoringRequest {
   string name = 1;
@@ -99,6 +115,9 @@ message EnhancedMonitoring {
   // VMI-bound collection path; copying this configuration grants no authority.
   string configuration_json = 11;
   string runtime_state = 12;
+  repeated string discovered_services = 13;
+  repeated string selected_services = 14;
+  string service_discovery_status = 15;
 }
 message GetEnhancedMonitoringRequest { string name = 1; }
 message GetEnhancedMonitoringResponse { EnhancedMonitoring monitoring = 1; }

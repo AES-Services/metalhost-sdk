@@ -37,6 +37,8 @@ message AlertRuleSpec {
   bool enabled = 9;
   int32 repeat_interval_seconds = 10;
   repeated string destination_names = 11;
+  // Optional exact observed dimensions; never arbitrary PromQL or regex.
+  map<string, string> dimensions = 12;
 }
 message AlertRule {
   string id = 1;
@@ -79,14 +81,19 @@ message DeleteAlertRuleResponse {}
 message PreviewAlertRuleRequest {
   string project_name = 1;
   AlertRuleSpec spec = 2;
+  // Zero keeps the current-sample preview; otherwise 3600, 21600, or 86400.
+  int32 history_seconds = 3;
 }
 message AlertPreviewResource {
   string vm_name = 1;
   string display_name = 2;
-  // AVAILABLE, AWAITING_DATA, SUPPRESSED, UNKNOWN intent/placement, or ERROR.
+  // AVAILABLE, AWAITING_DATA, UNSUPPORTED, SUPPRESSED, UNKNOWN intent/placement, or ERROR.
   string status = 3;
   optional double value = 4;
   bool condition_met = 5;
+  int32 historical_firing_episodes = 6;
+  int32 historical_evaluated_samples = 7;
+  int32 historical_expected_samples = 8;
 }
 message PreviewAlertRuleResponse {
   int32 matched_resource_count = 1;
@@ -94,6 +101,10 @@ message PreviewAlertRuleResponse {
   bool sample_only = 3;
   string query_status = 4;
   string explanation = 5;
+  int64 history_start_unix = 6;
+  int64 history_end_unix = 7;
+  int32 history_step_seconds = 8;
+  string history_status = 9;
 }
 
 message AlertDestination {
