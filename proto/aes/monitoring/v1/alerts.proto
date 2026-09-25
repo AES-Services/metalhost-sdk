@@ -111,7 +111,8 @@ message AlertDestination {
   string name = 1;
   string project_name = 2;
   string display_name = 3;
-  // EMAIL selects an existing verified project member; WEBHOOK an existing subscription.
+  // EMAIL selects a verified project member; WEBHOOK an existing subscription.
+  // SLACK, DISCORD and TEAMS use an encrypted, immutable provider webhook URL.
   string kind = 4;
   string principal = 5;
   string subscription_name = 6;
@@ -137,6 +138,9 @@ message SaveAlertDestinationRequest {
   string request_id = 2;
   // Zero for create; otherwise the version last read.
   int64 expected_version = 3;
+  // Write-only, required when creating SLACK/DISCORD/TEAMS. Omit on edits.
+  // Changing the endpoint requires a new destination to avoid redirecting queued alerts.
+  string webhook_url = 4;
 }
 message SaveAlertDestinationResponse { AlertDestination destination = 1; }
 message DeleteAlertDestinationRequest {

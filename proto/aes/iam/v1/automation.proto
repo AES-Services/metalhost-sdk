@@ -117,6 +117,9 @@ message ListCredentialsRequest {
   string service_account = 2;
   int32 page_size = 3;
   string page_token = 4;
+  // Project administrators may inspect all project API keys. Cannot be combined
+  // with service_account. This never grants permission to rotate another user's key.
+  bool all_project_credentials = 5;
 }
 message ListCredentialsResponse {
   repeated AutomationCredential credentials = 1;

@@ -51,6 +51,9 @@ const (
 	// MonitoringServiceRevokeEnhancedMonitoringProcedure is the fully-qualified name of the
 	// MonitoringService's RevokeEnhancedMonitoring RPC.
 	MonitoringServiceRevokeEnhancedMonitoringProcedure = "/aes.monitoring.v1.MonitoringService/RevokeEnhancedMonitoring"
+	// MonitoringServiceSetEnhancedMonitoringPausedProcedure is the fully-qualified name of the
+	// MonitoringService's SetEnhancedMonitoringPaused RPC.
+	MonitoringServiceSetEnhancedMonitoringPausedProcedure = "/aes.monitoring.v1.MonitoringService/SetEnhancedMonitoringPaused"
 )
 
 // MonitoringServiceClient is a client for the aes.monitoring.v1.MonitoringService service.
@@ -61,6 +64,7 @@ type MonitoringServiceClient interface {
 	GetEnhancedMonitoring(context.Context, *connect.Request[v1.GetEnhancedMonitoringRequest]) (*connect.Response[v1.GetEnhancedMonitoringResponse], error)
 	EnableEnhancedMonitoring(context.Context, *connect.Request[v1.EnableEnhancedMonitoringRequest]) (*connect.Response[v1.EnableEnhancedMonitoringResponse], error)
 	RevokeEnhancedMonitoring(context.Context, *connect.Request[v1.RevokeEnhancedMonitoringRequest]) (*connect.Response[v1.RevokeEnhancedMonitoringResponse], error)
+	SetEnhancedMonitoringPaused(context.Context, *connect.Request[v1.SetEnhancedMonitoringPausedRequest]) (*connect.Response[v1.SetEnhancedMonitoringPausedResponse], error)
 }
 
 // NewMonitoringServiceClient constructs a client for the aes.monitoring.v1.MonitoringService
@@ -110,17 +114,24 @@ func NewMonitoringServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(monitoringServiceMethods.ByName("RevokeEnhancedMonitoring")),
 			connect.WithClientOptions(opts...),
 		),
+		setEnhancedMonitoringPaused: connect.NewClient[v1.SetEnhancedMonitoringPausedRequest, v1.SetEnhancedMonitoringPausedResponse](
+			httpClient,
+			baseURL+MonitoringServiceSetEnhancedMonitoringPausedProcedure,
+			connect.WithSchema(monitoringServiceMethods.ByName("SetEnhancedMonitoringPaused")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // monitoringServiceClient implements MonitoringServiceClient.
 type monitoringServiceClient struct {
-	listMetricDescriptors    *connect.Client[v1.ListMetricDescriptorsRequest, v1.ListMetricDescriptorsResponse]
-	listVMMonitoring         *connect.Client[v1.ListVMMonitoringRequest, v1.ListVMMonitoringResponse]
-	queryVMMonitoring        *connect.Client[v1.QueryVMMonitoringRequest, v1.QueryVMMonitoringResponse]
-	getEnhancedMonitoring    *connect.Client[v1.GetEnhancedMonitoringRequest, v1.GetEnhancedMonitoringResponse]
-	enableEnhancedMonitoring *connect.Client[v1.EnableEnhancedMonitoringRequest, v1.EnableEnhancedMonitoringResponse]
-	revokeEnhancedMonitoring *connect.Client[v1.RevokeEnhancedMonitoringRequest, v1.RevokeEnhancedMonitoringResponse]
+	listMetricDescriptors       *connect.Client[v1.ListMetricDescriptorsRequest, v1.ListMetricDescriptorsResponse]
+	listVMMonitoring            *connect.Client[v1.ListVMMonitoringRequest, v1.ListVMMonitoringResponse]
+	queryVMMonitoring           *connect.Client[v1.QueryVMMonitoringRequest, v1.QueryVMMonitoringResponse]
+	getEnhancedMonitoring       *connect.Client[v1.GetEnhancedMonitoringRequest, v1.GetEnhancedMonitoringResponse]
+	enableEnhancedMonitoring    *connect.Client[v1.EnableEnhancedMonitoringRequest, v1.EnableEnhancedMonitoringResponse]
+	revokeEnhancedMonitoring    *connect.Client[v1.RevokeEnhancedMonitoringRequest, v1.RevokeEnhancedMonitoringResponse]
+	setEnhancedMonitoringPaused *connect.Client[v1.SetEnhancedMonitoringPausedRequest, v1.SetEnhancedMonitoringPausedResponse]
 }
 
 // ListMetricDescriptors calls aes.monitoring.v1.MonitoringService.ListMetricDescriptors.
@@ -153,6 +164,12 @@ func (c *monitoringServiceClient) RevokeEnhancedMonitoring(ctx context.Context, 
 	return c.revokeEnhancedMonitoring.CallUnary(ctx, req)
 }
 
+// SetEnhancedMonitoringPaused calls
+// aes.monitoring.v1.MonitoringService.SetEnhancedMonitoringPaused.
+func (c *monitoringServiceClient) SetEnhancedMonitoringPaused(ctx context.Context, req *connect.Request[v1.SetEnhancedMonitoringPausedRequest]) (*connect.Response[v1.SetEnhancedMonitoringPausedResponse], error) {
+	return c.setEnhancedMonitoringPaused.CallUnary(ctx, req)
+}
+
 // MonitoringServiceHandler is an implementation of the aes.monitoring.v1.MonitoringService service.
 type MonitoringServiceHandler interface {
 	ListMetricDescriptors(context.Context, *connect.Request[v1.ListMetricDescriptorsRequest]) (*connect.Response[v1.ListMetricDescriptorsResponse], error)
@@ -161,6 +178,7 @@ type MonitoringServiceHandler interface {
 	GetEnhancedMonitoring(context.Context, *connect.Request[v1.GetEnhancedMonitoringRequest]) (*connect.Response[v1.GetEnhancedMonitoringResponse], error)
 	EnableEnhancedMonitoring(context.Context, *connect.Request[v1.EnableEnhancedMonitoringRequest]) (*connect.Response[v1.EnableEnhancedMonitoringResponse], error)
 	RevokeEnhancedMonitoring(context.Context, *connect.Request[v1.RevokeEnhancedMonitoringRequest]) (*connect.Response[v1.RevokeEnhancedMonitoringResponse], error)
+	SetEnhancedMonitoringPaused(context.Context, *connect.Request[v1.SetEnhancedMonitoringPausedRequest]) (*connect.Response[v1.SetEnhancedMonitoringPausedResponse], error)
 }
 
 // NewMonitoringServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -206,6 +224,12 @@ func NewMonitoringServiceHandler(svc MonitoringServiceHandler, opts ...connect.H
 		connect.WithSchema(monitoringServiceMethods.ByName("RevokeEnhancedMonitoring")),
 		connect.WithHandlerOptions(opts...),
 	)
+	monitoringServiceSetEnhancedMonitoringPausedHandler := connect.NewUnaryHandler(
+		MonitoringServiceSetEnhancedMonitoringPausedProcedure,
+		svc.SetEnhancedMonitoringPaused,
+		connect.WithSchema(monitoringServiceMethods.ByName("SetEnhancedMonitoringPaused")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/aes.monitoring.v1.MonitoringService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case MonitoringServiceListMetricDescriptorsProcedure:
@@ -220,6 +244,8 @@ func NewMonitoringServiceHandler(svc MonitoringServiceHandler, opts ...connect.H
 			monitoringServiceEnableEnhancedMonitoringHandler.ServeHTTP(w, r)
 		case MonitoringServiceRevokeEnhancedMonitoringProcedure:
 			monitoringServiceRevokeEnhancedMonitoringHandler.ServeHTTP(w, r)
+		case MonitoringServiceSetEnhancedMonitoringPausedProcedure:
+			monitoringServiceSetEnhancedMonitoringPausedHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -251,4 +277,8 @@ func (UnimplementedMonitoringServiceHandler) EnableEnhancedMonitoring(context.Co
 
 func (UnimplementedMonitoringServiceHandler) RevokeEnhancedMonitoring(context.Context, *connect.Request[v1.RevokeEnhancedMonitoringRequest]) (*connect.Response[v1.RevokeEnhancedMonitoringResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.monitoring.v1.MonitoringService.RevokeEnhancedMonitoring is not implemented"))
+}
+
+func (UnimplementedMonitoringServiceHandler) SetEnhancedMonitoringPaused(context.Context, *connect.Request[v1.SetEnhancedMonitoringPausedRequest]) (*connect.Response[v1.SetEnhancedMonitoringPausedResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.monitoring.v1.MonitoringService.SetEnhancedMonitoringPaused is not implemented"))
 }

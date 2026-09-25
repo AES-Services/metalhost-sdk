@@ -9,6 +9,7 @@ service MonitoringService {
   rpc GetEnhancedMonitoring(GetEnhancedMonitoringRequest) returns (GetEnhancedMonitoringResponse);
   rpc EnableEnhancedMonitoring(EnableEnhancedMonitoringRequest) returns (EnableEnhancedMonitoringResponse);
   rpc RevokeEnhancedMonitoring(RevokeEnhancedMonitoringRequest) returns (RevokeEnhancedMonitoringResponse);
+  rpc SetEnhancedMonitoringPaused(SetEnhancedMonitoringPausedRequest) returns (SetEnhancedMonitoringPausedResponse);
 }
 
 message MetricDescriptor {
@@ -103,7 +104,7 @@ message EnhancedMonitoring {
   string name = 1;
   string installation_id = 2;
   string resource_id = 3;
-  // DISABLED, AWAITING_INSTALLATION, CONNECTED, STALE, REVOKED, UNSUPPORTED.
+  // DISABLED, AWAITING_INSTALLATION, CONNECTED, STALE, PAUSED, REVOKED, UNSUPPORTED.
   string status = 4;
   bool device_ready = 5;
   bool restart_required = 6;
@@ -112,7 +113,7 @@ message EnhancedMonitoring {
   int64 last_seen_at_unix = 9;
   int64 revoked_at_unix = 10;
   // Public installation identity, not a bearer credential. Requires the trusted
-  // VMI-bound collection path; copying this configuration grants no authority.
+  // VM-bound collection path; copying this configuration grants no authority.
   string configuration_json = 11;
   string runtime_state = 12;
   repeated string discovered_services = 13;
@@ -135,3 +136,10 @@ message RevokeEnhancedMonitoringRequest {
   string installation_id = 2;
 }
 message RevokeEnhancedMonitoringResponse {}
+message SetEnhancedMonitoringPausedRequest {
+  string name = 1;
+  string installation_id = 2;
+  bool paused = 3;
+  string request_id = 4;
+}
+message SetEnhancedMonitoringPausedResponse { EnhancedMonitoring monitoring = 1; }

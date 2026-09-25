@@ -89,10 +89,33 @@ no resources. Seven-day queries need a coarser step (for example 1800 seconds),
 not 60 seconds. Use returned bounds/step and retain quality alongside values.
 List calls use `next_page_token`/`page_token`; one page is not a whole inventory.
 
-Optional guest pause/resume is a newer follow-up API not present in this SDK
-snapshot. Do not assume generated clients track an unreleased backend checkout.
-The portal and verified collector archive remain the installation entry points;
-revocation is permanent, unlike pause, and does not uninstall guest software.
+This snapshot includes `SetEnhancedMonitoringPaused`. Use `GetEnhancedMonitoring`
+to obtain the current `installation_id`, then send the full VM `name`, that ID,
+`paused: true`, and a fresh UUID `request_id`. To resume, send `paused: false`
+with a new request ID. Retry an uncertain operation with its original ID and
+unchanged body. Pause/resume requires `monitoring.write`, preserves the
+installation and retained history, and does not stop/start the VM or uninstall
+software. Revocation is permanent. The portal and verified collector archive
+remain the installation entry points.
+
+For example, with an authenticated generated `MonitoringServiceClient`:
+
+```go
+response, err := client.SetEnhancedMonitoringPaused(ctx, connect.NewRequest(
+    &monitoringv1.SetEnhancedMonitoringPausedRequest{
+        Name: vmName, InstallationId: installationID,
+        Paused: true, RequestId: requestID,
+    },
+))
+```
+
+Retain `requestID` before sending; inspect `response.Msg.Monitoring.Status` after
+success. Resume uses the same installation, not a second enrollment.
+
+Project administrators can list all project credentials with
+`ListCredentialsRequest{ProjectName: project, AllProjectCredentials: true}`.
+Do not combine that flag with `service_account`. It permits inspection/revocation
+under the backend's authorization rules, not rotation of another member's key.
 
 ## Alerts and destinations
 
@@ -121,7 +144,9 @@ stable request UUID; poll `GetDestinationTest`. The latest retained result is
 also returned by `ListAlertDestinations`. `SENT` means provider/endpoint
 acceptance, not that a person read it.
 Slack, Discord and Teams destinations take a write-only provider webhook URL
-at creation. Changing that endpoint requires a new destination. Check the
+in `SaveAlertDestinationRequest.webhook_url` at creation. Read it from a secret
+manager or private input file, never source control or logs. Omit it when editing
+an existing destination. Changing that endpoint requires a new destination. Check the
 deployment's channel availability before asking recipients to verify or test.
 Scoped automation is an RPC allowlist: `monitoring.write` is not blanket access
 to every AlertService method. In particular, verification, destination tests

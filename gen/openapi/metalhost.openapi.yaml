@@ -5115,6 +5115,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.monitoring.v1.RevokeEnhancedMonitoringResponse'
+  /aes.monitoring.v1.MonitoringService/SetEnhancedMonitoringPaused:
+    post:
+      tags:
+        - aes.monitoring.v1.MonitoringService
+      summary: SetEnhancedMonitoringPaused
+      operationId: aes.monitoring.v1.MonitoringService.SetEnhancedMonitoringPaused
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.SetEnhancedMonitoringPausedRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.SetEnhancedMonitoringPausedResponse'
   /aes.network.v1.NetworkService/AddVmToSecurityGroup:
     post:
       tags:
@@ -12901,6 +12936,12 @@ components:
         pageToken:
           type: string
           title: page_token
+        allProjectCredentials:
+          type: boolean
+          title: all_project_credentials
+          description: |-
+            Project administrators may inspect all project API keys. Cannot be combined
+             with service_account. This never grants permission to rotate another user's key.
       title: ListCredentialsRequest
       additionalProperties: false
     aes.iam.v1.ListCredentialsResponse:
@@ -14351,7 +14392,9 @@ components:
         kind:
           type: string
           title: kind
-          description: EMAIL selects an existing verified project member; WEBHOOK an existing subscription.
+          description: |-
+            EMAIL selects a verified project member; WEBHOOK an existing subscription.
+             SLACK, DISCORD and TEAMS use an encrypted, immutable provider webhook URL.
         principal:
           type: string
           title: principal
@@ -14700,7 +14743,7 @@ components:
         status:
           type: string
           title: status
-          description: DISABLED, AWAITING_INSTALLATION, CONNECTED, STALE, REVOKED, UNSUPPORTED.
+          description: DISABLED, AWAITING_INSTALLATION, CONNECTED, STALE, PAUSED, REVOKED, UNSUPPORTED.
         deviceReady:
           type: boolean
           title: device_ready
@@ -14732,7 +14775,7 @@ components:
           title: configuration_json
           description: |-
             Public installation identity, not a bearer credential. Requires the trusted
-             VMI-bound collection path; copying this configuration grants no authority.
+             VM-bound collection path; copying this configuration grants no authority.
         runtimeState:
           type: string
           title: runtime_state
@@ -15588,6 +15631,12 @@ components:
           title: expected_version
           format: int64
           description: Zero for create; otherwise the version last read.
+        webhookUrl:
+          type: string
+          title: webhook_url
+          description: |-
+            Write-only, required when creating SLACK/DISCORD/TEAMS. Omit on edits.
+             Changing the endpoint requires a new destination to avoid redirecting queued alerts.
       title: SaveAlertDestinationRequest
       additionalProperties: false
     aes.monitoring.v1.SaveAlertDestinationResponse:
@@ -15661,6 +15710,31 @@ components:
           type: string
           title: value
       title: DimensionsEntry
+      additionalProperties: false
+    aes.monitoring.v1.SetEnhancedMonitoringPausedRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        installationId:
+          type: string
+          title: installation_id
+        paused:
+          type: boolean
+          title: paused
+        requestId:
+          type: string
+          title: request_id
+      title: SetEnhancedMonitoringPausedRequest
+      additionalProperties: false
+    aes.monitoring.v1.SetEnhancedMonitoringPausedResponse:
+      type: object
+      properties:
+        monitoring:
+          title: monitoring
+          $ref: '#/components/schemas/aes.monitoring.v1.EnhancedMonitoring'
+      title: SetEnhancedMonitoringPausedResponse
       additionalProperties: false
     aes.monitoring.v1.TestAlertDestinationRequest:
       type: object

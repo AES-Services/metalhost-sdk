@@ -1148,8 +1148,11 @@ type ListCredentialsRequest struct {
 	ServiceAccount string                 `protobuf:"bytes,2,opt,name=service_account,json=serviceAccount,proto3" json:"service_account,omitempty"`
 	PageSize       int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	PageToken      string                 `protobuf:"bytes,4,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Project administrators may inspect all project API keys. Cannot be combined
+	// with service_account. This never grants permission to rotate another user's key.
+	AllProjectCredentials bool `protobuf:"varint,5,opt,name=all_project_credentials,json=allProjectCredentials,proto3" json:"all_project_credentials,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *ListCredentialsRequest) Reset() {
@@ -1208,6 +1211,13 @@ func (x *ListCredentialsRequest) GetPageToken() string {
 		return x.PageToken
 	}
 	return ""
+}
+
+func (x *ListCredentialsRequest) GetAllProjectCredentials() bool {
+	if x != nil {
+		return x.AllProjectCredentials
+	}
+	return false
 }
 
 type ListCredentialsResponse struct {
@@ -2775,13 +2785,14 @@ const file_aes_iam_v1_automation_proto_rawDesc = "" +
 	"credential\x18\x01 \x01(\v2 .aes.iam.v1.AutomationCredentialR\n" +
 	"credential\x12\x16\n" +
 	"\x06secret\x18\x02 \x01(\tR\x06secret\x12-\n" +
-	"\x12secret_unavailable\x18\x03 \x01(\bR\x11secretUnavailable\"\xa0\x01\n" +
+	"\x12secret_unavailable\x18\x03 \x01(\bR\x11secretUnavailable\"\xd8\x01\n" +
 	"\x16ListCredentialsRequest\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12'\n" +
 	"\x0fservice_account\x18\x02 \x01(\tR\x0eserviceAccount\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x04 \x01(\tR\tpageToken\"\x85\x01\n" +
+	"page_token\x18\x04 \x01(\tR\tpageToken\x126\n" +
+	"\x17all_project_credentials\x18\x05 \x01(\bR\x15allProjectCredentials\"\x85\x01\n" +
 	"\x17ListCredentialsResponse\x12B\n" +
 	"\vcredentials\x18\x01 \x03(\v2 .aes.iam.v1.AutomationCredentialR\vcredentials\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"u\n" +

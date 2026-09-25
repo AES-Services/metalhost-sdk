@@ -970,7 +970,7 @@ type EnhancedMonitoring struct {
 	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	InstallationId string                 `protobuf:"bytes,2,opt,name=installation_id,json=installationId,proto3" json:"installation_id,omitempty"`
 	ResourceId     string                 `protobuf:"bytes,3,opt,name=resource_id,json=resourceId,proto3" json:"resource_id,omitempty"`
-	// DISABLED, AWAITING_INSTALLATION, CONNECTED, STALE, REVOKED, UNSUPPORTED.
+	// DISABLED, AWAITING_INSTALLATION, CONNECTED, STALE, PAUSED, REVOKED, UNSUPPORTED.
 	Status           string   `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
 	DeviceReady      bool     `protobuf:"varint,5,opt,name=device_ready,json=deviceReady,proto3" json:"device_ready,omitempty"`
 	RestartRequired  bool     `protobuf:"varint,6,opt,name=restart_required,json=restartRequired,proto3" json:"restart_required,omitempty"`
@@ -979,7 +979,7 @@ type EnhancedMonitoring struct {
 	LastSeenAtUnix   int64    `protobuf:"varint,9,opt,name=last_seen_at_unix,json=lastSeenAtUnix,proto3" json:"last_seen_at_unix,omitempty"`
 	RevokedAtUnix    int64    `protobuf:"varint,10,opt,name=revoked_at_unix,json=revokedAtUnix,proto3" json:"revoked_at_unix,omitempty"`
 	// Public installation identity, not a bearer credential. Requires the trusted
-	// VMI-bound collection path; copying this configuration grants no authority.
+	// VM-bound collection path; copying this configuration grants no authority.
 	ConfigurationJson      string   `protobuf:"bytes,11,opt,name=configuration_json,json=configurationJson,proto3" json:"configuration_json,omitempty"`
 	RuntimeState           string   `protobuf:"bytes,12,opt,name=runtime_state,json=runtimeState,proto3" json:"runtime_state,omitempty"`
 	DiscoveredServices     []string `protobuf:"bytes,13,rep,name=discovered_services,json=discoveredServices,proto3" json:"discovered_services,omitempty"`
@@ -1407,6 +1407,118 @@ func (*RevokeEnhancedMonitoringResponse) Descriptor() ([]byte, []int) {
 	return file_aes_monitoring_v1_monitoring_proto_rawDescGZIP(), []int{19}
 }
 
+type SetEnhancedMonitoringPausedRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	InstallationId string                 `protobuf:"bytes,2,opt,name=installation_id,json=installationId,proto3" json:"installation_id,omitempty"`
+	Paused         bool                   `protobuf:"varint,3,opt,name=paused,proto3" json:"paused,omitempty"`
+	RequestId      string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *SetEnhancedMonitoringPausedRequest) Reset() {
+	*x = SetEnhancedMonitoringPausedRequest{}
+	mi := &file_aes_monitoring_v1_monitoring_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetEnhancedMonitoringPausedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetEnhancedMonitoringPausedRequest) ProtoMessage() {}
+
+func (x *SetEnhancedMonitoringPausedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_monitoring_v1_monitoring_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetEnhancedMonitoringPausedRequest.ProtoReflect.Descriptor instead.
+func (*SetEnhancedMonitoringPausedRequest) Descriptor() ([]byte, []int) {
+	return file_aes_monitoring_v1_monitoring_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *SetEnhancedMonitoringPausedRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SetEnhancedMonitoringPausedRequest) GetInstallationId() string {
+	if x != nil {
+		return x.InstallationId
+	}
+	return ""
+}
+
+func (x *SetEnhancedMonitoringPausedRequest) GetPaused() bool {
+	if x != nil {
+		return x.Paused
+	}
+	return false
+}
+
+func (x *SetEnhancedMonitoringPausedRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type SetEnhancedMonitoringPausedResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Monitoring    *EnhancedMonitoring    `protobuf:"bytes,1,opt,name=monitoring,proto3" json:"monitoring,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetEnhancedMonitoringPausedResponse) Reset() {
+	*x = SetEnhancedMonitoringPausedResponse{}
+	mi := &file_aes_monitoring_v1_monitoring_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetEnhancedMonitoringPausedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetEnhancedMonitoringPausedResponse) ProtoMessage() {}
+
+func (x *SetEnhancedMonitoringPausedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_monitoring_v1_monitoring_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetEnhancedMonitoringPausedResponse.ProtoReflect.Descriptor instead.
+func (*SetEnhancedMonitoringPausedResponse) Descriptor() ([]byte, []int) {
+	return file_aes_monitoring_v1_monitoring_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *SetEnhancedMonitoringPausedResponse) GetMonitoring() *EnhancedMonitoring {
+	if x != nil {
+		return x.Monitoring
+	}
+	return nil
+}
+
 var File_aes_monitoring_v1_monitoring_proto protoreflect.FileDescriptor
 
 const file_aes_monitoring_v1_monitoring_proto_rawDesc = "" +
@@ -1531,14 +1643,25 @@ const file_aes_monitoring_v1_monitoring_proto_rawDesc = "" +
 	"\x1fRevokeEnhancedMonitoringRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12'\n" +
 	"\x0finstallation_id\x18\x02 \x01(\tR\x0einstallationId\"\"\n" +
-	" RevokeEnhancedMonitoringResponse2\xf4\x05\n" +
+	" RevokeEnhancedMonitoringResponse\"\x98\x01\n" +
+	"\"SetEnhancedMonitoringPausedRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12'\n" +
+	"\x0finstallation_id\x18\x02 \x01(\tR\x0einstallationId\x12\x16\n" +
+	"\x06paused\x18\x03 \x01(\bR\x06paused\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tR\trequestId\"l\n" +
+	"#SetEnhancedMonitoringPausedResponse\x12E\n" +
+	"\n" +
+	"monitoring\x18\x01 \x01(\v2%.aes.monitoring.v1.EnhancedMonitoringR\n" +
+	"monitoring2\x83\a\n" +
 	"\x11MonitoringService\x12z\n" +
 	"\x15ListMetricDescriptors\x12/.aes.monitoring.v1.ListMetricDescriptorsRequest\x1a0.aes.monitoring.v1.ListMetricDescriptorsResponse\x12k\n" +
 	"\x10ListVMMonitoring\x12*.aes.monitoring.v1.ListVMMonitoringRequest\x1a+.aes.monitoring.v1.ListVMMonitoringResponse\x12n\n" +
 	"\x11QueryVMMonitoring\x12+.aes.monitoring.v1.QueryVMMonitoringRequest\x1a,.aes.monitoring.v1.QueryVMMonitoringResponse\x12z\n" +
 	"\x15GetEnhancedMonitoring\x12/.aes.monitoring.v1.GetEnhancedMonitoringRequest\x1a0.aes.monitoring.v1.GetEnhancedMonitoringResponse\x12\x83\x01\n" +
 	"\x18EnableEnhancedMonitoring\x122.aes.monitoring.v1.EnableEnhancedMonitoringRequest\x1a3.aes.monitoring.v1.EnableEnhancedMonitoringResponse\x12\x83\x01\n" +
-	"\x18RevokeEnhancedMonitoring\x122.aes.monitoring.v1.RevokeEnhancedMonitoringRequest\x1a3.aes.monitoring.v1.RevokeEnhancedMonitoringResponseB\xdb\x01\n" +
+	"\x18RevokeEnhancedMonitoring\x122.aes.monitoring.v1.RevokeEnhancedMonitoringRequest\x1a3.aes.monitoring.v1.RevokeEnhancedMonitoringResponse\x12\x8c\x01\n" +
+	"\x1bSetEnhancedMonitoringPaused\x125.aes.monitoring.v1.SetEnhancedMonitoringPausedRequest\x1a6.aes.monitoring.v1.SetEnhancedMonitoringPausedResponseB\xdb\x01\n" +
 	"\x15com.aes.monitoring.v1B\x0fMonitoringProtoP\x01ZKgithub.com/AES-Services/metalhost-sdk/gen/go/aes/monitoring/v1;monitoringv1\xa2\x02\x03AMX\xaa\x02\x11Aes.Monitoring.V1\xca\x02\x11Aes\\Monitoring\\V1\xe2\x02\x1dAes\\Monitoring\\V1\\GPBMetadata\xea\x02\x13Aes::Monitoring::V1b\x06proto3"
 
 var (
@@ -1553,58 +1676,63 @@ func file_aes_monitoring_v1_monitoring_proto_rawDescGZIP() []byte {
 	return file_aes_monitoring_v1_monitoring_proto_rawDescData
 }
 
-var file_aes_monitoring_v1_monitoring_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_aes_monitoring_v1_monitoring_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_aes_monitoring_v1_monitoring_proto_goTypes = []any{
-	(*MetricDescriptor)(nil),                 // 0: aes.monitoring.v1.MetricDescriptor
-	(*ListMetricDescriptorsRequest)(nil),     // 1: aes.monitoring.v1.ListMetricDescriptorsRequest
-	(*ListMetricDescriptorsResponse)(nil),    // 2: aes.monitoring.v1.ListMetricDescriptorsResponse
-	(*ListVMMonitoringRequest)(nil),          // 3: aes.monitoring.v1.ListVMMonitoringRequest
-	(*MonitoredVM)(nil),                      // 4: aes.monitoring.v1.MonitoredVM
-	(*ListVMMonitoringResponse)(nil),         // 5: aes.monitoring.v1.ListVMMonitoringResponse
-	(*MonitoringDatacenterSummary)(nil),      // 6: aes.monitoring.v1.MonitoringDatacenterSummary
-	(*MonitoringOverview)(nil),               // 7: aes.monitoring.v1.MonitoringOverview
-	(*QueryVMMonitoringRequest)(nil),         // 8: aes.monitoring.v1.QueryVMMonitoringRequest
-	(*Sample)(nil),                           // 9: aes.monitoring.v1.Sample
-	(*Series)(nil),                           // 10: aes.monitoring.v1.Series
-	(*MetricQuality)(nil),                    // 11: aes.monitoring.v1.MetricQuality
-	(*QueryVMMonitoringResponse)(nil),        // 12: aes.monitoring.v1.QueryVMMonitoringResponse
-	(*EnhancedMonitoring)(nil),               // 13: aes.monitoring.v1.EnhancedMonitoring
-	(*GetEnhancedMonitoringRequest)(nil),     // 14: aes.monitoring.v1.GetEnhancedMonitoringRequest
-	(*GetEnhancedMonitoringResponse)(nil),    // 15: aes.monitoring.v1.GetEnhancedMonitoringResponse
-	(*EnableEnhancedMonitoringRequest)(nil),  // 16: aes.monitoring.v1.EnableEnhancedMonitoringRequest
-	(*EnableEnhancedMonitoringResponse)(nil), // 17: aes.monitoring.v1.EnableEnhancedMonitoringResponse
-	(*RevokeEnhancedMonitoringRequest)(nil),  // 18: aes.monitoring.v1.RevokeEnhancedMonitoringRequest
-	(*RevokeEnhancedMonitoringResponse)(nil), // 19: aes.monitoring.v1.RevokeEnhancedMonitoringResponse
-	nil,                                      // 20: aes.monitoring.v1.Series.DimensionsEntry
+	(*MetricDescriptor)(nil),                    // 0: aes.monitoring.v1.MetricDescriptor
+	(*ListMetricDescriptorsRequest)(nil),        // 1: aes.monitoring.v1.ListMetricDescriptorsRequest
+	(*ListMetricDescriptorsResponse)(nil),       // 2: aes.monitoring.v1.ListMetricDescriptorsResponse
+	(*ListVMMonitoringRequest)(nil),             // 3: aes.monitoring.v1.ListVMMonitoringRequest
+	(*MonitoredVM)(nil),                         // 4: aes.monitoring.v1.MonitoredVM
+	(*ListVMMonitoringResponse)(nil),            // 5: aes.monitoring.v1.ListVMMonitoringResponse
+	(*MonitoringDatacenterSummary)(nil),         // 6: aes.monitoring.v1.MonitoringDatacenterSummary
+	(*MonitoringOverview)(nil),                  // 7: aes.monitoring.v1.MonitoringOverview
+	(*QueryVMMonitoringRequest)(nil),            // 8: aes.monitoring.v1.QueryVMMonitoringRequest
+	(*Sample)(nil),                              // 9: aes.monitoring.v1.Sample
+	(*Series)(nil),                              // 10: aes.monitoring.v1.Series
+	(*MetricQuality)(nil),                       // 11: aes.monitoring.v1.MetricQuality
+	(*QueryVMMonitoringResponse)(nil),           // 12: aes.monitoring.v1.QueryVMMonitoringResponse
+	(*EnhancedMonitoring)(nil),                  // 13: aes.monitoring.v1.EnhancedMonitoring
+	(*GetEnhancedMonitoringRequest)(nil),        // 14: aes.monitoring.v1.GetEnhancedMonitoringRequest
+	(*GetEnhancedMonitoringResponse)(nil),       // 15: aes.monitoring.v1.GetEnhancedMonitoringResponse
+	(*EnableEnhancedMonitoringRequest)(nil),     // 16: aes.monitoring.v1.EnableEnhancedMonitoringRequest
+	(*EnableEnhancedMonitoringResponse)(nil),    // 17: aes.monitoring.v1.EnableEnhancedMonitoringResponse
+	(*RevokeEnhancedMonitoringRequest)(nil),     // 18: aes.monitoring.v1.RevokeEnhancedMonitoringRequest
+	(*RevokeEnhancedMonitoringResponse)(nil),    // 19: aes.monitoring.v1.RevokeEnhancedMonitoringResponse
+	(*SetEnhancedMonitoringPausedRequest)(nil),  // 20: aes.monitoring.v1.SetEnhancedMonitoringPausedRequest
+	(*SetEnhancedMonitoringPausedResponse)(nil), // 21: aes.monitoring.v1.SetEnhancedMonitoringPausedResponse
+	nil, // 22: aes.monitoring.v1.Series.DimensionsEntry
 }
 var file_aes_monitoring_v1_monitoring_proto_depIdxs = []int32{
 	0,  // 0: aes.monitoring.v1.ListMetricDescriptorsResponse.metrics:type_name -> aes.monitoring.v1.MetricDescriptor
 	4,  // 1: aes.monitoring.v1.ListVMMonitoringResponse.vms:type_name -> aes.monitoring.v1.MonitoredVM
 	7,  // 2: aes.monitoring.v1.ListVMMonitoringResponse.overview:type_name -> aes.monitoring.v1.MonitoringOverview
 	6,  // 3: aes.monitoring.v1.MonitoringOverview.datacenters:type_name -> aes.monitoring.v1.MonitoringDatacenterSummary
-	20, // 4: aes.monitoring.v1.Series.dimensions:type_name -> aes.monitoring.v1.Series.DimensionsEntry
+	22, // 4: aes.monitoring.v1.Series.dimensions:type_name -> aes.monitoring.v1.Series.DimensionsEntry
 	9,  // 5: aes.monitoring.v1.Series.samples:type_name -> aes.monitoring.v1.Sample
 	10, // 6: aes.monitoring.v1.QueryVMMonitoringResponse.series:type_name -> aes.monitoring.v1.Series
 	11, // 7: aes.monitoring.v1.QueryVMMonitoringResponse.quality:type_name -> aes.monitoring.v1.MetricQuality
 	13, // 8: aes.monitoring.v1.GetEnhancedMonitoringResponse.monitoring:type_name -> aes.monitoring.v1.EnhancedMonitoring
 	13, // 9: aes.monitoring.v1.EnableEnhancedMonitoringResponse.monitoring:type_name -> aes.monitoring.v1.EnhancedMonitoring
-	1,  // 10: aes.monitoring.v1.MonitoringService.ListMetricDescriptors:input_type -> aes.monitoring.v1.ListMetricDescriptorsRequest
-	3,  // 11: aes.monitoring.v1.MonitoringService.ListVMMonitoring:input_type -> aes.monitoring.v1.ListVMMonitoringRequest
-	8,  // 12: aes.monitoring.v1.MonitoringService.QueryVMMonitoring:input_type -> aes.monitoring.v1.QueryVMMonitoringRequest
-	14, // 13: aes.monitoring.v1.MonitoringService.GetEnhancedMonitoring:input_type -> aes.monitoring.v1.GetEnhancedMonitoringRequest
-	16, // 14: aes.monitoring.v1.MonitoringService.EnableEnhancedMonitoring:input_type -> aes.monitoring.v1.EnableEnhancedMonitoringRequest
-	18, // 15: aes.monitoring.v1.MonitoringService.RevokeEnhancedMonitoring:input_type -> aes.monitoring.v1.RevokeEnhancedMonitoringRequest
-	2,  // 16: aes.monitoring.v1.MonitoringService.ListMetricDescriptors:output_type -> aes.monitoring.v1.ListMetricDescriptorsResponse
-	5,  // 17: aes.monitoring.v1.MonitoringService.ListVMMonitoring:output_type -> aes.monitoring.v1.ListVMMonitoringResponse
-	12, // 18: aes.monitoring.v1.MonitoringService.QueryVMMonitoring:output_type -> aes.monitoring.v1.QueryVMMonitoringResponse
-	15, // 19: aes.monitoring.v1.MonitoringService.GetEnhancedMonitoring:output_type -> aes.monitoring.v1.GetEnhancedMonitoringResponse
-	17, // 20: aes.monitoring.v1.MonitoringService.EnableEnhancedMonitoring:output_type -> aes.monitoring.v1.EnableEnhancedMonitoringResponse
-	19, // 21: aes.monitoring.v1.MonitoringService.RevokeEnhancedMonitoring:output_type -> aes.monitoring.v1.RevokeEnhancedMonitoringResponse
-	16, // [16:22] is the sub-list for method output_type
-	10, // [10:16] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	13, // 10: aes.monitoring.v1.SetEnhancedMonitoringPausedResponse.monitoring:type_name -> aes.monitoring.v1.EnhancedMonitoring
+	1,  // 11: aes.monitoring.v1.MonitoringService.ListMetricDescriptors:input_type -> aes.monitoring.v1.ListMetricDescriptorsRequest
+	3,  // 12: aes.monitoring.v1.MonitoringService.ListVMMonitoring:input_type -> aes.monitoring.v1.ListVMMonitoringRequest
+	8,  // 13: aes.monitoring.v1.MonitoringService.QueryVMMonitoring:input_type -> aes.monitoring.v1.QueryVMMonitoringRequest
+	14, // 14: aes.monitoring.v1.MonitoringService.GetEnhancedMonitoring:input_type -> aes.monitoring.v1.GetEnhancedMonitoringRequest
+	16, // 15: aes.monitoring.v1.MonitoringService.EnableEnhancedMonitoring:input_type -> aes.monitoring.v1.EnableEnhancedMonitoringRequest
+	18, // 16: aes.monitoring.v1.MonitoringService.RevokeEnhancedMonitoring:input_type -> aes.monitoring.v1.RevokeEnhancedMonitoringRequest
+	20, // 17: aes.monitoring.v1.MonitoringService.SetEnhancedMonitoringPaused:input_type -> aes.monitoring.v1.SetEnhancedMonitoringPausedRequest
+	2,  // 18: aes.monitoring.v1.MonitoringService.ListMetricDescriptors:output_type -> aes.monitoring.v1.ListMetricDescriptorsResponse
+	5,  // 19: aes.monitoring.v1.MonitoringService.ListVMMonitoring:output_type -> aes.monitoring.v1.ListVMMonitoringResponse
+	12, // 20: aes.monitoring.v1.MonitoringService.QueryVMMonitoring:output_type -> aes.monitoring.v1.QueryVMMonitoringResponse
+	15, // 21: aes.monitoring.v1.MonitoringService.GetEnhancedMonitoring:output_type -> aes.monitoring.v1.GetEnhancedMonitoringResponse
+	17, // 22: aes.monitoring.v1.MonitoringService.EnableEnhancedMonitoring:output_type -> aes.monitoring.v1.EnableEnhancedMonitoringResponse
+	19, // 23: aes.monitoring.v1.MonitoringService.RevokeEnhancedMonitoring:output_type -> aes.monitoring.v1.RevokeEnhancedMonitoringResponse
+	21, // 24: aes.monitoring.v1.MonitoringService.SetEnhancedMonitoringPaused:output_type -> aes.monitoring.v1.SetEnhancedMonitoringPausedResponse
+	18, // [18:25] is the sub-list for method output_type
+	11, // [11:18] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_aes_monitoring_v1_monitoring_proto_init() }
@@ -1619,7 +1747,7 @@ func file_aes_monitoring_v1_monitoring_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_monitoring_v1_monitoring_proto_rawDesc), len(file_aes_monitoring_v1_monitoring_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   21,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

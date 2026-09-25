@@ -888,7 +888,8 @@ type AlertDestination struct {
 	Name        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	ProjectName string                 `protobuf:"bytes,2,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
 	DisplayName string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	// EMAIL selects an existing verified project member; WEBHOOK an existing subscription.
+	// EMAIL selects a verified project member; WEBHOOK an existing subscription.
+	// SLACK, DISCORD and TEAMS use an encrypted, immutable provider webhook URL.
 	Kind             string `protobuf:"bytes,4,opt,name=kind,proto3" json:"kind,omitempty"`
 	Principal        string `protobuf:"bytes,5,opt,name=principal,proto3" json:"principal,omitempty"`
 	SubscriptionName string `protobuf:"bytes,6,opt,name=subscription_name,json=subscriptionName,proto3" json:"subscription_name,omitempty"`
@@ -1137,8 +1138,11 @@ type SaveAlertDestinationRequest struct {
 	RequestId   string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	// Zero for create; otherwise the version last read.
 	ExpectedVersion int64 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Write-only, required when creating SLACK/DISCORD/TEAMS. Omit on edits.
+	// Changing the endpoint requires a new destination to avoid redirecting queued alerts.
+	WebhookUrl    string `protobuf:"bytes,4,opt,name=webhook_url,json=webhookUrl,proto3" json:"webhook_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SaveAlertDestinationRequest) Reset() {
@@ -1190,6 +1194,13 @@ func (x *SaveAlertDestinationRequest) GetExpectedVersion() int64 {
 		return x.ExpectedVersion
 	}
 	return 0
+}
+
+func (x *SaveAlertDestinationRequest) GetWebhookUrl() string {
+	if x != nil {
+		return x.WebhookUrl
+	}
+	return ""
 }
 
 type SaveAlertDestinationResponse struct {
@@ -3287,12 +3298,14 @@ const file_aes_monitoring_v1_alerts_proto_rawDesc = "" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12)\n" +
 	"\x10caller_principal\x18\x03 \x01(\tR\x0fcallerPrincipal\x12'\n" +
 	"\x0femail_available\x18\x04 \x01(\bR\x0eemailAvailable\x12+\n" +
-	"\x11webhook_available\x18\x05 \x01(\bR\x10webhookAvailable\"\xae\x01\n" +
+	"\x11webhook_available\x18\x05 \x01(\bR\x10webhookAvailable\"\xcf\x01\n" +
 	"\x1bSaveAlertDestinationRequest\x12E\n" +
 	"\vdestination\x18\x01 \x01(\v2#.aes.monitoring.v1.AlertDestinationR\vdestination\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x02 \x01(\tR\trequestId\x12)\n" +
-	"\x10expected_version\x18\x03 \x01(\x03R\x0fexpectedVersion\"e\n" +
+	"\x10expected_version\x18\x03 \x01(\x03R\x0fexpectedVersion\x12\x1f\n" +
+	"\vwebhook_url\x18\x04 \x01(\tR\n" +
+	"webhookUrl\"e\n" +
 	"\x1cSaveAlertDestinationResponse\x12E\n" +
 	"\vdestination\x18\x01 \x01(\v2#.aes.monitoring.v1.AlertDestinationR\vdestination\"\xa0\x01\n" +
 	"\x1dDeleteAlertDestinationRequest\x12!\n" +
