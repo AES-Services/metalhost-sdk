@@ -7,7 +7,9 @@ The SDK's public Go surface has two layers:
 
 ## Generated services
 
-The released snapshot includes:
+This checkout's snapshot includes the services below. The September entries
+remain coordinated-release previews; this list is not a claim that every
+published SDK version or production endpoint exposes them.
 
 - audit
 - bare metal
@@ -90,3 +92,6 @@ that a recipient read a notification. Missing data is never healthy zero usage.
 Hosted PromQL and Prometheus scrape endpoints are ordinary authenticated HTTP
 interfaces, not Connect RPCs. Use a project-scoped `monitoring.read` credential;
 the server derives immutable tenant identity and does not trust tenant headers.
+
+See [Observability](OBSERVABILITY.md) for runnable examples and explicit CLI/API
+boundaries. Workflow identity does not provision GitHub runners.

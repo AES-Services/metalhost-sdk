@@ -58,6 +58,11 @@ For the coordinated, unreleased September APIs, see [Observability](docs/OBSERVA
 scoped automation/GitHub identity, monitoring endpoints, Grafana, alerts, and
 timestamped webhook verification with overlapping rotation.
 
+Read-only and receiver examples are in [examples/monitoring](examples/monitoring/main.go)
+and [examples/webhookreceiver](examples/webhookreceiver/receiver.go). Compile/check
+them without making API requests with `go test ./metalhost ./examples/...`.
+Managed GitHub runners are not part of the workflow identity integration.
+
 ## Keep the API snapshot synchronized
 
 Install pinned generation tools once:

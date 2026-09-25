@@ -25,9 +25,16 @@ Do not trust a repository name alone. The workflow needs `id-token: write`;
 assertions must match the deployment's configured audience and fixed GitHub
 issuer. Pull-request events are not permitted. The exchanged token lasts 15
 minutes, has no refresh token, and can only use its configured project/grants.
-Prefer the CLI's `auth github -- COMMAND`; it masks tokens and supplies the
-short-lived credential only to the child environment, not a config file or
-GitHub artifact. Long jobs need a fresh assertion/exchange.
+The September CLI branch implements `auth github` and `monitoring`; older
+CLI releases do not. Alternatively, use the
+[complete HTTP workflow example](https://metalhost.net/docs/developers/guides/github-actions)
+from the coordinated docs release. Exchange through
+`AutomationService.ExchangeGitHubToken` with `trust_name` and `assertion`; use
+the returned `access_token` as Bearer, scoped to the returned `project_name`.
+Mask both tokens and keep them in one step, not a config file, `GITHUB_ENV` or
+artifact. Long jobs need a fresh assertion/exchange. The trust's exact workflow,
+branch, event and environment must match verification. This is not GitHub sign-in
+and does not provision runners. Managed runners are planned separately.
 
 ## Metrics, Grafana and Prometheus
 
@@ -57,11 +64,35 @@ scraping need `authorization.credentials_file`. Keep the credential file mode
 0600. The exporter omits expired samples instead of refreshing old observations.
 
 The initial hosted limit is seven days, minimum 30-second query steps, 10,000
-points/series budget, four concurrent queries per project and a 4-MiB response
-cap. Narrow queries on 422; back off on 429; show an unavailable state on service
+points per series, a 16-KiB public expression cap and a 4-MiB response
+cap. Concurrency is per project per gateway replica: four in earlier previews,
+twelve in the follow-up backend implementation, also subject to a global budget.
+Narrow queries on 422; back off on 429; show an unavailable state on service
 failure. Empty, unsupported and stale metrics are not zero or proof of health.
 Use `MonitoringService` for typed metric descriptors, VM summaries and curated
 chart responses with per-family quality. Metric samples are never invoices.
+
+### Runnable read-only example
+
+The [monitoring example](../examples/monitoring/main.go) uses this checkout's
+generated client and explicitly installs `Config.RoundTripper`; `Config.Client`
+does not add Bearer authentication on its own. Set `METALHOST_ENDPOINT` to an
+enabled HTTPS API origin, `METALHOST_VM` to a full resource name, and load
+`METALHOST_API_KEY` from your secret manager with `monitoring.read`, then run:
+
+```sh
+go run ./examples/monitoring
+```
+
+It queries one hour of CPU/memory, prints quality and sample counts, and changes
+no resources. Seven-day queries need a coarser step (for example 1800 seconds),
+not 60 seconds. Use returned bounds/step and retain quality alongside values.
+List calls use `next_page_token`/`page_token`; one page is not a whole inventory.
+
+Optional guest pause/resume is a newer follow-up API not present in this SDK
+snapshot. Do not assume generated clients track an unreleased backend checkout.
+The portal and verified collector archive remain the installation entry points;
+revocation is permanent, unlike pause, and does not uninstall guest software.
 
 ## Alerts and destinations
 
@@ -78,6 +109,10 @@ Enhanced templates accept only their allowlisted exact `dimensions`; obtain
 mount/service/GPU names from observations rather than constructing PromQL.
 Acknowledging or snoozing an incident does not resolve it. A missing metric or
 collector outage must not manufacture recovery.
+`OPEN` means recovery has not been confirmed, not that the retained incident
+value is live. `RECOVERED` requires recovery evidence; `RETIRED` records a changed
+rule/resource context rather than fabricated recovery. Rule saving is a separate
+mutation from preview; use stable UUIDs and expected versions.
 
 Select existing project-member or webhook rows as destinations. Email needs
 recipient verification; destination pause stops future sending without changing
@@ -85,6 +120,13 @@ incident history. `TestAlertDestination` is an explicit external send with a
 stable request UUID; poll `GetDestinationTest`. The latest retained result is
 also returned by `ListAlertDestinations`. `SENT` means provider/endpoint
 acceptance, not that a person read it.
+Slack, Discord and Teams destinations take a write-only provider webhook URL
+at creation. Changing that endpoint requires a new destination. Check the
+deployment's channel availability before asking recipients to verify or test.
+Scoped automation is an RPC allowlist: `monitoring.write` is not blanket access
+to every AlertService method. In particular, verification, destination tests
+and incident acknowledgements use the authorized human dashboard flow in the
+current implementation.
 
 ## Verify and rotate webhook signatures
 
@@ -100,6 +142,18 @@ signatures and keep a trustworthy clock. The verifier authenticates
 `timestamp.deliveryID.attemptID.rawBody` with HMAC-SHA256 and checks a five-minute
 clock/replay window. It does not implement durable deduplication for you. It
 never falls back to the legacy untimestamped header.
+
+See the compilable [receiver example](../examples/webhookreceiver/receiver.go).
+Supply an `Inbox` implementation that atomically stores the verified raw body
+with a unique delivery ID before returning 2xx. An in-memory map is insufficient
+across restarts/replicas. Decode/process from that durable inbox; deduplicate
+individual event IDs as well when grouped deliveries overlap.
+
+Check examples without making API requests:
+
+```sh
+go test ./metalhost ./examples/...
+```
 
 `WebhooksService.RotateSubscriptionSecret` requires the current secret version
 and a stable request UUID. A successful original call returns one new secret;
