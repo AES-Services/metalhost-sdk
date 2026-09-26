@@ -1,0 +1,233 @@
+syntax = "proto3";
+
+package aes.iam.v1;
+
+service AutomationService {
+  rpc ListCapabilities(ListCapabilitiesRequest) returns (ListCapabilitiesResponse);
+  rpc CreateServiceAccount(CreateServiceAccountRequest) returns (CreateServiceAccountResponse);
+  rpc GetServiceAccount(GetServiceAccountRequest) returns (GetServiceAccountResponse);
+  rpc ListServiceAccounts(ListServiceAccountsRequest) returns (ListServiceAccountsResponse);
+  rpc UpdateServiceAccount(UpdateServiceAccountRequest) returns (UpdateServiceAccountResponse);
+  rpc SetServiceAccountState(SetServiceAccountStateRequest) returns (SetServiceAccountStateResponse);
+  rpc DeleteServiceAccount(DeleteServiceAccountRequest) returns (DeleteServiceAccountResponse);
+  rpc CreateCredential(CreateCredentialRequest) returns (CreateCredentialResponse);
+  rpc ListCredentials(ListCredentialsRequest) returns (ListCredentialsResponse);
+  rpc RotateCredential(RotateCredentialRequest) returns (RotateCredentialResponse);
+  rpc RevokeCredential(RevokeCredentialRequest) returns (RevokeCredentialResponse);
+  rpc CreateGitHubTrust(CreateGitHubTrustRequest) returns (CreateGitHubTrustResponse);
+  rpc UpdateGitHubTrust(UpdateGitHubTrustRequest) returns (UpdateGitHubTrustResponse);
+  rpc ListGitHubTrusts(ListGitHubTrustsRequest) returns (ListGitHubTrustsResponse);
+  rpc SetGitHubTrustState(SetGitHubTrustStateRequest) returns (SetGitHubTrustStateResponse);
+  rpc DeleteGitHubTrust(DeleteGitHubTrustRequest) returns (DeleteGitHubTrustResponse);
+  rpc BeginGitHubSetup(BeginGitHubSetupRequest) returns (BeginGitHubSetupResponse);
+  rpc GetGitHubSetup(GetGitHubSetupRequest) returns (GetGitHubSetupResponse);
+  // Verifies claims for a pending setup; never issues a credential or creates trust.
+  rpc SubmitGitHubSetup(SubmitGitHubSetupRequest) returns (SubmitGitHubSetupResponse);
+  // Authenticates the signed GitHub assertion, not a Metalhost session.
+  rpc ExchangeGitHubToken(ExchangeGitHubTokenRequest) returns (ExchangeGitHubTokenResponse);
+}
+
+message Capability {
+  string name = 1;
+  string display_name = 2;
+  string description = 3;
+}
+message ListCapabilitiesRequest {}
+message ListCapabilitiesResponse { repeated Capability capabilities = 1; }
+
+message ServiceAccount {
+  string name = 1;
+  string project_name = 2;
+  string display_name = 3;
+  repeated string permissions = 4;
+  string state = 5;
+  int64 version = 6;
+  int64 create_time_unix = 7;
+}
+message CreateServiceAccountRequest {
+  string project_name = 1;
+  string display_name = 2;
+  repeated string permissions = 3;
+  string request_id = 4;
+}
+message CreateServiceAccountResponse { ServiceAccount service_account = 1; }
+message GetServiceAccountRequest { string name = 1; }
+message GetServiceAccountResponse { ServiceAccount service_account = 1; }
+message ListServiceAccountsRequest {
+  string project_name = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+message ListServiceAccountsResponse {
+  repeated ServiceAccount service_accounts = 1;
+  string next_page_token = 2;
+}
+message UpdateServiceAccountRequest {
+  string name = 1;
+  string display_name = 2;
+  repeated string permissions = 3;
+  int64 expected_version = 4;
+}
+message UpdateServiceAccountResponse { ServiceAccount service_account = 1; }
+message SetServiceAccountStateRequest {
+  string name = 1;
+  // ACTIVE or DISABLED; a customer cannot clear a security LOCKED state.
+  string state = 2;
+  int64 expected_version = 3;
+}
+message SetServiceAccountStateResponse { ServiceAccount service_account = 1; }
+message DeleteServiceAccountRequest {
+  string name = 1;
+  int64 expected_version = 2;
+}
+message DeleteServiceAccountResponse {}
+
+message AutomationCredential {
+  string name = 1;
+  string principal = 2;
+  string project_name = 3;
+  string display_name = 4;
+  repeated string permissions = 5;
+  string kind = 6;
+  int64 create_time_unix = 7;
+  int64 expires_at_unix = 8;
+  int64 revoked_at_unix = 9;
+  int64 last_used_at_unix = 10;
+  int64 rotated_at_unix = 11;
+}
+message CreateCredentialRequest {
+  string project_name = 1;
+  // Empty issues a personal credential; service accounts require project admin.
+  string service_account = 2;
+  string display_name = 3;
+  repeated string permissions = 4;
+  // Zero selects 90 days; otherwise between 15 minutes and one year from now.
+  int64 expires_at_unix = 5;
+  string request_id = 6;
+}
+message CreateCredentialResponse {
+  AutomationCredential credential = 1;
+  // Returned once, never persisted in plaintext.
+  string secret = 2;
+  // A repeated request returns current metadata, never the original secret.
+  bool secret_unavailable = 3;
+}
+message ListCredentialsRequest {
+  string project_name = 1;
+  string service_account = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+  // Project administrators may inspect all project API keys. Cannot be combined
+  // with service_account. This never grants permission to rotate another user's key.
+  bool all_project_credentials = 5;
+}
+message ListCredentialsResponse {
+  repeated AutomationCredential credentials = 1;
+  string next_page_token = 2;
+}
+message RotateCredentialRequest {
+  string name = 1;
+  // Zero revokes immediately; otherwise overlap is capped at 24h and old expiry.
+  int32 overlap_seconds = 2;
+  string request_id = 3;
+}
+message RotateCredentialResponse {
+  AutomationCredential credential = 1;
+  string secret = 2;
+  int64 previous_expires_at_unix = 3;
+  bool secret_unavailable = 4;
+}
+message RevokeCredentialRequest { string name = 1; }
+message RevokeCredentialResponse {}
+
+message GitHubTrust {
+  string name = 1;
+  string project_name = 2;
+  string service_account = 3;
+  string display_name = 4;
+  string repository = 5;
+  string repository_id = 6;
+  string repository_owner_id = 7;
+  string subject = 8;
+  string ref = 9;
+  string environment = 10;
+  string workflow_ref = 11;
+  string job_workflow_ref = 12;
+  repeated string events = 13;
+  repeated string permissions = 14;
+  string state = 15;
+  int64 version = 16;
+  int64 create_time_unix = 17;
+  string audience = 18;
+}
+message CreateGitHubTrustRequest {
+  GitHubTrust trust = 1;
+  // Optional verified workflow discovery; confirmation is retry-safe by setup ID.
+  string setup_id = 2;
+  // Optional for older callers; supply a stable UUID for direct-create recovery.
+  string request_id = 3;
+}
+message CreateGitHubTrustResponse { GitHubTrust trust = 1; }
+message UpdateGitHubTrustRequest {
+  string name = 1;
+  string display_name = 2;
+  repeated string permissions = 3;
+  int64 expected_version = 4;
+  string request_id = 5;
+}
+message UpdateGitHubTrustResponse { GitHubTrust trust = 1; }
+message ListGitHubTrustsRequest {
+  string project_name = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+message ListGitHubTrustsResponse {
+  repeated GitHubTrust trusts = 1;
+  string next_page_token = 2;
+}
+message SetGitHubTrustStateRequest {
+  string name = 1;
+  string state = 2;
+  int64 expected_version = 3;
+}
+message SetGitHubTrustStateResponse { GitHubTrust trust = 1; }
+message DeleteGitHubTrustRequest {
+  string name = 1;
+  int64 expected_version = 2;
+}
+message DeleteGitHubTrustResponse {}
+message ExchangeGitHubTokenRequest {
+  string trust_name = 1;
+  string assertion = 2;
+}
+message ExchangeGitHubTokenResponse {
+  string access_token = 1;
+  string token_type = 2;
+  int64 expires_at_unix = 3;
+  string project_name = 4;
+  repeated string permissions = 5;
+}
+message BeginGitHubSetupRequest {
+  string project_name = 1;
+  string id = 2;
+  // Browser-generated 32-byte random base64url pairing code; stored only hashed.
+  string pairing_code = 3;
+}
+message GetGitHubSetupRequest { string id = 1; }
+message BeginGitHubSetupResponse { GitHubSetup setup = 1; }
+message GetGitHubSetupResponse { GitHubSetup setup = 1; }
+message GitHubSetup {
+  string id = 1;
+  string project_name = 2;
+  string audience = 3;
+  int64 expires_at_unix = 4;
+  string state = 5;
+  GitHubTrust identity = 6;
+  string confirmed_trust_name = 7;
+}
+message SubmitGitHubSetupRequest {
+  string id = 1;
+  string pairing_code = 2;
+  string assertion = 3;
+}
+message SubmitGitHubSetupResponse {}

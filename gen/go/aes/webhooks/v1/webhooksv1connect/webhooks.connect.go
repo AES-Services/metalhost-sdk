@@ -48,6 +48,9 @@ const (
 	// WebhooksServiceDeleteSubscriptionProcedure is the fully-qualified name of the WebhooksService's
 	// DeleteSubscription RPC.
 	WebhooksServiceDeleteSubscriptionProcedure = "/aes.webhooks.v1.WebhooksService/DeleteSubscription"
+	// WebhooksServiceRotateSubscriptionSecretProcedure is the fully-qualified name of the
+	// WebhooksService's RotateSubscriptionSecret RPC.
+	WebhooksServiceRotateSubscriptionSecretProcedure = "/aes.webhooks.v1.WebhooksService/RotateSubscriptionSecret"
 	// WebhooksServiceListDeliveriesProcedure is the fully-qualified name of the WebhooksService's
 	// ListDeliveries RPC.
 	WebhooksServiceListDeliveriesProcedure = "/aes.webhooks.v1.WebhooksService/ListDeliveries"
@@ -60,6 +63,7 @@ type WebhooksServiceClient interface {
 	ListSubscriptions(context.Context, *connect.Request[v1.ListSubscriptionsRequest]) (*connect.Response[v1.ListSubscriptionsResponse], error)
 	UpdateSubscription(context.Context, *connect.Request[v1.UpdateSubscriptionRequest]) (*connect.Response[v1.UpdateSubscriptionResponse], error)
 	DeleteSubscription(context.Context, *connect.Request[v1.DeleteSubscriptionRequest]) (*connect.Response[v1.DeleteSubscriptionResponse], error)
+	RotateSubscriptionSecret(context.Context, *connect.Request[v1.RotateSubscriptionSecretRequest]) (*connect.Response[v1.RotateSubscriptionSecretResponse], error)
 	// ListDeliveries shows recent attempts for a subscription — status code, response body
 	// snippet, retry count. Bounded ring (last 100 per subscription).
 	ListDeliveries(context.Context, *connect.Request[v1.ListDeliveriesRequest]) (*connect.Response[v1.ListDeliveriesResponse], error)
@@ -106,6 +110,12 @@ func NewWebhooksServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(webhooksServiceMethods.ByName("DeleteSubscription")),
 			connect.WithClientOptions(opts...),
 		),
+		rotateSubscriptionSecret: connect.NewClient[v1.RotateSubscriptionSecretRequest, v1.RotateSubscriptionSecretResponse](
+			httpClient,
+			baseURL+WebhooksServiceRotateSubscriptionSecretProcedure,
+			connect.WithSchema(webhooksServiceMethods.ByName("RotateSubscriptionSecret")),
+			connect.WithClientOptions(opts...),
+		),
 		listDeliveries: connect.NewClient[v1.ListDeliveriesRequest, v1.ListDeliveriesResponse](
 			httpClient,
 			baseURL+WebhooksServiceListDeliveriesProcedure,
@@ -117,12 +127,13 @@ func NewWebhooksServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 
 // webhooksServiceClient implements WebhooksServiceClient.
 type webhooksServiceClient struct {
-	createSubscription *connect.Client[v1.CreateSubscriptionRequest, v1.CreateSubscriptionResponse]
-	getSubscription    *connect.Client[v1.GetSubscriptionRequest, v1.GetSubscriptionResponse]
-	listSubscriptions  *connect.Client[v1.ListSubscriptionsRequest, v1.ListSubscriptionsResponse]
-	updateSubscription *connect.Client[v1.UpdateSubscriptionRequest, v1.UpdateSubscriptionResponse]
-	deleteSubscription *connect.Client[v1.DeleteSubscriptionRequest, v1.DeleteSubscriptionResponse]
-	listDeliveries     *connect.Client[v1.ListDeliveriesRequest, v1.ListDeliveriesResponse]
+	createSubscription       *connect.Client[v1.CreateSubscriptionRequest, v1.CreateSubscriptionResponse]
+	getSubscription          *connect.Client[v1.GetSubscriptionRequest, v1.GetSubscriptionResponse]
+	listSubscriptions        *connect.Client[v1.ListSubscriptionsRequest, v1.ListSubscriptionsResponse]
+	updateSubscription       *connect.Client[v1.UpdateSubscriptionRequest, v1.UpdateSubscriptionResponse]
+	deleteSubscription       *connect.Client[v1.DeleteSubscriptionRequest, v1.DeleteSubscriptionResponse]
+	rotateSubscriptionSecret *connect.Client[v1.RotateSubscriptionSecretRequest, v1.RotateSubscriptionSecretResponse]
+	listDeliveries           *connect.Client[v1.ListDeliveriesRequest, v1.ListDeliveriesResponse]
 }
 
 // CreateSubscription calls aes.webhooks.v1.WebhooksService.CreateSubscription.
@@ -150,6 +161,11 @@ func (c *webhooksServiceClient) DeleteSubscription(ctx context.Context, req *con
 	return c.deleteSubscription.CallUnary(ctx, req)
 }
 
+// RotateSubscriptionSecret calls aes.webhooks.v1.WebhooksService.RotateSubscriptionSecret.
+func (c *webhooksServiceClient) RotateSubscriptionSecret(ctx context.Context, req *connect.Request[v1.RotateSubscriptionSecretRequest]) (*connect.Response[v1.RotateSubscriptionSecretResponse], error) {
+	return c.rotateSubscriptionSecret.CallUnary(ctx, req)
+}
+
 // ListDeliveries calls aes.webhooks.v1.WebhooksService.ListDeliveries.
 func (c *webhooksServiceClient) ListDeliveries(ctx context.Context, req *connect.Request[v1.ListDeliveriesRequest]) (*connect.Response[v1.ListDeliveriesResponse], error) {
 	return c.listDeliveries.CallUnary(ctx, req)
@@ -162,6 +178,7 @@ type WebhooksServiceHandler interface {
 	ListSubscriptions(context.Context, *connect.Request[v1.ListSubscriptionsRequest]) (*connect.Response[v1.ListSubscriptionsResponse], error)
 	UpdateSubscription(context.Context, *connect.Request[v1.UpdateSubscriptionRequest]) (*connect.Response[v1.UpdateSubscriptionResponse], error)
 	DeleteSubscription(context.Context, *connect.Request[v1.DeleteSubscriptionRequest]) (*connect.Response[v1.DeleteSubscriptionResponse], error)
+	RotateSubscriptionSecret(context.Context, *connect.Request[v1.RotateSubscriptionSecretRequest]) (*connect.Response[v1.RotateSubscriptionSecretResponse], error)
 	// ListDeliveries shows recent attempts for a subscription — status code, response body
 	// snippet, retry count. Bounded ring (last 100 per subscription).
 	ListDeliveries(context.Context, *connect.Request[v1.ListDeliveriesRequest]) (*connect.Response[v1.ListDeliveriesResponse], error)
@@ -204,6 +221,12 @@ func NewWebhooksServiceHandler(svc WebhooksServiceHandler, opts ...connect.Handl
 		connect.WithSchema(webhooksServiceMethods.ByName("DeleteSubscription")),
 		connect.WithHandlerOptions(opts...),
 	)
+	webhooksServiceRotateSubscriptionSecretHandler := connect.NewUnaryHandler(
+		WebhooksServiceRotateSubscriptionSecretProcedure,
+		svc.RotateSubscriptionSecret,
+		connect.WithSchema(webhooksServiceMethods.ByName("RotateSubscriptionSecret")),
+		connect.WithHandlerOptions(opts...),
+	)
 	webhooksServiceListDeliveriesHandler := connect.NewUnaryHandler(
 		WebhooksServiceListDeliveriesProcedure,
 		svc.ListDeliveries,
@@ -222,6 +245,8 @@ func NewWebhooksServiceHandler(svc WebhooksServiceHandler, opts ...connect.Handl
 			webhooksServiceUpdateSubscriptionHandler.ServeHTTP(w, r)
 		case WebhooksServiceDeleteSubscriptionProcedure:
 			webhooksServiceDeleteSubscriptionHandler.ServeHTTP(w, r)
+		case WebhooksServiceRotateSubscriptionSecretProcedure:
+			webhooksServiceRotateSubscriptionSecretHandler.ServeHTTP(w, r)
 		case WebhooksServiceListDeliveriesProcedure:
 			webhooksServiceListDeliveriesHandler.ServeHTTP(w, r)
 		default:
@@ -251,6 +276,10 @@ func (UnimplementedWebhooksServiceHandler) UpdateSubscription(context.Context, *
 
 func (UnimplementedWebhooksServiceHandler) DeleteSubscription(context.Context, *connect.Request[v1.DeleteSubscriptionRequest]) (*connect.Response[v1.DeleteSubscriptionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.webhooks.v1.WebhooksService.DeleteSubscription is not implemented"))
+}
+
+func (UnimplementedWebhooksServiceHandler) RotateSubscriptionSecret(context.Context, *connect.Request[v1.RotateSubscriptionSecretRequest]) (*connect.Response[v1.RotateSubscriptionSecretResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.webhooks.v1.WebhooksService.RotateSubscriptionSecret is not implemented"))
 }
 
 func (UnimplementedWebhooksServiceHandler) ListDeliveries(context.Context, *connect.Request[v1.ListDeliveriesRequest]) (*connect.Response[v1.ListDeliveriesResponse], error) {

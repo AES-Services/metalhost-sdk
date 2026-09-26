@@ -271,6 +271,9 @@ message VirtualMachineSpec {
   string cloud_init = 6;
   // Billing term. Defaults to HOURLY.
   VMBillingSpec billing = 7;
+  // Opt in to installing the approved guest metrics collector through cloud-init
+  // on first boot. Requires a fresh supported cloud image; default false.
+  bool install_guest_collector = 8;
 }
 
 message VMComputeSpec {

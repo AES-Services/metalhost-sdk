@@ -38,8 +38,11 @@ type Subscription struct {
 	UpdateTimeUnix int64  `protobuf:"varint,7,opt,name=update_time_unix,json=updateTimeUnix,proto3" json:"update_time_unix,omitempty"`
 	// Per-subscription identifier returned via the X-Metalhost-Subscription header in deliveries.
 	SecretPrefix  string `protobuf:"bytes,8,opt,name=secret_prefix,json=secretPrefix,proto3" json:"secret_prefix,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	SecretVersion int64  `protobuf:"varint,9,opt,name=secret_version,json=secretVersion,proto3" json:"secret_version,omitempty"`
+	// Zero when no overlap exists. Expired previous secrets are never used to sign.
+	PreviousSecretExpiresAtUnix int64 `protobuf:"varint,10,opt,name=previous_secret_expires_at_unix,json=previousSecretExpiresAtUnix,proto3" json:"previous_secret_expires_at_unix,omitempty"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *Subscription) Reset() {
@@ -128,6 +131,151 @@ func (x *Subscription) GetSecretPrefix() string {
 	return ""
 }
 
+func (x *Subscription) GetSecretVersion() int64 {
+	if x != nil {
+		return x.SecretVersion
+	}
+	return 0
+}
+
+func (x *Subscription) GetPreviousSecretExpiresAtUnix() int64 {
+	if x != nil {
+		return x.PreviousSecretExpiresAtUnix
+	}
+	return 0
+}
+
+type RotateSubscriptionSecretRequest struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Name                  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ExpectedSecretVersion int64                  `protobuf:"varint,2,opt,name=expected_secret_version,json=expectedSecretVersion,proto3" json:"expected_secret_version,omitempty"`
+	// Stable UUID for recovery after a lost response. Retries never reveal secrets.
+	RequestId string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	// 0 immediately invalidates the old secret; maximum 86400 (24 hours).
+	OverlapSeconds int32 `protobuf:"varint,4,opt,name=overlap_seconds,json=overlapSeconds,proto3" json:"overlap_seconds,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *RotateSubscriptionSecretRequest) Reset() {
+	*x = RotateSubscriptionSecretRequest{}
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RotateSubscriptionSecretRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RotateSubscriptionSecretRequest) ProtoMessage() {}
+
+func (x *RotateSubscriptionSecretRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RotateSubscriptionSecretRequest.ProtoReflect.Descriptor instead.
+func (*RotateSubscriptionSecretRequest) Descriptor() ([]byte, []int) {
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *RotateSubscriptionSecretRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *RotateSubscriptionSecretRequest) GetExpectedSecretVersion() int64 {
+	if x != nil {
+		return x.ExpectedSecretVersion
+	}
+	return 0
+}
+
+func (x *RotateSubscriptionSecretRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *RotateSubscriptionSecretRequest) GetOverlapSeconds() int32 {
+	if x != nil {
+		return x.OverlapSeconds
+	}
+	return 0
+}
+
+type RotateSubscriptionSecretResponse struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Subscription *Subscription          `protobuf:"bytes,1,opt,name=subscription,proto3" json:"subscription,omitempty"`
+	Secret       string                 `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
+	// A committed request was retried. Recover by deliberately rotating again.
+	SecretUnavailable bool `protobuf:"varint,3,opt,name=secret_unavailable,json=secretUnavailable,proto3" json:"secret_unavailable,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *RotateSubscriptionSecretResponse) Reset() {
+	*x = RotateSubscriptionSecretResponse{}
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RotateSubscriptionSecretResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RotateSubscriptionSecretResponse) ProtoMessage() {}
+
+func (x *RotateSubscriptionSecretResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RotateSubscriptionSecretResponse.ProtoReflect.Descriptor instead.
+func (*RotateSubscriptionSecretResponse) Descriptor() ([]byte, []int) {
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RotateSubscriptionSecretResponse) GetSubscription() *Subscription {
+	if x != nil {
+		return x.Subscription
+	}
+	return nil
+}
+
+func (x *RotateSubscriptionSecretResponse) GetSecret() string {
+	if x != nil {
+		return x.Secret
+	}
+	return ""
+}
+
+func (x *RotateSubscriptionSecretResponse) GetSecretUnavailable() bool {
+	if x != nil {
+		return x.SecretUnavailable
+	}
+	return false
+}
+
 type CreateSubscriptionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -140,7 +288,7 @@ type CreateSubscriptionRequest struct {
 
 func (x *CreateSubscriptionRequest) Reset() {
 	*x = CreateSubscriptionRequest{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[1]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -152,7 +300,7 @@ func (x *CreateSubscriptionRequest) String() string {
 func (*CreateSubscriptionRequest) ProtoMessage() {}
 
 func (x *CreateSubscriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[1]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -165,7 +313,7 @@ func (x *CreateSubscriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSubscriptionRequest.ProtoReflect.Descriptor instead.
 func (*CreateSubscriptionRequest) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{1}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CreateSubscriptionRequest) GetName() string {
@@ -207,7 +355,7 @@ type CreateSubscriptionResponse struct {
 
 func (x *CreateSubscriptionResponse) Reset() {
 	*x = CreateSubscriptionResponse{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[2]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -219,7 +367,7 @@ func (x *CreateSubscriptionResponse) String() string {
 func (*CreateSubscriptionResponse) ProtoMessage() {}
 
 func (x *CreateSubscriptionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[2]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -232,7 +380,7 @@ func (x *CreateSubscriptionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSubscriptionResponse.ProtoReflect.Descriptor instead.
 func (*CreateSubscriptionResponse) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{2}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CreateSubscriptionResponse) GetSubscription() *Subscription {
@@ -258,7 +406,7 @@ type GetSubscriptionRequest struct {
 
 func (x *GetSubscriptionRequest) Reset() {
 	*x = GetSubscriptionRequest{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[3]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -270,7 +418,7 @@ func (x *GetSubscriptionRequest) String() string {
 func (*GetSubscriptionRequest) ProtoMessage() {}
 
 func (x *GetSubscriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[3]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -283,7 +431,7 @@ func (x *GetSubscriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSubscriptionRequest.ProtoReflect.Descriptor instead.
 func (*GetSubscriptionRequest) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{3}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetSubscriptionRequest) GetName() string {
@@ -302,7 +450,7 @@ type GetSubscriptionResponse struct {
 
 func (x *GetSubscriptionResponse) Reset() {
 	*x = GetSubscriptionResponse{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[4]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -314,7 +462,7 @@ func (x *GetSubscriptionResponse) String() string {
 func (*GetSubscriptionResponse) ProtoMessage() {}
 
 func (x *GetSubscriptionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[4]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -327,7 +475,7 @@ func (x *GetSubscriptionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSubscriptionResponse.ProtoReflect.Descriptor instead.
 func (*GetSubscriptionResponse) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{4}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetSubscriptionResponse) GetSubscription() *Subscription {
@@ -348,7 +496,7 @@ type ListSubscriptionsRequest struct {
 
 func (x *ListSubscriptionsRequest) Reset() {
 	*x = ListSubscriptionsRequest{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[5]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -360,7 +508,7 @@ func (x *ListSubscriptionsRequest) String() string {
 func (*ListSubscriptionsRequest) ProtoMessage() {}
 
 func (x *ListSubscriptionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[5]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -373,7 +521,7 @@ func (x *ListSubscriptionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSubscriptionsRequest.ProtoReflect.Descriptor instead.
 func (*ListSubscriptionsRequest) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{5}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListSubscriptionsRequest) GetProjectName() string {
@@ -407,7 +555,7 @@ type ListSubscriptionsResponse struct {
 
 func (x *ListSubscriptionsResponse) Reset() {
 	*x = ListSubscriptionsResponse{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[6]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -419,7 +567,7 @@ func (x *ListSubscriptionsResponse) String() string {
 func (*ListSubscriptionsResponse) ProtoMessage() {}
 
 func (x *ListSubscriptionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[6]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -432,7 +580,7 @@ func (x *ListSubscriptionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSubscriptionsResponse.ProtoReflect.Descriptor instead.
 func (*ListSubscriptionsResponse) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{6}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListSubscriptionsResponse) GetSubscriptions() []*Subscription {
@@ -463,7 +611,7 @@ type UpdateSubscriptionRequest struct {
 
 func (x *UpdateSubscriptionRequest) Reset() {
 	*x = UpdateSubscriptionRequest{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[7]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -475,7 +623,7 @@ func (x *UpdateSubscriptionRequest) String() string {
 func (*UpdateSubscriptionRequest) ProtoMessage() {}
 
 func (x *UpdateSubscriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[7]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -488,7 +636,7 @@ func (x *UpdateSubscriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSubscriptionRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSubscriptionRequest) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{7}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UpdateSubscriptionRequest) GetName() string {
@@ -535,7 +683,7 @@ type UpdateSubscriptionResponse struct {
 
 func (x *UpdateSubscriptionResponse) Reset() {
 	*x = UpdateSubscriptionResponse{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[8]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -547,7 +695,7 @@ func (x *UpdateSubscriptionResponse) String() string {
 func (*UpdateSubscriptionResponse) ProtoMessage() {}
 
 func (x *UpdateSubscriptionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[8]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -560,7 +708,7 @@ func (x *UpdateSubscriptionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSubscriptionResponse.ProtoReflect.Descriptor instead.
 func (*UpdateSubscriptionResponse) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{8}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UpdateSubscriptionResponse) GetSubscription() *Subscription {
@@ -579,7 +727,7 @@ type DeleteSubscriptionRequest struct {
 
 func (x *DeleteSubscriptionRequest) Reset() {
 	*x = DeleteSubscriptionRequest{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[9]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -591,7 +739,7 @@ func (x *DeleteSubscriptionRequest) String() string {
 func (*DeleteSubscriptionRequest) ProtoMessage() {}
 
 func (x *DeleteSubscriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[9]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -604,7 +752,7 @@ func (x *DeleteSubscriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSubscriptionRequest.ProtoReflect.Descriptor instead.
 func (*DeleteSubscriptionRequest) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{9}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *DeleteSubscriptionRequest) GetName() string {
@@ -622,7 +770,7 @@ type DeleteSubscriptionResponse struct {
 
 func (x *DeleteSubscriptionResponse) Reset() {
 	*x = DeleteSubscriptionResponse{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[10]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -634,7 +782,7 @@ func (x *DeleteSubscriptionResponse) String() string {
 func (*DeleteSubscriptionResponse) ProtoMessage() {}
 
 func (x *DeleteSubscriptionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[10]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -647,7 +795,7 @@ func (x *DeleteSubscriptionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSubscriptionResponse.ProtoReflect.Descriptor instead.
 func (*DeleteSubscriptionResponse) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{10}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{12}
 }
 
 type Delivery struct {
@@ -674,7 +822,7 @@ type Delivery struct {
 
 func (x *Delivery) Reset() {
 	*x = Delivery{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[11]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -686,7 +834,7 @@ func (x *Delivery) String() string {
 func (*Delivery) ProtoMessage() {}
 
 func (x *Delivery) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[11]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -699,7 +847,7 @@ func (x *Delivery) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Delivery.ProtoReflect.Descriptor instead.
 func (*Delivery) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{11}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Delivery) GetId() string {
@@ -783,7 +931,7 @@ type ListDeliveriesRequest struct {
 
 func (x *ListDeliveriesRequest) Reset() {
 	*x = ListDeliveriesRequest{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[12]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -795,7 +943,7 @@ func (x *ListDeliveriesRequest) String() string {
 func (*ListDeliveriesRequest) ProtoMessage() {}
 
 func (x *ListDeliveriesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[12]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -808,7 +956,7 @@ func (x *ListDeliveriesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDeliveriesRequest.ProtoReflect.Descriptor instead.
 func (*ListDeliveriesRequest) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{12}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListDeliveriesRequest) GetSubscriptionName() string {
@@ -842,7 +990,7 @@ type ListDeliveriesResponse struct {
 
 func (x *ListDeliveriesResponse) Reset() {
 	*x = ListDeliveriesResponse{}
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[13]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -854,7 +1002,7 @@ func (x *ListDeliveriesResponse) String() string {
 func (*ListDeliveriesResponse) ProtoMessage() {}
 
 func (x *ListDeliveriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[13]
+	mi := &file_aes_webhooks_v1_webhooks_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -867,7 +1015,7 @@ func (x *ListDeliveriesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDeliveriesResponse.ProtoReflect.Descriptor instead.
 func (*ListDeliveriesResponse) Descriptor() ([]byte, []int) {
-	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{13}
+	return file_aes_webhooks_v1_webhooks_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListDeliveriesResponse) GetDeliveries() []*Delivery {
@@ -888,7 +1036,7 @@ var File_aes_webhooks_v1_webhooks_proto protoreflect.FileDescriptor
 
 const file_aes_webhooks_v1_webhooks_proto_rawDesc = "" +
 	"\n" +
-	"\x1eaes/webhooks/v1/webhooks.proto\x12\x0faes.webhooks.v1\"\x98\x02\n" +
+	"\x1eaes/webhooks/v1/webhooks.proto\x12\x0faes.webhooks.v1\"\x85\x03\n" +
 	"\fSubscription\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12!\n" +
@@ -898,7 +1046,20 @@ const file_aes_webhooks_v1_webhooks_proto_rawDesc = "" +
 	"\x05state\x18\x05 \x01(\tR\x05state\x12(\n" +
 	"\x10create_time_unix\x18\x06 \x01(\x03R\x0ecreateTimeUnix\x12(\n" +
 	"\x10update_time_unix\x18\a \x01(\x03R\x0eupdateTimeUnix\x12#\n" +
-	"\rsecret_prefix\x18\b \x01(\tR\fsecretPrefix\"\x96\x01\n" +
+	"\rsecret_prefix\x18\b \x01(\tR\fsecretPrefix\x12%\n" +
+	"\x0esecret_version\x18\t \x01(\x03R\rsecretVersion\x12D\n" +
+	"\x1fprevious_secret_expires_at_unix\x18\n" +
+	" \x01(\x03R\x1bpreviousSecretExpiresAtUnix\"\xb5\x01\n" +
+	"\x1fRotateSubscriptionSecretRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x126\n" +
+	"\x17expected_secret_version\x18\x02 \x01(\x03R\x15expectedSecretVersion\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\x12'\n" +
+	"\x0foverlap_seconds\x18\x04 \x01(\x05R\x0eoverlapSeconds\"\xac\x01\n" +
+	" RotateSubscriptionSecretResponse\x12A\n" +
+	"\fsubscription\x18\x01 \x01(\v2\x1d.aes.webhooks.v1.SubscriptionR\fsubscription\x12\x16\n" +
+	"\x06secret\x18\x02 \x01(\tR\x06secret\x12-\n" +
+	"\x12secret_unavailable\x18\x03 \x01(\bR\x11secretUnavailable\"\x96\x01\n" +
 	"\x19CreateSubscriptionRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12!\n" +
@@ -957,13 +1118,14 @@ const file_aes_webhooks_v1_webhooks_proto_rawDesc = "" +
 	"\n" +
 	"deliveries\x18\x01 \x03(\v2\x19.aes.webhooks.v1.DeliveryR\n" +
 	"deliveries\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken2\x93\x05\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken2\x94\x06\n" +
 	"\x0fWebhooksService\x12m\n" +
 	"\x12CreateSubscription\x12*.aes.webhooks.v1.CreateSubscriptionRequest\x1a+.aes.webhooks.v1.CreateSubscriptionResponse\x12d\n" +
 	"\x0fGetSubscription\x12'.aes.webhooks.v1.GetSubscriptionRequest\x1a(.aes.webhooks.v1.GetSubscriptionResponse\x12j\n" +
 	"\x11ListSubscriptions\x12).aes.webhooks.v1.ListSubscriptionsRequest\x1a*.aes.webhooks.v1.ListSubscriptionsResponse\x12m\n" +
 	"\x12UpdateSubscription\x12*.aes.webhooks.v1.UpdateSubscriptionRequest\x1a+.aes.webhooks.v1.UpdateSubscriptionResponse\x12m\n" +
-	"\x12DeleteSubscription\x12*.aes.webhooks.v1.DeleteSubscriptionRequest\x1a+.aes.webhooks.v1.DeleteSubscriptionResponse\x12a\n" +
+	"\x12DeleteSubscription\x12*.aes.webhooks.v1.DeleteSubscriptionRequest\x1a+.aes.webhooks.v1.DeleteSubscriptionResponse\x12\x7f\n" +
+	"\x18RotateSubscriptionSecret\x120.aes.webhooks.v1.RotateSubscriptionSecretRequest\x1a1.aes.webhooks.v1.RotateSubscriptionSecretResponse\x12a\n" +
 	"\x0eListDeliveries\x12&.aes.webhooks.v1.ListDeliveriesRequest\x1a'.aes.webhooks.v1.ListDeliveriesResponseB\xcb\x01\n" +
 	"\x13com.aes.webhooks.v1B\rWebhooksProtoP\x01ZGgithub.com/AES-Services/metalhost-sdk/gen/go/aes/webhooks/v1;webhooksv1\xa2\x02\x03AWX\xaa\x02\x0fAes.Webhooks.V1\xca\x02\x0fAes\\Webhooks\\V1\xe2\x02\x1bAes\\Webhooks\\V1\\GPBMetadata\xea\x02\x11Aes::Webhooks::V1b\x06proto3"
 
@@ -979,46 +1141,51 @@ func file_aes_webhooks_v1_webhooks_proto_rawDescGZIP() []byte {
 	return file_aes_webhooks_v1_webhooks_proto_rawDescData
 }
 
-var file_aes_webhooks_v1_webhooks_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_aes_webhooks_v1_webhooks_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_aes_webhooks_v1_webhooks_proto_goTypes = []any{
-	(*Subscription)(nil),               // 0: aes.webhooks.v1.Subscription
-	(*CreateSubscriptionRequest)(nil),  // 1: aes.webhooks.v1.CreateSubscriptionRequest
-	(*CreateSubscriptionResponse)(nil), // 2: aes.webhooks.v1.CreateSubscriptionResponse
-	(*GetSubscriptionRequest)(nil),     // 3: aes.webhooks.v1.GetSubscriptionRequest
-	(*GetSubscriptionResponse)(nil),    // 4: aes.webhooks.v1.GetSubscriptionResponse
-	(*ListSubscriptionsRequest)(nil),   // 5: aes.webhooks.v1.ListSubscriptionsRequest
-	(*ListSubscriptionsResponse)(nil),  // 6: aes.webhooks.v1.ListSubscriptionsResponse
-	(*UpdateSubscriptionRequest)(nil),  // 7: aes.webhooks.v1.UpdateSubscriptionRequest
-	(*UpdateSubscriptionResponse)(nil), // 8: aes.webhooks.v1.UpdateSubscriptionResponse
-	(*DeleteSubscriptionRequest)(nil),  // 9: aes.webhooks.v1.DeleteSubscriptionRequest
-	(*DeleteSubscriptionResponse)(nil), // 10: aes.webhooks.v1.DeleteSubscriptionResponse
-	(*Delivery)(nil),                   // 11: aes.webhooks.v1.Delivery
-	(*ListDeliveriesRequest)(nil),      // 12: aes.webhooks.v1.ListDeliveriesRequest
-	(*ListDeliveriesResponse)(nil),     // 13: aes.webhooks.v1.ListDeliveriesResponse
+	(*Subscription)(nil),                     // 0: aes.webhooks.v1.Subscription
+	(*RotateSubscriptionSecretRequest)(nil),  // 1: aes.webhooks.v1.RotateSubscriptionSecretRequest
+	(*RotateSubscriptionSecretResponse)(nil), // 2: aes.webhooks.v1.RotateSubscriptionSecretResponse
+	(*CreateSubscriptionRequest)(nil),        // 3: aes.webhooks.v1.CreateSubscriptionRequest
+	(*CreateSubscriptionResponse)(nil),       // 4: aes.webhooks.v1.CreateSubscriptionResponse
+	(*GetSubscriptionRequest)(nil),           // 5: aes.webhooks.v1.GetSubscriptionRequest
+	(*GetSubscriptionResponse)(nil),          // 6: aes.webhooks.v1.GetSubscriptionResponse
+	(*ListSubscriptionsRequest)(nil),         // 7: aes.webhooks.v1.ListSubscriptionsRequest
+	(*ListSubscriptionsResponse)(nil),        // 8: aes.webhooks.v1.ListSubscriptionsResponse
+	(*UpdateSubscriptionRequest)(nil),        // 9: aes.webhooks.v1.UpdateSubscriptionRequest
+	(*UpdateSubscriptionResponse)(nil),       // 10: aes.webhooks.v1.UpdateSubscriptionResponse
+	(*DeleteSubscriptionRequest)(nil),        // 11: aes.webhooks.v1.DeleteSubscriptionRequest
+	(*DeleteSubscriptionResponse)(nil),       // 12: aes.webhooks.v1.DeleteSubscriptionResponse
+	(*Delivery)(nil),                         // 13: aes.webhooks.v1.Delivery
+	(*ListDeliveriesRequest)(nil),            // 14: aes.webhooks.v1.ListDeliveriesRequest
+	(*ListDeliveriesResponse)(nil),           // 15: aes.webhooks.v1.ListDeliveriesResponse
 }
 var file_aes_webhooks_v1_webhooks_proto_depIdxs = []int32{
-	0,  // 0: aes.webhooks.v1.CreateSubscriptionResponse.subscription:type_name -> aes.webhooks.v1.Subscription
-	0,  // 1: aes.webhooks.v1.GetSubscriptionResponse.subscription:type_name -> aes.webhooks.v1.Subscription
-	0,  // 2: aes.webhooks.v1.ListSubscriptionsResponse.subscriptions:type_name -> aes.webhooks.v1.Subscription
-	0,  // 3: aes.webhooks.v1.UpdateSubscriptionResponse.subscription:type_name -> aes.webhooks.v1.Subscription
-	11, // 4: aes.webhooks.v1.ListDeliveriesResponse.deliveries:type_name -> aes.webhooks.v1.Delivery
-	1,  // 5: aes.webhooks.v1.WebhooksService.CreateSubscription:input_type -> aes.webhooks.v1.CreateSubscriptionRequest
-	3,  // 6: aes.webhooks.v1.WebhooksService.GetSubscription:input_type -> aes.webhooks.v1.GetSubscriptionRequest
-	5,  // 7: aes.webhooks.v1.WebhooksService.ListSubscriptions:input_type -> aes.webhooks.v1.ListSubscriptionsRequest
-	7,  // 8: aes.webhooks.v1.WebhooksService.UpdateSubscription:input_type -> aes.webhooks.v1.UpdateSubscriptionRequest
-	9,  // 9: aes.webhooks.v1.WebhooksService.DeleteSubscription:input_type -> aes.webhooks.v1.DeleteSubscriptionRequest
-	12, // 10: aes.webhooks.v1.WebhooksService.ListDeliveries:input_type -> aes.webhooks.v1.ListDeliveriesRequest
-	2,  // 11: aes.webhooks.v1.WebhooksService.CreateSubscription:output_type -> aes.webhooks.v1.CreateSubscriptionResponse
-	4,  // 12: aes.webhooks.v1.WebhooksService.GetSubscription:output_type -> aes.webhooks.v1.GetSubscriptionResponse
-	6,  // 13: aes.webhooks.v1.WebhooksService.ListSubscriptions:output_type -> aes.webhooks.v1.ListSubscriptionsResponse
-	8,  // 14: aes.webhooks.v1.WebhooksService.UpdateSubscription:output_type -> aes.webhooks.v1.UpdateSubscriptionResponse
-	10, // 15: aes.webhooks.v1.WebhooksService.DeleteSubscription:output_type -> aes.webhooks.v1.DeleteSubscriptionResponse
-	13, // 16: aes.webhooks.v1.WebhooksService.ListDeliveries:output_type -> aes.webhooks.v1.ListDeliveriesResponse
-	11, // [11:17] is the sub-list for method output_type
-	5,  // [5:11] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	0,  // 0: aes.webhooks.v1.RotateSubscriptionSecretResponse.subscription:type_name -> aes.webhooks.v1.Subscription
+	0,  // 1: aes.webhooks.v1.CreateSubscriptionResponse.subscription:type_name -> aes.webhooks.v1.Subscription
+	0,  // 2: aes.webhooks.v1.GetSubscriptionResponse.subscription:type_name -> aes.webhooks.v1.Subscription
+	0,  // 3: aes.webhooks.v1.ListSubscriptionsResponse.subscriptions:type_name -> aes.webhooks.v1.Subscription
+	0,  // 4: aes.webhooks.v1.UpdateSubscriptionResponse.subscription:type_name -> aes.webhooks.v1.Subscription
+	13, // 5: aes.webhooks.v1.ListDeliveriesResponse.deliveries:type_name -> aes.webhooks.v1.Delivery
+	3,  // 6: aes.webhooks.v1.WebhooksService.CreateSubscription:input_type -> aes.webhooks.v1.CreateSubscriptionRequest
+	5,  // 7: aes.webhooks.v1.WebhooksService.GetSubscription:input_type -> aes.webhooks.v1.GetSubscriptionRequest
+	7,  // 8: aes.webhooks.v1.WebhooksService.ListSubscriptions:input_type -> aes.webhooks.v1.ListSubscriptionsRequest
+	9,  // 9: aes.webhooks.v1.WebhooksService.UpdateSubscription:input_type -> aes.webhooks.v1.UpdateSubscriptionRequest
+	11, // 10: aes.webhooks.v1.WebhooksService.DeleteSubscription:input_type -> aes.webhooks.v1.DeleteSubscriptionRequest
+	1,  // 11: aes.webhooks.v1.WebhooksService.RotateSubscriptionSecret:input_type -> aes.webhooks.v1.RotateSubscriptionSecretRequest
+	14, // 12: aes.webhooks.v1.WebhooksService.ListDeliveries:input_type -> aes.webhooks.v1.ListDeliveriesRequest
+	4,  // 13: aes.webhooks.v1.WebhooksService.CreateSubscription:output_type -> aes.webhooks.v1.CreateSubscriptionResponse
+	6,  // 14: aes.webhooks.v1.WebhooksService.GetSubscription:output_type -> aes.webhooks.v1.GetSubscriptionResponse
+	8,  // 15: aes.webhooks.v1.WebhooksService.ListSubscriptions:output_type -> aes.webhooks.v1.ListSubscriptionsResponse
+	10, // 16: aes.webhooks.v1.WebhooksService.UpdateSubscription:output_type -> aes.webhooks.v1.UpdateSubscriptionResponse
+	12, // 17: aes.webhooks.v1.WebhooksService.DeleteSubscription:output_type -> aes.webhooks.v1.DeleteSubscriptionResponse
+	2,  // 18: aes.webhooks.v1.WebhooksService.RotateSubscriptionSecret:output_type -> aes.webhooks.v1.RotateSubscriptionSecretResponse
+	15, // 19: aes.webhooks.v1.WebhooksService.ListDeliveries:output_type -> aes.webhooks.v1.ListDeliveriesResponse
+	13, // [13:20] is the sub-list for method output_type
+	6,  // [6:13] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_aes_webhooks_v1_webhooks_proto_init() }
@@ -1026,14 +1193,14 @@ func file_aes_webhooks_v1_webhooks_proto_init() {
 	if File_aes_webhooks_v1_webhooks_proto != nil {
 		return
 	}
-	file_aes_webhooks_v1_webhooks_proto_msgTypes[7].OneofWrappers = []any{}
+	file_aes_webhooks_v1_webhooks_proto_msgTypes[9].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_webhooks_v1_webhooks_proto_rawDesc), len(file_aes_webhooks_v1_webhooks_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

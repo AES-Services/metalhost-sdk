@@ -219,9 +219,11 @@ type CreateOperationRequest struct {
 	// Requested runtime state for this lifecycle operation.
 	VmRuntimeTargetState string `protobuf:"bytes,60,opt,name=vm_runtime_target_state,json=vmRuntimeTargetState,proto3" json:"vm_runtime_target_state,omitempty"`
 	// Internal restore source, validated against project/DC before dispatch.
-	VmBackupName  string `protobuf:"bytes,61,opt,name=vm_backup_name,json=vmBackupName,proto3" json:"vm_backup_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	VmBackupName string `protobuf:"bytes,61,opt,name=vm_backup_name,json=vmBackupName,proto3" json:"vm_backup_name,omitempty"`
+	// Internal provisioning opt-in; admitted by ComputeService.
+	VmInstallGuestCollector bool `protobuf:"varint,62,opt,name=vm_install_guest_collector,json=vmInstallGuestCollector,proto3" json:"vm_install_guest_collector,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *CreateOperationRequest) Reset() {
@@ -637,6 +639,13 @@ func (x *CreateOperationRequest) GetVmBackupName() string {
 		return x.VmBackupName
 	}
 	return ""
+}
+
+func (x *CreateOperationRequest) GetVmInstallGuestCollector() bool {
+	if x != nil {
+		return x.VmInstallGuestCollector
+	}
+	return false
 }
 
 type CreateOperationResponse struct {
@@ -1191,7 +1200,7 @@ var File_aes_ops_v1_operations_proto protoreflect.FileDescriptor
 const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\n" +
 	"\x1baes/ops/v1/operations.proto\x12\n" +
-	"aes.ops.v1\"\xed\x15\n" +
+	"aes.ops.v1\"\xaa\x16\n" +
 	"\x16CreateOperationRequest\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12'\n" +
 	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12&\n" +
@@ -1253,7 +1262,8 @@ const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\x10defrag_plan_json\x18: \x01(\tR\x0edefragPlanJson\x12#\n" +
 	"\rdefrag_budget\x18; \x01(\x05R\fdefragBudget\x125\n" +
 	"\x17vm_runtime_target_state\x18< \x01(\tR\x14vmRuntimeTargetState\x12$\n" +
-	"\x0evm_backup_name\x18= \x01(\tR\fvmBackupName\x1a;\n" +
+	"\x0evm_backup_name\x18= \x01(\tR\fvmBackupName\x12;\n" +
+	"\x1avm_install_guest_collector\x18> \x01(\bR\x17vmInstallGuestCollector\x1a;\n" +
 	"\rVmLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a@\n" +

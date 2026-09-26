@@ -22,11 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Lifecycle states. PENDING_CUSTOMER means staff replied and we're waiting on the user;
-// PENDING_STAFF means the user replied and we owe them a response. RESOLVED is set by staff;
-// CLOSED is the terminal state — set when the customer
-// confirms or auto-closes after an inactivity window. Customer-side CloseTicket goes
-// directly to CLOSED.
+// CLOSED is the only finished state. RESOLVED remains a deprecated wire-compatible alias.
 type TicketStatus int32
 
 const (
@@ -34,8 +30,9 @@ const (
 	TicketStatus_TICKET_STATUS_OPEN             TicketStatus = 1
 	TicketStatus_TICKET_STATUS_PENDING_CUSTOMER TicketStatus = 2
 	TicketStatus_TICKET_STATUS_PENDING_STAFF    TicketStatus = 3
-	TicketStatus_TICKET_STATUS_RESOLVED         TicketStatus = 4
-	TicketStatus_TICKET_STATUS_CLOSED           TicketStatus = 5
+	// Deprecated: Marked as deprecated in aes/support/v1/support.proto.
+	TicketStatus_TICKET_STATUS_RESOLVED TicketStatus = 4
+	TicketStatus_TICKET_STATUS_CLOSED   TicketStatus = 5
 )
 
 // Enum value maps for TicketStatus.
@@ -397,8 +394,10 @@ type Ticket struct {
 	// Message count in the thread. Populated on list responses; GetTicket returns the full thread.
 	MessageCount int32 `protobuf:"varint,18,opt,name=message_count,json=messageCount,proto3" json:"message_count,omitempty"`
 	// Set on creation per plan tier; null = no SLA. Breach monitoring is applied automatically.
-	SlaDueAt      *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=sla_due_at,json=slaDueAt,proto3" json:"sla_due_at,omitempty"`
-	EscalatedAt   *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=escalated_at,json=escalatedAt,proto3" json:"escalated_at,omitempty"`
+	SlaDueAt    *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=sla_due_at,json=slaDueAt,proto3" json:"sla_due_at,omitempty"`
+	EscalatedAt *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=escalated_at,json=escalatedAt,proto3" json:"escalated_at,omitempty"`
+	// Last closure time, preserved when the conversation is reopened.
+	ClosedAt      *timestamppb.Timestamp `protobuf:"bytes,19,opt,name=closed_at,json=closedAt,proto3" json:"closed_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -552,6 +551,13 @@ func (x *Ticket) GetEscalatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Ticket) GetClosedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ClosedAt
+	}
+	return nil
+}
+
 type TicketMessage struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -666,6 +672,7 @@ type CreateTicketRequest struct {
 	// Optional. Defaults to TICKET_PRIORITY_NORMAL when unspecified.
 	Priority      TicketPriority `protobuf:"varint,5,opt,name=priority,proto3,enum=aes.support.v1.TicketPriority" json:"priority,omitempty"`
 	ResourceRefs  []*ResourceRef `protobuf:"bytes,6,rep,name=resource_refs,json=resourceRefs,proto3" json:"resource_refs,omitempty"`
+	RequestId     string         `protobuf:"bytes,7,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -740,6 +747,13 @@ func (x *CreateTicketRequest) GetResourceRefs() []*ResourceRef {
 		return x.ResourceRefs
 	}
 	return nil
+}
+
+func (x *CreateTicketRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
 }
 
 type CreateTicketResponse struct {
@@ -1014,9 +1028,12 @@ func (x *GetTicketResponse) GetMessages() []*TicketMessage {
 }
 
 type ReplyTicketRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"` // Resource name tickets/<id> (renamed from ticket_id in proto audit)
-	Body          string                 `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"` // Resource name tickets/<id> (renamed from ticket_id in proto audit)
+	Body  string                 `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	// Explicit consent to reopen a closed conversation. There is no expiry window.
+	Reopen        bool   `protobuf:"varint,3,opt,name=reopen,proto3" json:"reopen,omitempty"`
+	RequestId     string `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1061,6 +1078,20 @@ func (x *ReplyTicketRequest) GetName() string {
 func (x *ReplyTicketRequest) GetBody() string {
 	if x != nil {
 		return x.Body
+	}
+	return ""
+}
+
+func (x *ReplyTicketRequest) GetReopen() bool {
+	if x != nil {
+		return x.Reopen
+	}
+	return false
+}
+
+func (x *ReplyTicketRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
 	}
 	return ""
 }
@@ -1122,9 +1153,12 @@ type CloseTicketRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"` // Resource name tickets/<id> (renamed from ticket_id in proto audit)
 	// Optional final customer-side message recorded before close.
-	Body          string `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Body      string `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	RequestId string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	// Reject closing when another participant has changed the ticket since it was read.
+	ExpectedUpdatedAt *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=expected_updated_at,json=expectedUpdatedAt,proto3" json:"expected_updated_at,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *CloseTicketRequest) Reset() {
@@ -1169,6 +1203,20 @@ func (x *CloseTicketRequest) GetBody() string {
 		return x.Body
 	}
 	return ""
+}
+
+func (x *CloseTicketRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *CloseTicketRequest) GetExpectedUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpectedUpdatedAt
+	}
+	return nil
 }
 
 type CloseTicketResponse struct {
@@ -1223,7 +1271,7 @@ const file_aes_support_v1_support_proto_rawDesc = "" +
 	"\vResourceRef\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x18\n" +
-	"\adisplay\x18\x03 \x01(\tR\adisplay\"\xe6\x06\n" +
+	"\adisplay\x18\x03 \x01(\tR\adisplay\"\x9f\a\n" +
 	"\x06Ticket\x12\x12\n" +
 	"\x04name\x18\x11 \x01(\tR\x04name\x12+\n" +
 	"\x11organization_name\x18\x02 \x01(\tR\x10organizationName\x12\x1b\n" +
@@ -1246,7 +1294,8 @@ const file_aes_support_v1_support_proto_rawDesc = "" +
 	"\rmessage_count\x18\x12 \x01(\x05R\fmessageCount\x128\n" +
 	"\n" +
 	"sla_due_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\bslaDueAt\x12=\n" +
-	"\fescalated_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\vescalatedAtJ\x04\b\x01\x10\x02R\x02id\"\xab\x02\n" +
+	"\fescalated_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\vescalatedAt\x127\n" +
+	"\tclosed_at\x18\x13 \x01(\v2\x1a.google.protobuf.TimestampR\bclosedAtJ\x04\b\x01\x10\x02R\x02id\"\xab\x02\n" +
 	"\rTicketMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tticket_id\x18\x02 \x01(\tR\bticketId\x12\x1f\n" +
@@ -1258,14 +1307,16 @@ const file_aes_support_v1_support_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12;\n" +
 	"\vauthor_kind\x18\b \x01(\x0e2\x1a.aes.support.v1.AuthorKindR\n" +
-	"authorKind\"\xaa\x02\n" +
+	"authorKind\"\xc9\x02\n" +
 	"\x13CreateTicketRequest\x12+\n" +
 	"\x11organization_name\x18\x01 \x01(\tR\x10organizationName\x12\x18\n" +
 	"\asubject\x18\x02 \x01(\tR\asubject\x12\x12\n" +
 	"\x04body\x18\x03 \x01(\tR\x04body\x12:\n" +
 	"\bcategory\x18\x04 \x01(\x0e2\x1e.aes.support.v1.TicketCategoryR\bcategory\x12:\n" +
 	"\bpriority\x18\x05 \x01(\x0e2\x1e.aes.support.v1.TicketPriorityR\bpriority\x12@\n" +
-	"\rresource_refs\x18\x06 \x03(\v2\x1b.aes.support.v1.ResourceRefR\fresourceRefs\"\x8e\x01\n" +
+	"\rresource_refs\x18\x06 \x03(\v2\x1b.aes.support.v1.ResourceRefR\fresourceRefs\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\a \x01(\tR\trequestId\"\x8e\x01\n" +
 	"\x14CreateTicketResponse\x12.\n" +
 	"\x06ticket\x18\x01 \x01(\v2\x16.aes.support.v1.TicketR\x06ticket\x12F\n" +
 	"\x0finitial_message\x18\x02 \x01(\v2\x1d.aes.support.v1.TicketMessageR\x0einitialMessage\"\xc0\x01\n" +
@@ -1282,24 +1333,30 @@ const file_aes_support_v1_support_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"~\n" +
 	"\x11GetTicketResponse\x12.\n" +
 	"\x06ticket\x18\x01 \x01(\v2\x16.aes.support.v1.TicketR\x06ticket\x129\n" +
-	"\bmessages\x18\x02 \x03(\v2\x1d.aes.support.v1.TicketMessageR\bmessages\"<\n" +
+	"\bmessages\x18\x02 \x03(\v2\x1d.aes.support.v1.TicketMessageR\bmessages\"s\n" +
 	"\x12ReplyTicketRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04body\x18\x02 \x01(\tR\x04body\"~\n" +
+	"\x04body\x18\x02 \x01(\tR\x04body\x12\x16\n" +
+	"\x06reopen\x18\x03 \x01(\bR\x06reopen\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tR\trequestId\"~\n" +
 	"\x13ReplyTicketResponse\x127\n" +
 	"\amessage\x18\x01 \x01(\v2\x1d.aes.support.v1.TicketMessageR\amessage\x12.\n" +
-	"\x06ticket\x18\x02 \x01(\v2\x16.aes.support.v1.TicketR\x06ticket\"<\n" +
+	"\x06ticket\x18\x02 \x01(\v2\x16.aes.support.v1.TicketR\x06ticket\"\xa7\x01\n" +
 	"\x12CloseTicketRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04body\x18\x02 \x01(\tR\x04body\"E\n" +
+	"\x04body\x18\x02 \x01(\tR\x04body\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\x12J\n" +
+	"\x13expected_updated_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x11expectedUpdatedAt\"E\n" +
 	"\x13CloseTicketResponse\x12.\n" +
-	"\x06ticket\x18\x01 \x01(\v2\x16.aes.support.v1.TicketR\x06ticket*\xc0\x01\n" +
+	"\x06ticket\x18\x01 \x01(\v2\x16.aes.support.v1.TicketR\x06ticket*\xc4\x01\n" +
 	"\fTicketStatus\x12\x1d\n" +
 	"\x19TICKET_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12TICKET_STATUS_OPEN\x10\x01\x12\"\n" +
 	"\x1eTICKET_STATUS_PENDING_CUSTOMER\x10\x02\x12\x1f\n" +
-	"\x1bTICKET_STATUS_PENDING_STAFF\x10\x03\x12\x1a\n" +
-	"\x16TICKET_STATUS_RESOLVED\x10\x04\x12\x18\n" +
+	"\x1bTICKET_STATUS_PENDING_STAFF\x10\x03\x12\x1e\n" +
+	"\x16TICKET_STATUS_RESOLVED\x10\x04\x1a\x02\b\x01\x12\x18\n" +
 	"\x14TICKET_STATUS_CLOSED\x10\x05*\x9c\x01\n" +
 	"\x0eTicketPriority\x12\x1f\n" +
 	"\x1bTICKET_PRIORITY_UNSPECIFIED\x10\x00\x12\x17\n" +
@@ -1381,35 +1438,37 @@ var file_aes_support_v1_support_proto_depIdxs = []int32{
 	18, // 8: aes.support.v1.Ticket.resolved_at:type_name -> google.protobuf.Timestamp
 	18, // 9: aes.support.v1.Ticket.sla_due_at:type_name -> google.protobuf.Timestamp
 	18, // 10: aes.support.v1.Ticket.escalated_at:type_name -> google.protobuf.Timestamp
-	18, // 11: aes.support.v1.TicketMessage.created_at:type_name -> google.protobuf.Timestamp
-	4,  // 12: aes.support.v1.TicketMessage.author_kind:type_name -> aes.support.v1.AuthorKind
-	2,  // 13: aes.support.v1.CreateTicketRequest.category:type_name -> aes.support.v1.TicketCategory
-	1,  // 14: aes.support.v1.CreateTicketRequest.priority:type_name -> aes.support.v1.TicketPriority
-	5,  // 15: aes.support.v1.CreateTicketRequest.resource_refs:type_name -> aes.support.v1.ResourceRef
-	6,  // 16: aes.support.v1.CreateTicketResponse.ticket:type_name -> aes.support.v1.Ticket
-	7,  // 17: aes.support.v1.CreateTicketResponse.initial_message:type_name -> aes.support.v1.TicketMessage
-	0,  // 18: aes.support.v1.ListTicketsRequest.status_filter:type_name -> aes.support.v1.TicketStatus
-	6,  // 19: aes.support.v1.ListTicketsResponse.tickets:type_name -> aes.support.v1.Ticket
-	6,  // 20: aes.support.v1.GetTicketResponse.ticket:type_name -> aes.support.v1.Ticket
-	7,  // 21: aes.support.v1.GetTicketResponse.messages:type_name -> aes.support.v1.TicketMessage
-	7,  // 22: aes.support.v1.ReplyTicketResponse.message:type_name -> aes.support.v1.TicketMessage
-	6,  // 23: aes.support.v1.ReplyTicketResponse.ticket:type_name -> aes.support.v1.Ticket
-	6,  // 24: aes.support.v1.CloseTicketResponse.ticket:type_name -> aes.support.v1.Ticket
-	8,  // 25: aes.support.v1.SupportService.CreateTicket:input_type -> aes.support.v1.CreateTicketRequest
-	10, // 26: aes.support.v1.SupportService.ListTickets:input_type -> aes.support.v1.ListTicketsRequest
-	12, // 27: aes.support.v1.SupportService.GetTicket:input_type -> aes.support.v1.GetTicketRequest
-	14, // 28: aes.support.v1.SupportService.ReplyTicket:input_type -> aes.support.v1.ReplyTicketRequest
-	16, // 29: aes.support.v1.SupportService.CloseTicket:input_type -> aes.support.v1.CloseTicketRequest
-	9,  // 30: aes.support.v1.SupportService.CreateTicket:output_type -> aes.support.v1.CreateTicketResponse
-	11, // 31: aes.support.v1.SupportService.ListTickets:output_type -> aes.support.v1.ListTicketsResponse
-	13, // 32: aes.support.v1.SupportService.GetTicket:output_type -> aes.support.v1.GetTicketResponse
-	15, // 33: aes.support.v1.SupportService.ReplyTicket:output_type -> aes.support.v1.ReplyTicketResponse
-	17, // 34: aes.support.v1.SupportService.CloseTicket:output_type -> aes.support.v1.CloseTicketResponse
-	30, // [30:35] is the sub-list for method output_type
-	25, // [25:30] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	18, // 11: aes.support.v1.Ticket.closed_at:type_name -> google.protobuf.Timestamp
+	18, // 12: aes.support.v1.TicketMessage.created_at:type_name -> google.protobuf.Timestamp
+	4,  // 13: aes.support.v1.TicketMessage.author_kind:type_name -> aes.support.v1.AuthorKind
+	2,  // 14: aes.support.v1.CreateTicketRequest.category:type_name -> aes.support.v1.TicketCategory
+	1,  // 15: aes.support.v1.CreateTicketRequest.priority:type_name -> aes.support.v1.TicketPriority
+	5,  // 16: aes.support.v1.CreateTicketRequest.resource_refs:type_name -> aes.support.v1.ResourceRef
+	6,  // 17: aes.support.v1.CreateTicketResponse.ticket:type_name -> aes.support.v1.Ticket
+	7,  // 18: aes.support.v1.CreateTicketResponse.initial_message:type_name -> aes.support.v1.TicketMessage
+	0,  // 19: aes.support.v1.ListTicketsRequest.status_filter:type_name -> aes.support.v1.TicketStatus
+	6,  // 20: aes.support.v1.ListTicketsResponse.tickets:type_name -> aes.support.v1.Ticket
+	6,  // 21: aes.support.v1.GetTicketResponse.ticket:type_name -> aes.support.v1.Ticket
+	7,  // 22: aes.support.v1.GetTicketResponse.messages:type_name -> aes.support.v1.TicketMessage
+	7,  // 23: aes.support.v1.ReplyTicketResponse.message:type_name -> aes.support.v1.TicketMessage
+	6,  // 24: aes.support.v1.ReplyTicketResponse.ticket:type_name -> aes.support.v1.Ticket
+	18, // 25: aes.support.v1.CloseTicketRequest.expected_updated_at:type_name -> google.protobuf.Timestamp
+	6,  // 26: aes.support.v1.CloseTicketResponse.ticket:type_name -> aes.support.v1.Ticket
+	8,  // 27: aes.support.v1.SupportService.CreateTicket:input_type -> aes.support.v1.CreateTicketRequest
+	10, // 28: aes.support.v1.SupportService.ListTickets:input_type -> aes.support.v1.ListTicketsRequest
+	12, // 29: aes.support.v1.SupportService.GetTicket:input_type -> aes.support.v1.GetTicketRequest
+	14, // 30: aes.support.v1.SupportService.ReplyTicket:input_type -> aes.support.v1.ReplyTicketRequest
+	16, // 31: aes.support.v1.SupportService.CloseTicket:input_type -> aes.support.v1.CloseTicketRequest
+	9,  // 32: aes.support.v1.SupportService.CreateTicket:output_type -> aes.support.v1.CreateTicketResponse
+	11, // 33: aes.support.v1.SupportService.ListTickets:output_type -> aes.support.v1.ListTicketsResponse
+	13, // 34: aes.support.v1.SupportService.GetTicket:output_type -> aes.support.v1.GetTicketResponse
+	15, // 35: aes.support.v1.SupportService.ReplyTicket:output_type -> aes.support.v1.ReplyTicketResponse
+	17, // 36: aes.support.v1.SupportService.CloseTicket:output_type -> aes.support.v1.CloseTicketResponse
+	32, // [32:37] is the sub-list for method output_type
+	27, // [27:32] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_aes_support_v1_support_proto_init() }

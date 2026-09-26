@@ -1,0 +1,313 @@
+syntax = "proto3";
+
+package aes.monitoring.v1;
+
+service AlertService {
+  rpc ListAlertRules(ListAlertRulesRequest) returns (ListAlertRulesResponse);
+  rpc SaveAlertRule(SaveAlertRuleRequest) returns (SaveAlertRuleResponse);
+  rpc DeleteAlertRule(DeleteAlertRuleRequest) returns (DeleteAlertRuleResponse);
+  rpc PreviewAlertRule(PreviewAlertRuleRequest) returns (PreviewAlertRuleResponse);
+  rpc ListAlertDestinations(ListAlertDestinationsRequest) returns (ListAlertDestinationsResponse);
+  rpc SaveAlertDestination(SaveAlertDestinationRequest) returns (SaveAlertDestinationResponse);
+  rpc DeleteAlertDestination(DeleteAlertDestinationRequest) returns (DeleteAlertDestinationResponse);
+  rpc RequestDestinationVerification(RequestDestinationVerificationRequest) returns (RequestDestinationVerificationResponse);
+  rpc VerifyAlertDestination(VerifyAlertDestinationRequest) returns (VerifyAlertDestinationResponse);
+  rpc ListIncidents(ListIncidentsRequest) returns (ListIncidentsResponse);
+  rpc GetIncidentSummary(GetIncidentSummaryRequest) returns (GetIncidentSummaryResponse);
+  rpc GetIncident(GetIncidentRequest) returns (GetIncidentResponse);
+  rpc UpdateIncident(UpdateIncidentRequest) returns (UpdateIncidentResponse);
+  rpc ListAlertInstances(ListAlertInstancesRequest) returns (ListAlertInstancesResponse);
+  rpc ListAlertDestinationCandidates(ListAlertDestinationCandidatesRequest) returns (ListAlertDestinationCandidatesResponse);
+  rpc TestAlertDestination(TestAlertDestinationRequest) returns (TestAlertDestinationResponse);
+  rpc GetDestinationTest(GetDestinationTestRequest) returns (GetDestinationTestResponse);
+}
+
+message AlertRuleSpec {
+  string display_name = 1;
+  // One of the metric IDs returned by the alert template catalog.
+  string metric_id = 2;
+  // GREATER_THAN or LESS_THAN. Availability templates use GREATER_THAN 0.
+  string operator = 3;
+  double threshold = 4;
+  int32 sustained_seconds = 5;
+  // WARNING or CRITICAL.
+  string severity = 6;
+  bool all_vms = 7;
+  repeated string vm_names = 8;
+  bool enabled = 9;
+  int32 repeat_interval_seconds = 10;
+  repeated string destination_names = 11;
+  // Optional exact observed dimensions; never arbitrary PromQL or regex.
+  map<string, string> dimensions = 12;
+}
+message AlertRule {
+  string id = 1;
+  string project_name = 2;
+  AlertRuleSpec spec = 3;
+  int64 version = 4;
+  int64 applied_version = 5;
+  // PENDING, APPLIED, ERROR, LIMITED, or RETIRED. Saving is not engine acceptance.
+  string sync_status = 6;
+  string sync_error = 7;
+  int64 create_time_unix = 8;
+  int64 update_time_unix = 9;
+  int64 last_evaluated_at_unix = 10;
+}
+message ListAlertRulesRequest { string project_name = 1; }
+message ListAlertRulesResponse {
+  repeated AlertRule rules = 1;
+  int32 rule_limit = 2;
+  int32 evaluated_instance_limit = 3;
+  bool can_manage = 4;
+}
+message SaveAlertRuleRequest {
+  string project_name = 1;
+  // Client-generated UUID, retained on retry. Never reused after deletion.
+  string id = 2;
+  AlertRuleSpec spec = 3;
+  // Zero for create; otherwise the last version read.
+  int64 expected_version = 4;
+  // Client-generated UUID identifying this mutation; reuse on an ambiguous retry.
+  string request_id = 5;
+}
+message SaveAlertRuleResponse { AlertRule rule = 1; }
+message DeleteAlertRuleRequest {
+  string project_name = 1;
+  string id = 2;
+  int64 expected_version = 3;
+  string request_id = 4;
+}
+message DeleteAlertRuleResponse {}
+message PreviewAlertRuleRequest {
+  string project_name = 1;
+  AlertRuleSpec spec = 2;
+  // Zero keeps the current-sample preview; otherwise 3600, 21600, or 86400.
+  int32 history_seconds = 3;
+}
+message AlertPreviewResource {
+  string vm_name = 1;
+  string display_name = 2;
+  // AVAILABLE, AWAITING_DATA, UNSUPPORTED, SUPPRESSED, UNKNOWN intent/placement, or ERROR.
+  string status = 3;
+  optional double value = 4;
+  bool condition_met = 5;
+  int32 historical_firing_episodes = 6;
+  int32 historical_evaluated_samples = 7;
+  int32 historical_expected_samples = 8;
+}
+message PreviewAlertRuleResponse {
+  int32 matched_resource_count = 1;
+  repeated AlertPreviewResource resources = 2;
+  bool sample_only = 3;
+  string query_status = 4;
+  string explanation = 5;
+  int64 history_start_unix = 6;
+  int64 history_end_unix = 7;
+  int32 history_step_seconds = 8;
+  string history_status = 9;
+}
+
+message AlertDestination {
+  string name = 1;
+  string project_name = 2;
+  string display_name = 3;
+  // EMAIL selects a verified project member; WEBHOOK an existing subscription.
+  // SLACK, DISCORD and TEAMS use an encrypted, immutable provider webhook URL.
+  string kind = 4;
+  string principal = 5;
+  string subscription_name = 6;
+  bool enabled = 7;
+  int64 version = 8;
+  // VERIFIED, PENDING, or NOT_REQUIRED for a webhook subscription.
+  string verification_status = 9;
+  // Only populated for the current recipient's own unexpired verification.
+  string pending_verification_id = 10;
+  // Most recent test within retained history; absence is not delivery success.
+  DestinationTest last_test = 11;
+}
+message ListAlertDestinationsRequest { string project_name = 1; }
+message ListAlertDestinationsResponse {
+  repeated AlertDestination destinations = 1;
+  int32 limit = 2;
+  string caller_principal = 3;
+  bool email_available = 4;
+  bool webhook_available = 5;
+}
+message SaveAlertDestinationRequest {
+  AlertDestination destination = 1;
+  string request_id = 2;
+  // Zero for create; otherwise the version last read.
+  int64 expected_version = 3;
+  // Write-only, required when creating SLACK/DISCORD/TEAMS. Omit on edits.
+  // Changing the endpoint requires a new destination to avoid redirecting queued alerts.
+  string webhook_url = 4;
+}
+message SaveAlertDestinationResponse { AlertDestination destination = 1; }
+message DeleteAlertDestinationRequest {
+  string project_name = 1;
+  string name = 2;
+  int64 expected_version = 3;
+  string request_id = 4;
+}
+message DeleteAlertDestinationResponse {}
+message RequestDestinationVerificationRequest {
+  string project_name = 1;
+  string name = 2;
+  string request_id = 3;
+}
+message RequestDestinationVerificationResponse { string verification_id = 1; }
+message VerifyAlertDestinationRequest {
+  string project_name = 1;
+  string name = 2;
+  string verification_id = 3;
+  string code = 4;
+}
+message VerifyAlertDestinationResponse {}
+
+message IncidentSnapshot {
+  string rule_name = 1;
+  string metric_id = 2;
+  string operator = 3;
+  double threshold = 4;
+  int32 sustained_seconds = 5;
+  string severity = 6;
+  optional double value = 7;
+  string datacenter_name = 8;
+  int64 observed_at_unix = 9;
+}
+message Incident {
+  string id = 1;
+  string project_name = 2;
+  string rule_id = 3;
+  int64 rule_version = 4;
+  string vm_name = 5;
+  // OPEN, RECOVERED, or RETIRED. Acknowledgement does not resolve an incident.
+  string state = 6;
+  int64 opened_at_unix = 7;
+  int64 closed_at_unix = 8;
+  string close_reason = 9;
+  string acknowledged_by = 10;
+  int64 acknowledged_at_unix = 11;
+  int64 snoozed_until_unix = 12;
+  int64 version = 13;
+  IncidentSnapshot snapshot = 14;
+  // Current evaluation health, independent of the incident's lifecycle.
+  string evaluation_health = 15;
+  // Current hostname only when the immutable resource still matches this incident.
+  string vm_display_name = 16;
+}
+message GetIncidentSummaryRequest { string project_name = 1; }
+message GetIncidentSummaryResponse {
+  int32 open_count = 1;
+  int32 critical_count = 2;
+  // At most five recent open incidents. Reading never acknowledges or resolves them.
+  repeated Incident incidents = 3;
+}
+message IncidentTransition {
+  string id = 1;
+  string kind = 2;
+  int64 create_time_unix = 3;
+  string principal = 4;
+  IncidentSnapshot snapshot = 5;
+}
+message IncidentDelivery {
+  string id = 1;
+  string transition_id = 2;
+  string destination_name = 3;
+  string state = 4;
+  int32 attempt_count = 5;
+  int64 create_time_unix = 6;
+  int64 completed_at_unix = 7;
+  string last_error = 8;
+}
+message ListIncidentsRequest {
+  string project_name = 1;
+  // Empty for all; otherwise OPEN, RECOVERED, or RETIRED.
+  string state = 2;
+  string vm_name = 3;
+  int32 page_size = 4;
+  string page_token = 5;
+}
+message ListIncidentsResponse {
+  repeated Incident incidents = 1;
+  string next_page_token = 2;
+}
+message GetIncidentRequest {
+  string project_name = 1;
+  string id = 2;
+  // Cursor for older transitions; each page includes up to 50 transitions and their deliveries.
+  string page_token = 3;
+}
+message GetIncidentResponse {
+  Incident incident = 1;
+  repeated IncidentTransition transitions = 2;
+  repeated IncidentDelivery deliveries = 3;
+  string next_page_token = 4;
+}
+message UpdateIncidentRequest {
+  string project_name = 1;
+  string id = 2;
+  int64 expected_version = 3;
+  string request_id = 4;
+  // ACKNOWLEDGE, SNOOZE, or UNSNOOZE. These never change OPEN to RECOVERED.
+  string action = 5;
+  // SNOOZE only: 900, 3600, 14400, or 86400 seconds.
+  int32 duration_seconds = 6;
+}
+message UpdateIncidentResponse { Incident incident = 1; }
+message AlertInstance {
+  string rule_id = 1;
+  int64 rule_version = 2;
+  string vm_name = 3;
+  string health = 4;
+  string condition = 5;
+  string incident_id = 6;
+  int64 transition_time_unix = 7;
+}
+message ListAlertInstancesRequest {
+  string project_name = 1;
+  string rule_id = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+}
+message ListAlertInstancesResponse {
+  repeated AlertInstance instances = 1;
+  string next_page_token = 2;
+}
+
+message AlertDestinationCandidate {
+  string name = 1;
+  string display_name = 2;
+  // EMAIL or WEBHOOK. The name is an existing user or subscription resource.
+  string kind = 3;
+  string address = 4;
+}
+message ListAlertDestinationCandidatesRequest {
+  string project_name = 1;
+  string kind = 2;
+  string search = 3;
+  string page_token = 4;
+}
+message ListAlertDestinationCandidatesResponse {
+  repeated AlertDestinationCandidate candidates = 1;
+  string next_page_token = 2;
+}
+
+message DestinationTest {
+  string id = 1;
+  string destination_name = 2;
+  // PENDING, SENDING, SENT, FAILED, EXPIRED, or SKIPPED. SENT means provider acceptance.
+  string state = 3;
+  int32 attempt_count = 4;
+  string last_error = 5;
+  int64 create_time_unix = 6;
+}
+message TestAlertDestinationRequest {
+  string project_name = 1;
+  string destination_name = 2;
+  // Keep this UUID on retry; a new ID deliberately requests another test.
+  string request_id = 3;
+}
+message TestAlertDestinationResponse { DestinationTest test = 1; }
+message GetDestinationTestRequest { string project_name = 1; string id = 2; }
+message GetDestinationTestResponse { DestinationTest test = 1; }

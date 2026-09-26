@@ -7,7 +7,9 @@ The SDK's public Go surface has two layers:
 
 ## Generated services
 
-The released snapshot includes:
+This checkout's snapshot includes the services below. The September entries
+remain coordinated-release previews; this list is not a claim that every
+published SDK version or production endpoint exposes them.
 
 - audit
 - bare metal
@@ -15,6 +17,8 @@ The released snapshot includes:
 - compute and SSH keys
 - health
 - IAM
+- scoped automation credentials, project service accounts, and GitHub workload identity
+- monitoring metrics, alert rules, verified destinations, incidents, and delivery tests
 - network
 - operations
 - projects and organizations
@@ -67,3 +71,27 @@ Compute exposes whole-VM backup capture and restore, including captured disk
 manifests and consistency. Storage exposes single-disk backup CRUD, disk restore
 via `from_snapshot`, and automatic backup schedules with keep-N retention.
 See [Backups API](BACKUPS.md) for retry, billing, timing, and restore semantics.
+
+## September observability (unreleased)
+
+The new `AutomationService`, `MonitoringService`, and `AlertService` contracts
+require the coordinated September backend release with automation and monitoring
+enabled. Existing IAM keys and sessions are unchanged.
+
+Creation/rotation requests accept a client UUID `request_id`. Retain the exact
+request on an ambiguous retry. Credential retries return the same credential's
+current metadata with `secret_unavailable=true`; no secret is stored for replay.
+Revoke a recovered key whose original secret was lost before creating another.
+
+Rule, destination, and incident mutations also carry a stable request ID and
+optimistic revision where applicable. A successful save is not confirmation that
+the native evaluator has applied it; inspect desired/applied revision and health.
+Queued delivery is not provider acceptance, and provider acceptance is not proof
+that a recipient read a notification. Missing data is never healthy zero usage.
+
+Hosted PromQL and Prometheus scrape endpoints are ordinary authenticated HTTP
+interfaces, not Connect RPCs. Use a project-scoped `monitoring.read` credential;
+the server derives immutable tenant identity and does not trust tenant headers.
+
+See [Observability](OBSERVABILITY.md) for runnable examples and explicit CLI/API
+boundaries. Workflow identity does not provision GitHub runners.
