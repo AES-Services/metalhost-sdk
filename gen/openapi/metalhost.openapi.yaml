@@ -4975,6 +4975,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.monitoring.v1.GetEnhancedMonitoringResponse'
+  /aes.monitoring.v1.MonitoringService/InstallGuestCollector:
+    post:
+      tags:
+        - aes.monitoring.v1.MonitoringService
+      summary: InstallGuestCollector
+      description: Explicitly authorizes installation of the platform-approved collector only.
+      operationId: aes.monitoring.v1.MonitoringService.InstallGuestCollector
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.monitoring.v1.InstallGuestCollectorRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.monitoring.v1.InstallGuestCollectorResponse'
   /aes.monitoring.v1.MonitoringService/ListMetricDescriptors:
     post:
       tags:
@@ -11828,6 +11864,12 @@ components:
           title: billing
           description: Billing term. Defaults to HOURLY.
           $ref: '#/components/schemas/aes.compute.v1.VMBillingSpec'
+        installGuestCollector:
+          type: boolean
+          title: install_guest_collector
+          description: |-
+            Opt in to installing the approved guest metrics collector through cloud-init
+             on first boot. Requires a fresh supported cloud image; default false.
       title: VirtualMachineSpec
       additionalProperties: false
     aes.compute.v1.VmSnapshot:
@@ -14792,6 +14834,20 @@ components:
         serviceDiscoveryStatus:
           type: string
           title: service_discovery_status
+        installRequestId:
+          type: string
+          title: install_request_id
+          description: Latest durable installer request. CONNECTED still requires fresh guest metrics.
+        installStatus:
+          type: string
+          title: install_status
+          description: QUEUED, INSTALLING, AWAITING_DATA, SUCCEEDED, FAILED, UNKNOWN.
+        installError:
+          type: string
+          title: install_error
+        automaticInstallAvailable:
+          type: boolean
+          title: automatic_install_available
       title: EnhancedMonitoring
       additionalProperties: false
     aes.monitoring.v1.GetDestinationTestRequest:
@@ -15064,6 +15120,32 @@ components:
           title: snapshot
           $ref: '#/components/schemas/aes.monitoring.v1.IncidentSnapshot'
       title: IncidentTransition
+      additionalProperties: false
+    aes.monitoring.v1.InstallGuestCollectorRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        installationId:
+          type: string
+          title: installation_id
+        requestId:
+          type: string
+          title: request_id
+        confirmInstallation:
+          type: boolean
+          title: confirm_installation
+          description: Customer consent to privileged installation of the approved collector.
+      title: InstallGuestCollectorRequest
+      additionalProperties: false
+    aes.monitoring.v1.InstallGuestCollectorResponse:
+      type: object
+      properties:
+        monitoring:
+          title: monitoring
+          $ref: '#/components/schemas/aes.monitoring.v1.EnhancedMonitoring'
+      title: InstallGuestCollectorResponse
       additionalProperties: false
     aes.monitoring.v1.ListAlertDestinationCandidatesRequest:
       type: object
@@ -17005,6 +17087,10 @@ components:
           type: string
           title: vm_backup_name
           description: Internal restore source, validated against project/DC before dispatch.
+        vmInstallGuestCollector:
+          type: boolean
+          title: vm_install_guest_collector
+          description: Internal provisioning opt-in; admitted by ComputeService.
       title: CreateOperationRequest
       additionalProperties: false
     aes.ops.v1.CreateOperationRequest.VmAnnotationsEntry:

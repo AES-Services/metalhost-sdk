@@ -164,6 +164,8 @@ message CreateOperationRequest {
   string vm_runtime_target_state = 60;
   // Internal restore source, validated against project/DC before dispatch.
   string vm_backup_name = 61;
+  // Internal provisioning opt-in; admitted by ComputeService.
+  bool vm_install_guest_collector = 62;
 }
 
 message CreateOperationResponse {

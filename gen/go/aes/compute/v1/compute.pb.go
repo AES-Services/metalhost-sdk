@@ -700,9 +700,12 @@ type VirtualMachineSpec struct {
 	// Must be valid `#cloud-config` YAML.
 	CloudInit string `protobuf:"bytes,6,opt,name=cloud_init,json=cloudInit,proto3" json:"cloud_init,omitempty"`
 	// Billing term. Defaults to HOURLY.
-	Billing       *VMBillingSpec `protobuf:"bytes,7,opt,name=billing,proto3" json:"billing,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Billing *VMBillingSpec `protobuf:"bytes,7,opt,name=billing,proto3" json:"billing,omitempty"`
+	// Opt in to installing the approved guest metrics collector through cloud-init
+	// on first boot. Requires a fresh supported cloud image; default false.
+	InstallGuestCollector bool `protobuf:"varint,8,opt,name=install_guest_collector,json=installGuestCollector,proto3" json:"install_guest_collector,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *VirtualMachineSpec) Reset() {
@@ -782,6 +785,13 @@ func (x *VirtualMachineSpec) GetBilling() *VMBillingSpec {
 		return x.Billing
 	}
 	return nil
+}
+
+func (x *VirtualMachineSpec) GetInstallGuestCollector() bool {
+	if x != nil {
+		return x.InstallGuestCollector
+	}
+	return false
 }
 
 type VMComputeSpec struct {
@@ -4217,7 +4227,7 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xd6\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x8e\x03\n" +
 	"\x12VirtualMachineSpec\x12\x16\n" +
 	"\x06region\x18\x01 \x01(\tR\x06region\x127\n" +
 	"\acompute\x18\x02 \x01(\v2\x1d.aes.compute.v1.VMComputeSpecR\acompute\x12.\n" +
@@ -4226,7 +4236,8 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x05users\x18\x05 \x03(\v2\x18.aes.compute.v1.UserSpecR\x05users\x12\x1d\n" +
 	"\n" +
 	"cloud_init\x18\x06 \x01(\tR\tcloudInit\x127\n" +
-	"\abilling\x18\a \x01(\v2\x1d.aes.compute.v1.VMBillingSpecR\abilling\"\x86\x01\n" +
+	"\abilling\x18\a \x01(\v2\x1d.aes.compute.v1.VMBillingSpecR\abilling\x126\n" +
+	"\x17install_guest_collector\x18\b \x01(\bR\x15installGuestCollector\"\x86\x01\n" +
 	"\rVMComputeSpec\x12\x1b\n" +
 	"\tcpu_class\x18\x01 \x01(\tR\bcpuClass\x12\x14\n" +
 	"\x05vcpus\x18\x02 \x01(\x05R\x05vcpus\x12\x17\n" +

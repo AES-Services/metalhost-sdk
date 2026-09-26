@@ -3,6 +3,8 @@ syntax = "proto3";
 package aes.monitoring.v1;
 
 service MonitoringService {
+  // Explicitly authorizes installation of the platform-approved collector only.
+  rpc InstallGuestCollector(InstallGuestCollectorRequest) returns (InstallGuestCollectorResponse);
   rpc ListMetricDescriptors(ListMetricDescriptorsRequest) returns (ListMetricDescriptorsResponse);
   rpc ListVMMonitoring(ListVMMonitoringRequest) returns (ListVMMonitoringResponse);
   rpc QueryVMMonitoring(QueryVMMonitoringRequest) returns (QueryVMMonitoringResponse);
@@ -119,7 +121,21 @@ message EnhancedMonitoring {
   repeated string discovered_services = 13;
   repeated string selected_services = 14;
   string service_discovery_status = 15;
+  // Latest durable installer request. CONNECTED still requires fresh guest metrics.
+  string install_request_id = 16;
+  // QUEUED, INSTALLING, AWAITING_DATA, SUCCEEDED, FAILED, UNKNOWN.
+  string install_status = 17;
+  string install_error = 18;
+  bool automatic_install_available = 19;
 }
+message InstallGuestCollectorRequest {
+  string name = 1;
+  string installation_id = 2;
+  string request_id = 3;
+  // Customer consent to privileged installation of the approved collector.
+  bool confirm_installation = 4;
+}
+message InstallGuestCollectorResponse { EnhancedMonitoring monitoring = 1; }
 message GetEnhancedMonitoringRequest { string name = 1; }
 message GetEnhancedMonitoringResponse { EnhancedMonitoring monitoring = 1; }
 message EnableEnhancedMonitoringRequest {

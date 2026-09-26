@@ -33,6 +33,9 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// MonitoringServiceInstallGuestCollectorProcedure is the fully-qualified name of the
+	// MonitoringService's InstallGuestCollector RPC.
+	MonitoringServiceInstallGuestCollectorProcedure = "/aes.monitoring.v1.MonitoringService/InstallGuestCollector"
 	// MonitoringServiceListMetricDescriptorsProcedure is the fully-qualified name of the
 	// MonitoringService's ListMetricDescriptors RPC.
 	MonitoringServiceListMetricDescriptorsProcedure = "/aes.monitoring.v1.MonitoringService/ListMetricDescriptors"
@@ -58,6 +61,8 @@ const (
 
 // MonitoringServiceClient is a client for the aes.monitoring.v1.MonitoringService service.
 type MonitoringServiceClient interface {
+	// Explicitly authorizes installation of the platform-approved collector only.
+	InstallGuestCollector(context.Context, *connect.Request[v1.InstallGuestCollectorRequest]) (*connect.Response[v1.InstallGuestCollectorResponse], error)
 	ListMetricDescriptors(context.Context, *connect.Request[v1.ListMetricDescriptorsRequest]) (*connect.Response[v1.ListMetricDescriptorsResponse], error)
 	ListVMMonitoring(context.Context, *connect.Request[v1.ListVMMonitoringRequest]) (*connect.Response[v1.ListVMMonitoringResponse], error)
 	QueryVMMonitoring(context.Context, *connect.Request[v1.QueryVMMonitoringRequest]) (*connect.Response[v1.QueryVMMonitoringResponse], error)
@@ -78,6 +83,12 @@ func NewMonitoringServiceClient(httpClient connect.HTTPClient, baseURL string, o
 	baseURL = strings.TrimRight(baseURL, "/")
 	monitoringServiceMethods := v1.File_aes_monitoring_v1_monitoring_proto.Services().ByName("MonitoringService").Methods()
 	return &monitoringServiceClient{
+		installGuestCollector: connect.NewClient[v1.InstallGuestCollectorRequest, v1.InstallGuestCollectorResponse](
+			httpClient,
+			baseURL+MonitoringServiceInstallGuestCollectorProcedure,
+			connect.WithSchema(monitoringServiceMethods.ByName("InstallGuestCollector")),
+			connect.WithClientOptions(opts...),
+		),
 		listMetricDescriptors: connect.NewClient[v1.ListMetricDescriptorsRequest, v1.ListMetricDescriptorsResponse](
 			httpClient,
 			baseURL+MonitoringServiceListMetricDescriptorsProcedure,
@@ -125,6 +136,7 @@ func NewMonitoringServiceClient(httpClient connect.HTTPClient, baseURL string, o
 
 // monitoringServiceClient implements MonitoringServiceClient.
 type monitoringServiceClient struct {
+	installGuestCollector       *connect.Client[v1.InstallGuestCollectorRequest, v1.InstallGuestCollectorResponse]
 	listMetricDescriptors       *connect.Client[v1.ListMetricDescriptorsRequest, v1.ListMetricDescriptorsResponse]
 	listVMMonitoring            *connect.Client[v1.ListVMMonitoringRequest, v1.ListVMMonitoringResponse]
 	queryVMMonitoring           *connect.Client[v1.QueryVMMonitoringRequest, v1.QueryVMMonitoringResponse]
@@ -132,6 +144,11 @@ type monitoringServiceClient struct {
 	enableEnhancedMonitoring    *connect.Client[v1.EnableEnhancedMonitoringRequest, v1.EnableEnhancedMonitoringResponse]
 	revokeEnhancedMonitoring    *connect.Client[v1.RevokeEnhancedMonitoringRequest, v1.RevokeEnhancedMonitoringResponse]
 	setEnhancedMonitoringPaused *connect.Client[v1.SetEnhancedMonitoringPausedRequest, v1.SetEnhancedMonitoringPausedResponse]
+}
+
+// InstallGuestCollector calls aes.monitoring.v1.MonitoringService.InstallGuestCollector.
+func (c *monitoringServiceClient) InstallGuestCollector(ctx context.Context, req *connect.Request[v1.InstallGuestCollectorRequest]) (*connect.Response[v1.InstallGuestCollectorResponse], error) {
+	return c.installGuestCollector.CallUnary(ctx, req)
 }
 
 // ListMetricDescriptors calls aes.monitoring.v1.MonitoringService.ListMetricDescriptors.
@@ -172,6 +189,8 @@ func (c *monitoringServiceClient) SetEnhancedMonitoringPaused(ctx context.Contex
 
 // MonitoringServiceHandler is an implementation of the aes.monitoring.v1.MonitoringService service.
 type MonitoringServiceHandler interface {
+	// Explicitly authorizes installation of the platform-approved collector only.
+	InstallGuestCollector(context.Context, *connect.Request[v1.InstallGuestCollectorRequest]) (*connect.Response[v1.InstallGuestCollectorResponse], error)
 	ListMetricDescriptors(context.Context, *connect.Request[v1.ListMetricDescriptorsRequest]) (*connect.Response[v1.ListMetricDescriptorsResponse], error)
 	ListVMMonitoring(context.Context, *connect.Request[v1.ListVMMonitoringRequest]) (*connect.Response[v1.ListVMMonitoringResponse], error)
 	QueryVMMonitoring(context.Context, *connect.Request[v1.QueryVMMonitoringRequest]) (*connect.Response[v1.QueryVMMonitoringResponse], error)
@@ -188,6 +207,12 @@ type MonitoringServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewMonitoringServiceHandler(svc MonitoringServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	monitoringServiceMethods := v1.File_aes_monitoring_v1_monitoring_proto.Services().ByName("MonitoringService").Methods()
+	monitoringServiceInstallGuestCollectorHandler := connect.NewUnaryHandler(
+		MonitoringServiceInstallGuestCollectorProcedure,
+		svc.InstallGuestCollector,
+		connect.WithSchema(monitoringServiceMethods.ByName("InstallGuestCollector")),
+		connect.WithHandlerOptions(opts...),
+	)
 	monitoringServiceListMetricDescriptorsHandler := connect.NewUnaryHandler(
 		MonitoringServiceListMetricDescriptorsProcedure,
 		svc.ListMetricDescriptors,
@@ -232,6 +257,8 @@ func NewMonitoringServiceHandler(svc MonitoringServiceHandler, opts ...connect.H
 	)
 	return "/aes.monitoring.v1.MonitoringService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case MonitoringServiceInstallGuestCollectorProcedure:
+			monitoringServiceInstallGuestCollectorHandler.ServeHTTP(w, r)
 		case MonitoringServiceListMetricDescriptorsProcedure:
 			monitoringServiceListMetricDescriptorsHandler.ServeHTTP(w, r)
 		case MonitoringServiceListVMMonitoringProcedure:
@@ -254,6 +281,10 @@ func NewMonitoringServiceHandler(svc MonitoringServiceHandler, opts ...connect.H
 
 // UnimplementedMonitoringServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedMonitoringServiceHandler struct{}
+
+func (UnimplementedMonitoringServiceHandler) InstallGuestCollector(context.Context, *connect.Request[v1.InstallGuestCollectorRequest]) (*connect.Response[v1.InstallGuestCollectorResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.monitoring.v1.MonitoringService.InstallGuestCollector is not implemented"))
+}
 
 func (UnimplementedMonitoringServiceHandler) ListMetricDescriptors(context.Context, *connect.Request[v1.ListMetricDescriptorsRequest]) (*connect.Response[v1.ListMetricDescriptorsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.monitoring.v1.MonitoringService.ListMetricDescriptors is not implemented"))
