@@ -8,8 +8,8 @@ info:
     Every RPC is POST application/json with a Bearer header. Field names use snake_case (proto JSON).
   contact:
     name: Metalhost support
-    email: support@metalhost.net
-    url: https://metalhost.net/docs
+    email: support@metalhost.com
+    url: https://metalhost.com/docs
 paths:
   /aes.audit.v1.AuditService/SearchEvents:
     post:
@@ -24109,5 +24109,5 @@ tags:
          billing.invoice.finalized
        Customers subscribe to specific types or use a wildcard prefix (e.g. "compute.vm.*").
 servers:
-  - url: https://api.metalhost.net
+  - url: https://api.metalhost.com
     description: Production
