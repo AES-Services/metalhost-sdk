@@ -19,9 +19,9 @@ finalize_openapi() {
       "title": "Metalhost API",
       "version": "v1",
       "description": "Customer-facing HTTP API for Metalhost. Every dashboard action maps to one of the RPCs below. Authenticate with a Bearer API key on every request — mint one in the dashboard under Developers → API keys.\n\nEvery RPC is POST application/json with a Bearer header. Field names use snake_case (proto JSON).",
-      "contact": {"name": "Metalhost support", "email": "support@metalhost.net", "url": "https://metalhost.net/docs"}
+      "contact": {"name": "Metalhost support", "email": "support@metalhost.com", "url": "https://metalhost.com/docs"}
     }
-    | .servers = [{"url": "https://api.metalhost.net", "description": "Production"}]
+    | .servers = [{"url": "https://api.metalhost.com", "description": "Production"}]
     | (.paths |= with_entries(select(.key | test("Admin[A-Z]") | not)))
     | (.tags  |= map(select(.name | test("Admin[A-Z]") | not)))
   ' "$spec" > "$tmp"

@@ -38,7 +38,7 @@ import (
 
 func check(ctx context.Context) error {
 	cfg := metalhost.Config{
-		Endpoint: "https://api.metalhost.net",
+		Endpoint: "https://api.metalhost.com",
 		APIKey:   "aes_...",
 		UserAgent: "my-integration/1.0",
 	}

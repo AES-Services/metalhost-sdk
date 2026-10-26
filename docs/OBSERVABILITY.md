@@ -27,7 +27,7 @@ issuer. Pull-request events are not permitted. The exchanged token lasts 15
 minutes, has no refresh token, and can only use its configured project/grants.
 The September CLI branch implements `auth github` and `monitoring`; older
 CLI releases do not. Alternatively, use the
-[complete HTTP workflow example](https://metalhost.net/docs/developers/guides/github-actions)
+[complete HTTP workflow example](https://metalhost.com/docs/developers/guides/github-actions)
 from the coordinated docs release. Exchange through
 `AutomationService.ExchangeGitHubToken` with `trust_name` and `assertion`; use
 the returned `access_token` as Bearer, scoped to the returned `project_name`.

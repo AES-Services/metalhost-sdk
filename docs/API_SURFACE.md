@@ -32,7 +32,7 @@ Use the generated constructor for the service you need:
 
 ```go
 cfg := metalhost.Config{
-	Endpoint: "https://api.metalhost.net",
+	Endpoint: "https://api.metalhost.com",
 	APIKey:   os.Getenv("METALHOST_API_KEY"),
 	UserAgent: "example/1.0",
 }
