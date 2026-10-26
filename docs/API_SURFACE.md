@@ -96,7 +96,7 @@ the server derives immutable tenant identity and does not trust tenant headers.
 See [Observability](OBSERVABILITY.md) for runnable examples and explicit CLI/API
 boundaries. Workflow identity does not provision GitHub runners.
 
-## October networking and error contract (v1.2.0)
+## October networking and error contract (v1.3.0)
 
 `NetworkService` adds VPCs and VPC subnets (with per-datacenter membership),
 reserved public IPs (reserve, attach, detach, release), managed load balancers,
