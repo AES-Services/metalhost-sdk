@@ -670,11 +670,14 @@ type CreateTicketRequest struct {
 	Body     string         `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
 	Category TicketCategory `protobuf:"varint,4,opt,name=category,proto3,enum=aes.support.v1.TicketCategory" json:"category,omitempty"`
 	// Optional. Defaults to TICKET_PRIORITY_NORMAL when unspecified.
-	Priority      TicketPriority `protobuf:"varint,5,opt,name=priority,proto3,enum=aes.support.v1.TicketPriority" json:"priority,omitempty"`
-	ResourceRefs  []*ResourceRef `protobuf:"bytes,6,rep,name=resource_refs,json=resourceRefs,proto3" json:"resource_refs,omitempty"`
-	RequestId     string         `protobuf:"bytes,7,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Priority     TicketPriority `protobuf:"varint,5,opt,name=priority,proto3,enum=aes.support.v1.TicketPriority" json:"priority,omitempty"`
+	ResourceRefs []*ResourceRef `protobuf:"bytes,6,rep,name=resource_refs,json=resourceRefs,proto3" json:"resource_refs,omitempty"`
+	RequestId    string         `protobuf:"bytes,7,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	// Optional. The error the customer was looking at when they opened the
+	// ticket. Visible to support staff only.
+	ErrorReference *ErrorReference `protobuf:"bytes,8,opt,name=error_reference,json=errorReference,proto3" json:"error_reference,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *CreateTicketRequest) Reset() {
@@ -756,6 +759,95 @@ func (x *CreateTicketRequest) GetRequestId() string {
 	return ""
 }
 
+func (x *CreateTicketRequest) GetErrorReference() *ErrorReference {
+	if x != nil {
+		return x.ErrorReference
+	}
+	return nil
+}
+
+// ErrorReference identifies an error a customer hit, so support can find it.
+type ErrorReference struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The request_id from the error's details.
+	ErrorRequestId string `protobuf:"bytes,1,opt,name=error_request_id,json=errorRequestId,proto3" json:"error_request_id,omitempty"`
+	// The error's reason code.
+	Reason string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	// The API method that failed, for example
+	// `/aes.compute.v1.ComputeService/CreateVirtualMachine`.
+	Procedure  string                 `protobuf:"bytes,3,opt,name=procedure,proto3" json:"procedure,omitempty"`
+	OccurredAt *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=occurred_at,json=occurredAt,proto3" json:"occurred_at,omitempty"`
+	// The failed operation, when the error came from one.
+	OperationName string `protobuf:"bytes,5,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ErrorReference) Reset() {
+	*x = ErrorReference{}
+	mi := &file_aes_support_v1_support_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ErrorReference) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ErrorReference) ProtoMessage() {}
+
+func (x *ErrorReference) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_support_v1_support_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ErrorReference.ProtoReflect.Descriptor instead.
+func (*ErrorReference) Descriptor() ([]byte, []int) {
+	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ErrorReference) GetErrorRequestId() string {
+	if x != nil {
+		return x.ErrorRequestId
+	}
+	return ""
+}
+
+func (x *ErrorReference) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *ErrorReference) GetProcedure() string {
+	if x != nil {
+		return x.Procedure
+	}
+	return ""
+}
+
+func (x *ErrorReference) GetOccurredAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.OccurredAt
+	}
+	return nil
+}
+
+func (x *ErrorReference) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
 type CreateTicketResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Ticket         *Ticket                `protobuf:"bytes,1,opt,name=ticket,proto3" json:"ticket,omitempty"`
@@ -766,7 +858,7 @@ type CreateTicketResponse struct {
 
 func (x *CreateTicketResponse) Reset() {
 	*x = CreateTicketResponse{}
-	mi := &file_aes_support_v1_support_proto_msgTypes[4]
+	mi := &file_aes_support_v1_support_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -778,7 +870,7 @@ func (x *CreateTicketResponse) String() string {
 func (*CreateTicketResponse) ProtoMessage() {}
 
 func (x *CreateTicketResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_support_v1_support_proto_msgTypes[4]
+	mi := &file_aes_support_v1_support_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -791,7 +883,7 @@ func (x *CreateTicketResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTicketResponse.ProtoReflect.Descriptor instead.
 func (*CreateTicketResponse) Descriptor() ([]byte, []int) {
-	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{4}
+	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateTicketResponse) GetTicket() *Ticket {
@@ -822,7 +914,7 @@ type ListTicketsRequest struct {
 
 func (x *ListTicketsRequest) Reset() {
 	*x = ListTicketsRequest{}
-	mi := &file_aes_support_v1_support_proto_msgTypes[5]
+	mi := &file_aes_support_v1_support_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -834,7 +926,7 @@ func (x *ListTicketsRequest) String() string {
 func (*ListTicketsRequest) ProtoMessage() {}
 
 func (x *ListTicketsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_support_v1_support_proto_msgTypes[5]
+	mi := &file_aes_support_v1_support_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -847,7 +939,7 @@ func (x *ListTicketsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTicketsRequest.ProtoReflect.Descriptor instead.
 func (*ListTicketsRequest) Descriptor() ([]byte, []int) {
-	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{5}
+	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ListTicketsRequest) GetOrganizationName() string {
@@ -888,7 +980,7 @@ type ListTicketsResponse struct {
 
 func (x *ListTicketsResponse) Reset() {
 	*x = ListTicketsResponse{}
-	mi := &file_aes_support_v1_support_proto_msgTypes[6]
+	mi := &file_aes_support_v1_support_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -900,7 +992,7 @@ func (x *ListTicketsResponse) String() string {
 func (*ListTicketsResponse) ProtoMessage() {}
 
 func (x *ListTicketsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_support_v1_support_proto_msgTypes[6]
+	mi := &file_aes_support_v1_support_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -913,7 +1005,7 @@ func (x *ListTicketsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTicketsResponse.ProtoReflect.Descriptor instead.
 func (*ListTicketsResponse) Descriptor() ([]byte, []int) {
-	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{6}
+	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListTicketsResponse) GetTickets() []*Ticket {
@@ -939,7 +1031,7 @@ type GetTicketRequest struct {
 
 func (x *GetTicketRequest) Reset() {
 	*x = GetTicketRequest{}
-	mi := &file_aes_support_v1_support_proto_msgTypes[7]
+	mi := &file_aes_support_v1_support_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -951,7 +1043,7 @@ func (x *GetTicketRequest) String() string {
 func (*GetTicketRequest) ProtoMessage() {}
 
 func (x *GetTicketRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_support_v1_support_proto_msgTypes[7]
+	mi := &file_aes_support_v1_support_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -964,7 +1056,7 @@ func (x *GetTicketRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTicketRequest.ProtoReflect.Descriptor instead.
 func (*GetTicketRequest) Descriptor() ([]byte, []int) {
-	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{7}
+	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetTicketRequest) GetName() string {
@@ -985,7 +1077,7 @@ type GetTicketResponse struct {
 
 func (x *GetTicketResponse) Reset() {
 	*x = GetTicketResponse{}
-	mi := &file_aes_support_v1_support_proto_msgTypes[8]
+	mi := &file_aes_support_v1_support_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -997,7 +1089,7 @@ func (x *GetTicketResponse) String() string {
 func (*GetTicketResponse) ProtoMessage() {}
 
 func (x *GetTicketResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_support_v1_support_proto_msgTypes[8]
+	mi := &file_aes_support_v1_support_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1010,7 +1102,7 @@ func (x *GetTicketResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTicketResponse.ProtoReflect.Descriptor instead.
 func (*GetTicketResponse) Descriptor() ([]byte, []int) {
-	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{8}
+	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetTicketResponse) GetTicket() *Ticket {
@@ -1040,7 +1132,7 @@ type ReplyTicketRequest struct {
 
 func (x *ReplyTicketRequest) Reset() {
 	*x = ReplyTicketRequest{}
-	mi := &file_aes_support_v1_support_proto_msgTypes[9]
+	mi := &file_aes_support_v1_support_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1052,7 +1144,7 @@ func (x *ReplyTicketRequest) String() string {
 func (*ReplyTicketRequest) ProtoMessage() {}
 
 func (x *ReplyTicketRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_support_v1_support_proto_msgTypes[9]
+	mi := &file_aes_support_v1_support_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1065,7 +1157,7 @@ func (x *ReplyTicketRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReplyTicketRequest.ProtoReflect.Descriptor instead.
 func (*ReplyTicketRequest) Descriptor() ([]byte, []int) {
-	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{9}
+	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ReplyTicketRequest) GetName() string {
@@ -1107,7 +1199,7 @@ type ReplyTicketResponse struct {
 
 func (x *ReplyTicketResponse) Reset() {
 	*x = ReplyTicketResponse{}
-	mi := &file_aes_support_v1_support_proto_msgTypes[10]
+	mi := &file_aes_support_v1_support_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1119,7 +1211,7 @@ func (x *ReplyTicketResponse) String() string {
 func (*ReplyTicketResponse) ProtoMessage() {}
 
 func (x *ReplyTicketResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_support_v1_support_proto_msgTypes[10]
+	mi := &file_aes_support_v1_support_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1132,7 +1224,7 @@ func (x *ReplyTicketResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReplyTicketResponse.ProtoReflect.Descriptor instead.
 func (*ReplyTicketResponse) Descriptor() ([]byte, []int) {
-	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{10}
+	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ReplyTicketResponse) GetMessage() *TicketMessage {
@@ -1163,7 +1255,7 @@ type CloseTicketRequest struct {
 
 func (x *CloseTicketRequest) Reset() {
 	*x = CloseTicketRequest{}
-	mi := &file_aes_support_v1_support_proto_msgTypes[11]
+	mi := &file_aes_support_v1_support_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1175,7 +1267,7 @@ func (x *CloseTicketRequest) String() string {
 func (*CloseTicketRequest) ProtoMessage() {}
 
 func (x *CloseTicketRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_support_v1_support_proto_msgTypes[11]
+	mi := &file_aes_support_v1_support_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1188,7 +1280,7 @@ func (x *CloseTicketRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloseTicketRequest.ProtoReflect.Descriptor instead.
 func (*CloseTicketRequest) Descriptor() ([]byte, []int) {
-	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{11}
+	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CloseTicketRequest) GetName() string {
@@ -1228,7 +1320,7 @@ type CloseTicketResponse struct {
 
 func (x *CloseTicketResponse) Reset() {
 	*x = CloseTicketResponse{}
-	mi := &file_aes_support_v1_support_proto_msgTypes[12]
+	mi := &file_aes_support_v1_support_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1240,7 +1332,7 @@ func (x *CloseTicketResponse) String() string {
 func (*CloseTicketResponse) ProtoMessage() {}
 
 func (x *CloseTicketResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_support_v1_support_proto_msgTypes[12]
+	mi := &file_aes_support_v1_support_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1253,7 +1345,7 @@ func (x *CloseTicketResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloseTicketResponse.ProtoReflect.Descriptor instead.
 func (*CloseTicketResponse) Descriptor() ([]byte, []int) {
-	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{12}
+	return file_aes_support_v1_support_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CloseTicketResponse) GetTicket() *Ticket {
@@ -1307,7 +1399,7 @@ const file_aes_support_v1_support_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12;\n" +
 	"\vauthor_kind\x18\b \x01(\x0e2\x1a.aes.support.v1.AuthorKindR\n" +
-	"authorKind\"\xc9\x02\n" +
+	"authorKind\"\x92\x03\n" +
 	"\x13CreateTicketRequest\x12+\n" +
 	"\x11organization_name\x18\x01 \x01(\tR\x10organizationName\x12\x18\n" +
 	"\asubject\x18\x02 \x01(\tR\asubject\x12\x12\n" +
@@ -1316,7 +1408,15 @@ const file_aes_support_v1_support_proto_rawDesc = "" +
 	"\bpriority\x18\x05 \x01(\x0e2\x1e.aes.support.v1.TicketPriorityR\bpriority\x12@\n" +
 	"\rresource_refs\x18\x06 \x03(\v2\x1b.aes.support.v1.ResourceRefR\fresourceRefs\x12\x1d\n" +
 	"\n" +
-	"request_id\x18\a \x01(\tR\trequestId\"\x8e\x01\n" +
+	"request_id\x18\a \x01(\tR\trequestId\x12G\n" +
+	"\x0ferror_reference\x18\b \x01(\v2\x1e.aes.support.v1.ErrorReferenceR\x0eerrorReference\"\xd4\x01\n" +
+	"\x0eErrorReference\x12(\n" +
+	"\x10error_request_id\x18\x01 \x01(\tR\x0eerrorRequestId\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x1c\n" +
+	"\tprocedure\x18\x03 \x01(\tR\tprocedure\x12;\n" +
+	"\voccurred_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"occurredAt\x12%\n" +
+	"\x0eoperation_name\x18\x05 \x01(\tR\roperationName\"\x8e\x01\n" +
 	"\x14CreateTicketResponse\x12.\n" +
 	"\x06ticket\x18\x01 \x01(\v2\x16.aes.support.v1.TicketR\x06ticket\x12F\n" +
 	"\x0finitial_message\x18\x02 \x01(\v2\x1d.aes.support.v1.TicketMessageR\x0einitialMessage\"\xc0\x01\n" +
@@ -1404,7 +1504,7 @@ func file_aes_support_v1_support_proto_rawDescGZIP() []byte {
 }
 
 var file_aes_support_v1_support_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_aes_support_v1_support_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_aes_support_v1_support_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_aes_support_v1_support_proto_goTypes = []any{
 	(TicketStatus)(0),             // 0: aes.support.v1.TicketStatus
 	(TicketPriority)(0),           // 1: aes.support.v1.TicketPriority
@@ -1415,16 +1515,17 @@ var file_aes_support_v1_support_proto_goTypes = []any{
 	(*Ticket)(nil),                // 6: aes.support.v1.Ticket
 	(*TicketMessage)(nil),         // 7: aes.support.v1.TicketMessage
 	(*CreateTicketRequest)(nil),   // 8: aes.support.v1.CreateTicketRequest
-	(*CreateTicketResponse)(nil),  // 9: aes.support.v1.CreateTicketResponse
-	(*ListTicketsRequest)(nil),    // 10: aes.support.v1.ListTicketsRequest
-	(*ListTicketsResponse)(nil),   // 11: aes.support.v1.ListTicketsResponse
-	(*GetTicketRequest)(nil),      // 12: aes.support.v1.GetTicketRequest
-	(*GetTicketResponse)(nil),     // 13: aes.support.v1.GetTicketResponse
-	(*ReplyTicketRequest)(nil),    // 14: aes.support.v1.ReplyTicketRequest
-	(*ReplyTicketResponse)(nil),   // 15: aes.support.v1.ReplyTicketResponse
-	(*CloseTicketRequest)(nil),    // 16: aes.support.v1.CloseTicketRequest
-	(*CloseTicketResponse)(nil),   // 17: aes.support.v1.CloseTicketResponse
-	(*timestamppb.Timestamp)(nil), // 18: google.protobuf.Timestamp
+	(*ErrorReference)(nil),        // 9: aes.support.v1.ErrorReference
+	(*CreateTicketResponse)(nil),  // 10: aes.support.v1.CreateTicketResponse
+	(*ListTicketsRequest)(nil),    // 11: aes.support.v1.ListTicketsRequest
+	(*ListTicketsResponse)(nil),   // 12: aes.support.v1.ListTicketsResponse
+	(*GetTicketRequest)(nil),      // 13: aes.support.v1.GetTicketRequest
+	(*GetTicketResponse)(nil),     // 14: aes.support.v1.GetTicketResponse
+	(*ReplyTicketRequest)(nil),    // 15: aes.support.v1.ReplyTicketRequest
+	(*ReplyTicketResponse)(nil),   // 16: aes.support.v1.ReplyTicketResponse
+	(*CloseTicketRequest)(nil),    // 17: aes.support.v1.CloseTicketRequest
+	(*CloseTicketResponse)(nil),   // 18: aes.support.v1.CloseTicketResponse
+	(*timestamppb.Timestamp)(nil), // 19: google.protobuf.Timestamp
 }
 var file_aes_support_v1_support_proto_depIdxs = []int32{
 	0,  // 0: aes.support.v1.Ticket.status:type_name -> aes.support.v1.TicketStatus
@@ -1432,43 +1533,45 @@ var file_aes_support_v1_support_proto_depIdxs = []int32{
 	2,  // 2: aes.support.v1.Ticket.category:type_name -> aes.support.v1.TicketCategory
 	3,  // 3: aes.support.v1.Ticket.channel:type_name -> aes.support.v1.TicketChannel
 	5,  // 4: aes.support.v1.Ticket.resource_refs:type_name -> aes.support.v1.ResourceRef
-	18, // 5: aes.support.v1.Ticket.created_at:type_name -> google.protobuf.Timestamp
-	18, // 6: aes.support.v1.Ticket.updated_at:type_name -> google.protobuf.Timestamp
-	18, // 7: aes.support.v1.Ticket.last_activity_at:type_name -> google.protobuf.Timestamp
-	18, // 8: aes.support.v1.Ticket.resolved_at:type_name -> google.protobuf.Timestamp
-	18, // 9: aes.support.v1.Ticket.sla_due_at:type_name -> google.protobuf.Timestamp
-	18, // 10: aes.support.v1.Ticket.escalated_at:type_name -> google.protobuf.Timestamp
-	18, // 11: aes.support.v1.Ticket.closed_at:type_name -> google.protobuf.Timestamp
-	18, // 12: aes.support.v1.TicketMessage.created_at:type_name -> google.protobuf.Timestamp
+	19, // 5: aes.support.v1.Ticket.created_at:type_name -> google.protobuf.Timestamp
+	19, // 6: aes.support.v1.Ticket.updated_at:type_name -> google.protobuf.Timestamp
+	19, // 7: aes.support.v1.Ticket.last_activity_at:type_name -> google.protobuf.Timestamp
+	19, // 8: aes.support.v1.Ticket.resolved_at:type_name -> google.protobuf.Timestamp
+	19, // 9: aes.support.v1.Ticket.sla_due_at:type_name -> google.protobuf.Timestamp
+	19, // 10: aes.support.v1.Ticket.escalated_at:type_name -> google.protobuf.Timestamp
+	19, // 11: aes.support.v1.Ticket.closed_at:type_name -> google.protobuf.Timestamp
+	19, // 12: aes.support.v1.TicketMessage.created_at:type_name -> google.protobuf.Timestamp
 	4,  // 13: aes.support.v1.TicketMessage.author_kind:type_name -> aes.support.v1.AuthorKind
 	2,  // 14: aes.support.v1.CreateTicketRequest.category:type_name -> aes.support.v1.TicketCategory
 	1,  // 15: aes.support.v1.CreateTicketRequest.priority:type_name -> aes.support.v1.TicketPriority
 	5,  // 16: aes.support.v1.CreateTicketRequest.resource_refs:type_name -> aes.support.v1.ResourceRef
-	6,  // 17: aes.support.v1.CreateTicketResponse.ticket:type_name -> aes.support.v1.Ticket
-	7,  // 18: aes.support.v1.CreateTicketResponse.initial_message:type_name -> aes.support.v1.TicketMessage
-	0,  // 19: aes.support.v1.ListTicketsRequest.status_filter:type_name -> aes.support.v1.TicketStatus
-	6,  // 20: aes.support.v1.ListTicketsResponse.tickets:type_name -> aes.support.v1.Ticket
-	6,  // 21: aes.support.v1.GetTicketResponse.ticket:type_name -> aes.support.v1.Ticket
-	7,  // 22: aes.support.v1.GetTicketResponse.messages:type_name -> aes.support.v1.TicketMessage
-	7,  // 23: aes.support.v1.ReplyTicketResponse.message:type_name -> aes.support.v1.TicketMessage
-	6,  // 24: aes.support.v1.ReplyTicketResponse.ticket:type_name -> aes.support.v1.Ticket
-	18, // 25: aes.support.v1.CloseTicketRequest.expected_updated_at:type_name -> google.protobuf.Timestamp
-	6,  // 26: aes.support.v1.CloseTicketResponse.ticket:type_name -> aes.support.v1.Ticket
-	8,  // 27: aes.support.v1.SupportService.CreateTicket:input_type -> aes.support.v1.CreateTicketRequest
-	10, // 28: aes.support.v1.SupportService.ListTickets:input_type -> aes.support.v1.ListTicketsRequest
-	12, // 29: aes.support.v1.SupportService.GetTicket:input_type -> aes.support.v1.GetTicketRequest
-	14, // 30: aes.support.v1.SupportService.ReplyTicket:input_type -> aes.support.v1.ReplyTicketRequest
-	16, // 31: aes.support.v1.SupportService.CloseTicket:input_type -> aes.support.v1.CloseTicketRequest
-	9,  // 32: aes.support.v1.SupportService.CreateTicket:output_type -> aes.support.v1.CreateTicketResponse
-	11, // 33: aes.support.v1.SupportService.ListTickets:output_type -> aes.support.v1.ListTicketsResponse
-	13, // 34: aes.support.v1.SupportService.GetTicket:output_type -> aes.support.v1.GetTicketResponse
-	15, // 35: aes.support.v1.SupportService.ReplyTicket:output_type -> aes.support.v1.ReplyTicketResponse
-	17, // 36: aes.support.v1.SupportService.CloseTicket:output_type -> aes.support.v1.CloseTicketResponse
-	32, // [32:37] is the sub-list for method output_type
-	27, // [27:32] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	9,  // 17: aes.support.v1.CreateTicketRequest.error_reference:type_name -> aes.support.v1.ErrorReference
+	19, // 18: aes.support.v1.ErrorReference.occurred_at:type_name -> google.protobuf.Timestamp
+	6,  // 19: aes.support.v1.CreateTicketResponse.ticket:type_name -> aes.support.v1.Ticket
+	7,  // 20: aes.support.v1.CreateTicketResponse.initial_message:type_name -> aes.support.v1.TicketMessage
+	0,  // 21: aes.support.v1.ListTicketsRequest.status_filter:type_name -> aes.support.v1.TicketStatus
+	6,  // 22: aes.support.v1.ListTicketsResponse.tickets:type_name -> aes.support.v1.Ticket
+	6,  // 23: aes.support.v1.GetTicketResponse.ticket:type_name -> aes.support.v1.Ticket
+	7,  // 24: aes.support.v1.GetTicketResponse.messages:type_name -> aes.support.v1.TicketMessage
+	7,  // 25: aes.support.v1.ReplyTicketResponse.message:type_name -> aes.support.v1.TicketMessage
+	6,  // 26: aes.support.v1.ReplyTicketResponse.ticket:type_name -> aes.support.v1.Ticket
+	19, // 27: aes.support.v1.CloseTicketRequest.expected_updated_at:type_name -> google.protobuf.Timestamp
+	6,  // 28: aes.support.v1.CloseTicketResponse.ticket:type_name -> aes.support.v1.Ticket
+	8,  // 29: aes.support.v1.SupportService.CreateTicket:input_type -> aes.support.v1.CreateTicketRequest
+	11, // 30: aes.support.v1.SupportService.ListTickets:input_type -> aes.support.v1.ListTicketsRequest
+	13, // 31: aes.support.v1.SupportService.GetTicket:input_type -> aes.support.v1.GetTicketRequest
+	15, // 32: aes.support.v1.SupportService.ReplyTicket:input_type -> aes.support.v1.ReplyTicketRequest
+	17, // 33: aes.support.v1.SupportService.CloseTicket:input_type -> aes.support.v1.CloseTicketRequest
+	10, // 34: aes.support.v1.SupportService.CreateTicket:output_type -> aes.support.v1.CreateTicketResponse
+	12, // 35: aes.support.v1.SupportService.ListTickets:output_type -> aes.support.v1.ListTicketsResponse
+	14, // 36: aes.support.v1.SupportService.GetTicket:output_type -> aes.support.v1.GetTicketResponse
+	16, // 37: aes.support.v1.SupportService.ReplyTicket:output_type -> aes.support.v1.ReplyTicketResponse
+	18, // 38: aes.support.v1.SupportService.CloseTicket:output_type -> aes.support.v1.CloseTicketResponse
+	34, // [34:39] is the sub-list for method output_type
+	29, // [29:34] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_aes_support_v1_support_proto_init() }
@@ -1482,7 +1585,7 @@ func file_aes_support_v1_support_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_support_v1_support_proto_rawDesc), len(file_aes_support_v1_support_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   13,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

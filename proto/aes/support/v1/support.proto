@@ -138,6 +138,23 @@ message CreateTicketRequest {
   TicketPriority priority = 5;
   repeated ResourceRef resource_refs = 6;
   string request_id = 7;
+  // Optional. The error the customer was looking at when they opened the
+  // ticket. Visible to support staff only.
+  ErrorReference error_reference = 8;
+}
+
+// ErrorReference identifies an error a customer hit, so support can find it.
+message ErrorReference {
+  // The request_id from the error's details.
+  string error_request_id = 1;
+  // The error's reason code.
+  string reason = 2;
+  // The API method that failed, for example
+  // `/aes.compute.v1.ComputeService/CreateVirtualMachine`.
+  string procedure = 3;
+  google.protobuf.Timestamp occurred_at = 4;
+  // The failed operation, when the error came from one.
+  string operation_name = 5;
 }
 
 message CreateTicketResponse {

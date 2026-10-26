@@ -166,6 +166,9 @@ message CreateOperationRequest {
   string vm_backup_name = 61;
   // Internal provisioning opt-in; admitted by ComputeService.
   bool vm_install_guest_collector = 62;
+  // Existing reservation selection captured in the durable VM create command.
+  string vm_public_ip_name = 63;
+  int64 vm_expected_public_ip_generation = 64;
 }
 
 message CreateOperationResponse {
@@ -227,7 +230,7 @@ message Operation {
   State state = 2;
   int64 create_time_unix = 3;
   int64 update_time_unix = 4;
-  // Set when state == STATE_FAILED; optional detail later via google.rpc.Status.
+  // Customer-safe explanation, set when the operation failed or was cancelled.
   string error_message = 5;
   // Same as CreateOperationRequest.kind; immutable after create.
   string kind = 6;
@@ -238,4 +241,9 @@ message Operation {
   map<string, string> metadata = 9;
   // Caller principal that started the operation ('' for platform-started ops).
   string principal = 10;
+  // Stable machine-readable reason for a failed or cancelled operation, for
+  // example CAPACITY_UNAVAILABLE. Empty otherwise.
+  string failure_reason = 11;
+  // Operator diagnostic detail. Always empty for customer callers.
+  string internal_error = 12;
 }

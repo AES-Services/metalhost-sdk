@@ -1525,8 +1525,12 @@ paths:
         - aes.compute.v1.ComputeService
       summary: |-
         ReimageVirtualMachine wipes the OS disk and reinstalls from a (potentially new) image.
+         The returned operation cannot be cancelled or force-retried through generic
+         operation controls. The original workflow retries interrupted disk cutover.
          The VM must be STOPPED — refuses on RUNNING to avoid surprising the customer.
          Networks, public IPs, and firewall rules survive — only the disk is replaced.
+         Requires an Idempotency-Key header. Returns a durable operation; the VM stays
+         stopped after completion. A replacement disk temporarily consumes storage quota.
       description: |-
         Use cases: customer wants to start from a clean slate without recreating the VM (preserves
          resource name, networks, IPs, ssh keys), or wants to upgrade the base image (Ubuntu 24.04
@@ -5186,6 +5190,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.monitoring.v1.SetEnhancedMonitoringPausedResponse'
+  /aes.network.v1.NetworkService/AddVmIpv4Alias:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: AddVmIpv4Alias
+      description: |-
+        Allocates another private IPv4 source on the primary interface. Delivery to
+         the guest is asynchronous; this does not allocate or attach a public IP.
+      operationId: aes.network.v1.NetworkService.AddVmIpv4Alias
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.AddVmIpv4AliasRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.AddVmIpv4AliasResponse'
   /aes.network.v1.NetworkService/AddVmToSecurityGroup:
     post:
       tags:
@@ -5222,14 +5264,93 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.AddVmToSecurityGroupResponse'
+  /aes.network.v1.NetworkService/AttachPublicIp:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: AttachPublicIp
+      description: |-
+        Attaches to an already assigned private IPv4. The first public attachment
+         also selects that address as the desired default outbound source; additional
+         attachments preserve the selection. Wait for the returned operation before
+         treating the mapping or guest source change as applied.
+      operationId: aes.network.v1.NetworkService.AttachPublicIp
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.AttachPublicIpRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.AttachPublicIpResponse'
+  /aes.network.v1.NetworkService/AttachVpcSubnet:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: AttachVpcSubnet
+      description: |-
+        Enables an existing subnet in a location using platform-managed settings.
+         Wait for the operation before publishing a Network in that location.
+         Does not promise connectivity between locations or change guest settings.
+      operationId: aes.network.v1.NetworkService.AttachVpcSubnet
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.AttachVpcSubnetRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.AttachVpcSubnetResponse'
   /aes.network.v1.NetworkService/CreateFirewallRule:
     post:
       tags:
         - aes.network.v1.NetworkService
       summary: CreateFirewallRule
       description: |-
-        CreateFirewallRule opens the listed ingress ports on the VM's public IP from the listed
-         source CIDRs. Egress is unrestricted (blocking it breaks cloud-init / package installs / DNS).
+        CreateFirewallRule saves inbound/outbound Internet policy or explicit IPv4
+         port forwarding. VM Internet switches remain separate from firewall rules.
       operationId: aes.network.v1.NetworkService.CreateFirewallRule
       parameters:
         - name: Connect-Protocol-Version
@@ -5260,6 +5381,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.CreateFirewallRuleResponse'
+  /aes.network.v1.NetworkService/CreateLoadBalancer:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: CreateLoadBalancer
+      description: |-
+        Regional TCP load balancers preserve the external client's network-layer
+         source IP. A backend reaching its own load balancer is the documented
+         self-hairpin exception and may observe a platform source address.
+      operationId: aes.network.v1.NetworkService.CreateLoadBalancer
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.CreateLoadBalancerRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.CreateLoadBalancerResponse'
   /aes.network.v1.NetworkService/CreateNetwork:
     post:
       tags:
@@ -5335,6 +5495,82 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.CreateSecurityGroupResponse'
+  /aes.network.v1.NetworkService/CreateVpc:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: CreateVpc
+      description: |-
+        Creates a durable definition without enrolling a datacenter or configuring
+         forwarding. Retry uncertain results with the same request_id.
+      operationId: aes.network.v1.NetworkService.CreateVpc
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.CreateVpcRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.CreateVpcResponse'
+  /aes.network.v1.NetworkService/CreateVpcSubnet:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: CreateVpcSubnet
+      description: |-
+        Reserves private IPv4 space. Datacenter attachment and VM eligibility are
+         separate; successful definition creation does not imply connectivity.
+      operationId: aes.network.v1.NetworkService.CreateVpcSubnet
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.CreateVpcSubnetRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.CreateVpcSubnetResponse'
   /aes.network.v1.NetworkService/DeleteFirewallRule:
     post:
       tags:
@@ -5370,6 +5606,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.DeleteFirewallRuleResponse'
+  /aes.network.v1.NetworkService/DeleteLoadBalancer:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: DeleteLoadBalancer
+      operationId: aes.network.v1.NetworkService.DeleteLoadBalancer
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.DeleteLoadBalancerRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.DeleteLoadBalancerResponse'
   /aes.network.v1.NetworkService/DeleteSecurityGroup:
     post:
       tags:
@@ -5405,6 +5676,227 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.DeleteSecurityGroupResponse'
+  /aes.network.v1.NetworkService/DeleteVpc:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: DeleteVpc
+      description: |-
+        Deletes an empty definition after its datacenter attachments have retired.
+         Historical identities and audit records are retained. Delete subnets before their VPC.
+      operationId: aes.network.v1.NetworkService.DeleteVpc
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.DeleteVpcRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.DeleteVpcResponse'
+  /aes.network.v1.NetworkService/DeleteVpcSubnet:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: DeleteVpcSubnet
+      operationId: aes.network.v1.NetworkService.DeleteVpcSubnet
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.DeleteVpcSubnetRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.DeleteVpcSubnetResponse'
+  /aes.network.v1.NetworkService/DetachPublicIp:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: DetachPublicIp
+      description: Retains the reservation. It cannot be reattached until teardown is verified.
+      operationId: aes.network.v1.NetworkService.DetachPublicIp
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.DetachPublicIpRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.DetachPublicIpResponse'
+  /aes.network.v1.NetworkService/DetachVpcDatacenter:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: DetachVpcDatacenter
+      description: |-
+        Detaches all unused subnets of a VPC from one location. Retained VMs,
+         disks, addresses, load balancers or shares must finish cleanup first.
+         Other locations and the VPC/subnet definitions are preserved.
+      operationId: aes.network.v1.NetworkService.DetachVpcDatacenter
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.DetachVpcDatacenterRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.DetachVpcDatacenterResponse'
+  /aes.network.v1.NetworkService/GetLoadBalancer:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: GetLoadBalancer
+      operationId: aes.network.v1.NetworkService.GetLoadBalancer
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.GetLoadBalancerRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.GetLoadBalancerResponse'
+  /aes.network.v1.NetworkService/GetPublicIp:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: GetPublicIp
+      description: |-
+        Reserved public addresses remain in their allocating datacenter. Attachment
+         changes are asynchronous; acceptance alone does not establish forwarding.
+      operationId: aes.network.v1.NetworkService.GetPublicIp
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.GetPublicIpRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.GetPublicIpResponse'
   /aes.network.v1.NetworkService/GetSecurityGroup:
     post:
       tags:
@@ -5440,6 +5932,150 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.GetSecurityGroupResponse'
+  /aes.network.v1.NetworkService/GetVmInternetPolicy:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: GetVmInternetPolicy
+      description: |-
+        Internet controls for VMs using private IPv4 with public address mappings.
+         These settings do not release addresses or override firewall restrictions.
+      operationId: aes.network.v1.NetworkService.GetVmInternetPolicy
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.GetVmInternetPolicyRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.GetVmInternetPolicyResponse'
+  /aes.network.v1.NetworkService/GetVmNetworkInterfaces:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: GetVmNetworkInterfaces
+      description: Returns desired addresses and separate network/guest observation revisions.
+      operationId: aes.network.v1.NetworkService.GetVmNetworkInterfaces
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.GetVmNetworkInterfacesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.GetVmNetworkInterfacesResponse'
+  /aes.network.v1.NetworkService/GetVpc:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: GetVpc
+      operationId: aes.network.v1.NetworkService.GetVpc
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.GetVpcRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.GetVpcResponse'
+  /aes.network.v1.NetworkService/GetVpcSubnet:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: GetVpcSubnet
+      operationId: aes.network.v1.NetworkService.GetVpcSubnet
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.GetVpcSubnetRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.GetVpcSubnetResponse'
   /aes.network.v1.NetworkService/ListFirewallRules:
     post:
       tags:
@@ -5475,6 +6111,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.ListFirewallRulesResponse'
+  /aes.network.v1.NetworkService/ListLoadBalancers:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: ListLoadBalancers
+      operationId: aes.network.v1.NetworkService.ListLoadBalancers
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.ListLoadBalancersRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.ListLoadBalancersResponse'
   /aes.network.v1.NetworkService/ListNetworks:
     post:
       tags:
@@ -5510,6 +6181,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.ListNetworksResponse'
+  /aes.network.v1.NetworkService/ListPublicIps:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: ListPublicIps
+      description: |-
+        Lists active reservations and legacy VM addresses, including detached ones.
+         Managed load balancer addresses are returned by ListLoadBalancers instead.
+      operationId: aes.network.v1.NetworkService.ListPublicIps
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.ListPublicIpsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.ListPublicIpsResponse'
   /aes.network.v1.NetworkService/ListSecurityGroups:
     post:
       tags:
@@ -5545,6 +6254,118 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.ListSecurityGroupsResponse'
+  /aes.network.v1.NetworkService/ListVpcSubnets:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: ListVpcSubnets
+      operationId: aes.network.v1.NetworkService.ListVpcSubnets
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.ListVpcSubnetsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.ListVpcSubnetsResponse'
+  /aes.network.v1.NetworkService/ListVpcs:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: ListVpcs
+      description: |-
+        Private-network topology is distinct from the retained legacy Network
+         resource. These reads do not enroll a DC or assert forwarding readiness.
+      operationId: aes.network.v1.NetworkService.ListVpcs
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.ListVpcsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.ListVpcsResponse'
+  /aes.network.v1.NetworkService/ReleasePublicIp:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: ReleasePublicIp
+      description: |-
+        Permanently releases a detached reservation and stops its allocation billing.
+         A prior attachment must have completed verified teardown. Release cannot be
+         undone; the address may immediately be allocated to another customer.
+      operationId: aes.network.v1.NetworkService.ReleasePublicIp
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.ReleasePublicIpRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.ReleasePublicIpResponse'
   /aes.network.v1.NetworkService/RemoveVmFromSecurityGroup:
     post:
       tags:
@@ -5580,6 +6401,154 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.RemoveVmFromSecurityGroupResponse'
+  /aes.network.v1.NetworkService/RemoveVmIpv4Alias:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: RemoveVmIpv4Alias
+      description: |-
+        Removes an unused platform-managed alias. Acceptance is not proof of cleanup
+         or address availability; dependencies must be removed first.
+      operationId: aes.network.v1.NetworkService.RemoveVmIpv4Alias
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.RemoveVmIpv4AliasRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.RemoveVmIpv4AliasResponse'
+  /aes.network.v1.NetworkService/ReservePublicIp:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: ReservePublicIp
+      description: Reserves a billable, detached address. This does not install forwarding.
+      operationId: aes.network.v1.NetworkService.ReservePublicIp
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.ReservePublicIpRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.ReservePublicIpResponse'
+  /aes.network.v1.NetworkService/SetVmDefaultPublicIp:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: SetVmDefaultPublicIp
+      description: |-
+        Explicitly selects an attached public IPv4 for new outbound connections.
+         Other mappings and internet controls remain unchanged. Existing connections
+         and external allowlists may be affected; wait for the returned operation.
+      operationId: aes.network.v1.NetworkService.SetVmDefaultPublicIp
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.SetVmDefaultPublicIpRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.SetVmDefaultPublicIpResponse'
+  /aes.network.v1.NetworkService/UpdateLoadBalancer:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: UpdateLoadBalancer
+      operationId: aes.network.v1.NetworkService.UpdateLoadBalancer
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.UpdateLoadBalancerRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.UpdateLoadBalancerResponse'
   /aes.network.v1.NetworkService/UpdateSecurityGroup:
     post:
       tags:
@@ -5615,6 +6584,115 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.network.v1.UpdateSecurityGroupResponse'
+  /aes.network.v1.NetworkService/UpdateVmInternetPolicy:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: UpdateVmInternetPolicy
+      description: |-
+        Accepts an asynchronous change. A response is not proof of enforcement;
+         wait for the returned operation and check observed_generation.
+      operationId: aes.network.v1.NetworkService.UpdateVmInternetPolicy
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.UpdateVmInternetPolicyRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.UpdateVmInternetPolicyResponse'
+  /aes.network.v1.NetworkService/UpdateVpc:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: UpdateVpc
+      description: Updates display metadata only; address ranges and resolver choices are immutable.
+      operationId: aes.network.v1.NetworkService.UpdateVpc
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.UpdateVpcRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.UpdateVpcResponse'
+  /aes.network.v1.NetworkService/UpdateVpcSubnet:
+    post:
+      tags:
+        - aes.network.v1.NetworkService
+      summary: UpdateVpcSubnet
+      operationId: aes.network.v1.NetworkService.UpdateVpcSubnet
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.network.v1.UpdateVpcSubnetRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.network.v1.UpdateVpcSubnetResponse'
   /aes.ops.v1.OperationsService/GetOperation:
     post:
       tags:
@@ -6705,6 +7783,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/aes.storage.v1.GetDiskResponse'
+  /aes.storage.v1.StorageService/GetFileShare:
+    post:
+      tags:
+        - aes.storage.v1.StorageService
+      summary: GetFileShare
+      operationId: aes.storage.v1.StorageService.GetFileShare
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/aes.storage.v1.GetFileShareRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aes.storage.v1.GetFileShareResponse'
   /aes.storage.v1.StorageService/GetSnapshot:
     post:
       tags:
@@ -11028,9 +12141,8 @@ components:
           type: string
           title: boot_image_url
           description: |-
-            Required: streamable raw disk image URL. Setting this is the canonical way to upgrade
-             the base OS (Ubuntu 24.04 → 26.04) without recreating the VM. Empty = reuse the original
-             boot source.
+            Streamable raw disk image URL. Empty reuses the recorded original import source;
+             disks without a recorded image source require an explicit URL.
         confirmationToken:
           type: string
           title: confirmation_token
@@ -11047,6 +12159,10 @@ components:
         virtualMachine:
           title: virtual_machine
           $ref: '#/components/schemas/aes.compute.v1.VirtualMachine'
+        operation:
+          title: operation
+          description: Poll until terminal. The VM remains stopped; only its boot disk is replaced.
+          $ref: '#/components/schemas/aes.ops.v1.Operation'
       title: ReimageVirtualMachineResponse
       additionalProperties: false
     aes.compute.v1.RenewVMNowRequest:
@@ -11457,6 +12573,23 @@ components:
             private_only attaches NO public NIC at all — no public IPv4, no public IPv6, no inbound
              internet surface. The VM still has outbound internet via the private NIC's NAT. Default
              false: every VM gets a public NIC with a free IPv6 GUA. Use for air-gapped-ish workloads.
+        publicIpName:
+          type: string
+          title: public_ip_name
+          description: |-
+            Existing detached public IPv4 reservation in this project and region.
+             Mutually exclusive with public_ipv4 and private_only. The VM provisioning
+             operation binds it to the primary private address before first boot; it
+             does not allocate or charge for an additional IP. The reservation remains
+             separately billed. Concurrent changes can fail provisioning rather than
+             stealing an address. Requires network.write for automation callers.
+        expectedPublicIpGeneration:
+          type:
+            - integer
+            - string
+          title: expected_public_ip_generation
+          format: int64
+          description: Required current reservation generation when public_ip_name is supplied.
       title: VMNetworkSpec
       additionalProperties: false
     aes.compute.v1.VMUtilization:
@@ -11728,6 +12861,14 @@ components:
              current_cost_per_hour_minor_decimal reads "0" during the term (the shape is prepaid);
              this field lets burn-rate and balance projections still account for the commitment.
              Empty for hourly-billed VMs.
+        networkModel:
+          type: string
+          title: network_model
+          description: |-
+            Persisted networking model (output only): LEGACY_DIRECT or PRIVATE_NAT.
+             PRIVATE_NAT uses private interfaces and separately managed public address mappings.
+             An empty or unrecognized value means unknown; clients must not infer the model
+             from address presence or use it to select a mutating network workflow.
       title: VirtualMachine
       additionalProperties: false
     aes.compute.v1.VirtualMachine.AnnotationsEntry:
@@ -12001,6 +13142,39 @@ components:
           title: value
       title: LabelsEntry
       additionalProperties: false
+    aes.errors.v1.ErrorReason:
+      type: string
+      title: ErrorReason
+      enum:
+        - ERROR_REASON_UNSPECIFIED
+        - ERROR_REASON_INVALID_ARGUMENT
+        - ERROR_REASON_UNAUTHENTICATED
+        - ERROR_REASON_PERMISSION_DENIED
+        - ERROR_REASON_RESOURCE_NOT_FOUND
+        - ERROR_REASON_ALREADY_EXISTS
+        - ERROR_REASON_PRECONDITION_FAILED
+        - ERROR_REASON_CONFLICT
+        - ERROR_REASON_RESOURCE_EXHAUSTED
+        - ERROR_REASON_UNAVAILABLE
+        - ERROR_REASON_NOT_IMPLEMENTED
+        - ERROR_REASON_CANCELED
+        - ERROR_REASON_DEADLINE_EXCEEDED
+        - ERROR_REASON_INTERNAL
+        - ERROR_REASON_RESOURCE_BUSY
+        - ERROR_REASON_BILLING_INSUFFICIENT_BALANCE
+        - ERROR_REASON_BILLING_SUSPENDED
+        - ERROR_REASON_BILLING_NOT_CONFIGURED
+        - ERROR_REASON_ACCOUNT_SUSPENDED
+        - ERROR_REASON_QUOTA_EXCEEDED
+        - ERROR_REASON_TRUST_TIER_LIMIT
+        - ERROR_REASON_CAPACITY_UNAVAILABLE
+        - ERROR_REASON_DATACENTER_UNREACHABLE
+        - ERROR_REASON_RATE_LIMITED
+      description: |-
+        ErrorReason is the `reason` of the `google.rpc.ErrorInfo` detail on every
+         API error (domain `metalhost.net`). ErrorInfo carries the name without the
+         `ERROR_REASON_` prefix, for example `QUOTA_EXCEEDED`. The ErrorInfo
+         metadata `request_id` identifies the request for support.
     aes.health.v1.CheckRequest:
       type: object
       title: CheckRequest
@@ -15899,6 +17073,44 @@ components:
       type: object
       title: VerifyAlertDestinationResponse
       additionalProperties: false
+    aes.network.v1.AddVmIpv4AliasRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        targetVm:
+          type: string
+          title: target_vm
+        interfaceId:
+          type: string
+          title: interface_id
+        expectedGeneration:
+          type:
+            - integer
+            - string
+          title: expected_generation
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+      title: AddVmIpv4AliasRequest
+      additionalProperties: false
+    aes.network.v1.AddVmIpv4AliasResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+        privateIpv4:
+          type: string
+          title: private_ipv4
+          description: Reserved address; not proof of guest delivery or usable connectivity.
+        leaseId:
+          type: string
+          title: lease_id
+      title: AddVmIpv4AliasResponse
+      additionalProperties: false
     aes.network.v1.AddVmToSecurityGroupRequest:
       type: object
       properties:
@@ -15908,6 +17120,10 @@ components:
         vm:
           type: string
           title: vm
+        requestId:
+          type: string
+          title: request_id
+          description: Required for private-network policy changes. Reuse the UUID on retries.
       title: AddVmToSecurityGroupRequest
       additionalProperties: false
     aes.network.v1.AddVmToSecurityGroupResponse:
@@ -15916,7 +17132,65 @@ components:
         securityGroup:
           title: security_group
           $ref: '#/components/schemas/aes.network.v1.SecurityGroup'
+        operationName:
+          type: string
+          title: operation_name
       title: AddVmToSecurityGroupResponse
+      additionalProperties: false
+    aes.network.v1.AttachPublicIpRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        targetVm:
+          type: string
+          title: target_vm
+        privateIpv4:
+          type: string
+          title: private_ipv4
+        expectedGeneration:
+          type:
+            - integer
+            - string
+          title: expected_generation
+          format: int64
+          description: Current reservation generation returned by GetPublicIp.
+        requestId:
+          type: string
+          title: request_id
+      title: AttachPublicIpRequest
+      additionalProperties: false
+    aes.network.v1.AttachPublicIpResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+      title: AttachPublicIpResponse
+      additionalProperties: false
+    aes.network.v1.AttachVpcSubnetRequest:
+      type: object
+      properties:
+        subnetName:
+          type: string
+          title: subnet_name
+        datacenterName:
+          type: string
+          title: datacenter_name
+        requestId:
+          type: string
+          title: request_id
+          description: Required UUID; use unchanged input and the same ID after uncertain results.
+      title: AttachVpcSubnetRequest
+      additionalProperties: false
+    aes.network.v1.AttachVpcSubnetResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+      title: AttachVpcSubnetResponse
       additionalProperties: false
     aes.network.v1.CreateFirewallRuleRequest:
       type: object
@@ -15963,6 +17237,36 @@ components:
           items:
             type: string
           title: destinations
+        requestId:
+          type: string
+          title: request_id
+          description: |-
+            Required UUID for private-network VMs. Retry uncertain outcomes with the
+             same ID and identical input. Legacy direct-public VMs remain synchronous.
+        ipFamily:
+          type: string
+          title: ip_family
+        action:
+          type: string
+          title: action
+        priority:
+          type: integer
+          title: priority
+          format: int32
+        sourcePort:
+          type: integer
+          title: source_port
+          format: int32
+        sourceEndPort:
+          type: integer
+          title: source_end_port
+          format: int32
+        forwardingPublicIp:
+          type: string
+          title: forwarding_public_ip
+          description: |-
+            Optional: an already attached public IPv4 on this VM. Ports then define
+             explicit public-port to VM-target-port forwarding; separate from filtering.
       title: CreateFirewallRuleRequest
       additionalProperties: false
     aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry:
@@ -15993,7 +17297,61 @@ components:
         rule:
           title: rule
           $ref: '#/components/schemas/aes.network.v1.FirewallRule'
+        operationName:
+          type: string
+          title: operation_name
+          description: |-
+            Nonempty for an asynchronous private-network policy change. Acceptance is
+             not enforcement; poll this operation before treating the rule as applied.
       title: CreateFirewallRuleResponse
+      additionalProperties: false
+    aes.network.v1.CreateLoadBalancerRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        networkName:
+          type: string
+          title: network_name
+          description: |-
+            Existing Metalhost network in the same project and datacenter. It selects
+             the immutable VPC/home-DC scope; customers do not supply an internal UUID.
+        datacenterName:
+          type: string
+          title: datacenter_name
+        displayName:
+          type: string
+          title: display_name
+        listeners:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.LoadBalancerListener'
+          title: listeners
+        backendInterfaceIds:
+          type: array
+          items:
+            type: string
+          title: backend_interface_ids
+        drainTimeoutSeconds:
+          type: integer
+          title: drain_timeout_seconds
+          format: int32
+        requestId:
+          type: string
+          title: request_id
+      title: CreateLoadBalancerRequest
+      additionalProperties: false
+    aes.network.v1.CreateLoadBalancerResponse:
+      type: object
+      properties:
+        loadBalancer:
+          title: load_balancer
+          $ref: '#/components/schemas/aes.network.v1.LoadBalancer'
+        operationName:
+          type: string
+          title: operation_name
+      title: CreateLoadBalancerResponse
       additionalProperties: false
     aes.network.v1.CreateNetworkRequest:
       type: object
@@ -16039,6 +17397,21 @@ components:
           additionalProperties:
             type: string
             title: value
+        subnetName:
+          type: string
+          title: subnet_name
+          description: |-
+            Optional existing private subnet resource, belonging to project_name.
+             Creates a regional Network for this subnet only after the location is
+             configured and ready. Requires request_id. Cannot be combined with
+             network_id, subnet_cidr_v4 or ip_range_start/end; those are legacy inputs.
+             Omitting this field retains legacy network creation behavior.
+        requestId:
+          type: string
+          title: request_id
+          description: |-
+            Required UUID for retry-safe creation when subnet_name is provided. Retry
+             unchanged input with the same ID after an uncertain outcome.
       title: CreateNetworkRequest
       additionalProperties: false
     aes.network.v1.CreateNetworkRequest.AnnotationsEntry:
@@ -16069,6 +17442,12 @@ components:
         network:
           title: network
           $ref: '#/components/schemas/aes.network.v1.Network'
+        operationName:
+          type: string
+          title: operation_name
+          description: |-
+            Set for private-subnet publication. Completion confirms publication of
+             already-observed topology, not a new forwarding or connectivity test.
       title: CreateNetworkResponse
       additionalProperties: false
     aes.network.v1.CreateSecurityGroupRequest:
@@ -16132,17 +17511,119 @@ components:
           $ref: '#/components/schemas/aes.network.v1.SecurityGroup'
       title: CreateSecurityGroupResponse
       additionalProperties: false
+    aes.network.v1.CreateVpcRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        displayName:
+          type: string
+          title: display_name
+        requestId:
+          type: string
+          title: request_id
+      title: CreateVpcRequest
+      additionalProperties: false
+    aes.network.v1.CreateVpcResponse:
+      type: object
+      properties:
+        vpc:
+          title: vpc
+          $ref: '#/components/schemas/aes.network.v1.Vpc'
+        operationName:
+          type: string
+          title: operation_name
+          description: Completed definition creation only, not deployment or forwarding readiness.
+      title: CreateVpcResponse
+      additionalProperties: false
+    aes.network.v1.CreateVpcSubnetRequest:
+      type: object
+      properties:
+        vpcName:
+          type: string
+          title: vpc_name
+        displayName:
+          type: string
+          title: display_name
+        ipv4Range:
+          type: string
+          title: ipv4_range
+          description: |-
+            Canonical RFC1918 CIDR. Overlap within this VPC is rejected; overlap with
+             a different VPC is allowed. VM public IPv6 prefixes are allocated separately.
+        requestId:
+          type: string
+          title: request_id
+        customDnsIpv4:
+          type: array
+          items:
+            type: string
+          title: custom_dns_ipv4
+          description: |-
+            Up to three unique IPv4 resolver addresses, in preference order. Empty
+             selects private DNS. Set at subnet creation; existing guests are not edited.
+             A custom resolver must serve private names itself if those are needed.
+      title: CreateVpcSubnetRequest
+      additionalProperties: false
+    aes.network.v1.CreateVpcSubnetResponse:
+      type: object
+      properties:
+        subnet:
+          title: subnet
+          $ref: '#/components/schemas/aes.network.v1.VpcSubnet'
+        operationName:
+          type: string
+          title: operation_name
+      title: CreateVpcSubnetResponse
+      additionalProperties: false
     aes.network.v1.DeleteFirewallRuleRequest:
       type: object
       properties:
         name:
           type: string
           title: name
+        requestId:
+          type: string
+          title: request_id
+          description: Required UUID for private-network VMs; reuse on retries.
       title: DeleteFirewallRuleRequest
       additionalProperties: false
     aes.network.v1.DeleteFirewallRuleResponse:
       type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+          description: |-
+            Nonempty for asynchronous withdrawal. Acceptance alone does not confirm
+             that traffic, including established sessions, has been blocked.
       title: DeleteFirewallRuleResponse
+      additionalProperties: false
+    aes.network.v1.DeleteLoadBalancerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        expectedGeneration:
+          type:
+            - integer
+            - string
+          title: expected_generation
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+      title: DeleteLoadBalancerRequest
+      additionalProperties: false
+    aes.network.v1.DeleteLoadBalancerResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+      title: DeleteLoadBalancerResponse
       additionalProperties: false
     aes.network.v1.DeleteSecurityGroupRequest:
       type: object
@@ -16155,6 +17636,140 @@ components:
     aes.network.v1.DeleteSecurityGroupResponse:
       type: object
       title: DeleteSecurityGroupResponse
+      additionalProperties: false
+    aes.network.v1.DeleteVpcRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+      title: DeleteVpcRequest
+      additionalProperties: false
+    aes.network.v1.DeleteVpcResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+      title: DeleteVpcResponse
+      additionalProperties: false
+    aes.network.v1.DeleteVpcSubnetRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+      title: DeleteVpcSubnetRequest
+      additionalProperties: false
+    aes.network.v1.DeleteVpcSubnetResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+      title: DeleteVpcSubnetResponse
+      additionalProperties: false
+    aes.network.v1.DetachPublicIpRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        bindingId:
+          type: string
+          title: binding_id
+        expectedGeneration:
+          type:
+            - integer
+            - string
+          title: expected_generation
+          format: int64
+          description: Current binding generation, not the reservation generation.
+        requestId:
+          type: string
+          title: request_id
+        replacementDefaultPublicIpName:
+          type: string
+          title: replacement_default_public_ip_name
+          description: |-
+            Required when removing the default while other public IPv4s remain.
+             Selects another attached address atomically with this detach request.
+        expectedInterfaceGeneration:
+          type:
+            - integer
+            - string
+          title: expected_interface_generation
+          format: int64
+        expectedReplacementBindingGeneration:
+          type:
+            - integer
+            - string
+          title: expected_replacement_binding_generation
+          format: int64
+      title: DetachPublicIpRequest
+      additionalProperties: false
+    aes.network.v1.DetachPublicIpResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+      title: DetachPublicIpResponse
+      additionalProperties: false
+    aes.network.v1.DetachVpcDatacenterRequest:
+      type: object
+      properties:
+        vpcName:
+          type: string
+          title: vpc_name
+        datacenterName:
+          type: string
+          title: datacenter_name
+        expectedGeneration:
+          type:
+            - integer
+            - string
+          title: expected_generation
+          format: int64
+          description: Required current generation from GetVpc's matching location membership.
+        requestId:
+          type: string
+          title: request_id
+          description: Required UUID; retry uncertain results with identical input and this ID.
+        withdrawUnusedNetworks:
+          type: boolean
+          title: withdraw_unused_networks
+          description: |-
+            Explicitly remove unused Network selectors in this location as part of
+             detachment. This never removes a VM, disk or legacy-network mapping.
+      title: DetachVpcDatacenterRequest
+      additionalProperties: false
+    aes.network.v1.DetachVpcDatacenterResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+          description: Pending until the location controller verifies topology removal.
+      title: DetachVpcDatacenterResponse
       additionalProperties: false
     aes.network.v1.FirewallRule:
       type: object
@@ -16191,8 +17806,8 @@ components:
             type: string
           title: sources
           description: |-
-            Source CIDRs allowed to reach the listed ports (e.g. ["0.0.0.0/0"], ["10.0.0.0/8"]).
-             Empty list = allow from anywhere. Ingress only.
+            Up to 32 source CIDRs matched by an ingress rule. Empty matches any
+             source in the selected IP family; the action determines allow/deny.
         createTimeUnix:
           type:
             - integer
@@ -16231,15 +17846,41 @@ components:
           type: boolean
           title: is_default
           description: |-
-            is_default marks the baseline rules seeded automatically when a VM is provisioned with a
-             public IP (SSH/HTTP/HTTPS open to 0.0.0.0/0). Customer-created rules leave it false. UI
-             uses it to render a "default" badge + a stronger delete confirmation.
+            Retained marker for historical seeded rules. PRIVATE_NAT VMs do not
+             automatically open SSH, HTTP, or HTTPS; customer-created rules leave it false.
+        ipFamily:
+          type: string
+          title: ip_family
+          description: Empty preserves legacy family inference; otherwise ipv4, ipv6, or both.
+        action:
+          type: string
+          title: action
+          description: allow (default) or deny. Lower nonzero priorities win; deny wins ties.
+        priority:
+          type: integer
+          title: priority
+          format: int32
+        sourcePort:
+          type: integer
+          title: source_port
+          format: int32
+          description: Optional TCP/UDP client source-port range; zero means any source port.
+        sourceEndPort:
+          type: integer
+          title: source_end_port
+          format: int32
+        forwardingPublicIp:
+          type: string
+          title: forwarding_public_ip
+          description: |-
+            Optional: an already attached public IPv4 on this VM. Ports then define
+             explicit public-port to VM-target-port forwarding; separate from filtering.
       title: FirewallRule
       additionalProperties: false
       description: |-
-        FirewallRule is one allow-list rule for a VM. Multiple rules on the same VM compose
-         additively (the allow sets union). direction='ingress' uses sources + ports as the allow
-         set; direction='egress' uses destinations + ports.
+        FirewallRule filters a VM's Internet traffic. Lower positive priority wins;
+         zero is last, and deny wins equal priority. Ingress uses sources, egress uses
+         destinations. Explicit forwarding maps one attached public IPv4 port to a VM port.
     aes.network.v1.FirewallRule.AnnotationsEntry:
       type: object
       properties:
@@ -16262,6 +17903,38 @@ components:
           title: value
       title: LabelsEntry
       additionalProperties: false
+    aes.network.v1.GetLoadBalancerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: GetLoadBalancerRequest
+      additionalProperties: false
+    aes.network.v1.GetLoadBalancerResponse:
+      type: object
+      properties:
+        loadBalancer:
+          title: load_balancer
+          $ref: '#/components/schemas/aes.network.v1.LoadBalancer'
+      title: GetLoadBalancerResponse
+      additionalProperties: false
+    aes.network.v1.GetPublicIpRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: GetPublicIpRequest
+      additionalProperties: false
+    aes.network.v1.GetPublicIpResponse:
+      type: object
+      properties:
+        publicIp:
+          title: public_ip
+          $ref: '#/components/schemas/aes.network.v1.PublicIp'
+      title: GetPublicIpResponse
+      additionalProperties: false
     aes.network.v1.GetSecurityGroupRequest:
       type: object
       properties:
@@ -16277,6 +17950,78 @@ components:
           title: security_group
           $ref: '#/components/schemas/aes.network.v1.SecurityGroup'
       title: GetSecurityGroupResponse
+      additionalProperties: false
+    aes.network.v1.GetVmInternetPolicyRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        targetVm:
+          type: string
+          title: target_vm
+      title: GetVmInternetPolicyRequest
+      additionalProperties: false
+    aes.network.v1.GetVmInternetPolicyResponse:
+      type: object
+      properties:
+        policy:
+          title: policy
+          $ref: '#/components/schemas/aes.network.v1.VmInternetPolicy'
+      title: GetVmInternetPolicyResponse
+      additionalProperties: false
+    aes.network.v1.GetVmNetworkInterfacesRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        targetVm:
+          type: string
+          title: target_vm
+      title: GetVmNetworkInterfacesRequest
+      additionalProperties: false
+    aes.network.v1.GetVmNetworkInterfacesResponse:
+      type: object
+      properties:
+        interfaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.VmNetworkInterface'
+          title: interfaces
+      title: GetVmNetworkInterfacesResponse
+      additionalProperties: false
+    aes.network.v1.GetVpcRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: GetVpcRequest
+      additionalProperties: false
+    aes.network.v1.GetVpcResponse:
+      type: object
+      properties:
+        vpc:
+          title: vpc
+          $ref: '#/components/schemas/aes.network.v1.Vpc'
+      title: GetVpcResponse
+      additionalProperties: false
+    aes.network.v1.GetVpcSubnetRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: GetVpcSubnetRequest
+      additionalProperties: false
+    aes.network.v1.GetVpcSubnetResponse:
+      type: object
+      properties:
+        subnet:
+          title: subnet
+          $ref: '#/components/schemas/aes.network.v1.VpcSubnet'
+      title: GetVpcSubnetResponse
       additionalProperties: false
     aes.network.v1.ListFirewallRulesRequest:
       type: object
@@ -16310,6 +18055,37 @@ components:
           title: next_page_token
       title: ListFirewallRulesResponse
       additionalProperties: false
+    aes.network.v1.ListLoadBalancersRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        datacenterName:
+          type: string
+          title: datacenter_name
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListLoadBalancersRequest
+      additionalProperties: false
+    aes.network.v1.ListLoadBalancersResponse:
+      type: object
+      properties:
+        loadBalancers:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.LoadBalancer'
+          title: load_balancers
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListLoadBalancersResponse
+      additionalProperties: false
     aes.network.v1.ListNetworksRequest:
       type: object
       properties:
@@ -16339,6 +18115,40 @@ components:
           title: next_page_token
       title: ListNetworksResponse
       additionalProperties: false
+    aes.network.v1.ListPublicIpsRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        datacenterName:
+          type: string
+          title: datacenter_name
+          description: Optional home-datacenter filter; addresses cannot move between datacenters.
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+          description: Opaque cursor; keep project and datacenter filters unchanged between pages.
+      title: ListPublicIpsRequest
+      additionalProperties: false
+    aes.network.v1.ListPublicIpsResponse:
+      type: object
+      properties:
+        publicIps:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.PublicIp'
+          title: public_ips
+          description: Ordered by resource name. Released addresses are excluded.
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListPublicIpsResponse
+      additionalProperties: false
     aes.network.v1.ListSecurityGroupsRequest:
       type: object
       properties:
@@ -16366,6 +18176,213 @@ components:
           type: string
           title: next_page_token
       title: ListSecurityGroupsResponse
+      additionalProperties: false
+    aes.network.v1.ListVpcSubnetsRequest:
+      type: object
+      properties:
+        vpcName:
+          type: string
+          title: vpc_name
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListVpcSubnetsRequest
+      additionalProperties: false
+    aes.network.v1.ListVpcSubnetsResponse:
+      type: object
+      properties:
+        subnets:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.VpcSubnet'
+          title: subnets
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListVpcSubnetsResponse
+      additionalProperties: false
+    aes.network.v1.ListVpcsRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+        pageToken:
+          type: string
+          title: page_token
+      title: ListVpcsRequest
+      additionalProperties: false
+    aes.network.v1.ListVpcsResponse:
+      type: object
+      properties:
+        vpcs:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.Vpc'
+          title: vpcs
+        nextPageToken:
+          type: string
+          title: next_page_token
+      title: ListVpcsResponse
+      additionalProperties: false
+    aes.network.v1.LoadBalancer:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        projectName:
+          type: string
+          title: project_name
+        networkName:
+          type: string
+          title: network_name
+        datacenterName:
+          type: string
+          title: datacenter_name
+        displayName:
+          type: string
+          title: display_name
+        publicIpName:
+          type: string
+          title: public_ip_name
+        publicIpv4:
+          type: string
+          title: public_ipv4
+        listeners:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.LoadBalancerListener'
+          title: listeners
+        backendInterfaceIds:
+          type: array
+          items:
+            type: string
+          title: backend_interface_ids
+          description: Stable interface IDs returned by GetVmNetworkInterfaces, never addresses.
+        drainTimeoutSeconds:
+          type: integer
+          title: drain_timeout_seconds
+          format: int32
+        generation:
+          type:
+            - integer
+            - string
+          title: generation
+          format: int64
+        observedGeneration:
+          type:
+            - integer
+            - string
+          title: observed_generation
+          format: int64
+        desiredState:
+          type: string
+          title: desired_state
+        reconciliation:
+          title: reconciliation
+          $ref: '#/components/schemas/aes.network.v1.VpcNetworkReconciliationStatus'
+        backendHealth:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.LoadBalancerBackendHealth'
+          title: backend_health
+          description: |-
+            Application probe diagnostics, separate from configuration reconciliation.
+             HEALTHY does not guarantee external reachability or dataplane selection.
+             Omitted from ListLoadBalancers; use GetLoadBalancer for this detail.
+        healthReportTime:
+          title: health_report_time
+          description: Server receipt time; absent before the first health report.
+          $ref: '#/components/schemas/google.protobuf.Timestamp'
+        healthMatchesCurrentIntent:
+          type: boolean
+          title: health_matches_current_intent
+          description: |-
+            False after configuration changes or controller replacement. Expired or
+             missing samples are UNKNOWN even when this value is true.
+      title: LoadBalancer
+      additionalProperties: false
+    aes.network.v1.LoadBalancerBackendHealth:
+      type: object
+      properties:
+        interfaceId:
+          type: string
+          title: interface_id
+        listenerPort:
+          type: integer
+          title: listener_port
+          format: int32
+        state:
+          type: string
+          title: state
+          description: |-
+            UNKNOWN, CHECKING, HEALTHY, UNHEALTHY, NOT_READY, or DRAINING.
+             NOT_READY means the backend's network/guest prerequisites are not met.
+             UNKNOWN also covers stale reports; it does not mean a failed probe.
+        lastCheckTime:
+          title: last_check_time
+          $ref: '#/components/schemas/google.protobuf.Timestamp'
+        validUntil:
+          title: valid_until
+          description: A sample is not current at or after this instant.
+          $ref: '#/components/schemas/google.protobuf.Timestamp'
+      title: LoadBalancerBackendHealth
+      additionalProperties: false
+    aes.network.v1.LoadBalancerHealthCheck:
+      type: object
+      properties:
+        port:
+          type: integer
+          title: port
+          format: int32
+        intervalSeconds:
+          type: integer
+          title: interval_seconds
+          format: int32
+        timeoutMilliseconds:
+          type: integer
+          title: timeout_milliseconds
+          format: int32
+        healthyThreshold:
+          type: integer
+          title: healthy_threshold
+          format: int32
+        unhealthyThreshold:
+          type: integer
+          title: unhealthy_threshold
+          format: int32
+      title: LoadBalancerHealthCheck
+      additionalProperties: false
+    aes.network.v1.LoadBalancerListener:
+      type: object
+      properties:
+        port:
+          type: integer
+          title: port
+          format: int32
+        backendPort:
+          type: integer
+          title: backend_port
+          format: int32
+        protocol:
+          type: string
+          title: protocol
+          description: |-
+            TCP includes TLS passthrough. HTTP termination, UDP and PROXY protocol are
+             not part of this release.
+        healthCheck:
+          title: health_check
+          $ref: '#/components/schemas/aes.network.v1.LoadBalancerHealthCheck'
+      title: LoadBalancerListener
       additionalProperties: false
     aes.network.v1.Network:
       type: object
@@ -16442,6 +18459,23 @@ components:
             Internal network-segment identifier this Network's VMs live in. Output-only. VMs in the
              same Network can talk over the network's /24 + /64; VMs in different Networks are fully
              isolated.
+        networkModel:
+          type: string
+          title: network_model
+          description: |-
+            Output-only delivery model: LEGACY_DIRECT, PRIVATE_NAT, or BLOCKED. A
+             blocked migration never falls back to legacy delivery. This field describes
+             configured admission, not current forwarding or controller health.
+        vpcName:
+          type: string
+          title: vpc_name
+          description: |-
+            Output-only private VPC and subnet resource names. Empty for legacy or an
+             unavailable placement. Different regional Network resources can refer to
+             the same VPC/subnet; their presence does not prove cross-region connectivity.
+        subnetName:
+          type: string
+          title: subnet_name
       title: Network
       additionalProperties: false
       description: |-
@@ -16492,9 +18526,9 @@ components:
           title: target_port
           format: int32
           description: |-
-            Internal port on the VM (where the service listens). Defaults to `port` when 0. Ignored
-             on firewall rules — applies only to PublicIp port-forwarding (which we don't currently
-             surface via the customer RPCs, but the field stays for the SDK and future LB work).
+            VM destination port for explicit forwarding_public_ip rules; 1..65535.
+             Ordinary firewall rules use zero (legacy equal-to-port input is accepted).
+             Different public/VM ports require forwarding mode; forwarding ranges are unsupported.
         endPort:
           type: integer
           title: end_port
@@ -16569,6 +18603,17 @@ components:
           additionalProperties:
             type: string
             title: value
+        generation:
+          type:
+            - integer
+            - string
+          title: generation
+          format: int64
+          description: Reservation revision for attachment changes. Zero on legacy allocations.
+        binding:
+          title: binding
+          description: Current or removing attachment. Absent when detached; not proof of readiness.
+          $ref: '#/components/schemas/aes.network.v1.PublicIpBinding'
       title: PublicIp
       additionalProperties: false
       description: |-
@@ -16596,6 +18641,59 @@ components:
           title: value
       title: LabelsEntry
       additionalProperties: false
+    aes.network.v1.PublicIpBinding:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+        targetVm:
+          type: string
+          title: target_vm
+        privateIpv4:
+          type: string
+          title: private_ipv4
+          description: An already assigned private IPv4 on the target VM, never a public guest IP.
+        state:
+          type: string
+          title: state
+          description: APPLYING / ACTIVE / REMOVING.
+        generation:
+          type:
+            - integer
+            - string
+          title: generation
+          format: int64
+      title: PublicIpBinding
+      additionalProperties: false
+    aes.network.v1.ReleasePublicIpRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        expectedGeneration:
+          type:
+            - integer
+            - string
+          title: expected_generation
+          format: int64
+          description: Current reservation generation returned by GetPublicIp, not a binding revision.
+        requestId:
+          type: string
+          title: request_id
+          description: Retry the same request ID after an uncertain response.
+      title: ReleasePublicIpRequest
+      additionalProperties: false
+    aes.network.v1.ReleasePublicIpResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+          description: Completed release; the resource is no longer returned by GetPublicIp.
+      title: ReleasePublicIpResponse
+      additionalProperties: false
     aes.network.v1.RemoveVmFromSecurityGroupRequest:
       type: object
       properties:
@@ -16605,6 +18703,10 @@ components:
         vm:
           type: string
           title: vm
+        requestId:
+          type: string
+          title: request_id
+          description: Required for private-network policy changes. Reuse the UUID on retries.
       title: RemoveVmFromSecurityGroupRequest
       additionalProperties: false
     aes.network.v1.RemoveVmFromSecurityGroupResponse:
@@ -16613,7 +18715,107 @@ components:
         securityGroup:
           title: security_group
           $ref: '#/components/schemas/aes.network.v1.SecurityGroup'
+        operationName:
+          type: string
+          title: operation_name
       title: RemoveVmFromSecurityGroupResponse
+      additionalProperties: false
+    aes.network.v1.RemoveVmIpv4AliasRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        targetVm:
+          type: string
+          title: target_vm
+        interfaceId:
+          type: string
+          title: interface_id
+        leaseId:
+          type: string
+          title: lease_id
+        expectedGeneration:
+          type:
+            - integer
+            - string
+          title: expected_generation
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+      title: RemoveVmIpv4AliasRequest
+      additionalProperties: false
+    aes.network.v1.RemoveVmIpv4AliasResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+      title: RemoveVmIpv4AliasResponse
+      additionalProperties: false
+    aes.network.v1.ReservePublicIpRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        datacenterName:
+          type: string
+          title: datacenter_name
+        displayName:
+          type: string
+          title: display_name
+        labels:
+          type: object
+          title: labels
+          additionalProperties:
+            type: string
+            title: value
+        annotations:
+          type: object
+          title: annotations
+          additionalProperties:
+            type: string
+            title: value
+        requestId:
+          type: string
+          title: request_id
+      title: ReservePublicIpRequest
+      additionalProperties: false
+    aes.network.v1.ReservePublicIpRequest.AnnotationsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: AnnotationsEntry
+      additionalProperties: false
+    aes.network.v1.ReservePublicIpRequest.LabelsEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          type: string
+          title: value
+      title: LabelsEntry
+      additionalProperties: false
+    aes.network.v1.ReservePublicIpResponse:
+      type: object
+      properties:
+        publicIp:
+          title: public_ip
+          $ref: '#/components/schemas/aes.network.v1.PublicIp'
+        operationName:
+          type: string
+          title: operation_name
+          description: Completed database reservation, not a completed forwarding operation.
+      title: ReservePublicIpResponse
       additionalProperties: false
     aes.network.v1.SecurityGroup:
       type: object
@@ -16729,6 +18931,26 @@ components:
               title: end_port
               format: int32
               description: Upper bound of a port range; 0 = single port. Ignored for icmp.
+            ipFamily:
+              type: string
+              title: ip_family
+              description: Empty means both families, narrowed by the peer CIDR if present.
+            action:
+              type: string
+              title: action
+            priority:
+              type: integer
+              title: priority
+              format: int32
+              description: 1..1000; zero preserves the legacy lowest-priority allow behavior.
+            sourcePort:
+              type: integer
+              title: source_port
+              format: int32
+            sourceEndPort:
+              type: integer
+              title: source_end_port
+              format: int32
         - oneOf:
             - type: object
               properties:
@@ -16751,6 +18973,91 @@ components:
       description: |-
         SecurityGroupRule allows traffic in one direction on the private NIC. A rule with no peer
          set means "any" (the whole VPC for that direction).
+    aes.network.v1.SetVmDefaultPublicIpRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        targetVm:
+          type: string
+          title: target_vm
+        interfaceId:
+          type: string
+          title: interface_id
+        expectedGeneration:
+          type:
+            - integer
+            - string
+          title: expected_generation
+          format: int64
+        publicIpName:
+          type: string
+          title: public_ip_name
+        expectedBindingGeneration:
+          type:
+            - integer
+            - string
+          title: expected_binding_generation
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+      title: SetVmDefaultPublicIpRequest
+      additionalProperties: false
+    aes.network.v1.SetVmDefaultPublicIpResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+      title: SetVmDefaultPublicIpResponse
+      additionalProperties: false
+    aes.network.v1.UpdateLoadBalancerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        displayName:
+          type: string
+          title: display_name
+        listeners:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.LoadBalancerListener'
+          title: listeners
+        backendInterfaceIds:
+          type: array
+          items:
+            type: string
+          title: backend_interface_ids
+        drainTimeoutSeconds:
+          type: integer
+          title: drain_timeout_seconds
+          format: int32
+        expectedGeneration:
+          type:
+            - integer
+            - string
+          title: expected_generation
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+      title: UpdateLoadBalancerRequest
+      additionalProperties: false
+    aes.network.v1.UpdateLoadBalancerResponse:
+      type: object
+      properties:
+        loadBalancer:
+          title: load_balancer
+          $ref: '#/components/schemas/aes.network.v1.LoadBalancer'
+        operationName:
+          type: string
+          title: operation_name
+      title: UpdateLoadBalancerResponse
+      additionalProperties: false
     aes.network.v1.UpdateSecurityGroupRequest:
       type: object
       properties:
@@ -16768,6 +19075,17 @@ components:
         etag:
           type: string
           title: etag
+        requestId:
+          type: string
+          title: request_id
+          description: Required for private-network policy changes. Reuse the UUID on retries.
+        policySchemaVersion:
+          type: integer
+          title: policy_schema_version
+          format: int32
+          description: |-
+            Set to 2 when editing an existing advanced policy. Older clients cannot
+             replace rules they cannot represent without silently dropping restrictions.
       title: UpdateSecurityGroupRequest
       additionalProperties: false
       description: |-
@@ -16779,7 +19097,367 @@ components:
         securityGroup:
           title: security_group
           $ref: '#/components/schemas/aes.network.v1.SecurityGroup'
+        operationName:
+          type: string
+          title: operation_name
+          description: Policy acceptance is asynchronous; this operation tracks enforcement.
       title: UpdateSecurityGroupResponse
+      additionalProperties: false
+    aes.network.v1.UpdateVmInternetPolicyRequest:
+      type: object
+      properties:
+        projectName:
+          type: string
+          title: project_name
+        targetVm:
+          type: string
+          title: target_vm
+        allowOutboundInternet:
+          type:
+            - boolean
+            - "null"
+          title: allow_outbound_internet
+          description: Both settings are required. Omission is not interpreted as false.
+        allowIpv6Internet:
+          type:
+            - boolean
+            - "null"
+          title: allow_ipv6_internet
+        expectedGeneration:
+          type:
+            - integer
+            - string
+          title: expected_generation
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+          description: |-
+            Canonical UUID. Reuse the exact request, including expected_generation,
+             after an uncertain outcome. A new change needs a fresh UUID.
+      title: UpdateVmInternetPolicyRequest
+      additionalProperties: false
+    aes.network.v1.UpdateVmInternetPolicyResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+      title: UpdateVmInternetPolicyResponse
+      additionalProperties: false
+    aes.network.v1.UpdateVpcRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        displayName:
+          type: string
+          title: display_name
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+      title: UpdateVpcRequest
+      additionalProperties: false
+    aes.network.v1.UpdateVpcResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+      title: UpdateVpcResponse
+      additionalProperties: false
+    aes.network.v1.UpdateVpcSubnetRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        displayName:
+          type: string
+          title: display_name
+        expectedVersion:
+          type:
+            - integer
+            - string
+          title: expected_version
+          format: int64
+        requestId:
+          type: string
+          title: request_id
+      title: UpdateVpcSubnetRequest
+      additionalProperties: false
+    aes.network.v1.UpdateVpcSubnetResponse:
+      type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+      title: UpdateVpcSubnetResponse
+      additionalProperties: false
+    aes.network.v1.VmInternetPolicy:
+      type: object
+      properties:
+        targetVm:
+          type: string
+          title: target_vm
+        allowOutboundInternet:
+          type: boolean
+          title: allow_outbound_internet
+          description: |-
+            Allows VM-initiated internet connections. Replies to authorized inbound
+             IPv4 connections remain allowed when this is false.
+        allowIpv6Internet:
+          type: boolean
+          title: allow_ipv6_internet
+          description: |-
+            Allows IPv6 internet traffic, still subject to outbound and firewall policy.
+             Disabling this does not remove IPv6 addresses or authorized VPC connectivity.
+        generation:
+          type:
+            - integer
+            - string
+          title: generation
+          format: int64
+        observedGeneration:
+          type:
+            - integer
+            - string
+          title: observed_generation
+          format: int64
+          description: Last independently verified enforcement generation; may lag generation.
+      title: VmInternetPolicy
+      additionalProperties: false
+    aes.network.v1.VmNetworkAddress:
+      type: object
+      properties:
+        leaseId:
+          type: string
+          title: lease_id
+        addressRange:
+          type: string
+          title: address_range
+          description: |-
+            CIDR. IPv4 identities use /32. A VM's public IPv6 identity is one routed
+             /64; the guest may use addresses inside it without allocating each /128.
+        role:
+          type: string
+          title: role
+          description: PRIMARY_IPV4, ALIAS_IPV4, IPV6_PREFIX, or a legacy migration-only role.
+        state:
+          type: string
+          title: state
+      title: VmNetworkAddress
+      additionalProperties: false
+    aes.network.v1.VmNetworkInterface:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+        slot:
+          type: integer
+          title: slot
+          format: int32
+        macAddress:
+          type: string
+          title: mac_address
+        generation:
+          type:
+            - integer
+            - string
+          title: generation
+          format: int64
+        observedGeneration:
+          type:
+            - integer
+            - string
+          title: observed_generation
+          format: int64
+        guestObservedGeneration:
+          type:
+            - integer
+            - string
+          title: guest_observed_generation
+          format: int64
+        desiredState:
+          type: string
+          title: desired_state
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.VmNetworkAddress'
+          title: addresses
+        defaultSourceIpv4:
+          type: string
+          title: default_source_ipv4
+          description: Desired preferred IPv4 source inside the VM, not proof of delivery.
+        reconciliation:
+          title: reconciliation
+          description: |-
+            Last report for this interface's VPC in this datacenter. This does not
+             replace the separate interface and guest observation generations above.
+          $ref: '#/components/schemas/aes.network.v1.VpcNetworkReconciliationStatus'
+      title: VmNetworkInterface
+      additionalProperties: false
+    aes.network.v1.Vpc:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        projectName:
+          type: string
+          title: project_name
+        displayName:
+          type: string
+          title: display_name
+        version:
+          type:
+            - integer
+            - string
+          title: version
+          format: int64
+          description: Metadata revision, separate from each DC's desired generation.
+        createTime:
+          title: create_time
+          $ref: '#/components/schemas/google.protobuf.Timestamp'
+        updateTime:
+          title: update_time
+          $ref: '#/components/schemas/google.protobuf.Timestamp'
+        datacenters:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.VpcDatacenterMembership'
+          title: datacenters
+          description: |-
+            Included by GetVpc, omitted by ListVpcs. A VPC with no memberships
+             has no regional network configured.
+      title: Vpc
+      additionalProperties: false
+    aes.network.v1.VpcDatacenterMembership:
+      type: object
+      properties:
+        datacenterName:
+          type: string
+          title: datacenter_name
+        desiredState:
+          type: string
+          title: desired_state
+          description: PRESENT or ABSENT. ABSENT retains ownership until verified retirement.
+        generation:
+          type:
+            - integer
+            - string
+          title: generation
+          format: int64
+        observedGeneration:
+          type:
+            - integer
+            - string
+          title: observed_generation
+          format: int64
+          description: A recorded observation, not a live reachability or availability check.
+      title: VpcDatacenterMembership
+      additionalProperties: false
+    aes.network.v1.VpcNetworkReconciliationStatus:
+      type: object
+      properties:
+        desiredGeneration:
+          type:
+            - integer
+            - string
+          title: desired_generation
+          format: int64
+          description: These generations belong to the VPC/datacenter, not the VM interface.
+        reportedGeneration:
+          type:
+            - integer
+            - string
+          title: reported_generation
+          format: int64
+        phase:
+          type: string
+          title: phase
+          description: |-
+            PENDING when no report exists; otherwise CONFIGURING, CONFIGURED, READY,
+             DEGRADED, WAITING_GUEST, RETIRING, or RETIRED. CONFIGURED is not traffic
+             readiness. RETIRED acknowledges removal of an empty regional network;
+             it does not indicate that historical addresses can be reused.
+        reason:
+          type: string
+          title: reason
+          description: Machine-readable diagnostic code; never raw infrastructure errors.
+        reportTime:
+          title: report_time
+          description: Server receipt time of the last report. Absent until the first report.
+          $ref: '#/components/schemas/google.protobuf.Timestamp'
+        matchesCurrentIntent:
+          type: boolean
+          title: matches_current_intent
+          description: |-
+            The report matches the desired generation/state and current controller
+             tenure. This does not assert current reachability; inspect report_time.
+             A false value means phase/reason are historical, not the current result.
+      title: VpcNetworkReconciliationStatus
+      additionalProperties: false
+    aes.network.v1.VpcSubnet:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        vpcName:
+          type: string
+          title: vpc_name
+        projectName:
+          type: string
+          title: project_name
+        displayName:
+          type: string
+          title: display_name
+        ipv4Range:
+          type: string
+          title: ipv4_range
+        ipv6Range:
+          type: string
+          title: ipv6_range
+          description: Subnet allocation range, not an individual VM's routed public /64.
+        version:
+          type:
+            - integer
+            - string
+          title: version
+          format: int64
+        createTime:
+          title: create_time
+          $ref: '#/components/schemas/google.protobuf.Timestamp'
+        updateTime:
+          title: update_time
+          $ref: '#/components/schemas/google.protobuf.Timestamp'
+        datacenters:
+          type: array
+          items:
+            $ref: '#/components/schemas/aes.network.v1.VpcDatacenterMembership'
+          title: datacenters
+          description: |-
+            Included by GetVpcSubnet, omitted by ListVpcSubnets. Membership alone
+             does not mean this subnet is configured or eligible for a new VM.
+        customDnsIpv4:
+          type: array
+          items:
+            type: string
+          title: custom_dns_ipv4
+          description: |-
+            Ordered custom IPv4 resolvers. Empty uses Metalhost's private DNS.
+             Custom resolvers remain subject to ordinary routing and egress policy.
+      title: VpcSubnet
       additionalProperties: false
     aes.ops.v1.CancelOperationRequest:
       type: object
@@ -17091,6 +19769,16 @@ components:
           type: boolean
           title: vm_install_guest_collector
           description: Internal provisioning opt-in; admitted by ComputeService.
+        vmPublicIpName:
+          type: string
+          title: vm_public_ip_name
+          description: Existing reservation selection captured in the durable VM create command.
+        vmExpectedPublicIpGeneration:
+          type:
+            - integer
+            - string
+          title: vm_expected_public_ip_generation
+          format: int64
       title: CreateOperationRequest
       additionalProperties: false
     aes.ops.v1.CreateOperationRequest.VmAnnotationsEntry:
@@ -17197,7 +19885,7 @@ components:
         errorMessage:
           type: string
           title: error_message
-          description: Set when state == STATE_FAILED; optional detail later via google.rpc.Status.
+          description: Customer-safe explanation, set when the operation failed or was cancelled.
         kind:
           type: string
           title: kind
@@ -17220,6 +19908,16 @@ components:
           type: string
           title: principal
           description: Caller principal that started the operation ('' for platform-started ops).
+        failureReason:
+          type: string
+          title: failure_reason
+          description: |-
+            Stable machine-readable reason for a failed or cancelled operation, for
+             example CAPACITY_UNAVAILABLE. Empty otherwise.
+        internalError:
+          type: string
+          title: internal_error
+          description: Operator diagnostic detail. Always empty for customer callers.
       title: Operation
       additionalProperties: false
     aes.ops.v1.Operation.MetadataEntry:
@@ -17952,6 +20650,18 @@ components:
           additionalProperties:
             type: string
             title: value
+        networkName:
+          type: string
+          title: network_name
+          description: Selects scoped private delivery. Empty retains the legacy delivery contract.
+        requestId:
+          type: string
+          title: request_id
+          description: Required canonical UUID for scoped creation; reuse on uncertain retries.
+        readOnly:
+          type: boolean
+          title: read_only
+          description: Scoped exports may be created read-only. Immutable after creation.
       title: CreateFileShareRequest
       additionalProperties: false
     aes.storage.v1.CreateFileShareRequest.AnnotationsEntry:
@@ -17981,7 +20691,12 @@ components:
       properties:
         fileShare:
           title: file_share
+          description: Current resource, absent if an exact creation retry occurs after deletion.
           $ref: '#/components/schemas/aes.storage.v1.FileShare'
+        operationName:
+          type: string
+          title: operation_name
+          description: Nonempty for asynchronous scoped creation. Poll the existing operations API.
       title: CreateFileShareResponse
       additionalProperties: false
     aes.storage.v1.CreateSnapshotRequest:
@@ -18071,10 +20786,25 @@ components:
         name:
           type: string
           title: name
+        requestId:
+          type: string
+          title: request_id
+          description: Required for scoped deletion. Reuse exactly on uncertain retries.
+        expectedGeneration:
+          type:
+            - integer
+            - string
+          title: expected_generation
+          format: int64
       title: DeleteFileShareRequest
       additionalProperties: false
     aes.storage.v1.DeleteFileShareResponse:
       type: object
+      properties:
+        operationName:
+          type: string
+          title: operation_name
+          description: Nonempty for scoped deletion; acceptance alone does not remove share data.
       title: DeleteFileShareResponse
       additionalProperties: false
     aes.storage.v1.DeleteSnapshotRequest:
@@ -18367,8 +21097,8 @@ components:
           type: string
           title: nfs_server_endpoint
           description: |-
-            NFS server endpoint customers mount over (host[:port]). Same address for every share in
-             a datacenter.
+            NFS server endpoint customers mount over (host[:port]). Scoped shares use
+             a private endpoint in their selected network. Empty until available.
         nfsExportPath:
           type: string
           title: nfs_export_path
@@ -18383,6 +21113,34 @@ components:
             Convenience: the full mount command for a Linux guest. e.g.
              `mount -t nfs4 <endpoint>:/projects/<uuid>/<uuid> /mnt/share`. Customers paste this into
              cloud-init or run by hand — any VM on the tenant network is allowed.
+        deliveryModel:
+          type: string
+          title: delivery_model
+          description: LEGACY_NFS or VPC_NFS. Never infer the delivery model from an endpoint.
+        networkName:
+          type: string
+          title: network_name
+          description: Selected network for VPC_NFS shares; immutable after creation.
+        generation:
+          type:
+            - integer
+            - string
+          title: generation
+          format: int64
+          description: Desired and observed export generations. Acceptance does not imply availability.
+        observedGeneration:
+          type:
+            - integer
+            - string
+          title: observed_generation
+          format: int64
+        desiredState:
+          type: string
+          title: desired_state
+          description: PRESENT or ABSENT for VPC_NFS. ABSENT retains data until cleanup completes.
+        readOnly:
+          type: boolean
+          title: read_only
       title: FileShare
       additionalProperties: false
     aes.storage.v1.FileShare.AnnotationsEntry:
@@ -18422,6 +21180,23 @@ components:
           title: disk
           $ref: '#/components/schemas/aes.storage.v1.Disk'
       title: GetDiskResponse
+      additionalProperties: false
+    aes.storage.v1.GetFileShareRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+      title: GetFileShareRequest
+      additionalProperties: false
+    aes.storage.v1.GetFileShareResponse:
+      type: object
+      properties:
+        fileShare:
+          title: file_share
+          description: Current resource and observed availability, not merely accepted intent.
+          $ref: '#/components/schemas/aes.storage.v1.FileShare'
+      title: GetFileShareResponse
       additionalProperties: false
     aes.storage.v1.GetSnapshotRequest:
       type: object
@@ -18789,6 +21564,12 @@ components:
         requestId:
           type: string
           title: request_id
+        errorReference:
+          title: error_reference
+          description: |-
+            Optional. The error the customer was looking at when they opened the
+             ticket. Visible to support staff only.
+          $ref: '#/components/schemas/aes.support.v1.ErrorReference'
       title: CreateTicketRequest
       additionalProperties: false
     aes.support.v1.CreateTicketResponse:
@@ -18802,6 +21583,33 @@ components:
           $ref: '#/components/schemas/aes.support.v1.TicketMessage'
       title: CreateTicketResponse
       additionalProperties: false
+    aes.support.v1.ErrorReference:
+      type: object
+      properties:
+        errorRequestId:
+          type: string
+          title: error_request_id
+          description: The request_id from the error's details.
+        reason:
+          type: string
+          title: reason
+          description: The error's reason code.
+        procedure:
+          type: string
+          title: procedure
+          description: |-
+            The API method that failed, for example
+             `/aes.compute.v1.ComputeService/CreateVirtualMachine`.
+        occurredAt:
+          title: occurred_at
+          $ref: '#/components/schemas/google.protobuf.Timestamp'
+        operationName:
+          type: string
+          title: operation_name
+          description: The failed operation, when the error came from one.
+      title: ErrorReference
+      additionalProperties: false
+      description: ErrorReference identifies an error a customer hit, so support can find it.
     aes.support.v1.GetTicketRequest:
       type: object
       properties:
@@ -21244,12 +24052,9 @@ tags:
   - name: aes.monitoring.v1.MonitoringService
   - name: aes.network.v1.NetworkService
     description: |-
-      NetworkService manages tenant-facing networks for tenant-private connectivity. Each Network
-       is an isolated L2 segment in a single datacenter. VM public connectivity is delivered via
-       the public NIC model.
-
-       Public IPs are opted into at VM-create time via `assign_public_ipv4`; standalone allocation
-       and post-create attach aren't supported. Load balancer APIs are deferred to a future release.
+      NetworkService manages tenant connectivity and network policy. The legacy
+       Network resource represents one isolated segment in a datacenter. Private
+       IPv4 VMs use reserved public-address mappings rather than a public guest NIC.
   - name: aes.project.v1.ProjectService
     description: |-
       ProjectService is the tenancy slice of the control plane.

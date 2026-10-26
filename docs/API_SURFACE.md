@@ -95,3 +95,18 @@ the server derives immutable tenant identity and does not trust tenant headers.
 
 See [Observability](OBSERVABILITY.md) for runnable examples and explicit CLI/API
 boundaries. Workflow identity does not provision GitHub runners.
+
+## October networking and error contract (v1.2.0)
+
+`NetworkService` adds VPCs and VPC subnets (with per-datacenter membership),
+reserved public IPs (reserve, attach, detach, release), managed load balancers,
+and per-VM internet policy, network interfaces and IPv4 aliases. Storage adds
+`GetFileShare`. All additions are compatible with `v1.1.x`.
+
+Every API error carries a `google.rpc.ErrorInfo` detail with domain
+`metalhost.net`. Its `reason` is one of the `aes.errors.v1.ErrorReason` values
+without the `ERROR_REASON_` prefix (for example `QUOTA_EXCEEDED`), and its
+metadata `request_id` identifies the request for support. Branch on the reason,
+not on message text. Failed operations expose `Operation.failure_reason` with
+the same values. `CreateTicketRequest.error_reference` attaches an error a
+customer hit to a support ticket.

@@ -33,6 +33,40 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// NetworkServiceListVpcsProcedure is the fully-qualified name of the NetworkService's ListVpcs RPC.
+	NetworkServiceListVpcsProcedure = "/aes.network.v1.NetworkService/ListVpcs"
+	// NetworkServiceGetVpcProcedure is the fully-qualified name of the NetworkService's GetVpc RPC.
+	NetworkServiceGetVpcProcedure = "/aes.network.v1.NetworkService/GetVpc"
+	// NetworkServiceListVpcSubnetsProcedure is the fully-qualified name of the NetworkService's
+	// ListVpcSubnets RPC.
+	NetworkServiceListVpcSubnetsProcedure = "/aes.network.v1.NetworkService/ListVpcSubnets"
+	// NetworkServiceGetVpcSubnetProcedure is the fully-qualified name of the NetworkService's
+	// GetVpcSubnet RPC.
+	NetworkServiceGetVpcSubnetProcedure = "/aes.network.v1.NetworkService/GetVpcSubnet"
+	// NetworkServiceCreateVpcProcedure is the fully-qualified name of the NetworkService's CreateVpc
+	// RPC.
+	NetworkServiceCreateVpcProcedure = "/aes.network.v1.NetworkService/CreateVpc"
+	// NetworkServiceCreateVpcSubnetProcedure is the fully-qualified name of the NetworkService's
+	// CreateVpcSubnet RPC.
+	NetworkServiceCreateVpcSubnetProcedure = "/aes.network.v1.NetworkService/CreateVpcSubnet"
+	// NetworkServiceUpdateVpcProcedure is the fully-qualified name of the NetworkService's UpdateVpc
+	// RPC.
+	NetworkServiceUpdateVpcProcedure = "/aes.network.v1.NetworkService/UpdateVpc"
+	// NetworkServiceUpdateVpcSubnetProcedure is the fully-qualified name of the NetworkService's
+	// UpdateVpcSubnet RPC.
+	NetworkServiceUpdateVpcSubnetProcedure = "/aes.network.v1.NetworkService/UpdateVpcSubnet"
+	// NetworkServiceDeleteVpcProcedure is the fully-qualified name of the NetworkService's DeleteVpc
+	// RPC.
+	NetworkServiceDeleteVpcProcedure = "/aes.network.v1.NetworkService/DeleteVpc"
+	// NetworkServiceDeleteVpcSubnetProcedure is the fully-qualified name of the NetworkService's
+	// DeleteVpcSubnet RPC.
+	NetworkServiceDeleteVpcSubnetProcedure = "/aes.network.v1.NetworkService/DeleteVpcSubnet"
+	// NetworkServiceAttachVpcSubnetProcedure is the fully-qualified name of the NetworkService's
+	// AttachVpcSubnet RPC.
+	NetworkServiceAttachVpcSubnetProcedure = "/aes.network.v1.NetworkService/AttachVpcSubnet"
+	// NetworkServiceDetachVpcDatacenterProcedure is the fully-qualified name of the NetworkService's
+	// DetachVpcDatacenter RPC.
+	NetworkServiceDetachVpcDatacenterProcedure = "/aes.network.v1.NetworkService/DetachVpcDatacenter"
 	// NetworkServiceCreateNetworkProcedure is the fully-qualified name of the NetworkService's
 	// CreateNetwork RPC.
 	NetworkServiceCreateNetworkProcedure = "/aes.network.v1.NetworkService/CreateNetwork"
@@ -48,6 +82,57 @@ const (
 	// NetworkServiceDeleteFirewallRuleProcedure is the fully-qualified name of the NetworkService's
 	// DeleteFirewallRule RPC.
 	NetworkServiceDeleteFirewallRuleProcedure = "/aes.network.v1.NetworkService/DeleteFirewallRule"
+	// NetworkServiceGetVmInternetPolicyProcedure is the fully-qualified name of the NetworkService's
+	// GetVmInternetPolicy RPC.
+	NetworkServiceGetVmInternetPolicyProcedure = "/aes.network.v1.NetworkService/GetVmInternetPolicy"
+	// NetworkServiceUpdateVmInternetPolicyProcedure is the fully-qualified name of the NetworkService's
+	// UpdateVmInternetPolicy RPC.
+	NetworkServiceUpdateVmInternetPolicyProcedure = "/aes.network.v1.NetworkService/UpdateVmInternetPolicy"
+	// NetworkServiceGetVmNetworkInterfacesProcedure is the fully-qualified name of the NetworkService's
+	// GetVmNetworkInterfaces RPC.
+	NetworkServiceGetVmNetworkInterfacesProcedure = "/aes.network.v1.NetworkService/GetVmNetworkInterfaces"
+	// NetworkServiceAddVmIpv4AliasProcedure is the fully-qualified name of the NetworkService's
+	// AddVmIpv4Alias RPC.
+	NetworkServiceAddVmIpv4AliasProcedure = "/aes.network.v1.NetworkService/AddVmIpv4Alias"
+	// NetworkServiceRemoveVmIpv4AliasProcedure is the fully-qualified name of the NetworkService's
+	// RemoveVmIpv4Alias RPC.
+	NetworkServiceRemoveVmIpv4AliasProcedure = "/aes.network.v1.NetworkService/RemoveVmIpv4Alias"
+	// NetworkServiceSetVmDefaultPublicIpProcedure is the fully-qualified name of the NetworkService's
+	// SetVmDefaultPublicIp RPC.
+	NetworkServiceSetVmDefaultPublicIpProcedure = "/aes.network.v1.NetworkService/SetVmDefaultPublicIp"
+	// NetworkServiceGetPublicIpProcedure is the fully-qualified name of the NetworkService's
+	// GetPublicIp RPC.
+	NetworkServiceGetPublicIpProcedure = "/aes.network.v1.NetworkService/GetPublicIp"
+	// NetworkServiceListPublicIpsProcedure is the fully-qualified name of the NetworkService's
+	// ListPublicIps RPC.
+	NetworkServiceListPublicIpsProcedure = "/aes.network.v1.NetworkService/ListPublicIps"
+	// NetworkServiceReservePublicIpProcedure is the fully-qualified name of the NetworkService's
+	// ReservePublicIp RPC.
+	NetworkServiceReservePublicIpProcedure = "/aes.network.v1.NetworkService/ReservePublicIp"
+	// NetworkServiceAttachPublicIpProcedure is the fully-qualified name of the NetworkService's
+	// AttachPublicIp RPC.
+	NetworkServiceAttachPublicIpProcedure = "/aes.network.v1.NetworkService/AttachPublicIp"
+	// NetworkServiceDetachPublicIpProcedure is the fully-qualified name of the NetworkService's
+	// DetachPublicIp RPC.
+	NetworkServiceDetachPublicIpProcedure = "/aes.network.v1.NetworkService/DetachPublicIp"
+	// NetworkServiceReleasePublicIpProcedure is the fully-qualified name of the NetworkService's
+	// ReleasePublicIp RPC.
+	NetworkServiceReleasePublicIpProcedure = "/aes.network.v1.NetworkService/ReleasePublicIp"
+	// NetworkServiceCreateLoadBalancerProcedure is the fully-qualified name of the NetworkService's
+	// CreateLoadBalancer RPC.
+	NetworkServiceCreateLoadBalancerProcedure = "/aes.network.v1.NetworkService/CreateLoadBalancer"
+	// NetworkServiceGetLoadBalancerProcedure is the fully-qualified name of the NetworkService's
+	// GetLoadBalancer RPC.
+	NetworkServiceGetLoadBalancerProcedure = "/aes.network.v1.NetworkService/GetLoadBalancer"
+	// NetworkServiceListLoadBalancersProcedure is the fully-qualified name of the NetworkService's
+	// ListLoadBalancers RPC.
+	NetworkServiceListLoadBalancersProcedure = "/aes.network.v1.NetworkService/ListLoadBalancers"
+	// NetworkServiceUpdateLoadBalancerProcedure is the fully-qualified name of the NetworkService's
+	// UpdateLoadBalancer RPC.
+	NetworkServiceUpdateLoadBalancerProcedure = "/aes.network.v1.NetworkService/UpdateLoadBalancer"
+	// NetworkServiceDeleteLoadBalancerProcedure is the fully-qualified name of the NetworkService's
+	// DeleteLoadBalancer RPC.
+	NetworkServiceDeleteLoadBalancerProcedure = "/aes.network.v1.NetworkService/DeleteLoadBalancer"
 	// NetworkServiceCreateSecurityGroupProcedure is the fully-qualified name of the NetworkService's
 	// CreateSecurityGroup RPC.
 	NetworkServiceCreateSecurityGroupProcedure = "/aes.network.v1.NetworkService/CreateSecurityGroup"
@@ -73,13 +158,85 @@ const (
 
 // NetworkServiceClient is a client for the aes.network.v1.NetworkService service.
 type NetworkServiceClient interface {
+	// Private-network topology is distinct from the retained legacy Network
+	// resource. These reads do not enroll a DC or assert forwarding readiness.
+	ListVpcs(context.Context, *connect.Request[v1.ListVpcsRequest]) (*connect.Response[v1.ListVpcsResponse], error)
+	GetVpc(context.Context, *connect.Request[v1.GetVpcRequest]) (*connect.Response[v1.GetVpcResponse], error)
+	ListVpcSubnets(context.Context, *connect.Request[v1.ListVpcSubnetsRequest]) (*connect.Response[v1.ListVpcSubnetsResponse], error)
+	GetVpcSubnet(context.Context, *connect.Request[v1.GetVpcSubnetRequest]) (*connect.Response[v1.GetVpcSubnetResponse], error)
+	// Creates a durable definition without enrolling a datacenter or configuring
+	// forwarding. Retry uncertain results with the same request_id.
+	CreateVpc(context.Context, *connect.Request[v1.CreateVpcRequest]) (*connect.Response[v1.CreateVpcResponse], error)
+	// Reserves private IPv4 space. Datacenter attachment and VM eligibility are
+	// separate; successful definition creation does not imply connectivity.
+	CreateVpcSubnet(context.Context, *connect.Request[v1.CreateVpcSubnetRequest]) (*connect.Response[v1.CreateVpcSubnetResponse], error)
+	// Updates display metadata only; address ranges and resolver choices are immutable.
+	UpdateVpc(context.Context, *connect.Request[v1.UpdateVpcRequest]) (*connect.Response[v1.UpdateVpcResponse], error)
+	UpdateVpcSubnet(context.Context, *connect.Request[v1.UpdateVpcSubnetRequest]) (*connect.Response[v1.UpdateVpcSubnetResponse], error)
+	// Deletes an empty definition after its datacenter attachments have retired.
+	// Historical identities and audit records are retained. Delete subnets before their VPC.
+	DeleteVpc(context.Context, *connect.Request[v1.DeleteVpcRequest]) (*connect.Response[v1.DeleteVpcResponse], error)
+	DeleteVpcSubnet(context.Context, *connect.Request[v1.DeleteVpcSubnetRequest]) (*connect.Response[v1.DeleteVpcSubnetResponse], error)
+	// Enables an existing subnet in a location using platform-managed settings.
+	// Wait for the operation before publishing a Network in that location.
+	// Does not promise connectivity between locations or change guest settings.
+	AttachVpcSubnet(context.Context, *connect.Request[v1.AttachVpcSubnetRequest]) (*connect.Response[v1.AttachVpcSubnetResponse], error)
+	// Detaches all unused subnets of a VPC from one location. Retained VMs,
+	// disks, addresses, load balancers or shares must finish cleanup first.
+	// Other locations and the VPC/subnet definitions are preserved.
+	DetachVpcDatacenter(context.Context, *connect.Request[v1.DetachVpcDatacenterRequest]) (*connect.Response[v1.DetachVpcDatacenterResponse], error)
 	CreateNetwork(context.Context, *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.CreateNetworkResponse], error)
 	ListNetworks(context.Context, *connect.Request[v1.ListNetworksRequest]) (*connect.Response[v1.ListNetworksResponse], error)
-	// CreateFirewallRule opens the listed ingress ports on the VM's public IP from the listed
-	// source CIDRs. Egress is unrestricted (blocking it breaks cloud-init / package installs / DNS).
+	// CreateFirewallRule saves inbound/outbound Internet policy or explicit IPv4
+	// port forwarding. VM Internet switches remain separate from firewall rules.
 	CreateFirewallRule(context.Context, *connect.Request[v1.CreateFirewallRuleRequest]) (*connect.Response[v1.CreateFirewallRuleResponse], error)
 	ListFirewallRules(context.Context, *connect.Request[v1.ListFirewallRulesRequest]) (*connect.Response[v1.ListFirewallRulesResponse], error)
 	DeleteFirewallRule(context.Context, *connect.Request[v1.DeleteFirewallRuleRequest]) (*connect.Response[v1.DeleteFirewallRuleResponse], error)
+	// Internet controls for VMs using private IPv4 with public address mappings.
+	// These settings do not release addresses or override firewall restrictions.
+	GetVmInternetPolicy(context.Context, *connect.Request[v1.GetVmInternetPolicyRequest]) (*connect.Response[v1.GetVmInternetPolicyResponse], error)
+	// Accepts an asynchronous change. A response is not proof of enforcement;
+	// wait for the returned operation and check observed_generation.
+	UpdateVmInternetPolicy(context.Context, *connect.Request[v1.UpdateVmInternetPolicyRequest]) (*connect.Response[v1.UpdateVmInternetPolicyResponse], error)
+	// Returns desired addresses and separate network/guest observation revisions.
+	GetVmNetworkInterfaces(context.Context, *connect.Request[v1.GetVmNetworkInterfacesRequest]) (*connect.Response[v1.GetVmNetworkInterfacesResponse], error)
+	// Allocates another private IPv4 source on the primary interface. Delivery to
+	// the guest is asynchronous; this does not allocate or attach a public IP.
+	AddVmIpv4Alias(context.Context, *connect.Request[v1.AddVmIpv4AliasRequest]) (*connect.Response[v1.AddVmIpv4AliasResponse], error)
+	// Removes an unused platform-managed alias. Acceptance is not proof of cleanup
+	// or address availability; dependencies must be removed first.
+	RemoveVmIpv4Alias(context.Context, *connect.Request[v1.RemoveVmIpv4AliasRequest]) (*connect.Response[v1.RemoveVmIpv4AliasResponse], error)
+	// Explicitly selects an attached public IPv4 for new outbound connections.
+	// Other mappings and internet controls remain unchanged. Existing connections
+	// and external allowlists may be affected; wait for the returned operation.
+	SetVmDefaultPublicIp(context.Context, *connect.Request[v1.SetVmDefaultPublicIpRequest]) (*connect.Response[v1.SetVmDefaultPublicIpResponse], error)
+	// Reserved public addresses remain in their allocating datacenter. Attachment
+	// changes are asynchronous; acceptance alone does not establish forwarding.
+	GetPublicIp(context.Context, *connect.Request[v1.GetPublicIpRequest]) (*connect.Response[v1.GetPublicIpResponse], error)
+	// Lists active reservations and legacy VM addresses, including detached ones.
+	// Managed load balancer addresses are returned by ListLoadBalancers instead.
+	ListPublicIps(context.Context, *connect.Request[v1.ListPublicIpsRequest]) (*connect.Response[v1.ListPublicIpsResponse], error)
+	// Reserves a billable, detached address. This does not install forwarding.
+	ReservePublicIp(context.Context, *connect.Request[v1.ReservePublicIpRequest]) (*connect.Response[v1.ReservePublicIpResponse], error)
+	// Attaches to an already assigned private IPv4. The first public attachment
+	// also selects that address as the desired default outbound source; additional
+	// attachments preserve the selection. Wait for the returned operation before
+	// treating the mapping or guest source change as applied.
+	AttachPublicIp(context.Context, *connect.Request[v1.AttachPublicIpRequest]) (*connect.Response[v1.AttachPublicIpResponse], error)
+	// Retains the reservation. It cannot be reattached until teardown is verified.
+	DetachPublicIp(context.Context, *connect.Request[v1.DetachPublicIpRequest]) (*connect.Response[v1.DetachPublicIpResponse], error)
+	// Permanently releases a detached reservation and stops its allocation billing.
+	// A prior attachment must have completed verified teardown. Release cannot be
+	// undone; the address may immediately be allocated to another customer.
+	ReleasePublicIp(context.Context, *connect.Request[v1.ReleasePublicIpRequest]) (*connect.Response[v1.ReleasePublicIpResponse], error)
+	// Regional TCP load balancers preserve the external client's network-layer
+	// source IP. A backend reaching its own load balancer is the documented
+	// self-hairpin exception and may observe a platform source address.
+	CreateLoadBalancer(context.Context, *connect.Request[v1.CreateLoadBalancerRequest]) (*connect.Response[v1.CreateLoadBalancerResponse], error)
+	GetLoadBalancer(context.Context, *connect.Request[v1.GetLoadBalancerRequest]) (*connect.Response[v1.GetLoadBalancerResponse], error)
+	ListLoadBalancers(context.Context, *connect.Request[v1.ListLoadBalancersRequest]) (*connect.Response[v1.ListLoadBalancersResponse], error)
+	UpdateLoadBalancer(context.Context, *connect.Request[v1.UpdateLoadBalancerRequest]) (*connect.Response[v1.UpdateLoadBalancerResponse], error)
+	DeleteLoadBalancer(context.Context, *connect.Request[v1.DeleteLoadBalancerRequest]) (*connect.Response[v1.DeleteLoadBalancerResponse], error)
 	// Security groups — INTERNAL (east-west) network policy on the private NIC, distinct from
 	// the public firewall above. A group is a reusable ruleset attached to >=0 VMs; rules allow
 	// traffic from/to a CIDR or another security group. VMs talk freely by default — attaching
@@ -105,6 +262,78 @@ func NewNetworkServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 	baseURL = strings.TrimRight(baseURL, "/")
 	networkServiceMethods := v1.File_aes_network_v1_network_proto.Services().ByName("NetworkService").Methods()
 	return &networkServiceClient{
+		listVpcs: connect.NewClient[v1.ListVpcsRequest, v1.ListVpcsResponse](
+			httpClient,
+			baseURL+NetworkServiceListVpcsProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("ListVpcs")),
+			connect.WithClientOptions(opts...),
+		),
+		getVpc: connect.NewClient[v1.GetVpcRequest, v1.GetVpcResponse](
+			httpClient,
+			baseURL+NetworkServiceGetVpcProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("GetVpc")),
+			connect.WithClientOptions(opts...),
+		),
+		listVpcSubnets: connect.NewClient[v1.ListVpcSubnetsRequest, v1.ListVpcSubnetsResponse](
+			httpClient,
+			baseURL+NetworkServiceListVpcSubnetsProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("ListVpcSubnets")),
+			connect.WithClientOptions(opts...),
+		),
+		getVpcSubnet: connect.NewClient[v1.GetVpcSubnetRequest, v1.GetVpcSubnetResponse](
+			httpClient,
+			baseURL+NetworkServiceGetVpcSubnetProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("GetVpcSubnet")),
+			connect.WithClientOptions(opts...),
+		),
+		createVpc: connect.NewClient[v1.CreateVpcRequest, v1.CreateVpcResponse](
+			httpClient,
+			baseURL+NetworkServiceCreateVpcProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("CreateVpc")),
+			connect.WithClientOptions(opts...),
+		),
+		createVpcSubnet: connect.NewClient[v1.CreateVpcSubnetRequest, v1.CreateVpcSubnetResponse](
+			httpClient,
+			baseURL+NetworkServiceCreateVpcSubnetProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("CreateVpcSubnet")),
+			connect.WithClientOptions(opts...),
+		),
+		updateVpc: connect.NewClient[v1.UpdateVpcRequest, v1.UpdateVpcResponse](
+			httpClient,
+			baseURL+NetworkServiceUpdateVpcProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("UpdateVpc")),
+			connect.WithClientOptions(opts...),
+		),
+		updateVpcSubnet: connect.NewClient[v1.UpdateVpcSubnetRequest, v1.UpdateVpcSubnetResponse](
+			httpClient,
+			baseURL+NetworkServiceUpdateVpcSubnetProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("UpdateVpcSubnet")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteVpc: connect.NewClient[v1.DeleteVpcRequest, v1.DeleteVpcResponse](
+			httpClient,
+			baseURL+NetworkServiceDeleteVpcProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("DeleteVpc")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteVpcSubnet: connect.NewClient[v1.DeleteVpcSubnetRequest, v1.DeleteVpcSubnetResponse](
+			httpClient,
+			baseURL+NetworkServiceDeleteVpcSubnetProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("DeleteVpcSubnet")),
+			connect.WithClientOptions(opts...),
+		),
+		attachVpcSubnet: connect.NewClient[v1.AttachVpcSubnetRequest, v1.AttachVpcSubnetResponse](
+			httpClient,
+			baseURL+NetworkServiceAttachVpcSubnetProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("AttachVpcSubnet")),
+			connect.WithClientOptions(opts...),
+		),
+		detachVpcDatacenter: connect.NewClient[v1.DetachVpcDatacenterRequest, v1.DetachVpcDatacenterResponse](
+			httpClient,
+			baseURL+NetworkServiceDetachVpcDatacenterProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("DetachVpcDatacenter")),
+			connect.WithClientOptions(opts...),
+		),
 		createNetwork: connect.NewClient[v1.CreateNetworkRequest, v1.CreateNetworkResponse](
 			httpClient,
 			baseURL+NetworkServiceCreateNetworkProcedure,
@@ -133,6 +362,108 @@ func NewNetworkServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			httpClient,
 			baseURL+NetworkServiceDeleteFirewallRuleProcedure,
 			connect.WithSchema(networkServiceMethods.ByName("DeleteFirewallRule")),
+			connect.WithClientOptions(opts...),
+		),
+		getVmInternetPolicy: connect.NewClient[v1.GetVmInternetPolicyRequest, v1.GetVmInternetPolicyResponse](
+			httpClient,
+			baseURL+NetworkServiceGetVmInternetPolicyProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("GetVmInternetPolicy")),
+			connect.WithClientOptions(opts...),
+		),
+		updateVmInternetPolicy: connect.NewClient[v1.UpdateVmInternetPolicyRequest, v1.UpdateVmInternetPolicyResponse](
+			httpClient,
+			baseURL+NetworkServiceUpdateVmInternetPolicyProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("UpdateVmInternetPolicy")),
+			connect.WithClientOptions(opts...),
+		),
+		getVmNetworkInterfaces: connect.NewClient[v1.GetVmNetworkInterfacesRequest, v1.GetVmNetworkInterfacesResponse](
+			httpClient,
+			baseURL+NetworkServiceGetVmNetworkInterfacesProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("GetVmNetworkInterfaces")),
+			connect.WithClientOptions(opts...),
+		),
+		addVmIpv4Alias: connect.NewClient[v1.AddVmIpv4AliasRequest, v1.AddVmIpv4AliasResponse](
+			httpClient,
+			baseURL+NetworkServiceAddVmIpv4AliasProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("AddVmIpv4Alias")),
+			connect.WithClientOptions(opts...),
+		),
+		removeVmIpv4Alias: connect.NewClient[v1.RemoveVmIpv4AliasRequest, v1.RemoveVmIpv4AliasResponse](
+			httpClient,
+			baseURL+NetworkServiceRemoveVmIpv4AliasProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("RemoveVmIpv4Alias")),
+			connect.WithClientOptions(opts...),
+		),
+		setVmDefaultPublicIp: connect.NewClient[v1.SetVmDefaultPublicIpRequest, v1.SetVmDefaultPublicIpResponse](
+			httpClient,
+			baseURL+NetworkServiceSetVmDefaultPublicIpProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("SetVmDefaultPublicIp")),
+			connect.WithClientOptions(opts...),
+		),
+		getPublicIp: connect.NewClient[v1.GetPublicIpRequest, v1.GetPublicIpResponse](
+			httpClient,
+			baseURL+NetworkServiceGetPublicIpProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("GetPublicIp")),
+			connect.WithClientOptions(opts...),
+		),
+		listPublicIps: connect.NewClient[v1.ListPublicIpsRequest, v1.ListPublicIpsResponse](
+			httpClient,
+			baseURL+NetworkServiceListPublicIpsProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("ListPublicIps")),
+			connect.WithClientOptions(opts...),
+		),
+		reservePublicIp: connect.NewClient[v1.ReservePublicIpRequest, v1.ReservePublicIpResponse](
+			httpClient,
+			baseURL+NetworkServiceReservePublicIpProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("ReservePublicIp")),
+			connect.WithClientOptions(opts...),
+		),
+		attachPublicIp: connect.NewClient[v1.AttachPublicIpRequest, v1.AttachPublicIpResponse](
+			httpClient,
+			baseURL+NetworkServiceAttachPublicIpProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("AttachPublicIp")),
+			connect.WithClientOptions(opts...),
+		),
+		detachPublicIp: connect.NewClient[v1.DetachPublicIpRequest, v1.DetachPublicIpResponse](
+			httpClient,
+			baseURL+NetworkServiceDetachPublicIpProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("DetachPublicIp")),
+			connect.WithClientOptions(opts...),
+		),
+		releasePublicIp: connect.NewClient[v1.ReleasePublicIpRequest, v1.ReleasePublicIpResponse](
+			httpClient,
+			baseURL+NetworkServiceReleasePublicIpProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("ReleasePublicIp")),
+			connect.WithClientOptions(opts...),
+		),
+		createLoadBalancer: connect.NewClient[v1.CreateLoadBalancerRequest, v1.CreateLoadBalancerResponse](
+			httpClient,
+			baseURL+NetworkServiceCreateLoadBalancerProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("CreateLoadBalancer")),
+			connect.WithClientOptions(opts...),
+		),
+		getLoadBalancer: connect.NewClient[v1.GetLoadBalancerRequest, v1.GetLoadBalancerResponse](
+			httpClient,
+			baseURL+NetworkServiceGetLoadBalancerProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("GetLoadBalancer")),
+			connect.WithClientOptions(opts...),
+		),
+		listLoadBalancers: connect.NewClient[v1.ListLoadBalancersRequest, v1.ListLoadBalancersResponse](
+			httpClient,
+			baseURL+NetworkServiceListLoadBalancersProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("ListLoadBalancers")),
+			connect.WithClientOptions(opts...),
+		),
+		updateLoadBalancer: connect.NewClient[v1.UpdateLoadBalancerRequest, v1.UpdateLoadBalancerResponse](
+			httpClient,
+			baseURL+NetworkServiceUpdateLoadBalancerProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("UpdateLoadBalancer")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteLoadBalancer: connect.NewClient[v1.DeleteLoadBalancerRequest, v1.DeleteLoadBalancerResponse](
+			httpClient,
+			baseURL+NetworkServiceDeleteLoadBalancerProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("DeleteLoadBalancer")),
 			connect.WithClientOptions(opts...),
 		),
 		createSecurityGroup: connect.NewClient[v1.CreateSecurityGroupRequest, v1.CreateSecurityGroupResponse](
@@ -182,11 +513,40 @@ func NewNetworkServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 
 // networkServiceClient implements NetworkServiceClient.
 type networkServiceClient struct {
+	listVpcs                  *connect.Client[v1.ListVpcsRequest, v1.ListVpcsResponse]
+	getVpc                    *connect.Client[v1.GetVpcRequest, v1.GetVpcResponse]
+	listVpcSubnets            *connect.Client[v1.ListVpcSubnetsRequest, v1.ListVpcSubnetsResponse]
+	getVpcSubnet              *connect.Client[v1.GetVpcSubnetRequest, v1.GetVpcSubnetResponse]
+	createVpc                 *connect.Client[v1.CreateVpcRequest, v1.CreateVpcResponse]
+	createVpcSubnet           *connect.Client[v1.CreateVpcSubnetRequest, v1.CreateVpcSubnetResponse]
+	updateVpc                 *connect.Client[v1.UpdateVpcRequest, v1.UpdateVpcResponse]
+	updateVpcSubnet           *connect.Client[v1.UpdateVpcSubnetRequest, v1.UpdateVpcSubnetResponse]
+	deleteVpc                 *connect.Client[v1.DeleteVpcRequest, v1.DeleteVpcResponse]
+	deleteVpcSubnet           *connect.Client[v1.DeleteVpcSubnetRequest, v1.DeleteVpcSubnetResponse]
+	attachVpcSubnet           *connect.Client[v1.AttachVpcSubnetRequest, v1.AttachVpcSubnetResponse]
+	detachVpcDatacenter       *connect.Client[v1.DetachVpcDatacenterRequest, v1.DetachVpcDatacenterResponse]
 	createNetwork             *connect.Client[v1.CreateNetworkRequest, v1.CreateNetworkResponse]
 	listNetworks              *connect.Client[v1.ListNetworksRequest, v1.ListNetworksResponse]
 	createFirewallRule        *connect.Client[v1.CreateFirewallRuleRequest, v1.CreateFirewallRuleResponse]
 	listFirewallRules         *connect.Client[v1.ListFirewallRulesRequest, v1.ListFirewallRulesResponse]
 	deleteFirewallRule        *connect.Client[v1.DeleteFirewallRuleRequest, v1.DeleteFirewallRuleResponse]
+	getVmInternetPolicy       *connect.Client[v1.GetVmInternetPolicyRequest, v1.GetVmInternetPolicyResponse]
+	updateVmInternetPolicy    *connect.Client[v1.UpdateVmInternetPolicyRequest, v1.UpdateVmInternetPolicyResponse]
+	getVmNetworkInterfaces    *connect.Client[v1.GetVmNetworkInterfacesRequest, v1.GetVmNetworkInterfacesResponse]
+	addVmIpv4Alias            *connect.Client[v1.AddVmIpv4AliasRequest, v1.AddVmIpv4AliasResponse]
+	removeVmIpv4Alias         *connect.Client[v1.RemoveVmIpv4AliasRequest, v1.RemoveVmIpv4AliasResponse]
+	setVmDefaultPublicIp      *connect.Client[v1.SetVmDefaultPublicIpRequest, v1.SetVmDefaultPublicIpResponse]
+	getPublicIp               *connect.Client[v1.GetPublicIpRequest, v1.GetPublicIpResponse]
+	listPublicIps             *connect.Client[v1.ListPublicIpsRequest, v1.ListPublicIpsResponse]
+	reservePublicIp           *connect.Client[v1.ReservePublicIpRequest, v1.ReservePublicIpResponse]
+	attachPublicIp            *connect.Client[v1.AttachPublicIpRequest, v1.AttachPublicIpResponse]
+	detachPublicIp            *connect.Client[v1.DetachPublicIpRequest, v1.DetachPublicIpResponse]
+	releasePublicIp           *connect.Client[v1.ReleasePublicIpRequest, v1.ReleasePublicIpResponse]
+	createLoadBalancer        *connect.Client[v1.CreateLoadBalancerRequest, v1.CreateLoadBalancerResponse]
+	getLoadBalancer           *connect.Client[v1.GetLoadBalancerRequest, v1.GetLoadBalancerResponse]
+	listLoadBalancers         *connect.Client[v1.ListLoadBalancersRequest, v1.ListLoadBalancersResponse]
+	updateLoadBalancer        *connect.Client[v1.UpdateLoadBalancerRequest, v1.UpdateLoadBalancerResponse]
+	deleteLoadBalancer        *connect.Client[v1.DeleteLoadBalancerRequest, v1.DeleteLoadBalancerResponse]
 	createSecurityGroup       *connect.Client[v1.CreateSecurityGroupRequest, v1.CreateSecurityGroupResponse]
 	getSecurityGroup          *connect.Client[v1.GetSecurityGroupRequest, v1.GetSecurityGroupResponse]
 	listSecurityGroups        *connect.Client[v1.ListSecurityGroupsRequest, v1.ListSecurityGroupsResponse]
@@ -194,6 +554,66 @@ type networkServiceClient struct {
 	deleteSecurityGroup       *connect.Client[v1.DeleteSecurityGroupRequest, v1.DeleteSecurityGroupResponse]
 	addVmToSecurityGroup      *connect.Client[v1.AddVmToSecurityGroupRequest, v1.AddVmToSecurityGroupResponse]
 	removeVmFromSecurityGroup *connect.Client[v1.RemoveVmFromSecurityGroupRequest, v1.RemoveVmFromSecurityGroupResponse]
+}
+
+// ListVpcs calls aes.network.v1.NetworkService.ListVpcs.
+func (c *networkServiceClient) ListVpcs(ctx context.Context, req *connect.Request[v1.ListVpcsRequest]) (*connect.Response[v1.ListVpcsResponse], error) {
+	return c.listVpcs.CallUnary(ctx, req)
+}
+
+// GetVpc calls aes.network.v1.NetworkService.GetVpc.
+func (c *networkServiceClient) GetVpc(ctx context.Context, req *connect.Request[v1.GetVpcRequest]) (*connect.Response[v1.GetVpcResponse], error) {
+	return c.getVpc.CallUnary(ctx, req)
+}
+
+// ListVpcSubnets calls aes.network.v1.NetworkService.ListVpcSubnets.
+func (c *networkServiceClient) ListVpcSubnets(ctx context.Context, req *connect.Request[v1.ListVpcSubnetsRequest]) (*connect.Response[v1.ListVpcSubnetsResponse], error) {
+	return c.listVpcSubnets.CallUnary(ctx, req)
+}
+
+// GetVpcSubnet calls aes.network.v1.NetworkService.GetVpcSubnet.
+func (c *networkServiceClient) GetVpcSubnet(ctx context.Context, req *connect.Request[v1.GetVpcSubnetRequest]) (*connect.Response[v1.GetVpcSubnetResponse], error) {
+	return c.getVpcSubnet.CallUnary(ctx, req)
+}
+
+// CreateVpc calls aes.network.v1.NetworkService.CreateVpc.
+func (c *networkServiceClient) CreateVpc(ctx context.Context, req *connect.Request[v1.CreateVpcRequest]) (*connect.Response[v1.CreateVpcResponse], error) {
+	return c.createVpc.CallUnary(ctx, req)
+}
+
+// CreateVpcSubnet calls aes.network.v1.NetworkService.CreateVpcSubnet.
+func (c *networkServiceClient) CreateVpcSubnet(ctx context.Context, req *connect.Request[v1.CreateVpcSubnetRequest]) (*connect.Response[v1.CreateVpcSubnetResponse], error) {
+	return c.createVpcSubnet.CallUnary(ctx, req)
+}
+
+// UpdateVpc calls aes.network.v1.NetworkService.UpdateVpc.
+func (c *networkServiceClient) UpdateVpc(ctx context.Context, req *connect.Request[v1.UpdateVpcRequest]) (*connect.Response[v1.UpdateVpcResponse], error) {
+	return c.updateVpc.CallUnary(ctx, req)
+}
+
+// UpdateVpcSubnet calls aes.network.v1.NetworkService.UpdateVpcSubnet.
+func (c *networkServiceClient) UpdateVpcSubnet(ctx context.Context, req *connect.Request[v1.UpdateVpcSubnetRequest]) (*connect.Response[v1.UpdateVpcSubnetResponse], error) {
+	return c.updateVpcSubnet.CallUnary(ctx, req)
+}
+
+// DeleteVpc calls aes.network.v1.NetworkService.DeleteVpc.
+func (c *networkServiceClient) DeleteVpc(ctx context.Context, req *connect.Request[v1.DeleteVpcRequest]) (*connect.Response[v1.DeleteVpcResponse], error) {
+	return c.deleteVpc.CallUnary(ctx, req)
+}
+
+// DeleteVpcSubnet calls aes.network.v1.NetworkService.DeleteVpcSubnet.
+func (c *networkServiceClient) DeleteVpcSubnet(ctx context.Context, req *connect.Request[v1.DeleteVpcSubnetRequest]) (*connect.Response[v1.DeleteVpcSubnetResponse], error) {
+	return c.deleteVpcSubnet.CallUnary(ctx, req)
+}
+
+// AttachVpcSubnet calls aes.network.v1.NetworkService.AttachVpcSubnet.
+func (c *networkServiceClient) AttachVpcSubnet(ctx context.Context, req *connect.Request[v1.AttachVpcSubnetRequest]) (*connect.Response[v1.AttachVpcSubnetResponse], error) {
+	return c.attachVpcSubnet.CallUnary(ctx, req)
+}
+
+// DetachVpcDatacenter calls aes.network.v1.NetworkService.DetachVpcDatacenter.
+func (c *networkServiceClient) DetachVpcDatacenter(ctx context.Context, req *connect.Request[v1.DetachVpcDatacenterRequest]) (*connect.Response[v1.DetachVpcDatacenterResponse], error) {
+	return c.detachVpcDatacenter.CallUnary(ctx, req)
 }
 
 // CreateNetwork calls aes.network.v1.NetworkService.CreateNetwork.
@@ -219,6 +639,91 @@ func (c *networkServiceClient) ListFirewallRules(ctx context.Context, req *conne
 // DeleteFirewallRule calls aes.network.v1.NetworkService.DeleteFirewallRule.
 func (c *networkServiceClient) DeleteFirewallRule(ctx context.Context, req *connect.Request[v1.DeleteFirewallRuleRequest]) (*connect.Response[v1.DeleteFirewallRuleResponse], error) {
 	return c.deleteFirewallRule.CallUnary(ctx, req)
+}
+
+// GetVmInternetPolicy calls aes.network.v1.NetworkService.GetVmInternetPolicy.
+func (c *networkServiceClient) GetVmInternetPolicy(ctx context.Context, req *connect.Request[v1.GetVmInternetPolicyRequest]) (*connect.Response[v1.GetVmInternetPolicyResponse], error) {
+	return c.getVmInternetPolicy.CallUnary(ctx, req)
+}
+
+// UpdateVmInternetPolicy calls aes.network.v1.NetworkService.UpdateVmInternetPolicy.
+func (c *networkServiceClient) UpdateVmInternetPolicy(ctx context.Context, req *connect.Request[v1.UpdateVmInternetPolicyRequest]) (*connect.Response[v1.UpdateVmInternetPolicyResponse], error) {
+	return c.updateVmInternetPolicy.CallUnary(ctx, req)
+}
+
+// GetVmNetworkInterfaces calls aes.network.v1.NetworkService.GetVmNetworkInterfaces.
+func (c *networkServiceClient) GetVmNetworkInterfaces(ctx context.Context, req *connect.Request[v1.GetVmNetworkInterfacesRequest]) (*connect.Response[v1.GetVmNetworkInterfacesResponse], error) {
+	return c.getVmNetworkInterfaces.CallUnary(ctx, req)
+}
+
+// AddVmIpv4Alias calls aes.network.v1.NetworkService.AddVmIpv4Alias.
+func (c *networkServiceClient) AddVmIpv4Alias(ctx context.Context, req *connect.Request[v1.AddVmIpv4AliasRequest]) (*connect.Response[v1.AddVmIpv4AliasResponse], error) {
+	return c.addVmIpv4Alias.CallUnary(ctx, req)
+}
+
+// RemoveVmIpv4Alias calls aes.network.v1.NetworkService.RemoveVmIpv4Alias.
+func (c *networkServiceClient) RemoveVmIpv4Alias(ctx context.Context, req *connect.Request[v1.RemoveVmIpv4AliasRequest]) (*connect.Response[v1.RemoveVmIpv4AliasResponse], error) {
+	return c.removeVmIpv4Alias.CallUnary(ctx, req)
+}
+
+// SetVmDefaultPublicIp calls aes.network.v1.NetworkService.SetVmDefaultPublicIp.
+func (c *networkServiceClient) SetVmDefaultPublicIp(ctx context.Context, req *connect.Request[v1.SetVmDefaultPublicIpRequest]) (*connect.Response[v1.SetVmDefaultPublicIpResponse], error) {
+	return c.setVmDefaultPublicIp.CallUnary(ctx, req)
+}
+
+// GetPublicIp calls aes.network.v1.NetworkService.GetPublicIp.
+func (c *networkServiceClient) GetPublicIp(ctx context.Context, req *connect.Request[v1.GetPublicIpRequest]) (*connect.Response[v1.GetPublicIpResponse], error) {
+	return c.getPublicIp.CallUnary(ctx, req)
+}
+
+// ListPublicIps calls aes.network.v1.NetworkService.ListPublicIps.
+func (c *networkServiceClient) ListPublicIps(ctx context.Context, req *connect.Request[v1.ListPublicIpsRequest]) (*connect.Response[v1.ListPublicIpsResponse], error) {
+	return c.listPublicIps.CallUnary(ctx, req)
+}
+
+// ReservePublicIp calls aes.network.v1.NetworkService.ReservePublicIp.
+func (c *networkServiceClient) ReservePublicIp(ctx context.Context, req *connect.Request[v1.ReservePublicIpRequest]) (*connect.Response[v1.ReservePublicIpResponse], error) {
+	return c.reservePublicIp.CallUnary(ctx, req)
+}
+
+// AttachPublicIp calls aes.network.v1.NetworkService.AttachPublicIp.
+func (c *networkServiceClient) AttachPublicIp(ctx context.Context, req *connect.Request[v1.AttachPublicIpRequest]) (*connect.Response[v1.AttachPublicIpResponse], error) {
+	return c.attachPublicIp.CallUnary(ctx, req)
+}
+
+// DetachPublicIp calls aes.network.v1.NetworkService.DetachPublicIp.
+func (c *networkServiceClient) DetachPublicIp(ctx context.Context, req *connect.Request[v1.DetachPublicIpRequest]) (*connect.Response[v1.DetachPublicIpResponse], error) {
+	return c.detachPublicIp.CallUnary(ctx, req)
+}
+
+// ReleasePublicIp calls aes.network.v1.NetworkService.ReleasePublicIp.
+func (c *networkServiceClient) ReleasePublicIp(ctx context.Context, req *connect.Request[v1.ReleasePublicIpRequest]) (*connect.Response[v1.ReleasePublicIpResponse], error) {
+	return c.releasePublicIp.CallUnary(ctx, req)
+}
+
+// CreateLoadBalancer calls aes.network.v1.NetworkService.CreateLoadBalancer.
+func (c *networkServiceClient) CreateLoadBalancer(ctx context.Context, req *connect.Request[v1.CreateLoadBalancerRequest]) (*connect.Response[v1.CreateLoadBalancerResponse], error) {
+	return c.createLoadBalancer.CallUnary(ctx, req)
+}
+
+// GetLoadBalancer calls aes.network.v1.NetworkService.GetLoadBalancer.
+func (c *networkServiceClient) GetLoadBalancer(ctx context.Context, req *connect.Request[v1.GetLoadBalancerRequest]) (*connect.Response[v1.GetLoadBalancerResponse], error) {
+	return c.getLoadBalancer.CallUnary(ctx, req)
+}
+
+// ListLoadBalancers calls aes.network.v1.NetworkService.ListLoadBalancers.
+func (c *networkServiceClient) ListLoadBalancers(ctx context.Context, req *connect.Request[v1.ListLoadBalancersRequest]) (*connect.Response[v1.ListLoadBalancersResponse], error) {
+	return c.listLoadBalancers.CallUnary(ctx, req)
+}
+
+// UpdateLoadBalancer calls aes.network.v1.NetworkService.UpdateLoadBalancer.
+func (c *networkServiceClient) UpdateLoadBalancer(ctx context.Context, req *connect.Request[v1.UpdateLoadBalancerRequest]) (*connect.Response[v1.UpdateLoadBalancerResponse], error) {
+	return c.updateLoadBalancer.CallUnary(ctx, req)
+}
+
+// DeleteLoadBalancer calls aes.network.v1.NetworkService.DeleteLoadBalancer.
+func (c *networkServiceClient) DeleteLoadBalancer(ctx context.Context, req *connect.Request[v1.DeleteLoadBalancerRequest]) (*connect.Response[v1.DeleteLoadBalancerResponse], error) {
+	return c.deleteLoadBalancer.CallUnary(ctx, req)
 }
 
 // CreateSecurityGroup calls aes.network.v1.NetworkService.CreateSecurityGroup.
@@ -258,13 +763,85 @@ func (c *networkServiceClient) RemoveVmFromSecurityGroup(ctx context.Context, re
 
 // NetworkServiceHandler is an implementation of the aes.network.v1.NetworkService service.
 type NetworkServiceHandler interface {
+	// Private-network topology is distinct from the retained legacy Network
+	// resource. These reads do not enroll a DC or assert forwarding readiness.
+	ListVpcs(context.Context, *connect.Request[v1.ListVpcsRequest]) (*connect.Response[v1.ListVpcsResponse], error)
+	GetVpc(context.Context, *connect.Request[v1.GetVpcRequest]) (*connect.Response[v1.GetVpcResponse], error)
+	ListVpcSubnets(context.Context, *connect.Request[v1.ListVpcSubnetsRequest]) (*connect.Response[v1.ListVpcSubnetsResponse], error)
+	GetVpcSubnet(context.Context, *connect.Request[v1.GetVpcSubnetRequest]) (*connect.Response[v1.GetVpcSubnetResponse], error)
+	// Creates a durable definition without enrolling a datacenter or configuring
+	// forwarding. Retry uncertain results with the same request_id.
+	CreateVpc(context.Context, *connect.Request[v1.CreateVpcRequest]) (*connect.Response[v1.CreateVpcResponse], error)
+	// Reserves private IPv4 space. Datacenter attachment and VM eligibility are
+	// separate; successful definition creation does not imply connectivity.
+	CreateVpcSubnet(context.Context, *connect.Request[v1.CreateVpcSubnetRequest]) (*connect.Response[v1.CreateVpcSubnetResponse], error)
+	// Updates display metadata only; address ranges and resolver choices are immutable.
+	UpdateVpc(context.Context, *connect.Request[v1.UpdateVpcRequest]) (*connect.Response[v1.UpdateVpcResponse], error)
+	UpdateVpcSubnet(context.Context, *connect.Request[v1.UpdateVpcSubnetRequest]) (*connect.Response[v1.UpdateVpcSubnetResponse], error)
+	// Deletes an empty definition after its datacenter attachments have retired.
+	// Historical identities and audit records are retained. Delete subnets before their VPC.
+	DeleteVpc(context.Context, *connect.Request[v1.DeleteVpcRequest]) (*connect.Response[v1.DeleteVpcResponse], error)
+	DeleteVpcSubnet(context.Context, *connect.Request[v1.DeleteVpcSubnetRequest]) (*connect.Response[v1.DeleteVpcSubnetResponse], error)
+	// Enables an existing subnet in a location using platform-managed settings.
+	// Wait for the operation before publishing a Network in that location.
+	// Does not promise connectivity between locations or change guest settings.
+	AttachVpcSubnet(context.Context, *connect.Request[v1.AttachVpcSubnetRequest]) (*connect.Response[v1.AttachVpcSubnetResponse], error)
+	// Detaches all unused subnets of a VPC from one location. Retained VMs,
+	// disks, addresses, load balancers or shares must finish cleanup first.
+	// Other locations and the VPC/subnet definitions are preserved.
+	DetachVpcDatacenter(context.Context, *connect.Request[v1.DetachVpcDatacenterRequest]) (*connect.Response[v1.DetachVpcDatacenterResponse], error)
 	CreateNetwork(context.Context, *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.CreateNetworkResponse], error)
 	ListNetworks(context.Context, *connect.Request[v1.ListNetworksRequest]) (*connect.Response[v1.ListNetworksResponse], error)
-	// CreateFirewallRule opens the listed ingress ports on the VM's public IP from the listed
-	// source CIDRs. Egress is unrestricted (blocking it breaks cloud-init / package installs / DNS).
+	// CreateFirewallRule saves inbound/outbound Internet policy or explicit IPv4
+	// port forwarding. VM Internet switches remain separate from firewall rules.
 	CreateFirewallRule(context.Context, *connect.Request[v1.CreateFirewallRuleRequest]) (*connect.Response[v1.CreateFirewallRuleResponse], error)
 	ListFirewallRules(context.Context, *connect.Request[v1.ListFirewallRulesRequest]) (*connect.Response[v1.ListFirewallRulesResponse], error)
 	DeleteFirewallRule(context.Context, *connect.Request[v1.DeleteFirewallRuleRequest]) (*connect.Response[v1.DeleteFirewallRuleResponse], error)
+	// Internet controls for VMs using private IPv4 with public address mappings.
+	// These settings do not release addresses or override firewall restrictions.
+	GetVmInternetPolicy(context.Context, *connect.Request[v1.GetVmInternetPolicyRequest]) (*connect.Response[v1.GetVmInternetPolicyResponse], error)
+	// Accepts an asynchronous change. A response is not proof of enforcement;
+	// wait for the returned operation and check observed_generation.
+	UpdateVmInternetPolicy(context.Context, *connect.Request[v1.UpdateVmInternetPolicyRequest]) (*connect.Response[v1.UpdateVmInternetPolicyResponse], error)
+	// Returns desired addresses and separate network/guest observation revisions.
+	GetVmNetworkInterfaces(context.Context, *connect.Request[v1.GetVmNetworkInterfacesRequest]) (*connect.Response[v1.GetVmNetworkInterfacesResponse], error)
+	// Allocates another private IPv4 source on the primary interface. Delivery to
+	// the guest is asynchronous; this does not allocate or attach a public IP.
+	AddVmIpv4Alias(context.Context, *connect.Request[v1.AddVmIpv4AliasRequest]) (*connect.Response[v1.AddVmIpv4AliasResponse], error)
+	// Removes an unused platform-managed alias. Acceptance is not proof of cleanup
+	// or address availability; dependencies must be removed first.
+	RemoveVmIpv4Alias(context.Context, *connect.Request[v1.RemoveVmIpv4AliasRequest]) (*connect.Response[v1.RemoveVmIpv4AliasResponse], error)
+	// Explicitly selects an attached public IPv4 for new outbound connections.
+	// Other mappings and internet controls remain unchanged. Existing connections
+	// and external allowlists may be affected; wait for the returned operation.
+	SetVmDefaultPublicIp(context.Context, *connect.Request[v1.SetVmDefaultPublicIpRequest]) (*connect.Response[v1.SetVmDefaultPublicIpResponse], error)
+	// Reserved public addresses remain in their allocating datacenter. Attachment
+	// changes are asynchronous; acceptance alone does not establish forwarding.
+	GetPublicIp(context.Context, *connect.Request[v1.GetPublicIpRequest]) (*connect.Response[v1.GetPublicIpResponse], error)
+	// Lists active reservations and legacy VM addresses, including detached ones.
+	// Managed load balancer addresses are returned by ListLoadBalancers instead.
+	ListPublicIps(context.Context, *connect.Request[v1.ListPublicIpsRequest]) (*connect.Response[v1.ListPublicIpsResponse], error)
+	// Reserves a billable, detached address. This does not install forwarding.
+	ReservePublicIp(context.Context, *connect.Request[v1.ReservePublicIpRequest]) (*connect.Response[v1.ReservePublicIpResponse], error)
+	// Attaches to an already assigned private IPv4. The first public attachment
+	// also selects that address as the desired default outbound source; additional
+	// attachments preserve the selection. Wait for the returned operation before
+	// treating the mapping or guest source change as applied.
+	AttachPublicIp(context.Context, *connect.Request[v1.AttachPublicIpRequest]) (*connect.Response[v1.AttachPublicIpResponse], error)
+	// Retains the reservation. It cannot be reattached until teardown is verified.
+	DetachPublicIp(context.Context, *connect.Request[v1.DetachPublicIpRequest]) (*connect.Response[v1.DetachPublicIpResponse], error)
+	// Permanently releases a detached reservation and stops its allocation billing.
+	// A prior attachment must have completed verified teardown. Release cannot be
+	// undone; the address may immediately be allocated to another customer.
+	ReleasePublicIp(context.Context, *connect.Request[v1.ReleasePublicIpRequest]) (*connect.Response[v1.ReleasePublicIpResponse], error)
+	// Regional TCP load balancers preserve the external client's network-layer
+	// source IP. A backend reaching its own load balancer is the documented
+	// self-hairpin exception and may observe a platform source address.
+	CreateLoadBalancer(context.Context, *connect.Request[v1.CreateLoadBalancerRequest]) (*connect.Response[v1.CreateLoadBalancerResponse], error)
+	GetLoadBalancer(context.Context, *connect.Request[v1.GetLoadBalancerRequest]) (*connect.Response[v1.GetLoadBalancerResponse], error)
+	ListLoadBalancers(context.Context, *connect.Request[v1.ListLoadBalancersRequest]) (*connect.Response[v1.ListLoadBalancersResponse], error)
+	UpdateLoadBalancer(context.Context, *connect.Request[v1.UpdateLoadBalancerRequest]) (*connect.Response[v1.UpdateLoadBalancerResponse], error)
+	DeleteLoadBalancer(context.Context, *connect.Request[v1.DeleteLoadBalancerRequest]) (*connect.Response[v1.DeleteLoadBalancerResponse], error)
 	// Security groups — INTERNAL (east-west) network policy on the private NIC, distinct from
 	// the public firewall above. A group is a reusable ruleset attached to >=0 VMs; rules allow
 	// traffic from/to a CIDR or another security group. VMs talk freely by default — attaching
@@ -286,6 +863,78 @@ type NetworkServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewNetworkServiceHandler(svc NetworkServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	networkServiceMethods := v1.File_aes_network_v1_network_proto.Services().ByName("NetworkService").Methods()
+	networkServiceListVpcsHandler := connect.NewUnaryHandler(
+		NetworkServiceListVpcsProcedure,
+		svc.ListVpcs,
+		connect.WithSchema(networkServiceMethods.ByName("ListVpcs")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceGetVpcHandler := connect.NewUnaryHandler(
+		NetworkServiceGetVpcProcedure,
+		svc.GetVpc,
+		connect.WithSchema(networkServiceMethods.ByName("GetVpc")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceListVpcSubnetsHandler := connect.NewUnaryHandler(
+		NetworkServiceListVpcSubnetsProcedure,
+		svc.ListVpcSubnets,
+		connect.WithSchema(networkServiceMethods.ByName("ListVpcSubnets")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceGetVpcSubnetHandler := connect.NewUnaryHandler(
+		NetworkServiceGetVpcSubnetProcedure,
+		svc.GetVpcSubnet,
+		connect.WithSchema(networkServiceMethods.ByName("GetVpcSubnet")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceCreateVpcHandler := connect.NewUnaryHandler(
+		NetworkServiceCreateVpcProcedure,
+		svc.CreateVpc,
+		connect.WithSchema(networkServiceMethods.ByName("CreateVpc")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceCreateVpcSubnetHandler := connect.NewUnaryHandler(
+		NetworkServiceCreateVpcSubnetProcedure,
+		svc.CreateVpcSubnet,
+		connect.WithSchema(networkServiceMethods.ByName("CreateVpcSubnet")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceUpdateVpcHandler := connect.NewUnaryHandler(
+		NetworkServiceUpdateVpcProcedure,
+		svc.UpdateVpc,
+		connect.WithSchema(networkServiceMethods.ByName("UpdateVpc")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceUpdateVpcSubnetHandler := connect.NewUnaryHandler(
+		NetworkServiceUpdateVpcSubnetProcedure,
+		svc.UpdateVpcSubnet,
+		connect.WithSchema(networkServiceMethods.ByName("UpdateVpcSubnet")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceDeleteVpcHandler := connect.NewUnaryHandler(
+		NetworkServiceDeleteVpcProcedure,
+		svc.DeleteVpc,
+		connect.WithSchema(networkServiceMethods.ByName("DeleteVpc")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceDeleteVpcSubnetHandler := connect.NewUnaryHandler(
+		NetworkServiceDeleteVpcSubnetProcedure,
+		svc.DeleteVpcSubnet,
+		connect.WithSchema(networkServiceMethods.ByName("DeleteVpcSubnet")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceAttachVpcSubnetHandler := connect.NewUnaryHandler(
+		NetworkServiceAttachVpcSubnetProcedure,
+		svc.AttachVpcSubnet,
+		connect.WithSchema(networkServiceMethods.ByName("AttachVpcSubnet")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceDetachVpcDatacenterHandler := connect.NewUnaryHandler(
+		NetworkServiceDetachVpcDatacenterProcedure,
+		svc.DetachVpcDatacenter,
+		connect.WithSchema(networkServiceMethods.ByName("DetachVpcDatacenter")),
+		connect.WithHandlerOptions(opts...),
+	)
 	networkServiceCreateNetworkHandler := connect.NewUnaryHandler(
 		NetworkServiceCreateNetworkProcedure,
 		svc.CreateNetwork,
@@ -314,6 +963,108 @@ func NewNetworkServiceHandler(svc NetworkServiceHandler, opts ...connect.Handler
 		NetworkServiceDeleteFirewallRuleProcedure,
 		svc.DeleteFirewallRule,
 		connect.WithSchema(networkServiceMethods.ByName("DeleteFirewallRule")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceGetVmInternetPolicyHandler := connect.NewUnaryHandler(
+		NetworkServiceGetVmInternetPolicyProcedure,
+		svc.GetVmInternetPolicy,
+		connect.WithSchema(networkServiceMethods.ByName("GetVmInternetPolicy")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceUpdateVmInternetPolicyHandler := connect.NewUnaryHandler(
+		NetworkServiceUpdateVmInternetPolicyProcedure,
+		svc.UpdateVmInternetPolicy,
+		connect.WithSchema(networkServiceMethods.ByName("UpdateVmInternetPolicy")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceGetVmNetworkInterfacesHandler := connect.NewUnaryHandler(
+		NetworkServiceGetVmNetworkInterfacesProcedure,
+		svc.GetVmNetworkInterfaces,
+		connect.WithSchema(networkServiceMethods.ByName("GetVmNetworkInterfaces")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceAddVmIpv4AliasHandler := connect.NewUnaryHandler(
+		NetworkServiceAddVmIpv4AliasProcedure,
+		svc.AddVmIpv4Alias,
+		connect.WithSchema(networkServiceMethods.ByName("AddVmIpv4Alias")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceRemoveVmIpv4AliasHandler := connect.NewUnaryHandler(
+		NetworkServiceRemoveVmIpv4AliasProcedure,
+		svc.RemoveVmIpv4Alias,
+		connect.WithSchema(networkServiceMethods.ByName("RemoveVmIpv4Alias")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceSetVmDefaultPublicIpHandler := connect.NewUnaryHandler(
+		NetworkServiceSetVmDefaultPublicIpProcedure,
+		svc.SetVmDefaultPublicIp,
+		connect.WithSchema(networkServiceMethods.ByName("SetVmDefaultPublicIp")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceGetPublicIpHandler := connect.NewUnaryHandler(
+		NetworkServiceGetPublicIpProcedure,
+		svc.GetPublicIp,
+		connect.WithSchema(networkServiceMethods.ByName("GetPublicIp")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceListPublicIpsHandler := connect.NewUnaryHandler(
+		NetworkServiceListPublicIpsProcedure,
+		svc.ListPublicIps,
+		connect.WithSchema(networkServiceMethods.ByName("ListPublicIps")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceReservePublicIpHandler := connect.NewUnaryHandler(
+		NetworkServiceReservePublicIpProcedure,
+		svc.ReservePublicIp,
+		connect.WithSchema(networkServiceMethods.ByName("ReservePublicIp")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceAttachPublicIpHandler := connect.NewUnaryHandler(
+		NetworkServiceAttachPublicIpProcedure,
+		svc.AttachPublicIp,
+		connect.WithSchema(networkServiceMethods.ByName("AttachPublicIp")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceDetachPublicIpHandler := connect.NewUnaryHandler(
+		NetworkServiceDetachPublicIpProcedure,
+		svc.DetachPublicIp,
+		connect.WithSchema(networkServiceMethods.ByName("DetachPublicIp")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceReleasePublicIpHandler := connect.NewUnaryHandler(
+		NetworkServiceReleasePublicIpProcedure,
+		svc.ReleasePublicIp,
+		connect.WithSchema(networkServiceMethods.ByName("ReleasePublicIp")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceCreateLoadBalancerHandler := connect.NewUnaryHandler(
+		NetworkServiceCreateLoadBalancerProcedure,
+		svc.CreateLoadBalancer,
+		connect.WithSchema(networkServiceMethods.ByName("CreateLoadBalancer")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceGetLoadBalancerHandler := connect.NewUnaryHandler(
+		NetworkServiceGetLoadBalancerProcedure,
+		svc.GetLoadBalancer,
+		connect.WithSchema(networkServiceMethods.ByName("GetLoadBalancer")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceListLoadBalancersHandler := connect.NewUnaryHandler(
+		NetworkServiceListLoadBalancersProcedure,
+		svc.ListLoadBalancers,
+		connect.WithSchema(networkServiceMethods.ByName("ListLoadBalancers")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceUpdateLoadBalancerHandler := connect.NewUnaryHandler(
+		NetworkServiceUpdateLoadBalancerProcedure,
+		svc.UpdateLoadBalancer,
+		connect.WithSchema(networkServiceMethods.ByName("UpdateLoadBalancer")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceDeleteLoadBalancerHandler := connect.NewUnaryHandler(
+		NetworkServiceDeleteLoadBalancerProcedure,
+		svc.DeleteLoadBalancer,
+		connect.WithSchema(networkServiceMethods.ByName("DeleteLoadBalancer")),
 		connect.WithHandlerOptions(opts...),
 	)
 	networkServiceCreateSecurityGroupHandler := connect.NewUnaryHandler(
@@ -360,6 +1111,30 @@ func NewNetworkServiceHandler(svc NetworkServiceHandler, opts ...connect.Handler
 	)
 	return "/aes.network.v1.NetworkService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case NetworkServiceListVpcsProcedure:
+			networkServiceListVpcsHandler.ServeHTTP(w, r)
+		case NetworkServiceGetVpcProcedure:
+			networkServiceGetVpcHandler.ServeHTTP(w, r)
+		case NetworkServiceListVpcSubnetsProcedure:
+			networkServiceListVpcSubnetsHandler.ServeHTTP(w, r)
+		case NetworkServiceGetVpcSubnetProcedure:
+			networkServiceGetVpcSubnetHandler.ServeHTTP(w, r)
+		case NetworkServiceCreateVpcProcedure:
+			networkServiceCreateVpcHandler.ServeHTTP(w, r)
+		case NetworkServiceCreateVpcSubnetProcedure:
+			networkServiceCreateVpcSubnetHandler.ServeHTTP(w, r)
+		case NetworkServiceUpdateVpcProcedure:
+			networkServiceUpdateVpcHandler.ServeHTTP(w, r)
+		case NetworkServiceUpdateVpcSubnetProcedure:
+			networkServiceUpdateVpcSubnetHandler.ServeHTTP(w, r)
+		case NetworkServiceDeleteVpcProcedure:
+			networkServiceDeleteVpcHandler.ServeHTTP(w, r)
+		case NetworkServiceDeleteVpcSubnetProcedure:
+			networkServiceDeleteVpcSubnetHandler.ServeHTTP(w, r)
+		case NetworkServiceAttachVpcSubnetProcedure:
+			networkServiceAttachVpcSubnetHandler.ServeHTTP(w, r)
+		case NetworkServiceDetachVpcDatacenterProcedure:
+			networkServiceDetachVpcDatacenterHandler.ServeHTTP(w, r)
 		case NetworkServiceCreateNetworkProcedure:
 			networkServiceCreateNetworkHandler.ServeHTTP(w, r)
 		case NetworkServiceListNetworksProcedure:
@@ -370,6 +1145,40 @@ func NewNetworkServiceHandler(svc NetworkServiceHandler, opts ...connect.Handler
 			networkServiceListFirewallRulesHandler.ServeHTTP(w, r)
 		case NetworkServiceDeleteFirewallRuleProcedure:
 			networkServiceDeleteFirewallRuleHandler.ServeHTTP(w, r)
+		case NetworkServiceGetVmInternetPolicyProcedure:
+			networkServiceGetVmInternetPolicyHandler.ServeHTTP(w, r)
+		case NetworkServiceUpdateVmInternetPolicyProcedure:
+			networkServiceUpdateVmInternetPolicyHandler.ServeHTTP(w, r)
+		case NetworkServiceGetVmNetworkInterfacesProcedure:
+			networkServiceGetVmNetworkInterfacesHandler.ServeHTTP(w, r)
+		case NetworkServiceAddVmIpv4AliasProcedure:
+			networkServiceAddVmIpv4AliasHandler.ServeHTTP(w, r)
+		case NetworkServiceRemoveVmIpv4AliasProcedure:
+			networkServiceRemoveVmIpv4AliasHandler.ServeHTTP(w, r)
+		case NetworkServiceSetVmDefaultPublicIpProcedure:
+			networkServiceSetVmDefaultPublicIpHandler.ServeHTTP(w, r)
+		case NetworkServiceGetPublicIpProcedure:
+			networkServiceGetPublicIpHandler.ServeHTTP(w, r)
+		case NetworkServiceListPublicIpsProcedure:
+			networkServiceListPublicIpsHandler.ServeHTTP(w, r)
+		case NetworkServiceReservePublicIpProcedure:
+			networkServiceReservePublicIpHandler.ServeHTTP(w, r)
+		case NetworkServiceAttachPublicIpProcedure:
+			networkServiceAttachPublicIpHandler.ServeHTTP(w, r)
+		case NetworkServiceDetachPublicIpProcedure:
+			networkServiceDetachPublicIpHandler.ServeHTTP(w, r)
+		case NetworkServiceReleasePublicIpProcedure:
+			networkServiceReleasePublicIpHandler.ServeHTTP(w, r)
+		case NetworkServiceCreateLoadBalancerProcedure:
+			networkServiceCreateLoadBalancerHandler.ServeHTTP(w, r)
+		case NetworkServiceGetLoadBalancerProcedure:
+			networkServiceGetLoadBalancerHandler.ServeHTTP(w, r)
+		case NetworkServiceListLoadBalancersProcedure:
+			networkServiceListLoadBalancersHandler.ServeHTTP(w, r)
+		case NetworkServiceUpdateLoadBalancerProcedure:
+			networkServiceUpdateLoadBalancerHandler.ServeHTTP(w, r)
+		case NetworkServiceDeleteLoadBalancerProcedure:
+			networkServiceDeleteLoadBalancerHandler.ServeHTTP(w, r)
 		case NetworkServiceCreateSecurityGroupProcedure:
 			networkServiceCreateSecurityGroupHandler.ServeHTTP(w, r)
 		case NetworkServiceGetSecurityGroupProcedure:
@@ -393,6 +1202,54 @@ func NewNetworkServiceHandler(svc NetworkServiceHandler, opts ...connect.Handler
 // UnimplementedNetworkServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedNetworkServiceHandler struct{}
 
+func (UnimplementedNetworkServiceHandler) ListVpcs(context.Context, *connect.Request[v1.ListVpcsRequest]) (*connect.Response[v1.ListVpcsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.ListVpcs is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) GetVpc(context.Context, *connect.Request[v1.GetVpcRequest]) (*connect.Response[v1.GetVpcResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.GetVpc is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) ListVpcSubnets(context.Context, *connect.Request[v1.ListVpcSubnetsRequest]) (*connect.Response[v1.ListVpcSubnetsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.ListVpcSubnets is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) GetVpcSubnet(context.Context, *connect.Request[v1.GetVpcSubnetRequest]) (*connect.Response[v1.GetVpcSubnetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.GetVpcSubnet is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) CreateVpc(context.Context, *connect.Request[v1.CreateVpcRequest]) (*connect.Response[v1.CreateVpcResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.CreateVpc is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) CreateVpcSubnet(context.Context, *connect.Request[v1.CreateVpcSubnetRequest]) (*connect.Response[v1.CreateVpcSubnetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.CreateVpcSubnet is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) UpdateVpc(context.Context, *connect.Request[v1.UpdateVpcRequest]) (*connect.Response[v1.UpdateVpcResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.UpdateVpc is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) UpdateVpcSubnet(context.Context, *connect.Request[v1.UpdateVpcSubnetRequest]) (*connect.Response[v1.UpdateVpcSubnetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.UpdateVpcSubnet is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) DeleteVpc(context.Context, *connect.Request[v1.DeleteVpcRequest]) (*connect.Response[v1.DeleteVpcResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.DeleteVpc is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) DeleteVpcSubnet(context.Context, *connect.Request[v1.DeleteVpcSubnetRequest]) (*connect.Response[v1.DeleteVpcSubnetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.DeleteVpcSubnet is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) AttachVpcSubnet(context.Context, *connect.Request[v1.AttachVpcSubnetRequest]) (*connect.Response[v1.AttachVpcSubnetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.AttachVpcSubnet is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) DetachVpcDatacenter(context.Context, *connect.Request[v1.DetachVpcDatacenterRequest]) (*connect.Response[v1.DetachVpcDatacenterResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.DetachVpcDatacenter is not implemented"))
+}
+
 func (UnimplementedNetworkServiceHandler) CreateNetwork(context.Context, *connect.Request[v1.CreateNetworkRequest]) (*connect.Response[v1.CreateNetworkResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.CreateNetwork is not implemented"))
 }
@@ -411,6 +1268,74 @@ func (UnimplementedNetworkServiceHandler) ListFirewallRules(context.Context, *co
 
 func (UnimplementedNetworkServiceHandler) DeleteFirewallRule(context.Context, *connect.Request[v1.DeleteFirewallRuleRequest]) (*connect.Response[v1.DeleteFirewallRuleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.DeleteFirewallRule is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) GetVmInternetPolicy(context.Context, *connect.Request[v1.GetVmInternetPolicyRequest]) (*connect.Response[v1.GetVmInternetPolicyResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.GetVmInternetPolicy is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) UpdateVmInternetPolicy(context.Context, *connect.Request[v1.UpdateVmInternetPolicyRequest]) (*connect.Response[v1.UpdateVmInternetPolicyResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.UpdateVmInternetPolicy is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) GetVmNetworkInterfaces(context.Context, *connect.Request[v1.GetVmNetworkInterfacesRequest]) (*connect.Response[v1.GetVmNetworkInterfacesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.GetVmNetworkInterfaces is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) AddVmIpv4Alias(context.Context, *connect.Request[v1.AddVmIpv4AliasRequest]) (*connect.Response[v1.AddVmIpv4AliasResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.AddVmIpv4Alias is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) RemoveVmIpv4Alias(context.Context, *connect.Request[v1.RemoveVmIpv4AliasRequest]) (*connect.Response[v1.RemoveVmIpv4AliasResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.RemoveVmIpv4Alias is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) SetVmDefaultPublicIp(context.Context, *connect.Request[v1.SetVmDefaultPublicIpRequest]) (*connect.Response[v1.SetVmDefaultPublicIpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.SetVmDefaultPublicIp is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) GetPublicIp(context.Context, *connect.Request[v1.GetPublicIpRequest]) (*connect.Response[v1.GetPublicIpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.GetPublicIp is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) ListPublicIps(context.Context, *connect.Request[v1.ListPublicIpsRequest]) (*connect.Response[v1.ListPublicIpsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.ListPublicIps is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) ReservePublicIp(context.Context, *connect.Request[v1.ReservePublicIpRequest]) (*connect.Response[v1.ReservePublicIpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.ReservePublicIp is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) AttachPublicIp(context.Context, *connect.Request[v1.AttachPublicIpRequest]) (*connect.Response[v1.AttachPublicIpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.AttachPublicIp is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) DetachPublicIp(context.Context, *connect.Request[v1.DetachPublicIpRequest]) (*connect.Response[v1.DetachPublicIpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.DetachPublicIp is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) ReleasePublicIp(context.Context, *connect.Request[v1.ReleasePublicIpRequest]) (*connect.Response[v1.ReleasePublicIpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.ReleasePublicIp is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) CreateLoadBalancer(context.Context, *connect.Request[v1.CreateLoadBalancerRequest]) (*connect.Response[v1.CreateLoadBalancerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.CreateLoadBalancer is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) GetLoadBalancer(context.Context, *connect.Request[v1.GetLoadBalancerRequest]) (*connect.Response[v1.GetLoadBalancerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.GetLoadBalancer is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) ListLoadBalancers(context.Context, *connect.Request[v1.ListLoadBalancersRequest]) (*connect.Response[v1.ListLoadBalancersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.ListLoadBalancers is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) UpdateLoadBalancer(context.Context, *connect.Request[v1.UpdateLoadBalancerRequest]) (*connect.Response[v1.UpdateLoadBalancerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.UpdateLoadBalancer is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) DeleteLoadBalancer(context.Context, *connect.Request[v1.DeleteLoadBalancerRequest]) (*connect.Response[v1.DeleteLoadBalancerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.DeleteLoadBalancer is not implemented"))
 }
 
 func (UnimplementedNetworkServiceHandler) CreateSecurityGroup(context.Context, *connect.Request[v1.CreateSecurityGroupRequest]) (*connect.Response[v1.CreateSecurityGroupResponse], error) {

@@ -44,6 +44,7 @@ service StorageService {
   // `mount -t nfs4` using the FileShare's `mount_command`. No attach/detach bookkeeping —
   // the customer mounts in-guest.
   rpc CreateFileShare(CreateFileShareRequest) returns (CreateFileShareResponse);
+  rpc GetFileShare(GetFileShareRequest) returns (GetFileShareResponse);
   rpc ListFileShares(ListFileSharesRequest) returns (ListFileSharesResponse);
   rpc DeleteFileShare(DeleteFileShareRequest) returns (DeleteFileShareResponse);
 }
@@ -300,8 +301,8 @@ message FileShare {
   map<string, string> annotations = 10;
   int64 create_time_unix = 11;
   int64 update_time_unix = 12;
-  // NFS server endpoint customers mount over (host[:port]). Same address for every share in
-  // a datacenter.
+  // NFS server endpoint customers mount over (host[:port]). Scoped shares use
+  // a private endpoint in their selected network. Empty until available.
   string nfs_server_endpoint = 13;
   // Pseudo path inside the NFS export. Per-share UUID — knowing the path is necessary but not
   // sufficient for access (mounts are restricted to the tenant network; mounts from outside
@@ -311,6 +312,16 @@ message FileShare {
   // `mount -t nfs4 <endpoint>:/projects/<uuid>/<uuid> /mnt/share`. Customers paste this into
   // cloud-init or run by hand — any VM on the tenant network is allowed.
   string mount_command = 15;
+  // LEGACY_NFS or VPC_NFS. Never infer the delivery model from an endpoint.
+  string delivery_model = 16;
+  // Selected network for VPC_NFS shares; immutable after creation.
+  string network_name = 17;
+  // Desired and observed export generations. Acceptance does not imply availability.
+  int64 generation = 18;
+  int64 observed_generation = 19;
+  // PRESENT or ABSENT for VPC_NFS. ABSENT retains data until cleanup completes.
+  string desired_state = 20;
+  bool read_only = 21;
 }
 
 message CreateFileShareRequest {
@@ -322,16 +333,34 @@ message CreateFileShareRequest {
   string display_name = 5;
   map<string, string> labels = 6;
   map<string, string> annotations = 7;
+  // Selects scoped private delivery. Empty retains the legacy delivery contract.
+  string network_name = 8;
+  // Required canonical UUID for scoped creation; reuse on uncertain retries.
+  string request_id = 9;
+  // Scoped exports may be created read-only. Immutable after creation.
+  bool read_only = 10;
 }
 
 message CreateFileShareResponse {
+  // Current resource, absent if an exact creation retry occurs after deletion.
   FileShare file_share = 1;
+  // Nonempty for asynchronous scoped creation. Poll the existing operations API.
+  string operation_name = 2;
 }
 
 message ListFileSharesRequest {
   string project_name = 1;
   int32 page_size = 2;
   string page_token = 3;
+}
+
+message GetFileShareRequest {
+  string name = 1;
+}
+
+message GetFileShareResponse {
+  // Current resource and observed availability, not merely accepted intent.
+  FileShare file_share = 1;
 }
 
 message ListFileSharesResponse {
@@ -341,6 +370,12 @@ message ListFileSharesResponse {
 
 message DeleteFileShareRequest {
   string name = 1;
+  // Required for scoped deletion. Reuse exactly on uncertain retries.
+  string request_id = 2;
+  int64 expected_generation = 3;
 }
 
-message DeleteFileShareResponse {}
+message DeleteFileShareResponse {
+  // Nonempty for scoped deletion; acceptance alone does not remove share data.
+  string operation_name = 1;
+}

@@ -86,6 +86,9 @@ const (
 	// StorageServiceCreateFileShareProcedure is the fully-qualified name of the StorageService's
 	// CreateFileShare RPC.
 	StorageServiceCreateFileShareProcedure = "/aes.storage.v1.StorageService/CreateFileShare"
+	// StorageServiceGetFileShareProcedure is the fully-qualified name of the StorageService's
+	// GetFileShare RPC.
+	StorageServiceGetFileShareProcedure = "/aes.storage.v1.StorageService/GetFileShare"
 	// StorageServiceListFileSharesProcedure is the fully-qualified name of the StorageService's
 	// ListFileShares RPC.
 	StorageServiceListFileSharesProcedure = "/aes.storage.v1.StorageService/ListFileShares"
@@ -127,6 +130,7 @@ type StorageServiceClient interface {
 	// `mount -t nfs4` using the FileShare's `mount_command`. No attach/detach bookkeeping —
 	// the customer mounts in-guest.
 	CreateFileShare(context.Context, *connect.Request[v1.CreateFileShareRequest]) (*connect.Response[v1.CreateFileShareResponse], error)
+	GetFileShare(context.Context, *connect.Request[v1.GetFileShareRequest]) (*connect.Response[v1.GetFileShareResponse], error)
 	ListFileShares(context.Context, *connect.Request[v1.ListFileSharesRequest]) (*connect.Response[v1.ListFileSharesResponse], error)
 	DeleteFileShare(context.Context, *connect.Request[v1.DeleteFileShareRequest]) (*connect.Response[v1.DeleteFileShareResponse], error)
 }
@@ -250,6 +254,12 @@ func NewStorageServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(storageServiceMethods.ByName("CreateFileShare")),
 			connect.WithClientOptions(opts...),
 		),
+		getFileShare: connect.NewClient[v1.GetFileShareRequest, v1.GetFileShareResponse](
+			httpClient,
+			baseURL+StorageServiceGetFileShareProcedure,
+			connect.WithSchema(storageServiceMethods.ByName("GetFileShare")),
+			connect.WithClientOptions(opts...),
+		),
 		listFileShares: connect.NewClient[v1.ListFileSharesRequest, v1.ListFileSharesResponse](
 			httpClient,
 			baseURL+StorageServiceListFileSharesProcedure,
@@ -285,6 +295,7 @@ type storageServiceClient struct {
 	updateSnapshotSchedule *connect.Client[v1.UpdateSnapshotScheduleRequest, v1.UpdateSnapshotScheduleResponse]
 	deleteSnapshotSchedule *connect.Client[v1.DeleteSnapshotScheduleRequest, v1.DeleteSnapshotScheduleResponse]
 	createFileShare        *connect.Client[v1.CreateFileShareRequest, v1.CreateFileShareResponse]
+	getFileShare           *connect.Client[v1.GetFileShareRequest, v1.GetFileShareResponse]
 	listFileShares         *connect.Client[v1.ListFileSharesRequest, v1.ListFileSharesResponse]
 	deleteFileShare        *connect.Client[v1.DeleteFileShareRequest, v1.DeleteFileShareResponse]
 }
@@ -379,6 +390,11 @@ func (c *storageServiceClient) CreateFileShare(ctx context.Context, req *connect
 	return c.createFileShare.CallUnary(ctx, req)
 }
 
+// GetFileShare calls aes.storage.v1.StorageService.GetFileShare.
+func (c *storageServiceClient) GetFileShare(ctx context.Context, req *connect.Request[v1.GetFileShareRequest]) (*connect.Response[v1.GetFileShareResponse], error) {
+	return c.getFileShare.CallUnary(ctx, req)
+}
+
 // ListFileShares calls aes.storage.v1.StorageService.ListFileShares.
 func (c *storageServiceClient) ListFileShares(ctx context.Context, req *connect.Request[v1.ListFileSharesRequest]) (*connect.Response[v1.ListFileSharesResponse], error) {
 	return c.listFileShares.CallUnary(ctx, req)
@@ -422,6 +438,7 @@ type StorageServiceHandler interface {
 	// `mount -t nfs4` using the FileShare's `mount_command`. No attach/detach bookkeeping —
 	// the customer mounts in-guest.
 	CreateFileShare(context.Context, *connect.Request[v1.CreateFileShareRequest]) (*connect.Response[v1.CreateFileShareResponse], error)
+	GetFileShare(context.Context, *connect.Request[v1.GetFileShareRequest]) (*connect.Response[v1.GetFileShareResponse], error)
 	ListFileShares(context.Context, *connect.Request[v1.ListFileSharesRequest]) (*connect.Response[v1.ListFileSharesResponse], error)
 	DeleteFileShare(context.Context, *connect.Request[v1.DeleteFileShareRequest]) (*connect.Response[v1.DeleteFileShareResponse], error)
 }
@@ -541,6 +558,12 @@ func NewStorageServiceHandler(svc StorageServiceHandler, opts ...connect.Handler
 		connect.WithSchema(storageServiceMethods.ByName("CreateFileShare")),
 		connect.WithHandlerOptions(opts...),
 	)
+	storageServiceGetFileShareHandler := connect.NewUnaryHandler(
+		StorageServiceGetFileShareProcedure,
+		svc.GetFileShare,
+		connect.WithSchema(storageServiceMethods.ByName("GetFileShare")),
+		connect.WithHandlerOptions(opts...),
+	)
 	storageServiceListFileSharesHandler := connect.NewUnaryHandler(
 		StorageServiceListFileSharesProcedure,
 		svc.ListFileShares,
@@ -591,6 +614,8 @@ func NewStorageServiceHandler(svc StorageServiceHandler, opts ...connect.Handler
 			storageServiceDeleteSnapshotScheduleHandler.ServeHTTP(w, r)
 		case StorageServiceCreateFileShareProcedure:
 			storageServiceCreateFileShareHandler.ServeHTTP(w, r)
+		case StorageServiceGetFileShareProcedure:
+			storageServiceGetFileShareHandler.ServeHTTP(w, r)
 		case StorageServiceListFileSharesProcedure:
 			storageServiceListFileSharesHandler.ServeHTTP(w, r)
 		case StorageServiceDeleteFileShareProcedure:
@@ -674,6 +699,10 @@ func (UnimplementedStorageServiceHandler) DeleteSnapshotSchedule(context.Context
 
 func (UnimplementedStorageServiceHandler) CreateFileShare(context.Context, *connect.Request[v1.CreateFileShareRequest]) (*connect.Response[v1.CreateFileShareResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.CreateFileShare is not implemented"))
+}
+
+func (UnimplementedStorageServiceHandler) GetFileShare(context.Context, *connect.Request[v1.GetFileShareRequest]) (*connect.Response[v1.GetFileShareResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.storage.v1.StorageService.GetFileShare is not implemented"))
 }
 
 func (UnimplementedStorageServiceHandler) ListFileShares(context.Context, *connect.Request[v1.ListFileSharesRequest]) (*connect.Response[v1.ListFileSharesResponse], error) {

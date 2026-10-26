@@ -36,8 +36,12 @@ service ComputeService {
   // extension. Refuses on HOURLY (no term to renew).
   rpc RenewVMNow(RenewVMNowRequest) returns (RenewVMNowResponse);
   // ReimageVirtualMachine wipes the OS disk and reinstalls from a (potentially new) image.
+  // The returned operation cannot be cancelled or force-retried through generic
+  // operation controls. The original workflow retries interrupted disk cutover.
   // The VM must be STOPPED — refuses on RUNNING to avoid surprising the customer.
   // Networks, public IPs, and firewall rules survive — only the disk is replaced.
+  // Requires an Idempotency-Key header. Returns a durable operation; the VM stays
+  // stopped after completion. A replacement disk temporarily consumes storage quota.
   //
   // Use cases: customer wants to start from a clean slate without recreating the VM (preserves
   // resource name, networks, IPs, ssh keys), or wants to upgrade the base image (Ubuntu 24.04
@@ -228,6 +232,11 @@ message VirtualMachine {
   // this field lets burn-rate and balance projections still account for the commitment.
   // Empty for hourly-billed VMs.
   string renewal_cost_per_hour_minor_decimal = 38;
+  // Persisted networking model (output only): LEGACY_DIRECT or PRIVATE_NAT.
+  // PRIVATE_NAT uses private interfaces and separately managed public address mappings.
+  // An empty or unrecognized value means unknown; clients must not infer the model
+  // from address presence or use it to select a mutating network workflow.
+  string network_model = 39;
 }
 
 // ───────────────────────────── Declarative VM manifest ─────────────────────────────
@@ -319,6 +328,15 @@ message VMNetworkSpec {
   // internet surface. The VM still has outbound internet via the private NIC's NAT. Default
   // false: every VM gets a public NIC with a free IPv6 GUA. Use for air-gapped-ish workloads.
   bool private_only = 4;
+  // Existing detached public IPv4 reservation in this project and region.
+  // Mutually exclusive with public_ipv4 and private_only. The VM provisioning
+  // operation binds it to the primary private address before first boot; it
+  // does not allocate or charge for an additional IP. The reservation remains
+  // separately billed. Concurrent changes can fail provisioning rather than
+  // stealing an address. Requires network.write for automation callers.
+  string public_ip_name = 5;
+  // Required current reservation generation when public_ip_name is supplied.
+  int64 expected_public_ip_generation = 6;
 }
 
 message UserSpec {
@@ -515,9 +533,8 @@ message ReimageVirtualMachineRequest {
   string name = 1;
   reserved 2;
   reserved "image_name";
-  // Required: streamable raw disk image URL. Setting this is the canonical way to upgrade
-  // the base OS (Ubuntu 24.04 → 26.04) without recreating the VM. Empty = reuse the original
-  // boot source.
+  // Streamable raw disk image URL. Empty reuses the recorded original import source;
+  // disks without a recorded image source require an explicit URL.
   string boot_image_url = 3;
   // Required confirmation token. Server returns the expected value on a first call and the
   // client echoes it back on the second to acknowledge data loss. Wire format: must equal
@@ -528,6 +545,8 @@ message ReimageVirtualMachineRequest {
 
 message ReimageVirtualMachineResponse {
   VirtualMachine virtual_machine = 1;
+  // Poll until terminal. The VM remains stopped; only its boot disk is replaced.
+  aes.ops.v1.Operation operation = 2;
 }
 
 // ConsoleType picks which console the proxy bridges to.
