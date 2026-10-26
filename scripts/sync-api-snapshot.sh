@@ -55,6 +55,7 @@ for pkg in \
   baremetal \
   catalog \
   compute \
+  errors \
   health \
   iam \
   monitoring \

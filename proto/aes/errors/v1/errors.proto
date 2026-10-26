@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package aes.errors.v1;
+
+// ErrorReason is the `reason` of the `google.rpc.ErrorInfo` detail on every
+// API error (domain `metalhost.net`). ErrorInfo carries the name without the
+// `ERROR_REASON_` prefix, for example `QUOTA_EXCEEDED`. The ErrorInfo
+// metadata `request_id` identifies the request for support.
+enum ErrorReason {
+  ERROR_REASON_UNSPECIFIED = 0;
+  // The request is not valid. Check the highlighted fields and try again.
+  ERROR_REASON_INVALID_ARGUMENT = 1;
+  // Sign in to continue.
+  ERROR_REASON_UNAUTHENTICATED = 2;
+  // You don't have permission to do that.
+  ERROR_REASON_PERMISSION_DENIED = 3;
+  // That resource could not be found. It may have been deleted.
+  ERROR_REASON_RESOURCE_NOT_FOUND = 4;
+  // A resource with that name already exists.
+  ERROR_REASON_ALREADY_EXISTS = 5;
+  // This action isn't possible in the resource's current state.
+  ERROR_REASON_PRECONDITION_FAILED = 6;
+  // The resource changed while your request was processed. Refresh and try again.
+  ERROR_REASON_CONFLICT = 7;
+  // A limit was reached. Try again later or contact support.
+  ERROR_REASON_RESOURCE_EXHAUSTED = 8;
+  // The service is temporarily unavailable. Try again in a moment.
+  ERROR_REASON_UNAVAILABLE = 9;
+  // This action isn't available yet.
+  ERROR_REASON_NOT_IMPLEMENTED = 10;
+  // The request was canceled.
+  ERROR_REASON_CANCELED = 11;
+  // The request took too long. Try again.
+  ERROR_REASON_DEADLINE_EXCEEDED = 12;
+  // Something went wrong on our side. Try again, or open a ticket and we'll look into it.
+  ERROR_REASON_INTERNAL = 13;
+  // This resource is busy with another operation. Try again when it finishes.
+  ERROR_REASON_RESOURCE_BUSY = 14;
+  // Add funds to your wallet to continue. Resources are prepaid.
+  ERROR_REASON_BILLING_INSUFFICIENT_BALANCE = 15;
+  // Your billing account is suspended. Add funds or contact support to restore it.
+  ERROR_REASON_BILLING_SUSPENDED = 16;
+  // Billing isn't set up for this project yet. Contact support.
+  ERROR_REASON_BILLING_NOT_CONFIGURED = 17;
+  // This account is suspended. Contact support.
+  ERROR_REASON_ACCOUNT_SUSPENDED = 18;
+  // You've reached a quota limit. Request an increase from the Quotas page.
+  ERROR_REASON_QUOTA_EXCEEDED = 19;
+  // New accounts are limited until the first wallet top-up settles. Add funds to raise this limit.
+  ERROR_REASON_TRUST_TIER_LIMIT = 20;
+  // There isn't enough capacity for this right now. Try a smaller size, or open a ticket and we'll help.
+  ERROR_REASON_CAPACITY_UNAVAILABLE = 21;
+  // The datacenter is temporarily unreachable. Try again in a moment.
+  ERROR_REASON_DATACENTER_UNREACHABLE = 22;
+  // Too many requests. Wait a moment and try again.
+  ERROR_REASON_RATE_LIMITED = 23;
+}

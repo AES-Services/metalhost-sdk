@@ -2,20 +2,94 @@ syntax = "proto3";
 
 package aes.network.v1;
 
-// NetworkService manages tenant-facing networks for tenant-private connectivity. Each Network
-// is an isolated L2 segment in a single datacenter. VM public connectivity is delivered via
-// the public NIC model.
-//
-// Public IPs are opted into at VM-create time via `assign_public_ipv4`; standalone allocation
-// and post-create attach aren't supported. Load balancer APIs are deferred to a future release.
+import "google/protobuf/timestamp.proto";
+
+// NetworkService manages tenant connectivity and network policy. The legacy
+// Network resource represents one isolated segment in a datacenter. Private
+// IPv4 VMs use reserved public-address mappings rather than a public guest NIC.
 service NetworkService {
+  // Private-network topology is distinct from the retained legacy Network
+  // resource. These reads do not enroll a DC or assert forwarding readiness.
+  rpc ListVpcs(ListVpcsRequest) returns (ListVpcsResponse);
+  rpc GetVpc(GetVpcRequest) returns (GetVpcResponse);
+  rpc ListVpcSubnets(ListVpcSubnetsRequest) returns (ListVpcSubnetsResponse);
+  rpc GetVpcSubnet(GetVpcSubnetRequest) returns (GetVpcSubnetResponse);
+  // Creates a durable definition without enrolling a datacenter or configuring
+  // forwarding. Retry uncertain results with the same request_id.
+  rpc CreateVpc(CreateVpcRequest) returns (CreateVpcResponse);
+  // Reserves private IPv4 space. Datacenter attachment and VM eligibility are
+  // separate; successful definition creation does not imply connectivity.
+  rpc CreateVpcSubnet(CreateVpcSubnetRequest) returns (CreateVpcSubnetResponse);
+  // Updates display metadata only; address ranges and resolver choices are immutable.
+  rpc UpdateVpc(UpdateVpcRequest) returns (UpdateVpcResponse);
+  rpc UpdateVpcSubnet(UpdateVpcSubnetRequest) returns (UpdateVpcSubnetResponse);
+  // Deletes an empty definition after its datacenter attachments have retired.
+  // Historical identities and audit records are retained. Delete subnets before their VPC.
+  rpc DeleteVpc(DeleteVpcRequest) returns (DeleteVpcResponse);
+  rpc DeleteVpcSubnet(DeleteVpcSubnetRequest) returns (DeleteVpcSubnetResponse);
+  // Enables an existing subnet in a location using platform-managed settings.
+  // Wait for the operation before publishing a Network in that location.
+  // Does not promise connectivity between locations or change guest settings.
+  rpc AttachVpcSubnet(AttachVpcSubnetRequest) returns (AttachVpcSubnetResponse);
+  // Detaches all unused subnets of a VPC from one location. Retained VMs,
+  // disks, addresses, load balancers or shares must finish cleanup first.
+  // Other locations and the VPC/subnet definitions are preserved.
+  rpc DetachVpcDatacenter(DetachVpcDatacenterRequest) returns (DetachVpcDatacenterResponse);
   rpc CreateNetwork(CreateNetworkRequest) returns (CreateNetworkResponse);
   rpc ListNetworks(ListNetworksRequest) returns (ListNetworksResponse);
-  // CreateFirewallRule opens the listed ingress ports on the VM's public IP from the listed
-  // source CIDRs. Egress is unrestricted (blocking it breaks cloud-init / package installs / DNS).
+  // CreateFirewallRule saves inbound/outbound Internet policy or explicit IPv4
+  // port forwarding. VM Internet switches remain separate from firewall rules.
   rpc CreateFirewallRule(CreateFirewallRuleRequest) returns (CreateFirewallRuleResponse);
   rpc ListFirewallRules(ListFirewallRulesRequest) returns (ListFirewallRulesResponse);
   rpc DeleteFirewallRule(DeleteFirewallRuleRequest) returns (DeleteFirewallRuleResponse);
+
+  // Internet controls for VMs using private IPv4 with public address mappings.
+  // These settings do not release addresses or override firewall restrictions.
+  rpc GetVmInternetPolicy(GetVmInternetPolicyRequest) returns (GetVmInternetPolicyResponse);
+  // Accepts an asynchronous change. A response is not proof of enforcement;
+  // wait for the returned operation and check observed_generation.
+  rpc UpdateVmInternetPolicy(UpdateVmInternetPolicyRequest) returns (UpdateVmInternetPolicyResponse);
+  // Returns desired addresses and separate network/guest observation revisions.
+  rpc GetVmNetworkInterfaces(GetVmNetworkInterfacesRequest) returns (GetVmNetworkInterfacesResponse);
+  // Allocates another private IPv4 source on the primary interface. Delivery to
+  // the guest is asynchronous; this does not allocate or attach a public IP.
+  rpc AddVmIpv4Alias(AddVmIpv4AliasRequest) returns (AddVmIpv4AliasResponse);
+  // Removes an unused platform-managed alias. Acceptance is not proof of cleanup
+  // or address availability; dependencies must be removed first.
+  rpc RemoveVmIpv4Alias(RemoveVmIpv4AliasRequest) returns (RemoveVmIpv4AliasResponse);
+  // Explicitly selects an attached public IPv4 for new outbound connections.
+  // Other mappings and internet controls remain unchanged. Existing connections
+  // and external allowlists may be affected; wait for the returned operation.
+  rpc SetVmDefaultPublicIp(SetVmDefaultPublicIpRequest) returns (SetVmDefaultPublicIpResponse);
+
+  // Reserved public addresses remain in their allocating datacenter. Attachment
+  // changes are asynchronous; acceptance alone does not establish forwarding.
+  rpc GetPublicIp(GetPublicIpRequest) returns (GetPublicIpResponse);
+  // Lists active reservations and legacy VM addresses, including detached ones.
+  // Managed load balancer addresses are returned by ListLoadBalancers instead.
+  rpc ListPublicIps(ListPublicIpsRequest) returns (ListPublicIpsResponse);
+  // Reserves a billable, detached address. This does not install forwarding.
+  rpc ReservePublicIp(ReservePublicIpRequest) returns (ReservePublicIpResponse);
+  // Attaches to an already assigned private IPv4. The first public attachment
+  // also selects that address as the desired default outbound source; additional
+  // attachments preserve the selection. Wait for the returned operation before
+  // treating the mapping or guest source change as applied.
+  rpc AttachPublicIp(AttachPublicIpRequest) returns (AttachPublicIpResponse);
+  // Retains the reservation. It cannot be reattached until teardown is verified.
+  rpc DetachPublicIp(DetachPublicIpRequest) returns (DetachPublicIpResponse);
+  // Permanently releases a detached reservation and stops its allocation billing.
+  // A prior attachment must have completed verified teardown. Release cannot be
+  // undone; the address may immediately be allocated to another customer.
+  rpc ReleasePublicIp(ReleasePublicIpRequest) returns (ReleasePublicIpResponse);
+
+  // Regional TCP load balancers preserve the external client's network-layer
+  // source IP. A backend reaching its own load balancer is the documented
+  // self-hairpin exception and may observe a platform source address.
+  rpc CreateLoadBalancer(CreateLoadBalancerRequest) returns (CreateLoadBalancerResponse);
+  rpc GetLoadBalancer(GetLoadBalancerRequest) returns (GetLoadBalancerResponse);
+  rpc ListLoadBalancers(ListLoadBalancersRequest) returns (ListLoadBalancersResponse);
+  rpc UpdateLoadBalancer(UpdateLoadBalancerRequest) returns (UpdateLoadBalancerResponse);
+  rpc DeleteLoadBalancer(DeleteLoadBalancerRequest) returns (DeleteLoadBalancerResponse);
 
   // Security groups — INTERNAL (east-west) network policy on the private NIC, distinct from
   // the public firewall above. A group is a reusable ruleset attached to >=0 VMs; rules allow
@@ -30,11 +104,345 @@ service NetworkService {
   rpc AddVmToSecurityGroup(AddVmToSecurityGroupRequest) returns (AddVmToSecurityGroupResponse);
   rpc RemoveVmFromSecurityGroup(RemoveVmFromSecurityGroupRequest) returns (RemoveVmFromSecurityGroupResponse);
 
-  // DNS and managed-zone APIs are not offered: Metalhost does not manage DNS as a control-plane
-  // concern. Customers bring their own DNS (Route53, Cloudflare, self-hosted, etc.) and point
-  // records at the public IPs Metalhost allocates.
+  // Public managed-zone APIs are not offered. Customers manage their public DNS
+  // with their chosen provider and point records at the allocated public IPs.
+  // Private VM-name discovery and subnet resolver selection are separate features.
   //
   // Router resources are not exposed; edge routing is managed by Metalhost.
+}
+
+message VpcDatacenterMembership {
+  string datacenter_name = 1;
+  // PRESENT or ABSENT. ABSENT retains ownership until verified retirement.
+  string desired_state = 2;
+  int64 generation = 3;
+  // A recorded observation, not a live reachability or availability check.
+  int64 observed_generation = 4;
+}
+message Vpc {
+  string name = 1;
+  string project_name = 2;
+  string display_name = 3;
+  // Metadata revision, separate from each DC's desired generation.
+  int64 version = 4;
+  google.protobuf.Timestamp create_time = 5;
+  google.protobuf.Timestamp update_time = 6;
+  // Included by GetVpc, omitted by ListVpcs. A VPC with no memberships
+  // has no regional network configured.
+  repeated VpcDatacenterMembership datacenters = 7;
+}
+message VpcSubnet {
+  string name = 1;
+  string vpc_name = 2;
+  string project_name = 3;
+  string display_name = 4;
+  string ipv4_range = 5;
+  // Subnet allocation range, not an individual VM's routed public /64.
+  string ipv6_range = 6;
+  int64 version = 7;
+  google.protobuf.Timestamp create_time = 8;
+  google.protobuf.Timestamp update_time = 9;
+  // Included by GetVpcSubnet, omitted by ListVpcSubnets. Membership alone
+  // does not mean this subnet is configured or eligible for a new VM.
+  repeated VpcDatacenterMembership datacenters = 10;
+  // Ordered custom IPv4 resolvers. Empty uses Metalhost's private DNS.
+  // Custom resolvers remain subject to ordinary routing and egress policy.
+  repeated string custom_dns_ipv4 = 11;
+}
+message CreateVpcRequest {
+  string project_name = 1;
+  string display_name = 2;
+  string request_id = 3;
+}
+message CreateVpcResponse {
+  Vpc vpc = 1;
+  // Completed definition creation only, not deployment or forwarding readiness.
+  string operation_name = 2;
+}
+message CreateVpcSubnetRequest {
+  string vpc_name = 1;
+  string display_name = 2;
+  // Canonical RFC1918 CIDR. Overlap within this VPC is rejected; overlap with
+  // a different VPC is allowed. VM public IPv6 prefixes are allocated separately.
+  string ipv4_range = 3;
+  string request_id = 4;
+  // Up to three unique IPv4 resolver addresses, in preference order. Empty
+  // selects private DNS. Set at subnet creation; existing guests are not edited.
+  // A custom resolver must serve private names itself if those are needed.
+  repeated string custom_dns_ipv4 = 5;
+}
+message CreateVpcSubnetResponse {
+  VpcSubnet subnet = 1;
+  string operation_name = 2;
+}
+message ListVpcsRequest {
+  string project_name = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+message ListVpcsResponse {
+  repeated Vpc vpcs = 1;
+  string next_page_token = 2;
+}
+message GetVpcRequest { string name = 1; }
+message GetVpcResponse { Vpc vpc = 1; }
+message ListVpcSubnetsRequest {
+  string vpc_name = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+message ListVpcSubnetsResponse {
+  repeated VpcSubnet subnets = 1;
+  string next_page_token = 2;
+}
+message GetVpcSubnetRequest { string name = 1; }
+message GetVpcSubnetResponse { VpcSubnet subnet = 1; }
+
+message UpdateVpcRequest {
+  string name = 1;
+  string display_name = 2;
+  int64 expected_version = 3;
+  string request_id = 4;
+}
+message UpdateVpcResponse { string operation_name = 1; }
+message UpdateVpcSubnetRequest {
+  string name = 1;
+  string display_name = 2;
+  int64 expected_version = 3;
+  string request_id = 4;
+}
+message UpdateVpcSubnetResponse { string operation_name = 1; }
+message DeleteVpcRequest {
+  string name = 1;
+  int64 expected_version = 2;
+  string request_id = 3;
+}
+message DeleteVpcResponse { string operation_name = 1; }
+message DeleteVpcSubnetRequest {
+  string name = 1;
+  int64 expected_version = 2;
+  string request_id = 3;
+}
+message DeleteVpcSubnetResponse { string operation_name = 1; }
+
+message RemoveVmIpv4AliasRequest {
+  string project_name = 1;
+  string target_vm = 2;
+  string interface_id = 3;
+  string lease_id = 4;
+  int64 expected_generation = 5;
+  string request_id = 6;
+}
+message RemoveVmIpv4AliasResponse { string operation_name = 1; }
+
+message VmNetworkAddress {
+  string lease_id = 1;
+  // CIDR. IPv4 identities use /32. A VM's public IPv6 identity is one routed
+  // /64; the guest may use addresses inside it without allocating each /128.
+  string address_range = 2;
+  // PRIMARY_IPV4, ALIAS_IPV4, IPV6_PREFIX, or a legacy migration-only role.
+  string role = 3;
+  string state = 4;
+}
+message VmNetworkInterface {
+  string id = 1;
+  int32 slot = 2;
+  string mac_address = 3;
+  int64 generation = 4;
+  int64 observed_generation = 5;
+  int64 guest_observed_generation = 6;
+  string desired_state = 7;
+  repeated VmNetworkAddress addresses = 8;
+  // Desired preferred IPv4 source inside the VM, not proof of delivery.
+  string default_source_ipv4 = 9;
+  // Last report for this interface's VPC in this datacenter. This does not
+  // replace the separate interface and guest observation generations above.
+  VpcNetworkReconciliationStatus reconciliation = 10;
+}
+message VpcNetworkReconciliationStatus {
+  // These generations belong to the VPC/datacenter, not the VM interface.
+  int64 desired_generation = 1;
+  int64 reported_generation = 2;
+  // PENDING when no report exists; otherwise CONFIGURING, CONFIGURED, READY,
+  // DEGRADED, WAITING_GUEST, RETIRING, or RETIRED. CONFIGURED is not traffic
+  // readiness. RETIRED acknowledges removal of an empty regional network;
+  // it does not indicate that historical addresses can be reused.
+  string phase = 3;
+  // Machine-readable diagnostic code; never raw infrastructure errors.
+  string reason = 4;
+  // Server receipt time of the last report. Absent until the first report.
+  google.protobuf.Timestamp report_time = 5;
+  // The report matches the desired generation/state and current controller
+  // tenure. This does not assert current reachability; inspect report_time.
+  // A false value means phase/reason are historical, not the current result.
+  bool matches_current_intent = 6;
+}
+message GetVmNetworkInterfacesRequest {
+  string project_name = 1;
+  string target_vm = 2;
+}
+message GetVmNetworkInterfacesResponse {
+  repeated VmNetworkInterface interfaces = 1;
+}
+message AddVmIpv4AliasRequest {
+  string project_name = 1;
+  string target_vm = 2;
+  string interface_id = 3;
+  int64 expected_generation = 4;
+  string request_id = 5;
+}
+message AddVmIpv4AliasResponse {
+  string operation_name = 1;
+  // Reserved address; not proof of guest delivery or usable connectivity.
+  string private_ipv4 = 2;
+  string lease_id = 3;
+}
+message SetVmDefaultPublicIpRequest {
+  string project_name = 1;
+  string target_vm = 2;
+  string interface_id = 3;
+  int64 expected_generation = 4;
+  string public_ip_name = 5;
+  int64 expected_binding_generation = 6;
+  string request_id = 7;
+}
+message SetVmDefaultPublicIpResponse {
+  string operation_name = 1;
+}
+
+message LoadBalancerHealthCheck {
+  int32 port = 1;
+  int32 interval_seconds = 2;
+  int32 timeout_milliseconds = 3;
+  int32 healthy_threshold = 4;
+  int32 unhealthy_threshold = 5;
+}
+message LoadBalancerListener {
+  int32 port = 1;
+  int32 backend_port = 2;
+  // TCP includes TLS passthrough. HTTP termination, UDP and PROXY protocol are
+  // not part of this release.
+  string protocol = 3;
+  LoadBalancerHealthCheck health_check = 4;
+}
+message LoadBalancer {
+  string name = 1;
+  string project_name = 2;
+  string network_name = 3;
+  string datacenter_name = 4;
+  string display_name = 5;
+  string public_ip_name = 6;
+  string public_ipv4 = 7;
+  repeated LoadBalancerListener listeners = 8;
+  // Stable interface IDs returned by GetVmNetworkInterfaces, never addresses.
+  repeated string backend_interface_ids = 9;
+  int32 drain_timeout_seconds = 10;
+  int64 generation = 11;
+  int64 observed_generation = 12;
+  string desired_state = 13;
+  VpcNetworkReconciliationStatus reconciliation = 14;
+  // Application probe diagnostics, separate from configuration reconciliation.
+  // HEALTHY does not guarantee external reachability or dataplane selection.
+  // Omitted from ListLoadBalancers; use GetLoadBalancer for this detail.
+  repeated LoadBalancerBackendHealth backend_health = 15;
+  // Server receipt time; absent before the first health report.
+  google.protobuf.Timestamp health_report_time = 16;
+  // False after configuration changes or controller replacement. Expired or
+  // missing samples are UNKNOWN even when this value is true.
+  bool health_matches_current_intent = 17;
+}
+message LoadBalancerBackendHealth {
+  string interface_id = 1;
+  int32 listener_port = 2;
+  // UNKNOWN, CHECKING, HEALTHY, UNHEALTHY, NOT_READY, or DRAINING.
+  // NOT_READY means the backend's network/guest prerequisites are not met.
+  // UNKNOWN also covers stale reports; it does not mean a failed probe.
+  string state = 3;
+  google.protobuf.Timestamp last_check_time = 4;
+  // A sample is not current at or after this instant.
+  google.protobuf.Timestamp valid_until = 5;
+}
+message CreateLoadBalancerRequest {
+  string project_name = 1;
+  // Existing Metalhost network in the same project and datacenter. It selects
+  // the immutable VPC/home-DC scope; customers do not supply an internal UUID.
+  string network_name = 2;
+  string datacenter_name = 3;
+  string display_name = 4;
+  repeated LoadBalancerListener listeners = 5;
+  repeated string backend_interface_ids = 6;
+  int32 drain_timeout_seconds = 7;
+  string request_id = 8;
+}
+message CreateLoadBalancerResponse {
+  LoadBalancer load_balancer = 1;
+  string operation_name = 2;
+}
+message GetLoadBalancerRequest { string name = 1; }
+message GetLoadBalancerResponse { LoadBalancer load_balancer = 1; }
+message ListLoadBalancersRequest {
+  string project_name = 1;
+  string datacenter_name = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+}
+message ListLoadBalancersResponse {
+  repeated LoadBalancer load_balancers = 1;
+  string next_page_token = 2;
+}
+message UpdateLoadBalancerRequest {
+  string name = 1;
+  string display_name = 2;
+  repeated LoadBalancerListener listeners = 3;
+  repeated string backend_interface_ids = 4;
+  int32 drain_timeout_seconds = 5;
+  int64 expected_generation = 6;
+  string request_id = 7;
+}
+message UpdateLoadBalancerResponse {
+  LoadBalancer load_balancer = 1;
+  string operation_name = 2;
+}
+message DeleteLoadBalancerRequest {
+  string name = 1;
+  int64 expected_generation = 2;
+  string request_id = 3;
+}
+message DeleteLoadBalancerResponse { string operation_name = 1; }
+
+message VmInternetPolicy {
+  string target_vm = 1;
+  // Allows VM-initiated internet connections. Replies to authorized inbound
+  // IPv4 connections remain allowed when this is false.
+  bool allow_outbound_internet = 2;
+  // Allows IPv6 internet traffic, still subject to outbound and firewall policy.
+  // Disabling this does not remove IPv6 addresses or authorized VPC connectivity.
+  bool allow_ipv6_internet = 3;
+  int64 generation = 4;
+  // Last independently verified enforcement generation; may lag generation.
+  int64 observed_generation = 5;
+}
+
+message GetVmInternetPolicyRequest {
+  string project_name = 1;
+  string target_vm = 2;
+}
+message GetVmInternetPolicyResponse {
+  VmInternetPolicy policy = 1;
+}
+message UpdateVmInternetPolicyRequest {
+  string project_name = 1;
+  string target_vm = 2;
+  // Both settings are required. Omission is not interpreted as false.
+  optional bool allow_outbound_internet = 3;
+  optional bool allow_ipv6_internet = 4;
+  int64 expected_generation = 5;
+  // Canonical UUID. Reuse the exact request, including expected_generation,
+  // after an uncertain outcome. A new change needs a fresh UUID.
+  string request_id = 6;
+}
+message UpdateVmInternetPolicyResponse {
+  string operation_name = 1;
 }
 
 // Network is a tenant-owned, isolated L2 segment within a single datacenter. Resource name
@@ -74,6 +482,43 @@ message Network {
   // same Network can talk over the network's /24 + /64; VMs in different Networks are fully
   // isolated.
   string namespace = 16;
+  // Output-only delivery model: LEGACY_DIRECT, PRIVATE_NAT, or BLOCKED. A
+  // blocked migration never falls back to legacy delivery. This field describes
+  // configured admission, not current forwarding or controller health.
+  string network_model = 17;
+  // Output-only private VPC and subnet resource names. Empty for legacy or an
+  // unavailable placement. Different regional Network resources can refer to
+  // the same VPC/subnet; their presence does not prove cross-region connectivity.
+  string vpc_name = 18;
+  string subnet_name = 19;
+}
+
+message AttachVpcSubnetRequest {
+  string subnet_name = 1;
+  string datacenter_name = 2;
+  // Required UUID; use unchanged input and the same ID after uncertain results.
+  string request_id = 3;
+}
+
+message AttachVpcSubnetResponse {
+  string operation_name = 1;
+}
+
+message DetachVpcDatacenterRequest {
+  string vpc_name = 1;
+  string datacenter_name = 2;
+  // Required current generation from GetVpc's matching location membership.
+  int64 expected_generation = 3;
+  // Required UUID; retry uncertain results with identical input and this ID.
+  string request_id = 4;
+  // Explicitly remove unused Network selectors in this location as part of
+  // detachment. This never removes a VM, disk or legacy-network mapping.
+  bool withdraw_unused_networks = 5;
+}
+
+message DetachVpcDatacenterResponse {
+  // Pending until the location controller verifies topology removal.
+  string operation_name = 1;
 }
 
 message CreateNetworkRequest {
@@ -99,10 +544,22 @@ message CreateNetworkRequest {
   string ip_range_end = 9;
   map<string, string> labels = 10;
   map<string, string> annotations = 11;
+  // Optional existing private subnet resource, belonging to project_name.
+  // Creates a regional Network for this subnet only after the location is
+  // configured and ready. Requires request_id. Cannot be combined with
+  // network_id, subnet_cidr_v4 or ip_range_start/end; those are legacy inputs.
+  // Omitting this field retains legacy network creation behavior.
+  string subnet_name = 12;
+  // Required UUID for retry-safe creation when subnet_name is provided. Retry
+  // unchanged input with the same ID after an uncertain outcome.
+  string request_id = 13;
 }
 
 message CreateNetworkResponse {
   Network network = 1;
+  // Set for private-subnet publication. Completion confirms publication of
+  // already-observed topology, not a new forwarding or connectivity test.
+  string operation_name = 2;
 }
 
 message ListNetworksRequest {
@@ -130,9 +587,9 @@ message PortMapping {
   int32 port = 1;
   // Protocol: TCP, UDP, or ICMP. ICMP rules carry no port.
   string protocol = 2;
-  // Internal port on the VM (where the service listens). Defaults to `port` when 0. Ignored
-  // on firewall rules — applies only to PublicIp port-forwarding (which we don't currently
-  // surface via the customer RPCs, but the field stays for the SDK and future LB work).
+  // VM destination port for explicit forwarding_public_ip rules; 1..65535.
+  // Ordinary firewall rules use zero (legacy equal-to-port input is accepted).
+  // Different public/VM ports require forwarding mode; forwarding ranges are unsupported.
   int32 target_port = 3;
   // Upper bound of the port range. 0 (default) = single port; otherwise must be >= port and
   // <= 65535.
@@ -158,11 +615,86 @@ message PublicIp {
   int64 update_time_unix = 10;
   map<string, string> labels = 11;
   map<string, string> annotations = 12;
+  // Reservation revision for attachment changes. Zero on legacy allocations.
+  int64 generation = 13;
+  // Current or removing attachment. Absent when detached; not proof of readiness.
+  PublicIpBinding binding = 14;
 }
 
-// FirewallRule is one allow-list rule for a VM. Multiple rules on the same VM compose
-// additively (the allow sets union). direction='ingress' uses sources + ports as the allow
-// set; direction='egress' uses destinations + ports.
+message PublicIpBinding {
+  string id = 1;
+  string target_vm = 2;
+  // An already assigned private IPv4 on the target VM, never a public guest IP.
+  string private_ipv4 = 3;
+  // APPLYING / ACTIVE / REMOVING.
+  string state = 4;
+  int64 generation = 5;
+}
+message GetPublicIpRequest { string name = 1; }
+message GetPublicIpResponse { PublicIp public_ip = 1; }
+message ListPublicIpsRequest {
+  string project_name = 1;
+  // Optional home-datacenter filter; addresses cannot move between datacenters.
+  string datacenter_name = 2;
+  int32 page_size = 3;
+  // Opaque cursor; keep project and datacenter filters unchanged between pages.
+  string page_token = 4;
+}
+message ListPublicIpsResponse {
+  // Ordered by resource name. Released addresses are excluded.
+  repeated PublicIp public_ips = 1;
+  string next_page_token = 2;
+}
+message ReservePublicIpRequest {
+  string project_name = 1;
+  string datacenter_name = 2;
+  string display_name = 3;
+  map<string, string> labels = 4;
+  map<string, string> annotations = 5;
+  string request_id = 6;
+}
+message ReservePublicIpResponse {
+  PublicIp public_ip = 1;
+  // Completed database reservation, not a completed forwarding operation.
+  string operation_name = 2;
+}
+message AttachPublicIpRequest {
+  string name = 1;
+  string target_vm = 2;
+  string private_ipv4 = 3;
+  // Current reservation generation returned by GetPublicIp.
+  int64 expected_generation = 4;
+  string request_id = 5;
+}
+message AttachPublicIpResponse { string operation_name = 1; }
+message DetachPublicIpRequest {
+  string name = 1;
+  string binding_id = 2;
+  // Current binding generation, not the reservation generation.
+  int64 expected_generation = 3;
+  string request_id = 4;
+  // Required when removing the default while other public IPv4s remain.
+  // Selects another attached address atomically with this detach request.
+  string replacement_default_public_ip_name = 5;
+  int64 expected_interface_generation = 6;
+  int64 expected_replacement_binding_generation = 7;
+}
+message DetachPublicIpResponse { string operation_name = 1; }
+message ReleasePublicIpRequest {
+  string name = 1;
+  // Current reservation generation returned by GetPublicIp, not a binding revision.
+  int64 expected_generation = 2;
+  // Retry the same request ID after an uncertain response.
+  string request_id = 3;
+}
+message ReleasePublicIpResponse {
+  // Completed release; the resource is no longer returned by GetPublicIp.
+  string operation_name = 1;
+}
+
+// FirewallRule filters a VM's Internet traffic. Lower positive priority wins;
+// zero is last, and deny wins equal priority. Ingress uses sources, egress uses
+// destinations. Explicit forwarding maps one attached public IPv4 port to a VM port.
 message FirewallRule {
   // Resource name `projects/{project}/firewall-rules/{id}`.
   string name = 1;
@@ -174,8 +706,8 @@ message FirewallRule {
   // ACTIVE / DELETED.
   string state = 6;
   repeated PortMapping ports = 7;
-  // Source CIDRs allowed to reach the listed ports (e.g. ["0.0.0.0/0"], ["10.0.0.0/8"]).
-  // Empty list = allow from anywhere. Ingress only.
+  // Up to 32 source CIDRs matched by an ingress rule. Empty matches any
+  // source in the selected IP family; the action determines allow/deny.
   repeated string sources = 8;
   int64 create_time_unix = 9;
   int64 update_time_unix = 10;
@@ -185,10 +717,20 @@ message FirewallRule {
   string direction = 13;
   // Destination CIDRs the VM is allowed to reach (egress only).
   repeated string destinations = 14;
-  // is_default marks the baseline rules seeded automatically when a VM is provisioned with a
-  // public IP (SSH/HTTP/HTTPS open to 0.0.0.0/0). Customer-created rules leave it false. UI
-  // uses it to render a "default" badge + a stronger delete confirmation.
+  // Retained marker for historical seeded rules. PRIVATE_NAT VMs do not
+  // automatically open SSH, HTTP, or HTTPS; customer-created rules leave it false.
   bool is_default = 15;
+  // Empty preserves legacy family inference; otherwise ipv4, ipv6, or both.
+  string ip_family = 16;
+  // allow (default) or deny. Lower nonzero priorities win; deny wins ties.
+  string action = 17;
+  int32 priority = 18;
+  // Optional TCP/UDP client source-port range; zero means any source port.
+  int32 source_port = 19;
+  int32 source_end_port = 20;
+  // Optional: an already attached public IPv4 on this VM. Ports then define
+  // explicit public-port to VM-target-port forwarding; separate from filtering.
+  string forwarding_public_ip = 21;
 }
 
 message CreateFirewallRuleRequest {
@@ -202,10 +744,24 @@ message CreateFirewallRuleRequest {
   map<string, string> annotations = 8;
   string direction = 11;
   repeated string destinations = 12;
+  // Required UUID for private-network VMs. Retry uncertain outcomes with the
+  // same ID and identical input. Legacy direct-public VMs remain synchronous.
+  string request_id = 13;
+  string ip_family = 14;
+  string action = 15;
+  int32 priority = 16;
+  int32 source_port = 17;
+  int32 source_end_port = 18;
+  // Optional: an already attached public IPv4 on this VM. Ports then define
+  // explicit public-port to VM-target-port forwarding; separate from filtering.
+  string forwarding_public_ip = 19;
 }
 
 message CreateFirewallRuleResponse {
   FirewallRule rule = 1;
+  // Nonempty for an asynchronous private-network policy change. Acceptance is
+  // not enforcement; poll this operation before treating the rule as applied.
+  string operation_name = 2;
 }
 
 message ListFirewallRulesRequest {
@@ -223,9 +779,15 @@ message ListFirewallRulesResponse {
 
 message DeleteFirewallRuleRequest {
   string name = 1;
+  // Required UUID for private-network VMs; reuse on retries.
+  string request_id = 2;
 }
 
-message DeleteFirewallRuleResponse {}
+message DeleteFirewallRuleResponse {
+  // Nonempty for asynchronous withdrawal. Acceptance alone does not confirm
+  // that traffic, including established sessions, has been blocked.
+  string operation_name = 1;
+}
 
 // ── Security groups ────────────────────────────────────────────────────────────────────────
 
@@ -271,6 +833,13 @@ message SecurityGroupRule {
     string cidr = 6;
     string security_group = 7;
   }
+  // Empty means both families, narrowed by the peer CIDR if present.
+  string ip_family = 8;
+  string action = 9;
+  // 1..1000; zero preserves the legacy lowest-priority allow behavior.
+  int32 priority = 10;
+  int32 source_port = 11;
+  int32 source_end_port = 12;
 }
 
 message CreateSecurityGroupRequest {
@@ -309,9 +878,16 @@ message UpdateSecurityGroupRequest {
   string display_name = 2;
   repeated SecurityGroupRule rules = 3;
   string etag = 4;
+  // Required for private-network policy changes. Reuse the UUID on retries.
+  string request_id = 5;
+  // Set to 2 when editing an existing advanced policy. Older clients cannot
+  // replace rules they cannot represent without silently dropping restrictions.
+  int32 policy_schema_version = 6;
 }
 message UpdateSecurityGroupResponse {
   SecurityGroup security_group = 1;
+  // Policy acceptance is asynchronous; this operation tracks enforcement.
+  string operation_name = 2;
 }
 
 message DeleteSecurityGroupRequest {
@@ -322,16 +898,21 @@ message DeleteSecurityGroupResponse {}
 message AddVmToSecurityGroupRequest {
   string security_group = 1;
   string vm = 2;
+  // Required for private-network policy changes. Reuse the UUID on retries.
+  string request_id = 3;
 }
 message AddVmToSecurityGroupResponse {
   SecurityGroup security_group = 1;
+  string operation_name = 2;
 }
 
 message RemoveVmFromSecurityGroupRequest {
   string security_group = 1;
   string vm = 2;
+  // Required for private-network policy changes. Reuse the UUID on retries.
+  string request_id = 3;
 }
 message RemoveVmFromSecurityGroupResponse {
   SecurityGroup security_group = 1;
+  string operation_name = 2;
 }
-

@@ -9,6 +9,7 @@ package networkv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -20,6 +21,3482 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+type VpcDatacenterMembership struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	DatacenterName string                 `protobuf:"bytes,1,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	// PRESENT or ABSENT. ABSENT retains ownership until verified retirement.
+	DesiredState string `protobuf:"bytes,2,opt,name=desired_state,json=desiredState,proto3" json:"desired_state,omitempty"`
+	Generation   int64  `protobuf:"varint,3,opt,name=generation,proto3" json:"generation,omitempty"`
+	// A recorded observation, not a live reachability or availability check.
+	ObservedGeneration int64 `protobuf:"varint,4,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *VpcDatacenterMembership) Reset() {
+	*x = VpcDatacenterMembership{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VpcDatacenterMembership) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VpcDatacenterMembership) ProtoMessage() {}
+
+func (x *VpcDatacenterMembership) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VpcDatacenterMembership.ProtoReflect.Descriptor instead.
+func (*VpcDatacenterMembership) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *VpcDatacenterMembership) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *VpcDatacenterMembership) GetDesiredState() string {
+	if x != nil {
+		return x.DesiredState
+	}
+	return ""
+}
+
+func (x *VpcDatacenterMembership) GetGeneration() int64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
+func (x *VpcDatacenterMembership) GetObservedGeneration() int64 {
+	if x != nil {
+		return x.ObservedGeneration
+	}
+	return 0
+}
+
+type Vpc struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Name        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ProjectName string                 `protobuf:"bytes,2,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	DisplayName string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// Metadata revision, separate from each DC's desired generation.
+	Version    int64                  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
+	CreateTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// Included by GetVpc, omitted by ListVpcs. A VPC with no memberships
+	// has no regional network configured.
+	Datacenters   []*VpcDatacenterMembership `protobuf:"bytes,7,rep,name=datacenters,proto3" json:"datacenters,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Vpc) Reset() {
+	*x = Vpc{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Vpc) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Vpc) ProtoMessage() {}
+
+func (x *Vpc) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Vpc.ProtoReflect.Descriptor instead.
+func (*Vpc) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Vpc) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Vpc) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *Vpc) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *Vpc) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *Vpc) GetCreateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreateTime
+	}
+	return nil
+}
+
+func (x *Vpc) GetUpdateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdateTime
+	}
+	return nil
+}
+
+func (x *Vpc) GetDatacenters() []*VpcDatacenterMembership {
+	if x != nil {
+		return x.Datacenters
+	}
+	return nil
+}
+
+type VpcSubnet struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Name        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	VpcName     string                 `protobuf:"bytes,2,opt,name=vpc_name,json=vpcName,proto3" json:"vpc_name,omitempty"`
+	ProjectName string                 `protobuf:"bytes,3,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	DisplayName string                 `protobuf:"bytes,4,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Ipv4Range   string                 `protobuf:"bytes,5,opt,name=ipv4_range,json=ipv4Range,proto3" json:"ipv4_range,omitempty"`
+	// Subnet allocation range, not an individual VM's routed public /64.
+	Ipv6Range  string                 `protobuf:"bytes,6,opt,name=ipv6_range,json=ipv6Range,proto3" json:"ipv6_range,omitempty"`
+	Version    int64                  `protobuf:"varint,7,opt,name=version,proto3" json:"version,omitempty"`
+	CreateTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// Included by GetVpcSubnet, omitted by ListVpcSubnets. Membership alone
+	// does not mean this subnet is configured or eligible for a new VM.
+	Datacenters []*VpcDatacenterMembership `protobuf:"bytes,10,rep,name=datacenters,proto3" json:"datacenters,omitempty"`
+	// Ordered custom IPv4 resolvers. Empty uses Metalhost's private DNS.
+	// Custom resolvers remain subject to ordinary routing and egress policy.
+	CustomDnsIpv4 []string `protobuf:"bytes,11,rep,name=custom_dns_ipv4,json=customDnsIpv4,proto3" json:"custom_dns_ipv4,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VpcSubnet) Reset() {
+	*x = VpcSubnet{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VpcSubnet) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VpcSubnet) ProtoMessage() {}
+
+func (x *VpcSubnet) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VpcSubnet.ProtoReflect.Descriptor instead.
+func (*VpcSubnet) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *VpcSubnet) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *VpcSubnet) GetVpcName() string {
+	if x != nil {
+		return x.VpcName
+	}
+	return ""
+}
+
+func (x *VpcSubnet) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *VpcSubnet) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *VpcSubnet) GetIpv4Range() string {
+	if x != nil {
+		return x.Ipv4Range
+	}
+	return ""
+}
+
+func (x *VpcSubnet) GetIpv6Range() string {
+	if x != nil {
+		return x.Ipv6Range
+	}
+	return ""
+}
+
+func (x *VpcSubnet) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *VpcSubnet) GetCreateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreateTime
+	}
+	return nil
+}
+
+func (x *VpcSubnet) GetUpdateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdateTime
+	}
+	return nil
+}
+
+func (x *VpcSubnet) GetDatacenters() []*VpcDatacenterMembership {
+	if x != nil {
+		return x.Datacenters
+	}
+	return nil
+}
+
+func (x *VpcSubnet) GetCustomDnsIpv4() []string {
+	if x != nil {
+		return x.CustomDnsIpv4
+	}
+	return nil
+}
+
+type CreateVpcRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateVpcRequest) Reset() {
+	*x = CreateVpcRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateVpcRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateVpcRequest) ProtoMessage() {}
+
+func (x *CreateVpcRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateVpcRequest.ProtoReflect.Descriptor instead.
+func (*CreateVpcRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *CreateVpcRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *CreateVpcRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *CreateVpcRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type CreateVpcResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Vpc   *Vpc                   `protobuf:"bytes,1,opt,name=vpc,proto3" json:"vpc,omitempty"`
+	// Completed definition creation only, not deployment or forwarding readiness.
+	OperationName string `protobuf:"bytes,2,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateVpcResponse) Reset() {
+	*x = CreateVpcResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateVpcResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateVpcResponse) ProtoMessage() {}
+
+func (x *CreateVpcResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateVpcResponse.ProtoReflect.Descriptor instead.
+func (*CreateVpcResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *CreateVpcResponse) GetVpc() *Vpc {
+	if x != nil {
+		return x.Vpc
+	}
+	return nil
+}
+
+func (x *CreateVpcResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type CreateVpcSubnetRequest struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	VpcName     string                 `protobuf:"bytes,1,opt,name=vpc_name,json=vpcName,proto3" json:"vpc_name,omitempty"`
+	DisplayName string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// Canonical RFC1918 CIDR. Overlap within this VPC is rejected; overlap with
+	// a different VPC is allowed. VM public IPv6 prefixes are allocated separately.
+	Ipv4Range string `protobuf:"bytes,3,opt,name=ipv4_range,json=ipv4Range,proto3" json:"ipv4_range,omitempty"`
+	RequestId string `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	// Up to three unique IPv4 resolver addresses, in preference order. Empty
+	// selects private DNS. Set at subnet creation; existing guests are not edited.
+	// A custom resolver must serve private names itself if those are needed.
+	CustomDnsIpv4 []string `protobuf:"bytes,5,rep,name=custom_dns_ipv4,json=customDnsIpv4,proto3" json:"custom_dns_ipv4,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateVpcSubnetRequest) Reset() {
+	*x = CreateVpcSubnetRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateVpcSubnetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateVpcSubnetRequest) ProtoMessage() {}
+
+func (x *CreateVpcSubnetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateVpcSubnetRequest.ProtoReflect.Descriptor instead.
+func (*CreateVpcSubnetRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CreateVpcSubnetRequest) GetVpcName() string {
+	if x != nil {
+		return x.VpcName
+	}
+	return ""
+}
+
+func (x *CreateVpcSubnetRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *CreateVpcSubnetRequest) GetIpv4Range() string {
+	if x != nil {
+		return x.Ipv4Range
+	}
+	return ""
+}
+
+func (x *CreateVpcSubnetRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *CreateVpcSubnetRequest) GetCustomDnsIpv4() []string {
+	if x != nil {
+		return x.CustomDnsIpv4
+	}
+	return nil
+}
+
+type CreateVpcSubnetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Subnet        *VpcSubnet             `protobuf:"bytes,1,opt,name=subnet,proto3" json:"subnet,omitempty"`
+	OperationName string                 `protobuf:"bytes,2,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateVpcSubnetResponse) Reset() {
+	*x = CreateVpcSubnetResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateVpcSubnetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateVpcSubnetResponse) ProtoMessage() {}
+
+func (x *CreateVpcSubnetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateVpcSubnetResponse.ProtoReflect.Descriptor instead.
+func (*CreateVpcSubnetResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CreateVpcSubnetResponse) GetSubnet() *VpcSubnet {
+	if x != nil {
+		return x.Subnet
+	}
+	return nil
+}
+
+func (x *CreateVpcSubnetResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type ListVpcsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListVpcsRequest) Reset() {
+	*x = ListVpcsRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListVpcsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListVpcsRequest) ProtoMessage() {}
+
+func (x *ListVpcsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListVpcsRequest.ProtoReflect.Descriptor instead.
+func (*ListVpcsRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ListVpcsRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *ListVpcsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListVpcsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListVpcsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Vpcs          []*Vpc                 `protobuf:"bytes,1,rep,name=vpcs,proto3" json:"vpcs,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListVpcsResponse) Reset() {
+	*x = ListVpcsResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListVpcsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListVpcsResponse) ProtoMessage() {}
+
+func (x *ListVpcsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListVpcsResponse.ProtoReflect.Descriptor instead.
+func (*ListVpcsResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListVpcsResponse) GetVpcs() []*Vpc {
+	if x != nil {
+		return x.Vpcs
+	}
+	return nil
+}
+
+func (x *ListVpcsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type GetVpcRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVpcRequest) Reset() {
+	*x = GetVpcRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVpcRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVpcRequest) ProtoMessage() {}
+
+func (x *GetVpcRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVpcRequest.ProtoReflect.Descriptor instead.
+func (*GetVpcRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetVpcRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetVpcResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Vpc           *Vpc                   `protobuf:"bytes,1,opt,name=vpc,proto3" json:"vpc,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVpcResponse) Reset() {
+	*x = GetVpcResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVpcResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVpcResponse) ProtoMessage() {}
+
+func (x *GetVpcResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVpcResponse.ProtoReflect.Descriptor instead.
+func (*GetVpcResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetVpcResponse) GetVpc() *Vpc {
+	if x != nil {
+		return x.Vpc
+	}
+	return nil
+}
+
+type ListVpcSubnetsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	VpcName       string                 `protobuf:"bytes,1,opt,name=vpc_name,json=vpcName,proto3" json:"vpc_name,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListVpcSubnetsRequest) Reset() {
+	*x = ListVpcSubnetsRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListVpcSubnetsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListVpcSubnetsRequest) ProtoMessage() {}
+
+func (x *ListVpcSubnetsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListVpcSubnetsRequest.ProtoReflect.Descriptor instead.
+func (*ListVpcSubnetsRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ListVpcSubnetsRequest) GetVpcName() string {
+	if x != nil {
+		return x.VpcName
+	}
+	return ""
+}
+
+func (x *ListVpcSubnetsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListVpcSubnetsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListVpcSubnetsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Subnets       []*VpcSubnet           `protobuf:"bytes,1,rep,name=subnets,proto3" json:"subnets,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListVpcSubnetsResponse) Reset() {
+	*x = ListVpcSubnetsResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListVpcSubnetsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListVpcSubnetsResponse) ProtoMessage() {}
+
+func (x *ListVpcSubnetsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListVpcSubnetsResponse.ProtoReflect.Descriptor instead.
+func (*ListVpcSubnetsResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ListVpcSubnetsResponse) GetSubnets() []*VpcSubnet {
+	if x != nil {
+		return x.Subnets
+	}
+	return nil
+}
+
+func (x *ListVpcSubnetsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type GetVpcSubnetRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVpcSubnetRequest) Reset() {
+	*x = GetVpcSubnetRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVpcSubnetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVpcSubnetRequest) ProtoMessage() {}
+
+func (x *GetVpcSubnetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVpcSubnetRequest.ProtoReflect.Descriptor instead.
+func (*GetVpcSubnetRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetVpcSubnetRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetVpcSubnetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Subnet        *VpcSubnet             `protobuf:"bytes,1,opt,name=subnet,proto3" json:"subnet,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVpcSubnetResponse) Reset() {
+	*x = GetVpcSubnetResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVpcSubnetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVpcSubnetResponse) ProtoMessage() {}
+
+func (x *GetVpcSubnetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVpcSubnetResponse.ProtoReflect.Descriptor instead.
+func (*GetVpcSubnetResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetVpcSubnetResponse) GetSubnet() *VpcSubnet {
+	if x != nil {
+		return x.Subnet
+	}
+	return nil
+}
+
+type UpdateVpcRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	DisplayName     string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	ExpectedVersion int64                  `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	RequestId       string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *UpdateVpcRequest) Reset() {
+	*x = UpdateVpcRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateVpcRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateVpcRequest) ProtoMessage() {}
+
+func (x *UpdateVpcRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateVpcRequest.ProtoReflect.Descriptor instead.
+func (*UpdateVpcRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *UpdateVpcRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateVpcRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *UpdateVpcRequest) GetExpectedVersion() int64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *UpdateVpcRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type UpdateVpcResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateVpcResponse) Reset() {
+	*x = UpdateVpcResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateVpcResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateVpcResponse) ProtoMessage() {}
+
+func (x *UpdateVpcResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateVpcResponse.ProtoReflect.Descriptor instead.
+func (*UpdateVpcResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *UpdateVpcResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type UpdateVpcSubnetRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	DisplayName     string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	ExpectedVersion int64                  `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	RequestId       string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *UpdateVpcSubnetRequest) Reset() {
+	*x = UpdateVpcSubnetRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateVpcSubnetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateVpcSubnetRequest) ProtoMessage() {}
+
+func (x *UpdateVpcSubnetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateVpcSubnetRequest.ProtoReflect.Descriptor instead.
+func (*UpdateVpcSubnetRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *UpdateVpcSubnetRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateVpcSubnetRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *UpdateVpcSubnetRequest) GetExpectedVersion() int64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *UpdateVpcSubnetRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type UpdateVpcSubnetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateVpcSubnetResponse) Reset() {
+	*x = UpdateVpcSubnetResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateVpcSubnetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateVpcSubnetResponse) ProtoMessage() {}
+
+func (x *UpdateVpcSubnetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateVpcSubnetResponse.ProtoReflect.Descriptor instead.
+func (*UpdateVpcSubnetResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *UpdateVpcSubnetResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type DeleteVpcRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ExpectedVersion int64                  `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	RequestId       string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *DeleteVpcRequest) Reset() {
+	*x = DeleteVpcRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteVpcRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteVpcRequest) ProtoMessage() {}
+
+func (x *DeleteVpcRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteVpcRequest.ProtoReflect.Descriptor instead.
+func (*DeleteVpcRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *DeleteVpcRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DeleteVpcRequest) GetExpectedVersion() int64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *DeleteVpcRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type DeleteVpcResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteVpcResponse) Reset() {
+	*x = DeleteVpcResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteVpcResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteVpcResponse) ProtoMessage() {}
+
+func (x *DeleteVpcResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteVpcResponse.ProtoReflect.Descriptor instead.
+func (*DeleteVpcResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *DeleteVpcResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type DeleteVpcSubnetRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ExpectedVersion int64                  `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	RequestId       string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *DeleteVpcSubnetRequest) Reset() {
+	*x = DeleteVpcSubnetRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteVpcSubnetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteVpcSubnetRequest) ProtoMessage() {}
+
+func (x *DeleteVpcSubnetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteVpcSubnetRequest.ProtoReflect.Descriptor instead.
+func (*DeleteVpcSubnetRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *DeleteVpcSubnetRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DeleteVpcSubnetRequest) GetExpectedVersion() int64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *DeleteVpcSubnetRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type DeleteVpcSubnetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteVpcSubnetResponse) Reset() {
+	*x = DeleteVpcSubnetResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteVpcSubnetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteVpcSubnetResponse) ProtoMessage() {}
+
+func (x *DeleteVpcSubnetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteVpcSubnetResponse.ProtoReflect.Descriptor instead.
+func (*DeleteVpcSubnetResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *DeleteVpcSubnetResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type RemoveVmIpv4AliasRequest struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName        string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	TargetVm           string                 `protobuf:"bytes,2,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	InterfaceId        string                 `protobuf:"bytes,3,opt,name=interface_id,json=interfaceId,proto3" json:"interface_id,omitempty"`
+	LeaseId            string                 `protobuf:"bytes,4,opt,name=lease_id,json=leaseId,proto3" json:"lease_id,omitempty"`
+	ExpectedGeneration int64                  `protobuf:"varint,5,opt,name=expected_generation,json=expectedGeneration,proto3" json:"expected_generation,omitempty"`
+	RequestId          string                 `protobuf:"bytes,6,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *RemoveVmIpv4AliasRequest) Reset() {
+	*x = RemoveVmIpv4AliasRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveVmIpv4AliasRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveVmIpv4AliasRequest) ProtoMessage() {}
+
+func (x *RemoveVmIpv4AliasRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveVmIpv4AliasRequest.ProtoReflect.Descriptor instead.
+func (*RemoveVmIpv4AliasRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *RemoveVmIpv4AliasRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *RemoveVmIpv4AliasRequest) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+func (x *RemoveVmIpv4AliasRequest) GetInterfaceId() string {
+	if x != nil {
+		return x.InterfaceId
+	}
+	return ""
+}
+
+func (x *RemoveVmIpv4AliasRequest) GetLeaseId() string {
+	if x != nil {
+		return x.LeaseId
+	}
+	return ""
+}
+
+func (x *RemoveVmIpv4AliasRequest) GetExpectedGeneration() int64 {
+	if x != nil {
+		return x.ExpectedGeneration
+	}
+	return 0
+}
+
+func (x *RemoveVmIpv4AliasRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type RemoveVmIpv4AliasResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveVmIpv4AliasResponse) Reset() {
+	*x = RemoveVmIpv4AliasResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveVmIpv4AliasResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveVmIpv4AliasResponse) ProtoMessage() {}
+
+func (x *RemoveVmIpv4AliasResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveVmIpv4AliasResponse.ProtoReflect.Descriptor instead.
+func (*RemoveVmIpv4AliasResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *RemoveVmIpv4AliasResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type VmNetworkAddress struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	LeaseId string                 `protobuf:"bytes,1,opt,name=lease_id,json=leaseId,proto3" json:"lease_id,omitempty"`
+	// CIDR. IPv4 identities use /32. A VM's public IPv6 identity is one routed
+	// /64; the guest may use addresses inside it without allocating each /128.
+	AddressRange string `protobuf:"bytes,2,opt,name=address_range,json=addressRange,proto3" json:"address_range,omitempty"`
+	// PRIMARY_IPV4, ALIAS_IPV4, IPV6_PREFIX, or a legacy migration-only role.
+	Role          string `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	State         string `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VmNetworkAddress) Reset() {
+	*x = VmNetworkAddress{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VmNetworkAddress) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VmNetworkAddress) ProtoMessage() {}
+
+func (x *VmNetworkAddress) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VmNetworkAddress.ProtoReflect.Descriptor instead.
+func (*VmNetworkAddress) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *VmNetworkAddress) GetLeaseId() string {
+	if x != nil {
+		return x.LeaseId
+	}
+	return ""
+}
+
+func (x *VmNetworkAddress) GetAddressRange() string {
+	if x != nil {
+		return x.AddressRange
+	}
+	return ""
+}
+
+func (x *VmNetworkAddress) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *VmNetworkAddress) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+type VmNetworkInterface struct {
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	Id                      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Slot                    int32                  `protobuf:"varint,2,opt,name=slot,proto3" json:"slot,omitempty"`
+	MacAddress              string                 `protobuf:"bytes,3,opt,name=mac_address,json=macAddress,proto3" json:"mac_address,omitempty"`
+	Generation              int64                  `protobuf:"varint,4,opt,name=generation,proto3" json:"generation,omitempty"`
+	ObservedGeneration      int64                  `protobuf:"varint,5,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
+	GuestObservedGeneration int64                  `protobuf:"varint,6,opt,name=guest_observed_generation,json=guestObservedGeneration,proto3" json:"guest_observed_generation,omitempty"`
+	DesiredState            string                 `protobuf:"bytes,7,opt,name=desired_state,json=desiredState,proto3" json:"desired_state,omitempty"`
+	Addresses               []*VmNetworkAddress    `protobuf:"bytes,8,rep,name=addresses,proto3" json:"addresses,omitempty"`
+	// Desired preferred IPv4 source inside the VM, not proof of delivery.
+	DefaultSourceIpv4 string `protobuf:"bytes,9,opt,name=default_source_ipv4,json=defaultSourceIpv4,proto3" json:"default_source_ipv4,omitempty"`
+	// Last report for this interface's VPC in this datacenter. This does not
+	// replace the separate interface and guest observation generations above.
+	Reconciliation *VpcNetworkReconciliationStatus `protobuf:"bytes,10,opt,name=reconciliation,proto3" json:"reconciliation,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *VmNetworkInterface) Reset() {
+	*x = VmNetworkInterface{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VmNetworkInterface) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VmNetworkInterface) ProtoMessage() {}
+
+func (x *VmNetworkInterface) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VmNetworkInterface.ProtoReflect.Descriptor instead.
+func (*VmNetworkInterface) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *VmNetworkInterface) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *VmNetworkInterface) GetSlot() int32 {
+	if x != nil {
+		return x.Slot
+	}
+	return 0
+}
+
+func (x *VmNetworkInterface) GetMacAddress() string {
+	if x != nil {
+		return x.MacAddress
+	}
+	return ""
+}
+
+func (x *VmNetworkInterface) GetGeneration() int64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
+func (x *VmNetworkInterface) GetObservedGeneration() int64 {
+	if x != nil {
+		return x.ObservedGeneration
+	}
+	return 0
+}
+
+func (x *VmNetworkInterface) GetGuestObservedGeneration() int64 {
+	if x != nil {
+		return x.GuestObservedGeneration
+	}
+	return 0
+}
+
+func (x *VmNetworkInterface) GetDesiredState() string {
+	if x != nil {
+		return x.DesiredState
+	}
+	return ""
+}
+
+func (x *VmNetworkInterface) GetAddresses() []*VmNetworkAddress {
+	if x != nil {
+		return x.Addresses
+	}
+	return nil
+}
+
+func (x *VmNetworkInterface) GetDefaultSourceIpv4() string {
+	if x != nil {
+		return x.DefaultSourceIpv4
+	}
+	return ""
+}
+
+func (x *VmNetworkInterface) GetReconciliation() *VpcNetworkReconciliationStatus {
+	if x != nil {
+		return x.Reconciliation
+	}
+	return nil
+}
+
+type VpcNetworkReconciliationStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// These generations belong to the VPC/datacenter, not the VM interface.
+	DesiredGeneration  int64 `protobuf:"varint,1,opt,name=desired_generation,json=desiredGeneration,proto3" json:"desired_generation,omitempty"`
+	ReportedGeneration int64 `protobuf:"varint,2,opt,name=reported_generation,json=reportedGeneration,proto3" json:"reported_generation,omitempty"`
+	// PENDING when no report exists; otherwise CONFIGURING, CONFIGURED, READY,
+	// DEGRADED, WAITING_GUEST, RETIRING, or RETIRED. CONFIGURED is not traffic
+	// readiness. RETIRED acknowledges removal of an empty regional network;
+	// it does not indicate that historical addresses can be reused.
+	Phase string `protobuf:"bytes,3,opt,name=phase,proto3" json:"phase,omitempty"`
+	// Machine-readable diagnostic code; never raw infrastructure errors.
+	Reason string `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	// Server receipt time of the last report. Absent until the first report.
+	ReportTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=report_time,json=reportTime,proto3" json:"report_time,omitempty"`
+	// The report matches the desired generation/state and current controller
+	// tenure. This does not assert current reachability; inspect report_time.
+	// A false value means phase/reason are historical, not the current result.
+	MatchesCurrentIntent bool `protobuf:"varint,6,opt,name=matches_current_intent,json=matchesCurrentIntent,proto3" json:"matches_current_intent,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *VpcNetworkReconciliationStatus) Reset() {
+	*x = VpcNetworkReconciliationStatus{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VpcNetworkReconciliationStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VpcNetworkReconciliationStatus) ProtoMessage() {}
+
+func (x *VpcNetworkReconciliationStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VpcNetworkReconciliationStatus.ProtoReflect.Descriptor instead.
+func (*VpcNetworkReconciliationStatus) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *VpcNetworkReconciliationStatus) GetDesiredGeneration() int64 {
+	if x != nil {
+		return x.DesiredGeneration
+	}
+	return 0
+}
+
+func (x *VpcNetworkReconciliationStatus) GetReportedGeneration() int64 {
+	if x != nil {
+		return x.ReportedGeneration
+	}
+	return 0
+}
+
+func (x *VpcNetworkReconciliationStatus) GetPhase() string {
+	if x != nil {
+		return x.Phase
+	}
+	return ""
+}
+
+func (x *VpcNetworkReconciliationStatus) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *VpcNetworkReconciliationStatus) GetReportTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ReportTime
+	}
+	return nil
+}
+
+func (x *VpcNetworkReconciliationStatus) GetMatchesCurrentIntent() bool {
+	if x != nil {
+		return x.MatchesCurrentIntent
+	}
+	return false
+}
+
+type GetVmNetworkInterfacesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	TargetVm      string                 `protobuf:"bytes,2,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVmNetworkInterfacesRequest) Reset() {
+	*x = GetVmNetworkInterfacesRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVmNetworkInterfacesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVmNetworkInterfacesRequest) ProtoMessage() {}
+
+func (x *GetVmNetworkInterfacesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVmNetworkInterfacesRequest.ProtoReflect.Descriptor instead.
+func (*GetVmNetworkInterfacesRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *GetVmNetworkInterfacesRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *GetVmNetworkInterfacesRequest) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+type GetVmNetworkInterfacesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Interfaces    []*VmNetworkInterface  `protobuf:"bytes,1,rep,name=interfaces,proto3" json:"interfaces,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVmNetworkInterfacesResponse) Reset() {
+	*x = GetVmNetworkInterfacesResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVmNetworkInterfacesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVmNetworkInterfacesResponse) ProtoMessage() {}
+
+func (x *GetVmNetworkInterfacesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVmNetworkInterfacesResponse.ProtoReflect.Descriptor instead.
+func (*GetVmNetworkInterfacesResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *GetVmNetworkInterfacesResponse) GetInterfaces() []*VmNetworkInterface {
+	if x != nil {
+		return x.Interfaces
+	}
+	return nil
+}
+
+type AddVmIpv4AliasRequest struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName        string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	TargetVm           string                 `protobuf:"bytes,2,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	InterfaceId        string                 `protobuf:"bytes,3,opt,name=interface_id,json=interfaceId,proto3" json:"interface_id,omitempty"`
+	ExpectedGeneration int64                  `protobuf:"varint,4,opt,name=expected_generation,json=expectedGeneration,proto3" json:"expected_generation,omitempty"`
+	RequestId          string                 `protobuf:"bytes,5,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *AddVmIpv4AliasRequest) Reset() {
+	*x = AddVmIpv4AliasRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddVmIpv4AliasRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddVmIpv4AliasRequest) ProtoMessage() {}
+
+func (x *AddVmIpv4AliasRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddVmIpv4AliasRequest.ProtoReflect.Descriptor instead.
+func (*AddVmIpv4AliasRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *AddVmIpv4AliasRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *AddVmIpv4AliasRequest) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+func (x *AddVmIpv4AliasRequest) GetInterfaceId() string {
+	if x != nil {
+		return x.InterfaceId
+	}
+	return ""
+}
+
+func (x *AddVmIpv4AliasRequest) GetExpectedGeneration() int64 {
+	if x != nil {
+		return x.ExpectedGeneration
+	}
+	return 0
+}
+
+func (x *AddVmIpv4AliasRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type AddVmIpv4AliasResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	// Reserved address; not proof of guest delivery or usable connectivity.
+	PrivateIpv4   string `protobuf:"bytes,2,opt,name=private_ipv4,json=privateIpv4,proto3" json:"private_ipv4,omitempty"`
+	LeaseId       string `protobuf:"bytes,3,opt,name=lease_id,json=leaseId,proto3" json:"lease_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddVmIpv4AliasResponse) Reset() {
+	*x = AddVmIpv4AliasResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddVmIpv4AliasResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddVmIpv4AliasResponse) ProtoMessage() {}
+
+func (x *AddVmIpv4AliasResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddVmIpv4AliasResponse.ProtoReflect.Descriptor instead.
+func (*AddVmIpv4AliasResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *AddVmIpv4AliasResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+func (x *AddVmIpv4AliasResponse) GetPrivateIpv4() string {
+	if x != nil {
+		return x.PrivateIpv4
+	}
+	return ""
+}
+
+func (x *AddVmIpv4AliasResponse) GetLeaseId() string {
+	if x != nil {
+		return x.LeaseId
+	}
+	return ""
+}
+
+type SetVmDefaultPublicIpRequest struct {
+	state                     protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName               string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	TargetVm                  string                 `protobuf:"bytes,2,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	InterfaceId               string                 `protobuf:"bytes,3,opt,name=interface_id,json=interfaceId,proto3" json:"interface_id,omitempty"`
+	ExpectedGeneration        int64                  `protobuf:"varint,4,opt,name=expected_generation,json=expectedGeneration,proto3" json:"expected_generation,omitempty"`
+	PublicIpName              string                 `protobuf:"bytes,5,opt,name=public_ip_name,json=publicIpName,proto3" json:"public_ip_name,omitempty"`
+	ExpectedBindingGeneration int64                  `protobuf:"varint,6,opt,name=expected_binding_generation,json=expectedBindingGeneration,proto3" json:"expected_binding_generation,omitempty"`
+	RequestId                 string                 `protobuf:"bytes,7,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
+}
+
+func (x *SetVmDefaultPublicIpRequest) Reset() {
+	*x = SetVmDefaultPublicIpRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetVmDefaultPublicIpRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetVmDefaultPublicIpRequest) ProtoMessage() {}
+
+func (x *SetVmDefaultPublicIpRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetVmDefaultPublicIpRequest.ProtoReflect.Descriptor instead.
+func (*SetVmDefaultPublicIpRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *SetVmDefaultPublicIpRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *SetVmDefaultPublicIpRequest) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+func (x *SetVmDefaultPublicIpRequest) GetInterfaceId() string {
+	if x != nil {
+		return x.InterfaceId
+	}
+	return ""
+}
+
+func (x *SetVmDefaultPublicIpRequest) GetExpectedGeneration() int64 {
+	if x != nil {
+		return x.ExpectedGeneration
+	}
+	return 0
+}
+
+func (x *SetVmDefaultPublicIpRequest) GetPublicIpName() string {
+	if x != nil {
+		return x.PublicIpName
+	}
+	return ""
+}
+
+func (x *SetVmDefaultPublicIpRequest) GetExpectedBindingGeneration() int64 {
+	if x != nil {
+		return x.ExpectedBindingGeneration
+	}
+	return 0
+}
+
+func (x *SetVmDefaultPublicIpRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type SetVmDefaultPublicIpResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetVmDefaultPublicIpResponse) Reset() {
+	*x = SetVmDefaultPublicIpResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetVmDefaultPublicIpResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetVmDefaultPublicIpResponse) ProtoMessage() {}
+
+func (x *SetVmDefaultPublicIpResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetVmDefaultPublicIpResponse.ProtoReflect.Descriptor instead.
+func (*SetVmDefaultPublicIpResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *SetVmDefaultPublicIpResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type LoadBalancerHealthCheck struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Port                int32                  `protobuf:"varint,1,opt,name=port,proto3" json:"port,omitempty"`
+	IntervalSeconds     int32                  `protobuf:"varint,2,opt,name=interval_seconds,json=intervalSeconds,proto3" json:"interval_seconds,omitempty"`
+	TimeoutMilliseconds int32                  `protobuf:"varint,3,opt,name=timeout_milliseconds,json=timeoutMilliseconds,proto3" json:"timeout_milliseconds,omitempty"`
+	HealthyThreshold    int32                  `protobuf:"varint,4,opt,name=healthy_threshold,json=healthyThreshold,proto3" json:"healthy_threshold,omitempty"`
+	UnhealthyThreshold  int32                  `protobuf:"varint,5,opt,name=unhealthy_threshold,json=unhealthyThreshold,proto3" json:"unhealthy_threshold,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *LoadBalancerHealthCheck) Reset() {
+	*x = LoadBalancerHealthCheck{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoadBalancerHealthCheck) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoadBalancerHealthCheck) ProtoMessage() {}
+
+func (x *LoadBalancerHealthCheck) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoadBalancerHealthCheck.ProtoReflect.Descriptor instead.
+func (*LoadBalancerHealthCheck) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *LoadBalancerHealthCheck) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *LoadBalancerHealthCheck) GetIntervalSeconds() int32 {
+	if x != nil {
+		return x.IntervalSeconds
+	}
+	return 0
+}
+
+func (x *LoadBalancerHealthCheck) GetTimeoutMilliseconds() int32 {
+	if x != nil {
+		return x.TimeoutMilliseconds
+	}
+	return 0
+}
+
+func (x *LoadBalancerHealthCheck) GetHealthyThreshold() int32 {
+	if x != nil {
+		return x.HealthyThreshold
+	}
+	return 0
+}
+
+func (x *LoadBalancerHealthCheck) GetUnhealthyThreshold() int32 {
+	if x != nil {
+		return x.UnhealthyThreshold
+	}
+	return 0
+}
+
+type LoadBalancerListener struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Port        int32                  `protobuf:"varint,1,opt,name=port,proto3" json:"port,omitempty"`
+	BackendPort int32                  `protobuf:"varint,2,opt,name=backend_port,json=backendPort,proto3" json:"backend_port,omitempty"`
+	// TCP includes TLS passthrough. HTTP termination, UDP and PROXY protocol are
+	// not part of this release.
+	Protocol      string                   `protobuf:"bytes,3,opt,name=protocol,proto3" json:"protocol,omitempty"`
+	HealthCheck   *LoadBalancerHealthCheck `protobuf:"bytes,4,opt,name=health_check,json=healthCheck,proto3" json:"health_check,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoadBalancerListener) Reset() {
+	*x = LoadBalancerListener{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoadBalancerListener) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoadBalancerListener) ProtoMessage() {}
+
+func (x *LoadBalancerListener) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoadBalancerListener.ProtoReflect.Descriptor instead.
+func (*LoadBalancerListener) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *LoadBalancerListener) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *LoadBalancerListener) GetBackendPort() int32 {
+	if x != nil {
+		return x.BackendPort
+	}
+	return 0
+}
+
+func (x *LoadBalancerListener) GetProtocol() string {
+	if x != nil {
+		return x.Protocol
+	}
+	return ""
+}
+
+func (x *LoadBalancerListener) GetHealthCheck() *LoadBalancerHealthCheck {
+	if x != nil {
+		return x.HealthCheck
+	}
+	return nil
+}
+
+type LoadBalancer struct {
+	state          protoimpl.MessageState  `protogen:"open.v1"`
+	Name           string                  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ProjectName    string                  `protobuf:"bytes,2,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	NetworkName    string                  `protobuf:"bytes,3,opt,name=network_name,json=networkName,proto3" json:"network_name,omitempty"`
+	DatacenterName string                  `protobuf:"bytes,4,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	DisplayName    string                  `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	PublicIpName   string                  `protobuf:"bytes,6,opt,name=public_ip_name,json=publicIpName,proto3" json:"public_ip_name,omitempty"`
+	PublicIpv4     string                  `protobuf:"bytes,7,opt,name=public_ipv4,json=publicIpv4,proto3" json:"public_ipv4,omitempty"`
+	Listeners      []*LoadBalancerListener `protobuf:"bytes,8,rep,name=listeners,proto3" json:"listeners,omitempty"`
+	// Stable interface IDs returned by GetVmNetworkInterfaces, never addresses.
+	BackendInterfaceIds []string                        `protobuf:"bytes,9,rep,name=backend_interface_ids,json=backendInterfaceIds,proto3" json:"backend_interface_ids,omitempty"`
+	DrainTimeoutSeconds int32                           `protobuf:"varint,10,opt,name=drain_timeout_seconds,json=drainTimeoutSeconds,proto3" json:"drain_timeout_seconds,omitempty"`
+	Generation          int64                           `protobuf:"varint,11,opt,name=generation,proto3" json:"generation,omitempty"`
+	ObservedGeneration  int64                           `protobuf:"varint,12,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
+	DesiredState        string                          `protobuf:"bytes,13,opt,name=desired_state,json=desiredState,proto3" json:"desired_state,omitempty"`
+	Reconciliation      *VpcNetworkReconciliationStatus `protobuf:"bytes,14,opt,name=reconciliation,proto3" json:"reconciliation,omitempty"`
+	// Application probe diagnostics, separate from configuration reconciliation.
+	// HEALTHY does not guarantee external reachability or dataplane selection.
+	// Omitted from ListLoadBalancers; use GetLoadBalancer for this detail.
+	BackendHealth []*LoadBalancerBackendHealth `protobuf:"bytes,15,rep,name=backend_health,json=backendHealth,proto3" json:"backend_health,omitempty"`
+	// Server receipt time; absent before the first health report.
+	HealthReportTime *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=health_report_time,json=healthReportTime,proto3" json:"health_report_time,omitempty"`
+	// False after configuration changes or controller replacement. Expired or
+	// missing samples are UNKNOWN even when this value is true.
+	HealthMatchesCurrentIntent bool `protobuf:"varint,17,opt,name=health_matches_current_intent,json=healthMatchesCurrentIntent,proto3" json:"health_matches_current_intent,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
+}
+
+func (x *LoadBalancer) Reset() {
+	*x = LoadBalancer{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoadBalancer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoadBalancer) ProtoMessage() {}
+
+func (x *LoadBalancer) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoadBalancer.ProtoReflect.Descriptor instead.
+func (*LoadBalancer) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *LoadBalancer) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *LoadBalancer) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *LoadBalancer) GetNetworkName() string {
+	if x != nil {
+		return x.NetworkName
+	}
+	return ""
+}
+
+func (x *LoadBalancer) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *LoadBalancer) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *LoadBalancer) GetPublicIpName() string {
+	if x != nil {
+		return x.PublicIpName
+	}
+	return ""
+}
+
+func (x *LoadBalancer) GetPublicIpv4() string {
+	if x != nil {
+		return x.PublicIpv4
+	}
+	return ""
+}
+
+func (x *LoadBalancer) GetListeners() []*LoadBalancerListener {
+	if x != nil {
+		return x.Listeners
+	}
+	return nil
+}
+
+func (x *LoadBalancer) GetBackendInterfaceIds() []string {
+	if x != nil {
+		return x.BackendInterfaceIds
+	}
+	return nil
+}
+
+func (x *LoadBalancer) GetDrainTimeoutSeconds() int32 {
+	if x != nil {
+		return x.DrainTimeoutSeconds
+	}
+	return 0
+}
+
+func (x *LoadBalancer) GetGeneration() int64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
+func (x *LoadBalancer) GetObservedGeneration() int64 {
+	if x != nil {
+		return x.ObservedGeneration
+	}
+	return 0
+}
+
+func (x *LoadBalancer) GetDesiredState() string {
+	if x != nil {
+		return x.DesiredState
+	}
+	return ""
+}
+
+func (x *LoadBalancer) GetReconciliation() *VpcNetworkReconciliationStatus {
+	if x != nil {
+		return x.Reconciliation
+	}
+	return nil
+}
+
+func (x *LoadBalancer) GetBackendHealth() []*LoadBalancerBackendHealth {
+	if x != nil {
+		return x.BackendHealth
+	}
+	return nil
+}
+
+func (x *LoadBalancer) GetHealthReportTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.HealthReportTime
+	}
+	return nil
+}
+
+func (x *LoadBalancer) GetHealthMatchesCurrentIntent() bool {
+	if x != nil {
+		return x.HealthMatchesCurrentIntent
+	}
+	return false
+}
+
+type LoadBalancerBackendHealth struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	InterfaceId  string                 `protobuf:"bytes,1,opt,name=interface_id,json=interfaceId,proto3" json:"interface_id,omitempty"`
+	ListenerPort int32                  `protobuf:"varint,2,opt,name=listener_port,json=listenerPort,proto3" json:"listener_port,omitempty"`
+	// UNKNOWN, CHECKING, HEALTHY, UNHEALTHY, NOT_READY, or DRAINING.
+	// NOT_READY means the backend's network/guest prerequisites are not met.
+	// UNKNOWN also covers stale reports; it does not mean a failed probe.
+	State         string                 `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
+	LastCheckTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=last_check_time,json=lastCheckTime,proto3" json:"last_check_time,omitempty"`
+	// A sample is not current at or after this instant.
+	ValidUntil    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=valid_until,json=validUntil,proto3" json:"valid_until,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoadBalancerBackendHealth) Reset() {
+	*x = LoadBalancerBackendHealth{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoadBalancerBackendHealth) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoadBalancerBackendHealth) ProtoMessage() {}
+
+func (x *LoadBalancerBackendHealth) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoadBalancerBackendHealth.ProtoReflect.Descriptor instead.
+func (*LoadBalancerBackendHealth) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *LoadBalancerBackendHealth) GetInterfaceId() string {
+	if x != nil {
+		return x.InterfaceId
+	}
+	return ""
+}
+
+func (x *LoadBalancerBackendHealth) GetListenerPort() int32 {
+	if x != nil {
+		return x.ListenerPort
+	}
+	return 0
+}
+
+func (x *LoadBalancerBackendHealth) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *LoadBalancerBackendHealth) GetLastCheckTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastCheckTime
+	}
+	return nil
+}
+
+func (x *LoadBalancerBackendHealth) GetValidUntil() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ValidUntil
+	}
+	return nil
+}
+
+type CreateLoadBalancerRequest struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	// Existing Metalhost network in the same project and datacenter. It selects
+	// the immutable VPC/home-DC scope; customers do not supply an internal UUID.
+	NetworkName         string                  `protobuf:"bytes,2,opt,name=network_name,json=networkName,proto3" json:"network_name,omitempty"`
+	DatacenterName      string                  `protobuf:"bytes,3,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	DisplayName         string                  `protobuf:"bytes,4,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Listeners           []*LoadBalancerListener `protobuf:"bytes,5,rep,name=listeners,proto3" json:"listeners,omitempty"`
+	BackendInterfaceIds []string                `protobuf:"bytes,6,rep,name=backend_interface_ids,json=backendInterfaceIds,proto3" json:"backend_interface_ids,omitempty"`
+	DrainTimeoutSeconds int32                   `protobuf:"varint,7,opt,name=drain_timeout_seconds,json=drainTimeoutSeconds,proto3" json:"drain_timeout_seconds,omitempty"`
+	RequestId           string                  `protobuf:"bytes,8,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *CreateLoadBalancerRequest) Reset() {
+	*x = CreateLoadBalancerRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateLoadBalancerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateLoadBalancerRequest) ProtoMessage() {}
+
+func (x *CreateLoadBalancerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateLoadBalancerRequest.ProtoReflect.Descriptor instead.
+func (*CreateLoadBalancerRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *CreateLoadBalancerRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *CreateLoadBalancerRequest) GetNetworkName() string {
+	if x != nil {
+		return x.NetworkName
+	}
+	return ""
+}
+
+func (x *CreateLoadBalancerRequest) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *CreateLoadBalancerRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *CreateLoadBalancerRequest) GetListeners() []*LoadBalancerListener {
+	if x != nil {
+		return x.Listeners
+	}
+	return nil
+}
+
+func (x *CreateLoadBalancerRequest) GetBackendInterfaceIds() []string {
+	if x != nil {
+		return x.BackendInterfaceIds
+	}
+	return nil
+}
+
+func (x *CreateLoadBalancerRequest) GetDrainTimeoutSeconds() int32 {
+	if x != nil {
+		return x.DrainTimeoutSeconds
+	}
+	return 0
+}
+
+func (x *CreateLoadBalancerRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type CreateLoadBalancerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LoadBalancer  *LoadBalancer          `protobuf:"bytes,1,opt,name=load_balancer,json=loadBalancer,proto3" json:"load_balancer,omitempty"`
+	OperationName string                 `protobuf:"bytes,2,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateLoadBalancerResponse) Reset() {
+	*x = CreateLoadBalancerResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateLoadBalancerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateLoadBalancerResponse) ProtoMessage() {}
+
+func (x *CreateLoadBalancerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateLoadBalancerResponse.ProtoReflect.Descriptor instead.
+func (*CreateLoadBalancerResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *CreateLoadBalancerResponse) GetLoadBalancer() *LoadBalancer {
+	if x != nil {
+		return x.LoadBalancer
+	}
+	return nil
+}
+
+func (x *CreateLoadBalancerResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type GetLoadBalancerRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLoadBalancerRequest) Reset() {
+	*x = GetLoadBalancerRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLoadBalancerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLoadBalancerRequest) ProtoMessage() {}
+
+func (x *GetLoadBalancerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLoadBalancerRequest.ProtoReflect.Descriptor instead.
+func (*GetLoadBalancerRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *GetLoadBalancerRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetLoadBalancerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LoadBalancer  *LoadBalancer          `protobuf:"bytes,1,opt,name=load_balancer,json=loadBalancer,proto3" json:"load_balancer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLoadBalancerResponse) Reset() {
+	*x = GetLoadBalancerResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLoadBalancerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLoadBalancerResponse) ProtoMessage() {}
+
+func (x *GetLoadBalancerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLoadBalancerResponse.ProtoReflect.Descriptor instead.
+func (*GetLoadBalancerResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *GetLoadBalancerResponse) GetLoadBalancer() *LoadBalancer {
+	if x != nil {
+		return x.LoadBalancer
+	}
+	return nil
+}
+
+type ListLoadBalancersRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName    string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	DatacenterName string                 `protobuf:"bytes,2,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	PageSize       int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken      string                 `protobuf:"bytes,4,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ListLoadBalancersRequest) Reset() {
+	*x = ListLoadBalancersRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLoadBalancersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLoadBalancersRequest) ProtoMessage() {}
+
+func (x *ListLoadBalancersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLoadBalancersRequest.ProtoReflect.Descriptor instead.
+func (*ListLoadBalancersRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *ListLoadBalancersRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *ListLoadBalancersRequest) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *ListLoadBalancersRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListLoadBalancersRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListLoadBalancersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LoadBalancers []*LoadBalancer        `protobuf:"bytes,1,rep,name=load_balancers,json=loadBalancers,proto3" json:"load_balancers,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListLoadBalancersResponse) Reset() {
+	*x = ListLoadBalancersResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLoadBalancersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLoadBalancersResponse) ProtoMessage() {}
+
+func (x *ListLoadBalancersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLoadBalancersResponse.ProtoReflect.Descriptor instead.
+func (*ListLoadBalancersResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *ListLoadBalancersResponse) GetLoadBalancers() []*LoadBalancer {
+	if x != nil {
+		return x.LoadBalancers
+	}
+	return nil
+}
+
+func (x *ListLoadBalancersResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type UpdateLoadBalancerRequest struct {
+	state               protoimpl.MessageState  `protogen:"open.v1"`
+	Name                string                  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	DisplayName         string                  `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Listeners           []*LoadBalancerListener `protobuf:"bytes,3,rep,name=listeners,proto3" json:"listeners,omitempty"`
+	BackendInterfaceIds []string                `protobuf:"bytes,4,rep,name=backend_interface_ids,json=backendInterfaceIds,proto3" json:"backend_interface_ids,omitempty"`
+	DrainTimeoutSeconds int32                   `protobuf:"varint,5,opt,name=drain_timeout_seconds,json=drainTimeoutSeconds,proto3" json:"drain_timeout_seconds,omitempty"`
+	ExpectedGeneration  int64                   `protobuf:"varint,6,opt,name=expected_generation,json=expectedGeneration,proto3" json:"expected_generation,omitempty"`
+	RequestId           string                  `protobuf:"bytes,7,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *UpdateLoadBalancerRequest) Reset() {
+	*x = UpdateLoadBalancerRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateLoadBalancerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateLoadBalancerRequest) ProtoMessage() {}
+
+func (x *UpdateLoadBalancerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateLoadBalancerRequest.ProtoReflect.Descriptor instead.
+func (*UpdateLoadBalancerRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *UpdateLoadBalancerRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateLoadBalancerRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *UpdateLoadBalancerRequest) GetListeners() []*LoadBalancerListener {
+	if x != nil {
+		return x.Listeners
+	}
+	return nil
+}
+
+func (x *UpdateLoadBalancerRequest) GetBackendInterfaceIds() []string {
+	if x != nil {
+		return x.BackendInterfaceIds
+	}
+	return nil
+}
+
+func (x *UpdateLoadBalancerRequest) GetDrainTimeoutSeconds() int32 {
+	if x != nil {
+		return x.DrainTimeoutSeconds
+	}
+	return 0
+}
+
+func (x *UpdateLoadBalancerRequest) GetExpectedGeneration() int64 {
+	if x != nil {
+		return x.ExpectedGeneration
+	}
+	return 0
+}
+
+func (x *UpdateLoadBalancerRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type UpdateLoadBalancerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LoadBalancer  *LoadBalancer          `protobuf:"bytes,1,opt,name=load_balancer,json=loadBalancer,proto3" json:"load_balancer,omitempty"`
+	OperationName string                 `protobuf:"bytes,2,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateLoadBalancerResponse) Reset() {
+	*x = UpdateLoadBalancerResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateLoadBalancerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateLoadBalancerResponse) ProtoMessage() {}
+
+func (x *UpdateLoadBalancerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateLoadBalancerResponse.ProtoReflect.Descriptor instead.
+func (*UpdateLoadBalancerResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *UpdateLoadBalancerResponse) GetLoadBalancer() *LoadBalancer {
+	if x != nil {
+		return x.LoadBalancer
+	}
+	return nil
+}
+
+func (x *UpdateLoadBalancerResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type DeleteLoadBalancerRequest struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Name               string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ExpectedGeneration int64                  `protobuf:"varint,2,opt,name=expected_generation,json=expectedGeneration,proto3" json:"expected_generation,omitempty"`
+	RequestId          string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *DeleteLoadBalancerRequest) Reset() {
+	*x = DeleteLoadBalancerRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteLoadBalancerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteLoadBalancerRequest) ProtoMessage() {}
+
+func (x *DeleteLoadBalancerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteLoadBalancerRequest.ProtoReflect.Descriptor instead.
+func (*DeleteLoadBalancerRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *DeleteLoadBalancerRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DeleteLoadBalancerRequest) GetExpectedGeneration() int64 {
+	if x != nil {
+		return x.ExpectedGeneration
+	}
+	return 0
+}
+
+func (x *DeleteLoadBalancerRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type DeleteLoadBalancerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteLoadBalancerResponse) Reset() {
+	*x = DeleteLoadBalancerResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteLoadBalancerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteLoadBalancerResponse) ProtoMessage() {}
+
+func (x *DeleteLoadBalancerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteLoadBalancerResponse.ProtoReflect.Descriptor instead.
+func (*DeleteLoadBalancerResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *DeleteLoadBalancerResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type VmInternetPolicy struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	TargetVm string                 `protobuf:"bytes,1,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	// Allows VM-initiated internet connections. Replies to authorized inbound
+	// IPv4 connections remain allowed when this is false.
+	AllowOutboundInternet bool `protobuf:"varint,2,opt,name=allow_outbound_internet,json=allowOutboundInternet,proto3" json:"allow_outbound_internet,omitempty"`
+	// Allows IPv6 internet traffic, still subject to outbound and firewall policy.
+	// Disabling this does not remove IPv6 addresses or authorized VPC connectivity.
+	AllowIpv6Internet bool  `protobuf:"varint,3,opt,name=allow_ipv6_internet,json=allowIpv6Internet,proto3" json:"allow_ipv6_internet,omitempty"`
+	Generation        int64 `protobuf:"varint,4,opt,name=generation,proto3" json:"generation,omitempty"`
+	// Last independently verified enforcement generation; may lag generation.
+	ObservedGeneration int64 `protobuf:"varint,5,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *VmInternetPolicy) Reset() {
+	*x = VmInternetPolicy{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VmInternetPolicy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VmInternetPolicy) ProtoMessage() {}
+
+func (x *VmInternetPolicy) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VmInternetPolicy.ProtoReflect.Descriptor instead.
+func (*VmInternetPolicy) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *VmInternetPolicy) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+func (x *VmInternetPolicy) GetAllowOutboundInternet() bool {
+	if x != nil {
+		return x.AllowOutboundInternet
+	}
+	return false
+}
+
+func (x *VmInternetPolicy) GetAllowIpv6Internet() bool {
+	if x != nil {
+		return x.AllowIpv6Internet
+	}
+	return false
+}
+
+func (x *VmInternetPolicy) GetGeneration() int64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
+func (x *VmInternetPolicy) GetObservedGeneration() int64 {
+	if x != nil {
+		return x.ObservedGeneration
+	}
+	return 0
+}
+
+type GetVmInternetPolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	TargetVm      string                 `protobuf:"bytes,2,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVmInternetPolicyRequest) Reset() {
+	*x = GetVmInternetPolicyRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVmInternetPolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVmInternetPolicyRequest) ProtoMessage() {}
+
+func (x *GetVmInternetPolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVmInternetPolicyRequest.ProtoReflect.Descriptor instead.
+func (*GetVmInternetPolicyRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *GetVmInternetPolicyRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *GetVmInternetPolicyRequest) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+type GetVmInternetPolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Policy        *VmInternetPolicy      `protobuf:"bytes,1,opt,name=policy,proto3" json:"policy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVmInternetPolicyResponse) Reset() {
+	*x = GetVmInternetPolicyResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVmInternetPolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVmInternetPolicyResponse) ProtoMessage() {}
+
+func (x *GetVmInternetPolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVmInternetPolicyResponse.ProtoReflect.Descriptor instead.
+func (*GetVmInternetPolicyResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *GetVmInternetPolicyResponse) GetPolicy() *VmInternetPolicy {
+	if x != nil {
+		return x.Policy
+	}
+	return nil
+}
+
+type UpdateVmInternetPolicyRequest struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	TargetVm    string                 `protobuf:"bytes,2,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	// Both settings are required. Omission is not interpreted as false.
+	AllowOutboundInternet *bool `protobuf:"varint,3,opt,name=allow_outbound_internet,json=allowOutboundInternet,proto3,oneof" json:"allow_outbound_internet,omitempty"`
+	AllowIpv6Internet     *bool `protobuf:"varint,4,opt,name=allow_ipv6_internet,json=allowIpv6Internet,proto3,oneof" json:"allow_ipv6_internet,omitempty"`
+	ExpectedGeneration    int64 `protobuf:"varint,5,opt,name=expected_generation,json=expectedGeneration,proto3" json:"expected_generation,omitempty"`
+	// Canonical UUID. Reuse the exact request, including expected_generation,
+	// after an uncertain outcome. A new change needs a fresh UUID.
+	RequestId     string `protobuf:"bytes,6,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateVmInternetPolicyRequest) Reset() {
+	*x = UpdateVmInternetPolicyRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateVmInternetPolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateVmInternetPolicyRequest) ProtoMessage() {}
+
+func (x *UpdateVmInternetPolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateVmInternetPolicyRequest.ProtoReflect.Descriptor instead.
+func (*UpdateVmInternetPolicyRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *UpdateVmInternetPolicyRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *UpdateVmInternetPolicyRequest) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+func (x *UpdateVmInternetPolicyRequest) GetAllowOutboundInternet() bool {
+	if x != nil && x.AllowOutboundInternet != nil {
+		return *x.AllowOutboundInternet
+	}
+	return false
+}
+
+func (x *UpdateVmInternetPolicyRequest) GetAllowIpv6Internet() bool {
+	if x != nil && x.AllowIpv6Internet != nil {
+		return *x.AllowIpv6Internet
+	}
+	return false
+}
+
+func (x *UpdateVmInternetPolicyRequest) GetExpectedGeneration() int64 {
+	if x != nil {
+		return x.ExpectedGeneration
+	}
+	return 0
+}
+
+func (x *UpdateVmInternetPolicyRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type UpdateVmInternetPolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateVmInternetPolicyResponse) Reset() {
+	*x = UpdateVmInternetPolicyResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateVmInternetPolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateVmInternetPolicyResponse) ProtoMessage() {}
+
+func (x *UpdateVmInternetPolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateVmInternetPolicyResponse.ProtoReflect.Descriptor instead.
+func (*UpdateVmInternetPolicyResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *UpdateVmInternetPolicyResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
 
 // Network is a tenant-owned, isolated L2 segment within a single datacenter. Resource name
 // format: `projects/{project}/networks/{network_id}`.
@@ -54,14 +3531,23 @@ type Network struct {
 	// Internal network-segment identifier this Network's VMs live in. Output-only. VMs in the
 	// same Network can talk over the network's /24 + /64; VMs in different Networks are fully
 	// isolated.
-	Namespace     string `protobuf:"bytes,16,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Namespace string `protobuf:"bytes,16,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// Output-only delivery model: LEGACY_DIRECT, PRIVATE_NAT, or BLOCKED. A
+	// blocked migration never falls back to legacy delivery. This field describes
+	// configured admission, not current forwarding or controller health.
+	NetworkModel string `protobuf:"bytes,17,opt,name=network_model,json=networkModel,proto3" json:"network_model,omitempty"`
+	// Output-only private VPC and subnet resource names. Empty for legacy or an
+	// unavailable placement. Different regional Network resources can refer to
+	// the same VPC/subnet; their presence does not prove cross-region connectivity.
+	VpcName       string `protobuf:"bytes,18,opt,name=vpc_name,json=vpcName,proto3" json:"vpc_name,omitempty"`
+	SubnetName    string `protobuf:"bytes,19,opt,name=subnet_name,json=subnetName,proto3" json:"subnet_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Network) Reset() {
 	*x = Network{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[0]
+	mi := &file_aes_network_v1_network_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -73,7 +3559,7 @@ func (x *Network) String() string {
 func (*Network) ProtoMessage() {}
 
 func (x *Network) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[0]
+	mi := &file_aes_network_v1_network_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -86,7 +3572,7 @@ func (x *Network) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Network.ProtoReflect.Descriptor instead.
 func (*Network) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{0}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *Network) GetName() string {
@@ -194,6 +3680,257 @@ func (x *Network) GetNamespace() string {
 	return ""
 }
 
+func (x *Network) GetNetworkModel() string {
+	if x != nil {
+		return x.NetworkModel
+	}
+	return ""
+}
+
+func (x *Network) GetVpcName() string {
+	if x != nil {
+		return x.VpcName
+	}
+	return ""
+}
+
+func (x *Network) GetSubnetName() string {
+	if x != nil {
+		return x.SubnetName
+	}
+	return ""
+}
+
+type AttachVpcSubnetRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	SubnetName     string                 `protobuf:"bytes,1,opt,name=subnet_name,json=subnetName,proto3" json:"subnet_name,omitempty"`
+	DatacenterName string                 `protobuf:"bytes,2,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	// Required UUID; use unchanged input and the same ID after uncertain results.
+	RequestId     string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttachVpcSubnetRequest) Reset() {
+	*x = AttachVpcSubnetRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachVpcSubnetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachVpcSubnetRequest) ProtoMessage() {}
+
+func (x *AttachVpcSubnetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachVpcSubnetRequest.ProtoReflect.Descriptor instead.
+func (*AttachVpcSubnetRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *AttachVpcSubnetRequest) GetSubnetName() string {
+	if x != nil {
+		return x.SubnetName
+	}
+	return ""
+}
+
+func (x *AttachVpcSubnetRequest) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *AttachVpcSubnetRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type AttachVpcSubnetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttachVpcSubnetResponse) Reset() {
+	*x = AttachVpcSubnetResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachVpcSubnetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachVpcSubnetResponse) ProtoMessage() {}
+
+func (x *AttachVpcSubnetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachVpcSubnetResponse.ProtoReflect.Descriptor instead.
+func (*AttachVpcSubnetResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *AttachVpcSubnetResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type DetachVpcDatacenterRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	VpcName        string                 `protobuf:"bytes,1,opt,name=vpc_name,json=vpcName,proto3" json:"vpc_name,omitempty"`
+	DatacenterName string                 `protobuf:"bytes,2,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	// Required current generation from GetVpc's matching location membership.
+	ExpectedGeneration int64 `protobuf:"varint,3,opt,name=expected_generation,json=expectedGeneration,proto3" json:"expected_generation,omitempty"`
+	// Required UUID; retry uncertain results with identical input and this ID.
+	RequestId string `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	// Explicitly remove unused Network selectors in this location as part of
+	// detachment. This never removes a VM, disk or legacy-network mapping.
+	WithdrawUnusedNetworks bool `protobuf:"varint,5,opt,name=withdraw_unused_networks,json=withdrawUnusedNetworks,proto3" json:"withdraw_unused_networks,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *DetachVpcDatacenterRequest) Reset() {
+	*x = DetachVpcDatacenterRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DetachVpcDatacenterRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DetachVpcDatacenterRequest) ProtoMessage() {}
+
+func (x *DetachVpcDatacenterRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DetachVpcDatacenterRequest.ProtoReflect.Descriptor instead.
+func (*DetachVpcDatacenterRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *DetachVpcDatacenterRequest) GetVpcName() string {
+	if x != nil {
+		return x.VpcName
+	}
+	return ""
+}
+
+func (x *DetachVpcDatacenterRequest) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *DetachVpcDatacenterRequest) GetExpectedGeneration() int64 {
+	if x != nil {
+		return x.ExpectedGeneration
+	}
+	return 0
+}
+
+func (x *DetachVpcDatacenterRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *DetachVpcDatacenterRequest) GetWithdrawUnusedNetworks() bool {
+	if x != nil {
+		return x.WithdrawUnusedNetworks
+	}
+	return false
+}
+
+type DetachVpcDatacenterResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Pending until the location controller verifies topology removal.
+	OperationName string `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DetachVpcDatacenterResponse) Reset() {
+	*x = DetachVpcDatacenterResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DetachVpcDatacenterResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DetachVpcDatacenterResponse) ProtoMessage() {}
+
+func (x *DetachVpcDatacenterResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DetachVpcDatacenterResponse.ProtoReflect.Descriptor instead.
+func (*DetachVpcDatacenterResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *DetachVpcDatacenterResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
 type CreateNetworkRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Required project name. Full resource form `projects/{slug}` (slug-only also accepted).
@@ -206,18 +3943,27 @@ type CreateNetworkRequest struct {
 	// Optional preferred IPv4 CIDR. When empty the platform allocates a /24 from the datacenter's
 	// tenant prefix. When set, the platform may reject if the CIDR is not within the datacenter's
 	// tenant prefix or collides with another network in the same datacenter. Always a /24 in v1.
-	SubnetCidrV4  string            `protobuf:"bytes,6,opt,name=subnet_cidr_v4,json=subnetCidrV4,proto3" json:"subnet_cidr_v4,omitempty"`
-	IpRangeStart  string            `protobuf:"bytes,8,opt,name=ip_range_start,json=ipRangeStart,proto3" json:"ip_range_start,omitempty"`
-	IpRangeEnd    string            `protobuf:"bytes,9,opt,name=ip_range_end,json=ipRangeEnd,proto3" json:"ip_range_end,omitempty"`
-	Labels        map[string]string `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Annotations   map[string]string `protobuf:"bytes,11,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	SubnetCidrV4 string            `protobuf:"bytes,6,opt,name=subnet_cidr_v4,json=subnetCidrV4,proto3" json:"subnet_cidr_v4,omitempty"`
+	IpRangeStart string            `protobuf:"bytes,8,opt,name=ip_range_start,json=ipRangeStart,proto3" json:"ip_range_start,omitempty"`
+	IpRangeEnd   string            `protobuf:"bytes,9,opt,name=ip_range_end,json=ipRangeEnd,proto3" json:"ip_range_end,omitempty"`
+	Labels       map[string]string `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Annotations  map[string]string `protobuf:"bytes,11,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Optional existing private subnet resource, belonging to project_name.
+	// Creates a regional Network for this subnet only after the location is
+	// configured and ready. Requires request_id. Cannot be combined with
+	// network_id, subnet_cidr_v4 or ip_range_start/end; those are legacy inputs.
+	// Omitting this field retains legacy network creation behavior.
+	SubnetName string `protobuf:"bytes,12,opt,name=subnet_name,json=subnetName,proto3" json:"subnet_name,omitempty"`
+	// Required UUID for retry-safe creation when subnet_name is provided. Retry
+	// unchanged input with the same ID after an uncertain outcome.
+	RequestId     string `protobuf:"bytes,13,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateNetworkRequest) Reset() {
 	*x = CreateNetworkRequest{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[1]
+	mi := &file_aes_network_v1_network_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -229,7 +3975,7 @@ func (x *CreateNetworkRequest) String() string {
 func (*CreateNetworkRequest) ProtoMessage() {}
 
 func (x *CreateNetworkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[1]
+	mi := &file_aes_network_v1_network_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -242,7 +3988,7 @@ func (x *CreateNetworkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNetworkRequest.ProtoReflect.Descriptor instead.
 func (*CreateNetworkRequest) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{1}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *CreateNetworkRequest) GetProjectName() string {
@@ -308,16 +4054,33 @@ func (x *CreateNetworkRequest) GetAnnotations() map[string]string {
 	return nil
 }
 
+func (x *CreateNetworkRequest) GetSubnetName() string {
+	if x != nil {
+		return x.SubnetName
+	}
+	return ""
+}
+
+func (x *CreateNetworkRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
 type CreateNetworkResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Network       *Network               `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Network *Network               `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
+	// Set for private-subnet publication. Completion confirms publication of
+	// already-observed topology, not a new forwarding or connectivity test.
+	OperationName string `protobuf:"bytes,2,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateNetworkResponse) Reset() {
 	*x = CreateNetworkResponse{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[2]
+	mi := &file_aes_network_v1_network_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -329,7 +4092,7 @@ func (x *CreateNetworkResponse) String() string {
 func (*CreateNetworkResponse) ProtoMessage() {}
 
 func (x *CreateNetworkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[2]
+	mi := &file_aes_network_v1_network_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -342,7 +4105,7 @@ func (x *CreateNetworkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNetworkResponse.ProtoReflect.Descriptor instead.
 func (*CreateNetworkResponse) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{2}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *CreateNetworkResponse) GetNetwork() *Network {
@@ -350,6 +4113,13 @@ func (x *CreateNetworkResponse) GetNetwork() *Network {
 		return x.Network
 	}
 	return nil
+}
+
+func (x *CreateNetworkResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
 }
 
 type ListNetworksRequest struct {
@@ -364,7 +4134,7 @@ type ListNetworksRequest struct {
 
 func (x *ListNetworksRequest) Reset() {
 	*x = ListNetworksRequest{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[3]
+	mi := &file_aes_network_v1_network_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -376,7 +4146,7 @@ func (x *ListNetworksRequest) String() string {
 func (*ListNetworksRequest) ProtoMessage() {}
 
 func (x *ListNetworksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[3]
+	mi := &file_aes_network_v1_network_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -389,7 +4159,7 @@ func (x *ListNetworksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNetworksRequest.ProtoReflect.Descriptor instead.
 func (*ListNetworksRequest) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{3}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *ListNetworksRequest) GetProjectName() string {
@@ -423,7 +4193,7 @@ type ListNetworksResponse struct {
 
 func (x *ListNetworksResponse) Reset() {
 	*x = ListNetworksResponse{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[4]
+	mi := &file_aes_network_v1_network_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -435,7 +4205,7 @@ func (x *ListNetworksResponse) String() string {
 func (*ListNetworksResponse) ProtoMessage() {}
 
 func (x *ListNetworksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[4]
+	mi := &file_aes_network_v1_network_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -448,7 +4218,7 @@ func (x *ListNetworksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNetworksResponse.ProtoReflect.Descriptor instead.
 func (*ListNetworksResponse) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{4}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *ListNetworksResponse) GetNetworks() []*Network {
@@ -479,9 +4249,9 @@ type PortMapping struct {
 	Port int32 `protobuf:"varint,1,opt,name=port,proto3" json:"port,omitempty"`
 	// Protocol: TCP, UDP, or ICMP. ICMP rules carry no port.
 	Protocol string `protobuf:"bytes,2,opt,name=protocol,proto3" json:"protocol,omitempty"`
-	// Internal port on the VM (where the service listens). Defaults to `port` when 0. Ignored
-	// on firewall rules — applies only to PublicIp port-forwarding (which we don't currently
-	// surface via the customer RPCs, but the field stays for the SDK and future LB work).
+	// VM destination port for explicit forwarding_public_ip rules; 1..65535.
+	// Ordinary firewall rules use zero (legacy equal-to-port input is accepted).
+	// Different public/VM ports require forwarding mode; forwarding ranges are unsupported.
 	TargetPort int32 `protobuf:"varint,3,opt,name=target_port,json=targetPort,proto3" json:"target_port,omitempty"`
 	// Upper bound of the port range. 0 (default) = single port; otherwise must be >= port and
 	// <= 65535.
@@ -492,7 +4262,7 @@ type PortMapping struct {
 
 func (x *PortMapping) Reset() {
 	*x = PortMapping{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[5]
+	mi := &file_aes_network_v1_network_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -504,7 +4274,7 @@ func (x *PortMapping) String() string {
 func (*PortMapping) ProtoMessage() {}
 
 func (x *PortMapping) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[5]
+	mi := &file_aes_network_v1_network_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -517,7 +4287,7 @@ func (x *PortMapping) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PortMapping.ProtoReflect.Descriptor instead.
 func (*PortMapping) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{5}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *PortMapping) GetPort() int32 {
@@ -568,13 +4338,17 @@ type PublicIp struct {
 	UpdateTimeUnix int64             `protobuf:"varint,10,opt,name=update_time_unix,json=updateTimeUnix,proto3" json:"update_time_unix,omitempty"`
 	Labels         map[string]string `protobuf:"bytes,11,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Annotations    map[string]string `protobuf:"bytes,12,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Reservation revision for attachment changes. Zero on legacy allocations.
+	Generation int64 `protobuf:"varint,13,opt,name=generation,proto3" json:"generation,omitempty"`
+	// Current or removing attachment. Absent when detached; not proof of readiness.
+	Binding       *PublicIpBinding `protobuf:"bytes,14,opt,name=binding,proto3" json:"binding,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PublicIp) Reset() {
 	*x = PublicIp{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[6]
+	mi := &file_aes_network_v1_network_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -586,7 +4360,7 @@ func (x *PublicIp) String() string {
 func (*PublicIp) ProtoMessage() {}
 
 func (x *PublicIp) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[6]
+	mi := &file_aes_network_v1_network_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -599,7 +4373,7 @@ func (x *PublicIp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicIp.ProtoReflect.Descriptor instead.
 func (*PublicIp) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{6}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *PublicIp) GetName() string {
@@ -686,9 +4460,816 @@ func (x *PublicIp) GetAnnotations() map[string]string {
 	return nil
 }
 
-// FirewallRule is one allow-list rule for a VM. Multiple rules on the same VM compose
-// additively (the allow sets union). direction='ingress' uses sources + ports as the allow
-// set; direction='egress' uses destinations + ports.
+func (x *PublicIp) GetGeneration() int64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
+func (x *PublicIp) GetBinding() *PublicIpBinding {
+	if x != nil {
+		return x.Binding
+	}
+	return nil
+}
+
+type PublicIpBinding struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	TargetVm string                 `protobuf:"bytes,2,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	// An already assigned private IPv4 on the target VM, never a public guest IP.
+	PrivateIpv4 string `protobuf:"bytes,3,opt,name=private_ipv4,json=privateIpv4,proto3" json:"private_ipv4,omitempty"`
+	// APPLYING / ACTIVE / REMOVING.
+	State         string `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	Generation    int64  `protobuf:"varint,5,opt,name=generation,proto3" json:"generation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublicIpBinding) Reset() {
+	*x = PublicIpBinding{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[64]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublicIpBinding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublicIpBinding) ProtoMessage() {}
+
+func (x *PublicIpBinding) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[64]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublicIpBinding.ProtoReflect.Descriptor instead.
+func (*PublicIpBinding) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{64}
+}
+
+func (x *PublicIpBinding) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PublicIpBinding) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+func (x *PublicIpBinding) GetPrivateIpv4() string {
+	if x != nil {
+		return x.PrivateIpv4
+	}
+	return ""
+}
+
+func (x *PublicIpBinding) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *PublicIpBinding) GetGeneration() int64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
+type GetPublicIpRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPublicIpRequest) Reset() {
+	*x = GetPublicIpRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[65]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPublicIpRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublicIpRequest) ProtoMessage() {}
+
+func (x *GetPublicIpRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[65]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublicIpRequest.ProtoReflect.Descriptor instead.
+func (*GetPublicIpRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{65}
+}
+
+func (x *GetPublicIpRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetPublicIpResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PublicIp      *PublicIp              `protobuf:"bytes,1,opt,name=public_ip,json=publicIp,proto3" json:"public_ip,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPublicIpResponse) Reset() {
+	*x = GetPublicIpResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[66]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPublicIpResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublicIpResponse) ProtoMessage() {}
+
+func (x *GetPublicIpResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[66]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublicIpResponse.ProtoReflect.Descriptor instead.
+func (*GetPublicIpResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{66}
+}
+
+func (x *GetPublicIpResponse) GetPublicIp() *PublicIp {
+	if x != nil {
+		return x.PublicIp
+	}
+	return nil
+}
+
+type ListPublicIpsRequest struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	// Optional home-datacenter filter; addresses cannot move between datacenters.
+	DatacenterName string `protobuf:"bytes,2,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	PageSize       int32  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// Opaque cursor; keep project and datacenter filters unchanged between pages.
+	PageToken     string `protobuf:"bytes,4,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPublicIpsRequest) Reset() {
+	*x = ListPublicIpsRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[67]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPublicIpsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPublicIpsRequest) ProtoMessage() {}
+
+func (x *ListPublicIpsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[67]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPublicIpsRequest.ProtoReflect.Descriptor instead.
+func (*ListPublicIpsRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{67}
+}
+
+func (x *ListPublicIpsRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *ListPublicIpsRequest) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *ListPublicIpsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListPublicIpsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListPublicIpsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Ordered by resource name. Released addresses are excluded.
+	PublicIps     []*PublicIp `protobuf:"bytes,1,rep,name=public_ips,json=publicIps,proto3" json:"public_ips,omitempty"`
+	NextPageToken string      `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPublicIpsResponse) Reset() {
+	*x = ListPublicIpsResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[68]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPublicIpsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPublicIpsResponse) ProtoMessage() {}
+
+func (x *ListPublicIpsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[68]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPublicIpsResponse.ProtoReflect.Descriptor instead.
+func (*ListPublicIpsResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{68}
+}
+
+func (x *ListPublicIpsResponse) GetPublicIps() []*PublicIp {
+	if x != nil {
+		return x.PublicIps
+	}
+	return nil
+}
+
+func (x *ListPublicIpsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type ReservePublicIpRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName    string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	DatacenterName string                 `protobuf:"bytes,2,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
+	DisplayName    string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Labels         map[string]string      `protobuf:"bytes,4,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Annotations    map[string]string      `protobuf:"bytes,5,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	RequestId      string                 `protobuf:"bytes,6,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ReservePublicIpRequest) Reset() {
+	*x = ReservePublicIpRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[69]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReservePublicIpRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReservePublicIpRequest) ProtoMessage() {}
+
+func (x *ReservePublicIpRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[69]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReservePublicIpRequest.ProtoReflect.Descriptor instead.
+func (*ReservePublicIpRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{69}
+}
+
+func (x *ReservePublicIpRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *ReservePublicIpRequest) GetDatacenterName() string {
+	if x != nil {
+		return x.DatacenterName
+	}
+	return ""
+}
+
+func (x *ReservePublicIpRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *ReservePublicIpRequest) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *ReservePublicIpRequest) GetAnnotations() map[string]string {
+	if x != nil {
+		return x.Annotations
+	}
+	return nil
+}
+
+func (x *ReservePublicIpRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type ReservePublicIpResponse struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	PublicIp *PublicIp              `protobuf:"bytes,1,opt,name=public_ip,json=publicIp,proto3" json:"public_ip,omitempty"`
+	// Completed database reservation, not a completed forwarding operation.
+	OperationName string `protobuf:"bytes,2,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReservePublicIpResponse) Reset() {
+	*x = ReservePublicIpResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[70]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReservePublicIpResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReservePublicIpResponse) ProtoMessage() {}
+
+func (x *ReservePublicIpResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[70]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReservePublicIpResponse.ProtoReflect.Descriptor instead.
+func (*ReservePublicIpResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{70}
+}
+
+func (x *ReservePublicIpResponse) GetPublicIp() *PublicIp {
+	if x != nil {
+		return x.PublicIp
+	}
+	return nil
+}
+
+func (x *ReservePublicIpResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type AttachPublicIpRequest struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Name        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	TargetVm    string                 `protobuf:"bytes,2,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	PrivateIpv4 string                 `protobuf:"bytes,3,opt,name=private_ipv4,json=privateIpv4,proto3" json:"private_ipv4,omitempty"`
+	// Current reservation generation returned by GetPublicIp.
+	ExpectedGeneration int64  `protobuf:"varint,4,opt,name=expected_generation,json=expectedGeneration,proto3" json:"expected_generation,omitempty"`
+	RequestId          string `protobuf:"bytes,5,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *AttachPublicIpRequest) Reset() {
+	*x = AttachPublicIpRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[71]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachPublicIpRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachPublicIpRequest) ProtoMessage() {}
+
+func (x *AttachPublicIpRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[71]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachPublicIpRequest.ProtoReflect.Descriptor instead.
+func (*AttachPublicIpRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{71}
+}
+
+func (x *AttachPublicIpRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AttachPublicIpRequest) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+func (x *AttachPublicIpRequest) GetPrivateIpv4() string {
+	if x != nil {
+		return x.PrivateIpv4
+	}
+	return ""
+}
+
+func (x *AttachPublicIpRequest) GetExpectedGeneration() int64 {
+	if x != nil {
+		return x.ExpectedGeneration
+	}
+	return 0
+}
+
+func (x *AttachPublicIpRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type AttachPublicIpResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttachPublicIpResponse) Reset() {
+	*x = AttachPublicIpResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[72]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachPublicIpResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachPublicIpResponse) ProtoMessage() {}
+
+func (x *AttachPublicIpResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[72]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachPublicIpResponse.ProtoReflect.Descriptor instead.
+func (*AttachPublicIpResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{72}
+}
+
+func (x *AttachPublicIpResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type DetachPublicIpRequest struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Name      string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	BindingId string                 `protobuf:"bytes,2,opt,name=binding_id,json=bindingId,proto3" json:"binding_id,omitempty"`
+	// Current binding generation, not the reservation generation.
+	ExpectedGeneration int64  `protobuf:"varint,3,opt,name=expected_generation,json=expectedGeneration,proto3" json:"expected_generation,omitempty"`
+	RequestId          string `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	// Required when removing the default while other public IPv4s remain.
+	// Selects another attached address atomically with this detach request.
+	ReplacementDefaultPublicIpName       string `protobuf:"bytes,5,opt,name=replacement_default_public_ip_name,json=replacementDefaultPublicIpName,proto3" json:"replacement_default_public_ip_name,omitempty"`
+	ExpectedInterfaceGeneration          int64  `protobuf:"varint,6,opt,name=expected_interface_generation,json=expectedInterfaceGeneration,proto3" json:"expected_interface_generation,omitempty"`
+	ExpectedReplacementBindingGeneration int64  `protobuf:"varint,7,opt,name=expected_replacement_binding_generation,json=expectedReplacementBindingGeneration,proto3" json:"expected_replacement_binding_generation,omitempty"`
+	unknownFields                        protoimpl.UnknownFields
+	sizeCache                            protoimpl.SizeCache
+}
+
+func (x *DetachPublicIpRequest) Reset() {
+	*x = DetachPublicIpRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[73]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DetachPublicIpRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DetachPublicIpRequest) ProtoMessage() {}
+
+func (x *DetachPublicIpRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[73]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DetachPublicIpRequest.ProtoReflect.Descriptor instead.
+func (*DetachPublicIpRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{73}
+}
+
+func (x *DetachPublicIpRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DetachPublicIpRequest) GetBindingId() string {
+	if x != nil {
+		return x.BindingId
+	}
+	return ""
+}
+
+func (x *DetachPublicIpRequest) GetExpectedGeneration() int64 {
+	if x != nil {
+		return x.ExpectedGeneration
+	}
+	return 0
+}
+
+func (x *DetachPublicIpRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *DetachPublicIpRequest) GetReplacementDefaultPublicIpName() string {
+	if x != nil {
+		return x.ReplacementDefaultPublicIpName
+	}
+	return ""
+}
+
+func (x *DetachPublicIpRequest) GetExpectedInterfaceGeneration() int64 {
+	if x != nil {
+		return x.ExpectedInterfaceGeneration
+	}
+	return 0
+}
+
+func (x *DetachPublicIpRequest) GetExpectedReplacementBindingGeneration() int64 {
+	if x != nil {
+		return x.ExpectedReplacementBindingGeneration
+	}
+	return 0
+}
+
+type DetachPublicIpResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DetachPublicIpResponse) Reset() {
+	*x = DetachPublicIpResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[74]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DetachPublicIpResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DetachPublicIpResponse) ProtoMessage() {}
+
+func (x *DetachPublicIpResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[74]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DetachPublicIpResponse.ProtoReflect.Descriptor instead.
+func (*DetachPublicIpResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{74}
+}
+
+func (x *DetachPublicIpResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type ReleasePublicIpRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Current reservation generation returned by GetPublicIp, not a binding revision.
+	ExpectedGeneration int64 `protobuf:"varint,2,opt,name=expected_generation,json=expectedGeneration,proto3" json:"expected_generation,omitempty"`
+	// Retry the same request ID after an uncertain response.
+	RequestId     string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReleasePublicIpRequest) Reset() {
+	*x = ReleasePublicIpRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[75]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReleasePublicIpRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReleasePublicIpRequest) ProtoMessage() {}
+
+func (x *ReleasePublicIpRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[75]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReleasePublicIpRequest.ProtoReflect.Descriptor instead.
+func (*ReleasePublicIpRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{75}
+}
+
+func (x *ReleasePublicIpRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ReleasePublicIpRequest) GetExpectedGeneration() int64 {
+	if x != nil {
+		return x.ExpectedGeneration
+	}
+	return 0
+}
+
+func (x *ReleasePublicIpRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type ReleasePublicIpResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Completed release; the resource is no longer returned by GetPublicIp.
+	OperationName string `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReleasePublicIpResponse) Reset() {
+	*x = ReleasePublicIpResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[76]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReleasePublicIpResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReleasePublicIpResponse) ProtoMessage() {}
+
+func (x *ReleasePublicIpResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[76]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReleasePublicIpResponse.ProtoReflect.Descriptor instead.
+func (*ReleasePublicIpResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{76}
+}
+
+func (x *ReleasePublicIpResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+// FirewallRule filters a VM's Internet traffic. Lower positive priority wins;
+// zero is last, and deny wins equal priority. Ingress uses sources, egress uses
+// destinations. Explicit forwarding maps one attached public IPv4 port to a VM port.
 type FirewallRule struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Resource name `projects/{project}/firewall-rules/{id}`.
@@ -701,8 +5282,8 @@ type FirewallRule struct {
 	// ACTIVE / DELETED.
 	State string         `protobuf:"bytes,6,opt,name=state,proto3" json:"state,omitempty"`
 	Ports []*PortMapping `protobuf:"bytes,7,rep,name=ports,proto3" json:"ports,omitempty"`
-	// Source CIDRs allowed to reach the listed ports (e.g. ["0.0.0.0/0"], ["10.0.0.0/8"]).
-	// Empty list = allow from anywhere. Ingress only.
+	// Up to 32 source CIDRs matched by an ingress rule. Empty matches any
+	// source in the selected IP family; the action determines allow/deny.
 	Sources        []string          `protobuf:"bytes,8,rep,name=sources,proto3" json:"sources,omitempty"`
 	CreateTimeUnix int64             `protobuf:"varint,9,opt,name=create_time_unix,json=createTimeUnix,proto3" json:"create_time_unix,omitempty"`
 	UpdateTimeUnix int64             `protobuf:"varint,10,opt,name=update_time_unix,json=updateTimeUnix,proto3" json:"update_time_unix,omitempty"`
@@ -712,17 +5293,27 @@ type FirewallRule struct {
 	Direction string `protobuf:"bytes,13,opt,name=direction,proto3" json:"direction,omitempty"`
 	// Destination CIDRs the VM is allowed to reach (egress only).
 	Destinations []string `protobuf:"bytes,14,rep,name=destinations,proto3" json:"destinations,omitempty"`
-	// is_default marks the baseline rules seeded automatically when a VM is provisioned with a
-	// public IP (SSH/HTTP/HTTPS open to 0.0.0.0/0). Customer-created rules leave it false. UI
-	// uses it to render a "default" badge + a stronger delete confirmation.
-	IsDefault     bool `protobuf:"varint,15,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Retained marker for historical seeded rules. PRIVATE_NAT VMs do not
+	// automatically open SSH, HTTP, or HTTPS; customer-created rules leave it false.
+	IsDefault bool `protobuf:"varint,15,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	// Empty preserves legacy family inference; otherwise ipv4, ipv6, or both.
+	IpFamily string `protobuf:"bytes,16,opt,name=ip_family,json=ipFamily,proto3" json:"ip_family,omitempty"`
+	// allow (default) or deny. Lower nonzero priorities win; deny wins ties.
+	Action   string `protobuf:"bytes,17,opt,name=action,proto3" json:"action,omitempty"`
+	Priority int32  `protobuf:"varint,18,opt,name=priority,proto3" json:"priority,omitempty"`
+	// Optional TCP/UDP client source-port range; zero means any source port.
+	SourcePort    int32 `protobuf:"varint,19,opt,name=source_port,json=sourcePort,proto3" json:"source_port,omitempty"`
+	SourceEndPort int32 `protobuf:"varint,20,opt,name=source_end_port,json=sourceEndPort,proto3" json:"source_end_port,omitempty"`
+	// Optional: an already attached public IPv4 on this VM. Ports then define
+	// explicit public-port to VM-target-port forwarding; separate from filtering.
+	ForwardingPublicIp string `protobuf:"bytes,21,opt,name=forwarding_public_ip,json=forwardingPublicIp,proto3" json:"forwarding_public_ip,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *FirewallRule) Reset() {
 	*x = FirewallRule{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[7]
+	mi := &file_aes_network_v1_network_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -734,7 +5325,7 @@ func (x *FirewallRule) String() string {
 func (*FirewallRule) ProtoMessage() {}
 
 func (x *FirewallRule) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[7]
+	mi := &file_aes_network_v1_network_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -747,7 +5338,7 @@ func (x *FirewallRule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FirewallRule.ProtoReflect.Descriptor instead.
 func (*FirewallRule) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{7}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *FirewallRule) GetName() string {
@@ -855,6 +5446,48 @@ func (x *FirewallRule) GetIsDefault() bool {
 	return false
 }
 
+func (x *FirewallRule) GetIpFamily() string {
+	if x != nil {
+		return x.IpFamily
+	}
+	return ""
+}
+
+func (x *FirewallRule) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *FirewallRule) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
+	}
+	return 0
+}
+
+func (x *FirewallRule) GetSourcePort() int32 {
+	if x != nil {
+		return x.SourcePort
+	}
+	return 0
+}
+
+func (x *FirewallRule) GetSourceEndPort() int32 {
+	if x != nil {
+		return x.SourceEndPort
+	}
+	return 0
+}
+
+func (x *FirewallRule) GetForwardingPublicIp() string {
+	if x != nil {
+		return x.ForwardingPublicIp
+	}
+	return ""
+}
+
 type CreateFirewallRuleRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	ProjectName    string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
@@ -867,13 +5500,24 @@ type CreateFirewallRuleRequest struct {
 	Annotations    map[string]string      `protobuf:"bytes,8,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Direction      string                 `protobuf:"bytes,11,opt,name=direction,proto3" json:"direction,omitempty"`
 	Destinations   []string               `protobuf:"bytes,12,rep,name=destinations,proto3" json:"destinations,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Required UUID for private-network VMs. Retry uncertain outcomes with the
+	// same ID and identical input. Legacy direct-public VMs remain synchronous.
+	RequestId     string `protobuf:"bytes,13,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	IpFamily      string `protobuf:"bytes,14,opt,name=ip_family,json=ipFamily,proto3" json:"ip_family,omitempty"`
+	Action        string `protobuf:"bytes,15,opt,name=action,proto3" json:"action,omitempty"`
+	Priority      int32  `protobuf:"varint,16,opt,name=priority,proto3" json:"priority,omitempty"`
+	SourcePort    int32  `protobuf:"varint,17,opt,name=source_port,json=sourcePort,proto3" json:"source_port,omitempty"`
+	SourceEndPort int32  `protobuf:"varint,18,opt,name=source_end_port,json=sourceEndPort,proto3" json:"source_end_port,omitempty"`
+	// Optional: an already attached public IPv4 on this VM. Ports then define
+	// explicit public-port to VM-target-port forwarding; separate from filtering.
+	ForwardingPublicIp string `protobuf:"bytes,19,opt,name=forwarding_public_ip,json=forwardingPublicIp,proto3" json:"forwarding_public_ip,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *CreateFirewallRuleRequest) Reset() {
 	*x = CreateFirewallRuleRequest{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[8]
+	mi := &file_aes_network_v1_network_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -885,7 +5529,7 @@ func (x *CreateFirewallRuleRequest) String() string {
 func (*CreateFirewallRuleRequest) ProtoMessage() {}
 
 func (x *CreateFirewallRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[8]
+	mi := &file_aes_network_v1_network_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -898,7 +5542,7 @@ func (x *CreateFirewallRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateFirewallRuleRequest.ProtoReflect.Descriptor instead.
 func (*CreateFirewallRuleRequest) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{8}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *CreateFirewallRuleRequest) GetProjectName() string {
@@ -971,16 +5615,68 @@ func (x *CreateFirewallRuleRequest) GetDestinations() []string {
 	return nil
 }
 
+func (x *CreateFirewallRuleRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *CreateFirewallRuleRequest) GetIpFamily() string {
+	if x != nil {
+		return x.IpFamily
+	}
+	return ""
+}
+
+func (x *CreateFirewallRuleRequest) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *CreateFirewallRuleRequest) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
+	}
+	return 0
+}
+
+func (x *CreateFirewallRuleRequest) GetSourcePort() int32 {
+	if x != nil {
+		return x.SourcePort
+	}
+	return 0
+}
+
+func (x *CreateFirewallRuleRequest) GetSourceEndPort() int32 {
+	if x != nil {
+		return x.SourceEndPort
+	}
+	return 0
+}
+
+func (x *CreateFirewallRuleRequest) GetForwardingPublicIp() string {
+	if x != nil {
+		return x.ForwardingPublicIp
+	}
+	return ""
+}
+
 type CreateFirewallRuleResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Rule          *FirewallRule          `protobuf:"bytes,1,opt,name=rule,proto3" json:"rule,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Rule  *FirewallRule          `protobuf:"bytes,1,opt,name=rule,proto3" json:"rule,omitempty"`
+	// Nonempty for an asynchronous private-network policy change. Acceptance is
+	// not enforcement; poll this operation before treating the rule as applied.
+	OperationName string `protobuf:"bytes,2,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateFirewallRuleResponse) Reset() {
 	*x = CreateFirewallRuleResponse{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[9]
+	mi := &file_aes_network_v1_network_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -992,7 +5688,7 @@ func (x *CreateFirewallRuleResponse) String() string {
 func (*CreateFirewallRuleResponse) ProtoMessage() {}
 
 func (x *CreateFirewallRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[9]
+	mi := &file_aes_network_v1_network_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1005,7 +5701,7 @@ func (x *CreateFirewallRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateFirewallRuleResponse.ProtoReflect.Descriptor instead.
 func (*CreateFirewallRuleResponse) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{9}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *CreateFirewallRuleResponse) GetRule() *FirewallRule {
@@ -1013,6 +5709,13 @@ func (x *CreateFirewallRuleResponse) GetRule() *FirewallRule {
 		return x.Rule
 	}
 	return nil
+}
+
+func (x *CreateFirewallRuleResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
 }
 
 type ListFirewallRulesRequest struct {
@@ -1028,7 +5731,7 @@ type ListFirewallRulesRequest struct {
 
 func (x *ListFirewallRulesRequest) Reset() {
 	*x = ListFirewallRulesRequest{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[10]
+	mi := &file_aes_network_v1_network_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1040,7 +5743,7 @@ func (x *ListFirewallRulesRequest) String() string {
 func (*ListFirewallRulesRequest) ProtoMessage() {}
 
 func (x *ListFirewallRulesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[10]
+	mi := &file_aes_network_v1_network_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1053,7 +5756,7 @@ func (x *ListFirewallRulesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFirewallRulesRequest.ProtoReflect.Descriptor instead.
 func (*ListFirewallRulesRequest) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{10}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *ListFirewallRulesRequest) GetProjectName() string {
@@ -1094,7 +5797,7 @@ type ListFirewallRulesResponse struct {
 
 func (x *ListFirewallRulesResponse) Reset() {
 	*x = ListFirewallRulesResponse{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[11]
+	mi := &file_aes_network_v1_network_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1106,7 +5809,7 @@ func (x *ListFirewallRulesResponse) String() string {
 func (*ListFirewallRulesResponse) ProtoMessage() {}
 
 func (x *ListFirewallRulesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[11]
+	mi := &file_aes_network_v1_network_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1119,7 +5822,7 @@ func (x *ListFirewallRulesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFirewallRulesResponse.ProtoReflect.Descriptor instead.
 func (*ListFirewallRulesResponse) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{11}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *ListFirewallRulesResponse) GetFirewallRules() []*FirewallRule {
@@ -1137,15 +5840,17 @@ func (x *ListFirewallRulesResponse) GetNextPageToken() string {
 }
 
 type DeleteFirewallRuleRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Required UUID for private-network VMs; reuse on retries.
+	RequestId     string `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DeleteFirewallRuleRequest) Reset() {
 	*x = DeleteFirewallRuleRequest{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[12]
+	mi := &file_aes_network_v1_network_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1157,7 +5862,7 @@ func (x *DeleteFirewallRuleRequest) String() string {
 func (*DeleteFirewallRuleRequest) ProtoMessage() {}
 
 func (x *DeleteFirewallRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[12]
+	mi := &file_aes_network_v1_network_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1170,7 +5875,7 @@ func (x *DeleteFirewallRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteFirewallRuleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteFirewallRuleRequest) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{12}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *DeleteFirewallRuleRequest) GetName() string {
@@ -1180,15 +5885,25 @@ func (x *DeleteFirewallRuleRequest) GetName() string {
 	return ""
 }
 
+func (x *DeleteFirewallRuleRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
 type DeleteFirewallRuleResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Nonempty for asynchronous withdrawal. Acceptance alone does not confirm
+	// that traffic, including established sessions, has been blocked.
+	OperationName string `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DeleteFirewallRuleResponse) Reset() {
 	*x = DeleteFirewallRuleResponse{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[13]
+	mi := &file_aes_network_v1_network_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1200,7 +5915,7 @@ func (x *DeleteFirewallRuleResponse) String() string {
 func (*DeleteFirewallRuleResponse) ProtoMessage() {}
 
 func (x *DeleteFirewallRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[13]
+	mi := &file_aes_network_v1_network_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1213,7 +5928,14 @@ func (x *DeleteFirewallRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteFirewallRuleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteFirewallRuleResponse) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{13}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{83}
+}
+
+func (x *DeleteFirewallRuleResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
 }
 
 // SecurityGroup is a reusable, project-scoped internal-firewall ruleset enforced on the
@@ -1243,7 +5965,7 @@ type SecurityGroup struct {
 
 func (x *SecurityGroup) Reset() {
 	*x = SecurityGroup{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[14]
+	mi := &file_aes_network_v1_network_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1255,7 +5977,7 @@ func (x *SecurityGroup) String() string {
 func (*SecurityGroup) ProtoMessage() {}
 
 func (x *SecurityGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[14]
+	mi := &file_aes_network_v1_network_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1268,7 +5990,7 @@ func (x *SecurityGroup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SecurityGroup.ProtoReflect.Descriptor instead.
 func (*SecurityGroup) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{14}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *SecurityGroup) GetName() string {
@@ -1377,14 +6099,21 @@ type SecurityGroupRule struct {
 	//
 	//	*SecurityGroupRule_Cidr
 	//	*SecurityGroupRule_SecurityGroup
-	Peer          isSecurityGroupRule_Peer `protobuf_oneof:"peer"`
+	Peer isSecurityGroupRule_Peer `protobuf_oneof:"peer"`
+	// Empty means both families, narrowed by the peer CIDR if present.
+	IpFamily string `protobuf:"bytes,8,opt,name=ip_family,json=ipFamily,proto3" json:"ip_family,omitempty"`
+	Action   string `protobuf:"bytes,9,opt,name=action,proto3" json:"action,omitempty"`
+	// 1..1000; zero preserves the legacy lowest-priority allow behavior.
+	Priority      int32 `protobuf:"varint,10,opt,name=priority,proto3" json:"priority,omitempty"`
+	SourcePort    int32 `protobuf:"varint,11,opt,name=source_port,json=sourcePort,proto3" json:"source_port,omitempty"`
+	SourceEndPort int32 `protobuf:"varint,12,opt,name=source_end_port,json=sourceEndPort,proto3" json:"source_end_port,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SecurityGroupRule) Reset() {
 	*x = SecurityGroupRule{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[15]
+	mi := &file_aes_network_v1_network_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1396,7 +6125,7 @@ func (x *SecurityGroupRule) String() string {
 func (*SecurityGroupRule) ProtoMessage() {}
 
 func (x *SecurityGroupRule) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[15]
+	mi := &file_aes_network_v1_network_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1409,7 +6138,7 @@ func (x *SecurityGroupRule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SecurityGroupRule.ProtoReflect.Descriptor instead.
 func (*SecurityGroupRule) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{15}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *SecurityGroupRule) GetId() string {
@@ -1472,6 +6201,41 @@ func (x *SecurityGroupRule) GetSecurityGroup() string {
 	return ""
 }
 
+func (x *SecurityGroupRule) GetIpFamily() string {
+	if x != nil {
+		return x.IpFamily
+	}
+	return ""
+}
+
+func (x *SecurityGroupRule) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *SecurityGroupRule) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
+	}
+	return 0
+}
+
+func (x *SecurityGroupRule) GetSourcePort() int32 {
+	if x != nil {
+		return x.SourcePort
+	}
+	return 0
+}
+
+func (x *SecurityGroupRule) GetSourceEndPort() int32 {
+	if x != nil {
+		return x.SourceEndPort
+	}
+	return 0
+}
+
 type isSecurityGroupRule_Peer interface {
 	isSecurityGroupRule_Peer()
 }
@@ -1502,7 +6266,7 @@ type CreateSecurityGroupRequest struct {
 
 func (x *CreateSecurityGroupRequest) Reset() {
 	*x = CreateSecurityGroupRequest{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[16]
+	mi := &file_aes_network_v1_network_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1514,7 +6278,7 @@ func (x *CreateSecurityGroupRequest) String() string {
 func (*CreateSecurityGroupRequest) ProtoMessage() {}
 
 func (x *CreateSecurityGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[16]
+	mi := &file_aes_network_v1_network_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1527,7 +6291,7 @@ func (x *CreateSecurityGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSecurityGroupRequest.ProtoReflect.Descriptor instead.
 func (*CreateSecurityGroupRequest) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{16}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *CreateSecurityGroupRequest) GetProjectName() string {
@@ -1581,7 +6345,7 @@ type CreateSecurityGroupResponse struct {
 
 func (x *CreateSecurityGroupResponse) Reset() {
 	*x = CreateSecurityGroupResponse{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[17]
+	mi := &file_aes_network_v1_network_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1593,7 +6357,7 @@ func (x *CreateSecurityGroupResponse) String() string {
 func (*CreateSecurityGroupResponse) ProtoMessage() {}
 
 func (x *CreateSecurityGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[17]
+	mi := &file_aes_network_v1_network_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1606,7 +6370,7 @@ func (x *CreateSecurityGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSecurityGroupResponse.ProtoReflect.Descriptor instead.
 func (*CreateSecurityGroupResponse) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{17}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *CreateSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
@@ -1625,7 +6389,7 @@ type GetSecurityGroupRequest struct {
 
 func (x *GetSecurityGroupRequest) Reset() {
 	*x = GetSecurityGroupRequest{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[18]
+	mi := &file_aes_network_v1_network_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1637,7 +6401,7 @@ func (x *GetSecurityGroupRequest) String() string {
 func (*GetSecurityGroupRequest) ProtoMessage() {}
 
 func (x *GetSecurityGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[18]
+	mi := &file_aes_network_v1_network_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1650,7 +6414,7 @@ func (x *GetSecurityGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSecurityGroupRequest.ProtoReflect.Descriptor instead.
 func (*GetSecurityGroupRequest) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{18}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *GetSecurityGroupRequest) GetName() string {
@@ -1669,7 +6433,7 @@ type GetSecurityGroupResponse struct {
 
 func (x *GetSecurityGroupResponse) Reset() {
 	*x = GetSecurityGroupResponse{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[19]
+	mi := &file_aes_network_v1_network_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1681,7 +6445,7 @@ func (x *GetSecurityGroupResponse) String() string {
 func (*GetSecurityGroupResponse) ProtoMessage() {}
 
 func (x *GetSecurityGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[19]
+	mi := &file_aes_network_v1_network_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1694,7 +6458,7 @@ func (x *GetSecurityGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSecurityGroupResponse.ProtoReflect.Descriptor instead.
 func (*GetSecurityGroupResponse) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{19}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *GetSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
@@ -1715,7 +6479,7 @@ type ListSecurityGroupsRequest struct {
 
 func (x *ListSecurityGroupsRequest) Reset() {
 	*x = ListSecurityGroupsRequest{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[20]
+	mi := &file_aes_network_v1_network_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1727,7 +6491,7 @@ func (x *ListSecurityGroupsRequest) String() string {
 func (*ListSecurityGroupsRequest) ProtoMessage() {}
 
 func (x *ListSecurityGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[20]
+	mi := &file_aes_network_v1_network_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1740,7 +6504,7 @@ func (x *ListSecurityGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSecurityGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListSecurityGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{20}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *ListSecurityGroupsRequest) GetProjectName() string {
@@ -1774,7 +6538,7 @@ type ListSecurityGroupsResponse struct {
 
 func (x *ListSecurityGroupsResponse) Reset() {
 	*x = ListSecurityGroupsResponse{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[21]
+	mi := &file_aes_network_v1_network_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1786,7 +6550,7 @@ func (x *ListSecurityGroupsResponse) String() string {
 func (*ListSecurityGroupsResponse) ProtoMessage() {}
 
 func (x *ListSecurityGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[21]
+	mi := &file_aes_network_v1_network_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1799,7 +6563,7 @@ func (x *ListSecurityGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSecurityGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListSecurityGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{21}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *ListSecurityGroupsResponse) GetSecurityGroups() []*SecurityGroup {
@@ -1819,18 +6583,23 @@ func (x *ListSecurityGroupsResponse) GetNextPageToken() string {
 // UpdateSecurityGroup replaces the whole ruleset (and optionally display_name). Provide etag
 // from a prior Get to guard against lost updates; empty etag skips the check.
 type UpdateSecurityGroupRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	Rules         []*SecurityGroupRule   `protobuf:"bytes,3,rep,name=rules,proto3" json:"rules,omitempty"`
-	Etag          string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Name        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	DisplayName string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Rules       []*SecurityGroupRule   `protobuf:"bytes,3,rep,name=rules,proto3" json:"rules,omitempty"`
+	Etag        string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
+	// Required for private-network policy changes. Reuse the UUID on retries.
+	RequestId string `protobuf:"bytes,5,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	// Set to 2 when editing an existing advanced policy. Older clients cannot
+	// replace rules they cannot represent without silently dropping restrictions.
+	PolicySchemaVersion int32 `protobuf:"varint,6,opt,name=policy_schema_version,json=policySchemaVersion,proto3" json:"policy_schema_version,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *UpdateSecurityGroupRequest) Reset() {
 	*x = UpdateSecurityGroupRequest{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[22]
+	mi := &file_aes_network_v1_network_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1842,7 +6611,7 @@ func (x *UpdateSecurityGroupRequest) String() string {
 func (*UpdateSecurityGroupRequest) ProtoMessage() {}
 
 func (x *UpdateSecurityGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[22]
+	mi := &file_aes_network_v1_network_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1855,7 +6624,7 @@ func (x *UpdateSecurityGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSecurityGroupRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSecurityGroupRequest) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{22}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *UpdateSecurityGroupRequest) GetName() string {
@@ -1886,16 +6655,32 @@ func (x *UpdateSecurityGroupRequest) GetEtag() string {
 	return ""
 }
 
+func (x *UpdateSecurityGroupRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *UpdateSecurityGroupRequest) GetPolicySchemaVersion() int32 {
+	if x != nil {
+		return x.PolicySchemaVersion
+	}
+	return 0
+}
+
 type UpdateSecurityGroupResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SecurityGroup *SecurityGroup         `protobuf:"bytes,1,opt,name=security_group,json=securityGroup,proto3" json:"security_group,omitempty"`
+	// Policy acceptance is asynchronous; this operation tracks enforcement.
+	OperationName string `protobuf:"bytes,2,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateSecurityGroupResponse) Reset() {
 	*x = UpdateSecurityGroupResponse{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[23]
+	mi := &file_aes_network_v1_network_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1907,7 +6692,7 @@ func (x *UpdateSecurityGroupResponse) String() string {
 func (*UpdateSecurityGroupResponse) ProtoMessage() {}
 
 func (x *UpdateSecurityGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[23]
+	mi := &file_aes_network_v1_network_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1920,7 +6705,7 @@ func (x *UpdateSecurityGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSecurityGroupResponse.ProtoReflect.Descriptor instead.
 func (*UpdateSecurityGroupResponse) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{23}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *UpdateSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
@@ -1928,6 +6713,13 @@ func (x *UpdateSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
 		return x.SecurityGroup
 	}
 	return nil
+}
+
+func (x *UpdateSecurityGroupResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
 }
 
 type DeleteSecurityGroupRequest struct {
@@ -1939,7 +6731,7 @@ type DeleteSecurityGroupRequest struct {
 
 func (x *DeleteSecurityGroupRequest) Reset() {
 	*x = DeleteSecurityGroupRequest{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[24]
+	mi := &file_aes_network_v1_network_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1951,7 +6743,7 @@ func (x *DeleteSecurityGroupRequest) String() string {
 func (*DeleteSecurityGroupRequest) ProtoMessage() {}
 
 func (x *DeleteSecurityGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[24]
+	mi := &file_aes_network_v1_network_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1964,7 +6756,7 @@ func (x *DeleteSecurityGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSecurityGroupRequest.ProtoReflect.Descriptor instead.
 func (*DeleteSecurityGroupRequest) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{24}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *DeleteSecurityGroupRequest) GetName() string {
@@ -1982,7 +6774,7 @@ type DeleteSecurityGroupResponse struct {
 
 func (x *DeleteSecurityGroupResponse) Reset() {
 	*x = DeleteSecurityGroupResponse{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[25]
+	mi := &file_aes_network_v1_network_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1994,7 +6786,7 @@ func (x *DeleteSecurityGroupResponse) String() string {
 func (*DeleteSecurityGroupResponse) ProtoMessage() {}
 
 func (x *DeleteSecurityGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[25]
+	mi := &file_aes_network_v1_network_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2007,20 +6799,22 @@ func (x *DeleteSecurityGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSecurityGroupResponse.ProtoReflect.Descriptor instead.
 func (*DeleteSecurityGroupResponse) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{25}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{95}
 }
 
 type AddVmToSecurityGroupRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SecurityGroup string                 `protobuf:"bytes,1,opt,name=security_group,json=securityGroup,proto3" json:"security_group,omitempty"`
 	Vm            string                 `protobuf:"bytes,2,opt,name=vm,proto3" json:"vm,omitempty"`
+	// Required for private-network policy changes. Reuse the UUID on retries.
+	RequestId     string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AddVmToSecurityGroupRequest) Reset() {
 	*x = AddVmToSecurityGroupRequest{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[26]
+	mi := &file_aes_network_v1_network_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2032,7 +6826,7 @@ func (x *AddVmToSecurityGroupRequest) String() string {
 func (*AddVmToSecurityGroupRequest) ProtoMessage() {}
 
 func (x *AddVmToSecurityGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[26]
+	mi := &file_aes_network_v1_network_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2045,7 +6839,7 @@ func (x *AddVmToSecurityGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddVmToSecurityGroupRequest.ProtoReflect.Descriptor instead.
 func (*AddVmToSecurityGroupRequest) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{26}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *AddVmToSecurityGroupRequest) GetSecurityGroup() string {
@@ -2062,16 +6856,24 @@ func (x *AddVmToSecurityGroupRequest) GetVm() string {
 	return ""
 }
 
+func (x *AddVmToSecurityGroupRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
 type AddVmToSecurityGroupResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SecurityGroup *SecurityGroup         `protobuf:"bytes,1,opt,name=security_group,json=securityGroup,proto3" json:"security_group,omitempty"`
+	OperationName string                 `protobuf:"bytes,2,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AddVmToSecurityGroupResponse) Reset() {
 	*x = AddVmToSecurityGroupResponse{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[27]
+	mi := &file_aes_network_v1_network_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2083,7 +6885,7 @@ func (x *AddVmToSecurityGroupResponse) String() string {
 func (*AddVmToSecurityGroupResponse) ProtoMessage() {}
 
 func (x *AddVmToSecurityGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[27]
+	mi := &file_aes_network_v1_network_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2096,7 +6898,7 @@ func (x *AddVmToSecurityGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddVmToSecurityGroupResponse.ProtoReflect.Descriptor instead.
 func (*AddVmToSecurityGroupResponse) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{27}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *AddVmToSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
@@ -2106,17 +6908,26 @@ func (x *AddVmToSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
 	return nil
 }
 
+func (x *AddVmToSecurityGroupResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
 type RemoveVmFromSecurityGroupRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SecurityGroup string                 `protobuf:"bytes,1,opt,name=security_group,json=securityGroup,proto3" json:"security_group,omitempty"`
 	Vm            string                 `protobuf:"bytes,2,opt,name=vm,proto3" json:"vm,omitempty"`
+	// Required for private-network policy changes. Reuse the UUID on retries.
+	RequestId     string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RemoveVmFromSecurityGroupRequest) Reset() {
 	*x = RemoveVmFromSecurityGroupRequest{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[28]
+	mi := &file_aes_network_v1_network_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2128,7 +6939,7 @@ func (x *RemoveVmFromSecurityGroupRequest) String() string {
 func (*RemoveVmFromSecurityGroupRequest) ProtoMessage() {}
 
 func (x *RemoveVmFromSecurityGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[28]
+	mi := &file_aes_network_v1_network_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2141,7 +6952,7 @@ func (x *RemoveVmFromSecurityGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveVmFromSecurityGroupRequest.ProtoReflect.Descriptor instead.
 func (*RemoveVmFromSecurityGroupRequest) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{28}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *RemoveVmFromSecurityGroupRequest) GetSecurityGroup() string {
@@ -2158,16 +6969,24 @@ func (x *RemoveVmFromSecurityGroupRequest) GetVm() string {
 	return ""
 }
 
+func (x *RemoveVmFromSecurityGroupRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
 type RemoveVmFromSecurityGroupResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SecurityGroup *SecurityGroup         `protobuf:"bytes,1,opt,name=security_group,json=securityGroup,proto3" json:"security_group,omitempty"`
+	OperationName string                 `protobuf:"bytes,2,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RemoveVmFromSecurityGroupResponse) Reset() {
 	*x = RemoveVmFromSecurityGroupResponse{}
-	mi := &file_aes_network_v1_network_proto_msgTypes[29]
+	mi := &file_aes_network_v1_network_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2179,7 +6998,7 @@ func (x *RemoveVmFromSecurityGroupResponse) String() string {
 func (*RemoveVmFromSecurityGroupResponse) ProtoMessage() {}
 
 func (x *RemoveVmFromSecurityGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_aes_network_v1_network_proto_msgTypes[29]
+	mi := &file_aes_network_v1_network_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2192,7 +7011,7 @@ func (x *RemoveVmFromSecurityGroupResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use RemoveVmFromSecurityGroupResponse.ProtoReflect.Descriptor instead.
 func (*RemoveVmFromSecurityGroupResponse) Descriptor() ([]byte, []int) {
-	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{29}
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *RemoveVmFromSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
@@ -2202,11 +7021,302 @@ func (x *RemoveVmFromSecurityGroupResponse) GetSecurityGroup() *SecurityGroup {
 	return nil
 }
 
+func (x *RemoveVmFromSecurityGroupResponse) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
 var File_aes_network_v1_network_proto protoreflect.FileDescriptor
 
 const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/network/v1/network.proto\x12\x0eaes.network.v1\"\xdd\x05\n" +
+	"\x1caes/network/v1/network.proto\x12\x0eaes.network.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb8\x01\n" +
+	"\x17VpcDatacenterMembership\x12'\n" +
+	"\x0fdatacenter_name\x18\x01 \x01(\tR\x0edatacenterName\x12#\n" +
+	"\rdesired_state\x18\x02 \x01(\tR\fdesiredState\x12\x1e\n" +
+	"\n" +
+	"generation\x18\x03 \x01(\x03R\n" +
+	"generation\x12/\n" +
+	"\x13observed_generation\x18\x04 \x01(\x03R\x12observedGeneration\"\xbe\x02\n" +
+	"\x03Vpc\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12!\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12\x18\n" +
+	"\aversion\x18\x04 \x01(\x03R\aversion\x12;\n" +
+	"\vcreate_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"createTime\x12;\n" +
+	"\vupdate_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"updateTime\x12I\n" +
+	"\vdatacenters\x18\a \x03(\v2'.aes.network.v1.VpcDatacenterMembershipR\vdatacenters\"\xc5\x03\n" +
+	"\tVpcSubnet\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x19\n" +
+	"\bvpc_name\x18\x02 \x01(\tR\avpcName\x12!\n" +
+	"\fproject_name\x18\x03 \x01(\tR\vprojectName\x12!\n" +
+	"\fdisplay_name\x18\x04 \x01(\tR\vdisplayName\x12\x1d\n" +
+	"\n" +
+	"ipv4_range\x18\x05 \x01(\tR\tipv4Range\x12\x1d\n" +
+	"\n" +
+	"ipv6_range\x18\x06 \x01(\tR\tipv6Range\x12\x18\n" +
+	"\aversion\x18\a \x01(\x03R\aversion\x12;\n" +
+	"\vcreate_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"createTime\x12;\n" +
+	"\vupdate_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"updateTime\x12I\n" +
+	"\vdatacenters\x18\n" +
+	" \x03(\v2'.aes.network.v1.VpcDatacenterMembershipR\vdatacenters\x12&\n" +
+	"\x0fcustom_dns_ipv4\x18\v \x03(\tR\rcustomDnsIpv4\"w\n" +
+	"\x10CreateVpcRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12!\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\"a\n" +
+	"\x11CreateVpcResponse\x12%\n" +
+	"\x03vpc\x18\x01 \x01(\v2\x13.aes.network.v1.VpcR\x03vpc\x12%\n" +
+	"\x0eoperation_name\x18\x02 \x01(\tR\roperationName\"\xbc\x01\n" +
+	"\x16CreateVpcSubnetRequest\x12\x19\n" +
+	"\bvpc_name\x18\x01 \x01(\tR\avpcName\x12!\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1d\n" +
+	"\n" +
+	"ipv4_range\x18\x03 \x01(\tR\tipv4Range\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tR\trequestId\x12&\n" +
+	"\x0fcustom_dns_ipv4\x18\x05 \x03(\tR\rcustomDnsIpv4\"s\n" +
+	"\x17CreateVpcSubnetResponse\x121\n" +
+	"\x06subnet\x18\x01 \x01(\v2\x19.aes.network.v1.VpcSubnetR\x06subnet\x12%\n" +
+	"\x0eoperation_name\x18\x02 \x01(\tR\roperationName\"p\n" +
+	"\x0fListVpcsRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\"c\n" +
+	"\x10ListVpcsResponse\x12'\n" +
+	"\x04vpcs\x18\x01 \x03(\v2\x13.aes.network.v1.VpcR\x04vpcs\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"#\n" +
+	"\rGetVpcRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"7\n" +
+	"\x0eGetVpcResponse\x12%\n" +
+	"\x03vpc\x18\x01 \x01(\v2\x13.aes.network.v1.VpcR\x03vpc\"n\n" +
+	"\x15ListVpcSubnetsRequest\x12\x19\n" +
+	"\bvpc_name\x18\x01 \x01(\tR\avpcName\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\"u\n" +
+	"\x16ListVpcSubnetsResponse\x123\n" +
+	"\asubnets\x18\x01 \x03(\v2\x19.aes.network.v1.VpcSubnetR\asubnets\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\")\n" +
+	"\x13GetVpcSubnetRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"I\n" +
+	"\x14GetVpcSubnetResponse\x121\n" +
+	"\x06subnet\x18\x01 \x01(\v2\x19.aes.network.v1.VpcSubnetR\x06subnet\"\x93\x01\n" +
+	"\x10UpdateVpcRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12)\n" +
+	"\x10expected_version\x18\x03 \x01(\x03R\x0fexpectedVersion\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tR\trequestId\":\n" +
+	"\x11UpdateVpcResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"\x99\x01\n" +
+	"\x16UpdateVpcSubnetRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12)\n" +
+	"\x10expected_version\x18\x03 \x01(\x03R\x0fexpectedVersion\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tR\trequestId\"@\n" +
+	"\x17UpdateVpcSubnetResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"p\n" +
+	"\x10DeleteVpcRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12)\n" +
+	"\x10expected_version\x18\x02 \x01(\x03R\x0fexpectedVersion\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\":\n" +
+	"\x11DeleteVpcResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"v\n" +
+	"\x16DeleteVpcSubnetRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12)\n" +
+	"\x10expected_version\x18\x02 \x01(\x03R\x0fexpectedVersion\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\"@\n" +
+	"\x17DeleteVpcSubnetResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"\xe8\x01\n" +
+	"\x18RemoveVmIpv4AliasRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
+	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\x12!\n" +
+	"\finterface_id\x18\x03 \x01(\tR\vinterfaceId\x12\x19\n" +
+	"\blease_id\x18\x04 \x01(\tR\aleaseId\x12/\n" +
+	"\x13expected_generation\x18\x05 \x01(\x03R\x12expectedGeneration\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x06 \x01(\tR\trequestId\"B\n" +
+	"\x19RemoveVmIpv4AliasResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"|\n" +
+	"\x10VmNetworkAddress\x12\x19\n" +
+	"\blease_id\x18\x01 \x01(\tR\aleaseId\x12#\n" +
+	"\raddress_range\x18\x02 \x01(\tR\faddressRange\x12\x12\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\x12\x14\n" +
+	"\x05state\x18\x04 \x01(\tR\x05state\"\xd3\x03\n" +
+	"\x12VmNetworkInterface\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04slot\x18\x02 \x01(\x05R\x04slot\x12\x1f\n" +
+	"\vmac_address\x18\x03 \x01(\tR\n" +
+	"macAddress\x12\x1e\n" +
+	"\n" +
+	"generation\x18\x04 \x01(\x03R\n" +
+	"generation\x12/\n" +
+	"\x13observed_generation\x18\x05 \x01(\x03R\x12observedGeneration\x12:\n" +
+	"\x19guest_observed_generation\x18\x06 \x01(\x03R\x17guestObservedGeneration\x12#\n" +
+	"\rdesired_state\x18\a \x01(\tR\fdesiredState\x12>\n" +
+	"\taddresses\x18\b \x03(\v2 .aes.network.v1.VmNetworkAddressR\taddresses\x12.\n" +
+	"\x13default_source_ipv4\x18\t \x01(\tR\x11defaultSourceIpv4\x12V\n" +
+	"\x0ereconciliation\x18\n" +
+	" \x01(\v2..aes.network.v1.VpcNetworkReconciliationStatusR\x0ereconciliation\"\xa1\x02\n" +
+	"\x1eVpcNetworkReconciliationStatus\x12-\n" +
+	"\x12desired_generation\x18\x01 \x01(\x03R\x11desiredGeneration\x12/\n" +
+	"\x13reported_generation\x18\x02 \x01(\x03R\x12reportedGeneration\x12\x14\n" +
+	"\x05phase\x18\x03 \x01(\tR\x05phase\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\x12;\n" +
+	"\vreport_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"reportTime\x124\n" +
+	"\x16matches_current_intent\x18\x06 \x01(\bR\x14matchesCurrentIntent\"_\n" +
+	"\x1dGetVmNetworkInterfacesRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
+	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\"d\n" +
+	"\x1eGetVmNetworkInterfacesResponse\x12B\n" +
+	"\n" +
+	"interfaces\x18\x01 \x03(\v2\".aes.network.v1.VmNetworkInterfaceR\n" +
+	"interfaces\"\xca\x01\n" +
+	"\x15AddVmIpv4AliasRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
+	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\x12!\n" +
+	"\finterface_id\x18\x03 \x01(\tR\vinterfaceId\x12/\n" +
+	"\x13expected_generation\x18\x04 \x01(\x03R\x12expectedGeneration\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x05 \x01(\tR\trequestId\"}\n" +
+	"\x16AddVmIpv4AliasResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\x12!\n" +
+	"\fprivate_ipv4\x18\x02 \x01(\tR\vprivateIpv4\x12\x19\n" +
+	"\blease_id\x18\x03 \x01(\tR\aleaseId\"\xb6\x02\n" +
+	"\x1bSetVmDefaultPublicIpRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
+	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\x12!\n" +
+	"\finterface_id\x18\x03 \x01(\tR\vinterfaceId\x12/\n" +
+	"\x13expected_generation\x18\x04 \x01(\x03R\x12expectedGeneration\x12$\n" +
+	"\x0epublic_ip_name\x18\x05 \x01(\tR\fpublicIpName\x12>\n" +
+	"\x1bexpected_binding_generation\x18\x06 \x01(\x03R\x19expectedBindingGeneration\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\a \x01(\tR\trequestId\"E\n" +
+	"\x1cSetVmDefaultPublicIpResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"\xe9\x01\n" +
+	"\x17LoadBalancerHealthCheck\x12\x12\n" +
+	"\x04port\x18\x01 \x01(\x05R\x04port\x12)\n" +
+	"\x10interval_seconds\x18\x02 \x01(\x05R\x0fintervalSeconds\x121\n" +
+	"\x14timeout_milliseconds\x18\x03 \x01(\x05R\x13timeoutMilliseconds\x12+\n" +
+	"\x11healthy_threshold\x18\x04 \x01(\x05R\x10healthyThreshold\x12/\n" +
+	"\x13unhealthy_threshold\x18\x05 \x01(\x05R\x12unhealthyThreshold\"\xb5\x01\n" +
+	"\x14LoadBalancerListener\x12\x12\n" +
+	"\x04port\x18\x01 \x01(\x05R\x04port\x12!\n" +
+	"\fbackend_port\x18\x02 \x01(\x05R\vbackendPort\x12\x1a\n" +
+	"\bprotocol\x18\x03 \x01(\tR\bprotocol\x12J\n" +
+	"\fhealth_check\x18\x04 \x01(\v2'.aes.network.v1.LoadBalancerHealthCheckR\vhealthCheck\"\xd4\x06\n" +
+	"\fLoadBalancer\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12!\n" +
+	"\fnetwork_name\x18\x03 \x01(\tR\vnetworkName\x12'\n" +
+	"\x0fdatacenter_name\x18\x04 \x01(\tR\x0edatacenterName\x12!\n" +
+	"\fdisplay_name\x18\x05 \x01(\tR\vdisplayName\x12$\n" +
+	"\x0epublic_ip_name\x18\x06 \x01(\tR\fpublicIpName\x12\x1f\n" +
+	"\vpublic_ipv4\x18\a \x01(\tR\n" +
+	"publicIpv4\x12B\n" +
+	"\tlisteners\x18\b \x03(\v2$.aes.network.v1.LoadBalancerListenerR\tlisteners\x122\n" +
+	"\x15backend_interface_ids\x18\t \x03(\tR\x13backendInterfaceIds\x122\n" +
+	"\x15drain_timeout_seconds\x18\n" +
+	" \x01(\x05R\x13drainTimeoutSeconds\x12\x1e\n" +
+	"\n" +
+	"generation\x18\v \x01(\x03R\n" +
+	"generation\x12/\n" +
+	"\x13observed_generation\x18\f \x01(\x03R\x12observedGeneration\x12#\n" +
+	"\rdesired_state\x18\r \x01(\tR\fdesiredState\x12V\n" +
+	"\x0ereconciliation\x18\x0e \x01(\v2..aes.network.v1.VpcNetworkReconciliationStatusR\x0ereconciliation\x12P\n" +
+	"\x0ebackend_health\x18\x0f \x03(\v2).aes.network.v1.LoadBalancerBackendHealthR\rbackendHealth\x12H\n" +
+	"\x12health_report_time\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\x10healthReportTime\x12A\n" +
+	"\x1dhealth_matches_current_intent\x18\x11 \x01(\bR\x1ahealthMatchesCurrentIntent\"\xfa\x01\n" +
+	"\x19LoadBalancerBackendHealth\x12!\n" +
+	"\finterface_id\x18\x01 \x01(\tR\vinterfaceId\x12#\n" +
+	"\rlistener_port\x18\x02 \x01(\x05R\flistenerPort\x12\x14\n" +
+	"\x05state\x18\x03 \x01(\tR\x05state\x12B\n" +
+	"\x0flast_check_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\rlastCheckTime\x12;\n" +
+	"\vvalid_until\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"validUntil\"\xf8\x02\n" +
+	"\x19CreateLoadBalancerRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12!\n" +
+	"\fnetwork_name\x18\x02 \x01(\tR\vnetworkName\x12'\n" +
+	"\x0fdatacenter_name\x18\x03 \x01(\tR\x0edatacenterName\x12!\n" +
+	"\fdisplay_name\x18\x04 \x01(\tR\vdisplayName\x12B\n" +
+	"\tlisteners\x18\x05 \x03(\v2$.aes.network.v1.LoadBalancerListenerR\tlisteners\x122\n" +
+	"\x15backend_interface_ids\x18\x06 \x03(\tR\x13backendInterfaceIds\x122\n" +
+	"\x15drain_timeout_seconds\x18\a \x01(\x05R\x13drainTimeoutSeconds\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\b \x01(\tR\trequestId\"\x86\x01\n" +
+	"\x1aCreateLoadBalancerResponse\x12A\n" +
+	"\rload_balancer\x18\x01 \x01(\v2\x1c.aes.network.v1.LoadBalancerR\floadBalancer\x12%\n" +
+	"\x0eoperation_name\x18\x02 \x01(\tR\roperationName\",\n" +
+	"\x16GetLoadBalancerRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"\\\n" +
+	"\x17GetLoadBalancerResponse\x12A\n" +
+	"\rload_balancer\x18\x01 \x01(\v2\x1c.aes.network.v1.LoadBalancerR\floadBalancer\"\xa2\x01\n" +
+	"\x18ListLoadBalancersRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12'\n" +
+	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x04 \x01(\tR\tpageToken\"\x88\x01\n" +
+	"\x19ListLoadBalancersResponse\x12C\n" +
+	"\x0eload_balancers\x18\x01 \x03(\v2\x1c.aes.network.v1.LoadBalancerR\rloadBalancers\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xce\x02\n" +
+	"\x19UpdateLoadBalancerRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12B\n" +
+	"\tlisteners\x18\x03 \x03(\v2$.aes.network.v1.LoadBalancerListenerR\tlisteners\x122\n" +
+	"\x15backend_interface_ids\x18\x04 \x03(\tR\x13backendInterfaceIds\x122\n" +
+	"\x15drain_timeout_seconds\x18\x05 \x01(\x05R\x13drainTimeoutSeconds\x12/\n" +
+	"\x13expected_generation\x18\x06 \x01(\x03R\x12expectedGeneration\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\a \x01(\tR\trequestId\"\x86\x01\n" +
+	"\x1aUpdateLoadBalancerResponse\x12A\n" +
+	"\rload_balancer\x18\x01 \x01(\v2\x1c.aes.network.v1.LoadBalancerR\floadBalancer\x12%\n" +
+	"\x0eoperation_name\x18\x02 \x01(\tR\roperationName\"\x7f\n" +
+	"\x19DeleteLoadBalancerRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12/\n" +
+	"\x13expected_generation\x18\x02 \x01(\x03R\x12expectedGeneration\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\"C\n" +
+	"\x1aDeleteLoadBalancerResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"\xe8\x01\n" +
+	"\x10VmInternetPolicy\x12\x1b\n" +
+	"\ttarget_vm\x18\x01 \x01(\tR\btargetVm\x126\n" +
+	"\x17allow_outbound_internet\x18\x02 \x01(\bR\x15allowOutboundInternet\x12.\n" +
+	"\x13allow_ipv6_internet\x18\x03 \x01(\bR\x11allowIpv6Internet\x12\x1e\n" +
+	"\n" +
+	"generation\x18\x04 \x01(\x03R\n" +
+	"generation\x12/\n" +
+	"\x13observed_generation\x18\x05 \x01(\x03R\x12observedGeneration\"\\\n" +
+	"\x1aGetVmInternetPolicyRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
+	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\"W\n" +
+	"\x1bGetVmInternetPolicyResponse\x128\n" +
+	"\x06policy\x18\x01 \x01(\v2 .aes.network.v1.VmInternetPolicyR\x06policy\"\xd5\x02\n" +
+	"\x1dUpdateVmInternetPolicyRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
+	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\x12;\n" +
+	"\x17allow_outbound_internet\x18\x03 \x01(\bH\x00R\x15allowOutboundInternet\x88\x01\x01\x123\n" +
+	"\x13allow_ipv6_internet\x18\x04 \x01(\bH\x01R\x11allowIpv6Internet\x88\x01\x01\x12/\n" +
+	"\x13expected_generation\x18\x05 \x01(\x03R\x12expectedGeneration\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x06 \x01(\tR\trequestIdB\x1a\n" +
+	"\x18_allow_outbound_internetB\x16\n" +
+	"\x14_allow_ipv6_internet\"G\n" +
+	"\x1eUpdateVmInternetPolicyResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"\xbe\x06\n" +
 	"\aNetwork\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12!\n" +
@@ -2225,13 +7335,34 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\x05state\x18\x0e \x01(\tR\x05state\x12 \n" +
 	"\fovn_udn_name\x18\x0f \x01(\tR\n" +
 	"ovnUdnName\x12\x1c\n" +
-	"\tnamespace\x18\x10 \x01(\tR\tnamespace\x1a9\n" +
+	"\tnamespace\x18\x10 \x01(\tR\tnamespace\x12#\n" +
+	"\rnetwork_model\x18\x11 \x01(\tR\fnetworkModel\x12\x19\n" +
+	"\bvpc_name\x18\x12 \x01(\tR\avpcName\x12\x1f\n" +
+	"\vsubnet_name\x18\x13 \x01(\tR\n" +
+	"subnetName\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x05\x10\x06R\avlan_id\"\xd5\x04\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x05\x10\x06R\avlan_id\"\x81\x01\n" +
+	"\x16AttachVpcSubnetRequest\x12\x1f\n" +
+	"\vsubnet_name\x18\x01 \x01(\tR\n" +
+	"subnetName\x12'\n" +
+	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\"@\n" +
+	"\x17AttachVpcSubnetResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"\xea\x01\n" +
+	"\x1aDetachVpcDatacenterRequest\x12\x19\n" +
+	"\bvpc_name\x18\x01 \x01(\tR\avpcName\x12'\n" +
+	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12/\n" +
+	"\x13expected_generation\x18\x03 \x01(\x03R\x12expectedGeneration\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tR\trequestId\x128\n" +
+	"\x18withdraw_unused_networks\x18\x05 \x01(\bR\x16withdrawUnusedNetworks\"D\n" +
+	"\x1bDetachVpcDatacenterResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"\x95\x05\n" +
 	"\x14CreateNetworkRequest\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1d\n" +
 	"\n" +
@@ -2244,15 +7375,20 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"ipRangeEnd\x12H\n" +
 	"\x06labels\x18\n" +
 	" \x03(\v20.aes.network.v1.CreateNetworkRequest.LabelsEntryR\x06labels\x12W\n" +
-	"\vannotations\x18\v \x03(\v25.aes.network.v1.CreateNetworkRequest.AnnotationsEntryR\vannotations\x1a9\n" +
+	"\vannotations\x18\v \x03(\v25.aes.network.v1.CreateNetworkRequest.AnnotationsEntryR\vannotations\x12\x1f\n" +
+	"\vsubnet_name\x18\f \x01(\tR\n" +
+	"subnetName\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\r \x01(\tR\trequestId\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x05\x10\x06J\x04\b\a\x10\bR\avlan_idR\x0esubnet_cidr_v6\"J\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x05\x10\x06J\x04\b\a\x10\bR\avlan_idR\x0esubnet_cidr_v6\"q\n" +
 	"\x15CreateNetworkResponse\x121\n" +
-	"\anetwork\x18\x01 \x01(\v2\x17.aes.network.v1.NetworkR\anetwork\"t\n" +
+	"\anetwork\x18\x01 \x01(\v2\x17.aes.network.v1.NetworkR\anetwork\x12%\n" +
+	"\x0eoperation_name\x18\x02 \x01(\tR\roperationName\"t\n" +
 	"\x13ListNetworksRequest\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -2266,7 +7402,7 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\bprotocol\x18\x02 \x01(\tR\bprotocol\x12\x1f\n" +
 	"\vtarget_port\x18\x03 \x01(\x05R\n" +
 	"targetPort\x12\x19\n" +
-	"\bend_port\x18\x04 \x01(\x05R\aendPort\"\xec\x04\n" +
+	"\bend_port\x18\x04 \x01(\x05R\aendPort\"\xc7\x05\n" +
 	"\bPublicIp\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12!\n" +
@@ -2281,13 +7417,84 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\x10update_time_unix\x18\n" +
 	" \x01(\x03R\x0eupdateTimeUnix\x12<\n" +
 	"\x06labels\x18\v \x03(\v2$.aes.network.v1.PublicIp.LabelsEntryR\x06labels\x12K\n" +
-	"\vannotations\x18\f \x03(\v2).aes.network.v1.PublicIp.AnnotationsEntryR\vannotations\x1a9\n" +
+	"\vannotations\x18\f \x03(\v2).aes.network.v1.PublicIp.AnnotationsEntryR\vannotations\x12\x1e\n" +
+	"\n" +
+	"generation\x18\r \x01(\x03R\n" +
+	"generation\x129\n" +
+	"\abinding\x18\x0e \x01(\v2\x1f.aes.network.v1.PublicIpBindingR\abinding\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xd4\x05\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x97\x01\n" +
+	"\x0fPublicIpBinding\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
+	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\x12!\n" +
+	"\fprivate_ipv4\x18\x03 \x01(\tR\vprivateIpv4\x12\x14\n" +
+	"\x05state\x18\x04 \x01(\tR\x05state\x12\x1e\n" +
+	"\n" +
+	"generation\x18\x05 \x01(\x03R\n" +
+	"generation\"(\n" +
+	"\x12GetPublicIpRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"L\n" +
+	"\x13GetPublicIpResponse\x125\n" +
+	"\tpublic_ip\x18\x01 \x01(\v2\x18.aes.network.v1.PublicIpR\bpublicIp\"\x9e\x01\n" +
+	"\x14ListPublicIpsRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12'\n" +
+	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x04 \x01(\tR\tpageToken\"x\n" +
+	"\x15ListPublicIpsResponse\x127\n" +
+	"\n" +
+	"public_ips\x18\x01 \x03(\v2\x18.aes.network.v1.PublicIpR\tpublicIps\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xc8\x03\n" +
+	"\x16ReservePublicIpRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12'\n" +
+	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12!\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12J\n" +
+	"\x06labels\x18\x04 \x03(\v22.aes.network.v1.ReservePublicIpRequest.LabelsEntryR\x06labels\x12Y\n" +
+	"\vannotations\x18\x05 \x03(\v27.aes.network.v1.ReservePublicIpRequest.AnnotationsEntryR\vannotations\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x06 \x01(\tR\trequestId\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
+	"\x10AnnotationsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"w\n" +
+	"\x17ReservePublicIpResponse\x125\n" +
+	"\tpublic_ip\x18\x01 \x01(\v2\x18.aes.network.v1.PublicIpR\bpublicIp\x12%\n" +
+	"\x0eoperation_name\x18\x02 \x01(\tR\roperationName\"\xbb\x01\n" +
+	"\x15AttachPublicIpRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1b\n" +
+	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\x12!\n" +
+	"\fprivate_ipv4\x18\x03 \x01(\tR\vprivateIpv4\x12/\n" +
+	"\x13expected_generation\x18\x04 \x01(\x03R\x12expectedGeneration\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x05 \x01(\tR\trequestId\"?\n" +
+	"\x16AttachPublicIpResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"\x81\x03\n" +
+	"\x15DetachPublicIpRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
+	"\n" +
+	"binding_id\x18\x02 \x01(\tR\tbindingId\x12/\n" +
+	"\x13expected_generation\x18\x03 \x01(\x03R\x12expectedGeneration\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tR\trequestId\x12J\n" +
+	"\"replacement_default_public_ip_name\x18\x05 \x01(\tR\x1ereplacementDefaultPublicIpName\x12B\n" +
+	"\x1dexpected_interface_generation\x18\x06 \x01(\x03R\x1bexpectedInterfaceGeneration\x12U\n" +
+	"'expected_replacement_binding_generation\x18\a \x01(\x03R$expectedReplacementBindingGeneration\"?\n" +
+	"\x16DetachPublicIpResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"|\n" +
+	"\x16ReleasePublicIpRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12/\n" +
+	"\x13expected_generation\x18\x02 \x01(\x03R\x12expectedGeneration\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\"@\n" +
+	"\x17ReleasePublicIpResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"\xa0\a\n" +
 	"\fFirewallRule\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12!\n" +
@@ -2305,13 +7512,20 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\tdirection\x18\r \x01(\tR\tdirection\x12\"\n" +
 	"\fdestinations\x18\x0e \x03(\tR\fdestinations\x12\x1d\n" +
 	"\n" +
-	"is_default\x18\x0f \x01(\bR\tisDefault\x1a9\n" +
+	"is_default\x18\x0f \x01(\bR\tisDefault\x12\x1b\n" +
+	"\tip_family\x18\x10 \x01(\tR\bipFamily\x12\x16\n" +
+	"\x06action\x18\x11 \x01(\tR\x06action\x12\x1a\n" +
+	"\bpriority\x18\x12 \x01(\x05R\bpriority\x12\x1f\n" +
+	"\vsource_port\x18\x13 \x01(\x05R\n" +
+	"sourcePort\x12&\n" +
+	"\x0fsource_end_port\x18\x14 \x01(\x05R\rsourceEndPort\x120\n" +
+	"\x14forwarding_public_ip\x18\x15 \x01(\tR\x12forwardingPublicIp\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xde\x04\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc9\x06\n" +
 	"\x19CreateFirewallRuleRequest\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12'\n" +
 	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12\x1b\n" +
@@ -2322,15 +7536,25 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\x06labels\x18\a \x03(\v25.aes.network.v1.CreateFirewallRuleRequest.LabelsEntryR\x06labels\x12\\\n" +
 	"\vannotations\x18\b \x03(\v2:.aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntryR\vannotations\x12\x1c\n" +
 	"\tdirection\x18\v \x01(\tR\tdirection\x12\"\n" +
-	"\fdestinations\x18\f \x03(\tR\fdestinations\x1a9\n" +
+	"\fdestinations\x18\f \x03(\tR\fdestinations\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\r \x01(\tR\trequestId\x12\x1b\n" +
+	"\tip_family\x18\x0e \x01(\tR\bipFamily\x12\x16\n" +
+	"\x06action\x18\x0f \x01(\tR\x06action\x12\x1a\n" +
+	"\bpriority\x18\x10 \x01(\x05R\bpriority\x12\x1f\n" +
+	"\vsource_port\x18\x11 \x01(\x05R\n" +
+	"sourcePort\x12&\n" +
+	"\x0fsource_end_port\x18\x12 \x01(\x05R\rsourceEndPort\x120\n" +
+	"\x14forwarding_public_ip\x18\x13 \x01(\tR\x12forwardingPublicIp\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"N\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"u\n" +
 	"\x1aCreateFirewallRuleResponse\x120\n" +
-	"\x04rule\x18\x01 \x01(\v2\x1c.aes.network.v1.FirewallRuleR\x04rule\"\x96\x01\n" +
+	"\x04rule\x18\x01 \x01(\v2\x1c.aes.network.v1.FirewallRuleR\x04rule\x12%\n" +
+	"\x0eoperation_name\x18\x02 \x01(\tR\roperationName\"\x96\x01\n" +
 	"\x18ListFirewallRulesRequest\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
 	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\x12\x1b\n" +
@@ -2339,10 +7563,13 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"page_token\x18\x04 \x01(\tR\tpageToken\"\x88\x01\n" +
 	"\x19ListFirewallRulesResponse\x12C\n" +
 	"\x0efirewall_rules\x18\x01 \x03(\v2\x1c.aes.network.v1.FirewallRuleR\rfirewallRules\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"/\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"N\n" +
 	"\x19DeleteFirewallRuleRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"\x1c\n" +
-	"\x1aDeleteFirewallRuleResponse\"\xf8\x04\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x02 \x01(\tR\trequestId\"C\n" +
+	"\x1aDeleteFirewallRuleResponse\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"\xf8\x04\n" +
 	"\rSecurityGroup\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12!\n" +
@@ -2363,7 +7590,7 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xd3\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xed\x02\n" +
 	"\x11SecurityGroupRule\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1c\n" +
 	"\tdirection\x18\x02 \x01(\tR\tdirection\x12\x1a\n" +
@@ -2371,7 +7598,14 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\x04port\x18\x04 \x01(\x05R\x04port\x12\x19\n" +
 	"\bend_port\x18\x05 \x01(\x05R\aendPort\x12\x14\n" +
 	"\x04cidr\x18\x06 \x01(\tH\x00R\x04cidr\x12'\n" +
-	"\x0esecurity_group\x18\a \x01(\tH\x00R\rsecurityGroupB\x06\n" +
+	"\x0esecurity_group\x18\a \x01(\tH\x00R\rsecurityGroup\x12\x1b\n" +
+	"\tip_family\x18\b \x01(\tR\bipFamily\x12\x16\n" +
+	"\x06action\x18\t \x01(\tR\x06action\x12\x1a\n" +
+	"\bpriority\x18\n" +
+	" \x01(\x05R\bpriority\x12\x1f\n" +
+	"\vsource_port\x18\v \x01(\x05R\n" +
+	"sourcePort\x12&\n" +
+	"\x0fsource_end_port\x18\f \x01(\x05R\rsourceEndPortB\x06\n" +
 	"\x04peer\"\xee\x03\n" +
 	"\x1aCreateSecurityGroupRequest\x12!\n" +
 	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12'\n" +
@@ -2399,34 +7633,72 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\"\x8c\x01\n" +
 	"\x1aListSecurityGroupsResponse\x12F\n" +
 	"\x0fsecurity_groups\x18\x01 \x03(\v2\x1d.aes.network.v1.SecurityGroupR\x0esecurityGroups\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xa0\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xf3\x01\n" +
 	"\x1aUpdateSecurityGroupRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x127\n" +
 	"\x05rules\x18\x03 \x03(\v2!.aes.network.v1.SecurityGroupRuleR\x05rules\x12\x12\n" +
-	"\x04etag\x18\x04 \x01(\tR\x04etag\"c\n" +
+	"\x04etag\x18\x04 \x01(\tR\x04etag\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x05 \x01(\tR\trequestId\x122\n" +
+	"\x15policy_schema_version\x18\x06 \x01(\x05R\x13policySchemaVersion\"\x8a\x01\n" +
 	"\x1bUpdateSecurityGroupResponse\x12D\n" +
-	"\x0esecurity_group\x18\x01 \x01(\v2\x1d.aes.network.v1.SecurityGroupR\rsecurityGroup\"0\n" +
+	"\x0esecurity_group\x18\x01 \x01(\v2\x1d.aes.network.v1.SecurityGroupR\rsecurityGroup\x12%\n" +
+	"\x0eoperation_name\x18\x02 \x01(\tR\roperationName\"0\n" +
 	"\x1aDeleteSecurityGroupRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"\x1d\n" +
-	"\x1bDeleteSecurityGroupResponse\"T\n" +
+	"\x1bDeleteSecurityGroupResponse\"s\n" +
 	"\x1bAddVmToSecurityGroupRequest\x12%\n" +
 	"\x0esecurity_group\x18\x01 \x01(\tR\rsecurityGroup\x12\x0e\n" +
-	"\x02vm\x18\x02 \x01(\tR\x02vm\"d\n" +
+	"\x02vm\x18\x02 \x01(\tR\x02vm\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\"\x8b\x01\n" +
 	"\x1cAddVmToSecurityGroupResponse\x12D\n" +
-	"\x0esecurity_group\x18\x01 \x01(\v2\x1d.aes.network.v1.SecurityGroupR\rsecurityGroup\"Y\n" +
+	"\x0esecurity_group\x18\x01 \x01(\v2\x1d.aes.network.v1.SecurityGroupR\rsecurityGroup\x12%\n" +
+	"\x0eoperation_name\x18\x02 \x01(\tR\roperationName\"x\n" +
 	" RemoveVmFromSecurityGroupRequest\x12%\n" +
 	"\x0esecurity_group\x18\x01 \x01(\tR\rsecurityGroup\x12\x0e\n" +
-	"\x02vm\x18\x02 \x01(\tR\x02vm\"i\n" +
-	"!RemoveVmFromSecurityGroupResponse\x12D\n" +
-	"\x0esecurity_group\x18\x01 \x01(\v2\x1d.aes.network.v1.SecurityGroupR\rsecurityGroup2\xa7\n" +
+	"\x02vm\x18\x02 \x01(\tR\x02vm\x12\x1d\n" +
 	"\n" +
-	"\x0eNetworkService\x12\\\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\"\x90\x01\n" +
+	"!RemoveVmFromSecurityGroupResponse\x12D\n" +
+	"\x0esecurity_group\x18\x01 \x01(\v2\x1d.aes.network.v1.SecurityGroupR\rsecurityGroup\x12%\n" +
+	"\x0eoperation_name\x18\x02 \x01(\tR\roperationName2\xe6 \n" +
+	"\x0eNetworkService\x12M\n" +
+	"\bListVpcs\x12\x1f.aes.network.v1.ListVpcsRequest\x1a .aes.network.v1.ListVpcsResponse\x12G\n" +
+	"\x06GetVpc\x12\x1d.aes.network.v1.GetVpcRequest\x1a\x1e.aes.network.v1.GetVpcResponse\x12_\n" +
+	"\x0eListVpcSubnets\x12%.aes.network.v1.ListVpcSubnetsRequest\x1a&.aes.network.v1.ListVpcSubnetsResponse\x12Y\n" +
+	"\fGetVpcSubnet\x12#.aes.network.v1.GetVpcSubnetRequest\x1a$.aes.network.v1.GetVpcSubnetResponse\x12P\n" +
+	"\tCreateVpc\x12 .aes.network.v1.CreateVpcRequest\x1a!.aes.network.v1.CreateVpcResponse\x12b\n" +
+	"\x0fCreateVpcSubnet\x12&.aes.network.v1.CreateVpcSubnetRequest\x1a'.aes.network.v1.CreateVpcSubnetResponse\x12P\n" +
+	"\tUpdateVpc\x12 .aes.network.v1.UpdateVpcRequest\x1a!.aes.network.v1.UpdateVpcResponse\x12b\n" +
+	"\x0fUpdateVpcSubnet\x12&.aes.network.v1.UpdateVpcSubnetRequest\x1a'.aes.network.v1.UpdateVpcSubnetResponse\x12P\n" +
+	"\tDeleteVpc\x12 .aes.network.v1.DeleteVpcRequest\x1a!.aes.network.v1.DeleteVpcResponse\x12b\n" +
+	"\x0fDeleteVpcSubnet\x12&.aes.network.v1.DeleteVpcSubnetRequest\x1a'.aes.network.v1.DeleteVpcSubnetResponse\x12b\n" +
+	"\x0fAttachVpcSubnet\x12&.aes.network.v1.AttachVpcSubnetRequest\x1a'.aes.network.v1.AttachVpcSubnetResponse\x12n\n" +
+	"\x13DetachVpcDatacenter\x12*.aes.network.v1.DetachVpcDatacenterRequest\x1a+.aes.network.v1.DetachVpcDatacenterResponse\x12\\\n" +
 	"\rCreateNetwork\x12$.aes.network.v1.CreateNetworkRequest\x1a%.aes.network.v1.CreateNetworkResponse\x12Y\n" +
 	"\fListNetworks\x12#.aes.network.v1.ListNetworksRequest\x1a$.aes.network.v1.ListNetworksResponse\x12k\n" +
 	"\x12CreateFirewallRule\x12).aes.network.v1.CreateFirewallRuleRequest\x1a*.aes.network.v1.CreateFirewallRuleResponse\x12h\n" +
 	"\x11ListFirewallRules\x12(.aes.network.v1.ListFirewallRulesRequest\x1a).aes.network.v1.ListFirewallRulesResponse\x12k\n" +
 	"\x12DeleteFirewallRule\x12).aes.network.v1.DeleteFirewallRuleRequest\x1a*.aes.network.v1.DeleteFirewallRuleResponse\x12n\n" +
+	"\x13GetVmInternetPolicy\x12*.aes.network.v1.GetVmInternetPolicyRequest\x1a+.aes.network.v1.GetVmInternetPolicyResponse\x12w\n" +
+	"\x16UpdateVmInternetPolicy\x12-.aes.network.v1.UpdateVmInternetPolicyRequest\x1a..aes.network.v1.UpdateVmInternetPolicyResponse\x12w\n" +
+	"\x16GetVmNetworkInterfaces\x12-.aes.network.v1.GetVmNetworkInterfacesRequest\x1a..aes.network.v1.GetVmNetworkInterfacesResponse\x12_\n" +
+	"\x0eAddVmIpv4Alias\x12%.aes.network.v1.AddVmIpv4AliasRequest\x1a&.aes.network.v1.AddVmIpv4AliasResponse\x12h\n" +
+	"\x11RemoveVmIpv4Alias\x12(.aes.network.v1.RemoveVmIpv4AliasRequest\x1a).aes.network.v1.RemoveVmIpv4AliasResponse\x12q\n" +
+	"\x14SetVmDefaultPublicIp\x12+.aes.network.v1.SetVmDefaultPublicIpRequest\x1a,.aes.network.v1.SetVmDefaultPublicIpResponse\x12V\n" +
+	"\vGetPublicIp\x12\".aes.network.v1.GetPublicIpRequest\x1a#.aes.network.v1.GetPublicIpResponse\x12\\\n" +
+	"\rListPublicIps\x12$.aes.network.v1.ListPublicIpsRequest\x1a%.aes.network.v1.ListPublicIpsResponse\x12b\n" +
+	"\x0fReservePublicIp\x12&.aes.network.v1.ReservePublicIpRequest\x1a'.aes.network.v1.ReservePublicIpResponse\x12_\n" +
+	"\x0eAttachPublicIp\x12%.aes.network.v1.AttachPublicIpRequest\x1a&.aes.network.v1.AttachPublicIpResponse\x12_\n" +
+	"\x0eDetachPublicIp\x12%.aes.network.v1.DetachPublicIpRequest\x1a&.aes.network.v1.DetachPublicIpResponse\x12b\n" +
+	"\x0fReleasePublicIp\x12&.aes.network.v1.ReleasePublicIpRequest\x1a'.aes.network.v1.ReleasePublicIpResponse\x12k\n" +
+	"\x12CreateLoadBalancer\x12).aes.network.v1.CreateLoadBalancerRequest\x1a*.aes.network.v1.CreateLoadBalancerResponse\x12b\n" +
+	"\x0fGetLoadBalancer\x12&.aes.network.v1.GetLoadBalancerRequest\x1a'.aes.network.v1.GetLoadBalancerResponse\x12h\n" +
+	"\x11ListLoadBalancers\x12(.aes.network.v1.ListLoadBalancersRequest\x1a).aes.network.v1.ListLoadBalancersResponse\x12k\n" +
+	"\x12UpdateLoadBalancer\x12).aes.network.v1.UpdateLoadBalancerRequest\x1a*.aes.network.v1.UpdateLoadBalancerResponse\x12k\n" +
+	"\x12DeleteLoadBalancer\x12).aes.network.v1.DeleteLoadBalancerRequest\x1a*.aes.network.v1.DeleteLoadBalancerResponse\x12n\n" +
 	"\x13CreateSecurityGroup\x12*.aes.network.v1.CreateSecurityGroupRequest\x1a+.aes.network.v1.CreateSecurityGroupResponse\x12e\n" +
 	"\x10GetSecurityGroup\x12'.aes.network.v1.GetSecurityGroupRequest\x1a(.aes.network.v1.GetSecurityGroupResponse\x12k\n" +
 	"\x12ListSecurityGroups\x12).aes.network.v1.ListSecurityGroupsRequest\x1a*.aes.network.v1.ListSecurityGroupsResponse\x12n\n" +
@@ -2448,113 +7720,280 @@ func file_aes_network_v1_network_proto_rawDescGZIP() []byte {
 	return file_aes_network_v1_network_proto_rawDescData
 }
 
-var file_aes_network_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
+var file_aes_network_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 116)
 var file_aes_network_v1_network_proto_goTypes = []any{
-	(*Network)(nil),                           // 0: aes.network.v1.Network
-	(*CreateNetworkRequest)(nil),              // 1: aes.network.v1.CreateNetworkRequest
-	(*CreateNetworkResponse)(nil),             // 2: aes.network.v1.CreateNetworkResponse
-	(*ListNetworksRequest)(nil),               // 3: aes.network.v1.ListNetworksRequest
-	(*ListNetworksResponse)(nil),              // 4: aes.network.v1.ListNetworksResponse
-	(*PortMapping)(nil),                       // 5: aes.network.v1.PortMapping
-	(*PublicIp)(nil),                          // 6: aes.network.v1.PublicIp
-	(*FirewallRule)(nil),                      // 7: aes.network.v1.FirewallRule
-	(*CreateFirewallRuleRequest)(nil),         // 8: aes.network.v1.CreateFirewallRuleRequest
-	(*CreateFirewallRuleResponse)(nil),        // 9: aes.network.v1.CreateFirewallRuleResponse
-	(*ListFirewallRulesRequest)(nil),          // 10: aes.network.v1.ListFirewallRulesRequest
-	(*ListFirewallRulesResponse)(nil),         // 11: aes.network.v1.ListFirewallRulesResponse
-	(*DeleteFirewallRuleRequest)(nil),         // 12: aes.network.v1.DeleteFirewallRuleRequest
-	(*DeleteFirewallRuleResponse)(nil),        // 13: aes.network.v1.DeleteFirewallRuleResponse
-	(*SecurityGroup)(nil),                     // 14: aes.network.v1.SecurityGroup
-	(*SecurityGroupRule)(nil),                 // 15: aes.network.v1.SecurityGroupRule
-	(*CreateSecurityGroupRequest)(nil),        // 16: aes.network.v1.CreateSecurityGroupRequest
-	(*CreateSecurityGroupResponse)(nil),       // 17: aes.network.v1.CreateSecurityGroupResponse
-	(*GetSecurityGroupRequest)(nil),           // 18: aes.network.v1.GetSecurityGroupRequest
-	(*GetSecurityGroupResponse)(nil),          // 19: aes.network.v1.GetSecurityGroupResponse
-	(*ListSecurityGroupsRequest)(nil),         // 20: aes.network.v1.ListSecurityGroupsRequest
-	(*ListSecurityGroupsResponse)(nil),        // 21: aes.network.v1.ListSecurityGroupsResponse
-	(*UpdateSecurityGroupRequest)(nil),        // 22: aes.network.v1.UpdateSecurityGroupRequest
-	(*UpdateSecurityGroupResponse)(nil),       // 23: aes.network.v1.UpdateSecurityGroupResponse
-	(*DeleteSecurityGroupRequest)(nil),        // 24: aes.network.v1.DeleteSecurityGroupRequest
-	(*DeleteSecurityGroupResponse)(nil),       // 25: aes.network.v1.DeleteSecurityGroupResponse
-	(*AddVmToSecurityGroupRequest)(nil),       // 26: aes.network.v1.AddVmToSecurityGroupRequest
-	(*AddVmToSecurityGroupResponse)(nil),      // 27: aes.network.v1.AddVmToSecurityGroupResponse
-	(*RemoveVmFromSecurityGroupRequest)(nil),  // 28: aes.network.v1.RemoveVmFromSecurityGroupRequest
-	(*RemoveVmFromSecurityGroupResponse)(nil), // 29: aes.network.v1.RemoveVmFromSecurityGroupResponse
-	nil, // 30: aes.network.v1.Network.LabelsEntry
-	nil, // 31: aes.network.v1.Network.AnnotationsEntry
-	nil, // 32: aes.network.v1.CreateNetworkRequest.LabelsEntry
-	nil, // 33: aes.network.v1.CreateNetworkRequest.AnnotationsEntry
-	nil, // 34: aes.network.v1.PublicIp.LabelsEntry
-	nil, // 35: aes.network.v1.PublicIp.AnnotationsEntry
-	nil, // 36: aes.network.v1.FirewallRule.LabelsEntry
-	nil, // 37: aes.network.v1.FirewallRule.AnnotationsEntry
-	nil, // 38: aes.network.v1.CreateFirewallRuleRequest.LabelsEntry
-	nil, // 39: aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry
-	nil, // 40: aes.network.v1.SecurityGroup.LabelsEntry
-	nil, // 41: aes.network.v1.SecurityGroup.AnnotationsEntry
-	nil, // 42: aes.network.v1.CreateSecurityGroupRequest.LabelsEntry
-	nil, // 43: aes.network.v1.CreateSecurityGroupRequest.AnnotationsEntry
+	(*VpcDatacenterMembership)(nil),           // 0: aes.network.v1.VpcDatacenterMembership
+	(*Vpc)(nil),                               // 1: aes.network.v1.Vpc
+	(*VpcSubnet)(nil),                         // 2: aes.network.v1.VpcSubnet
+	(*CreateVpcRequest)(nil),                  // 3: aes.network.v1.CreateVpcRequest
+	(*CreateVpcResponse)(nil),                 // 4: aes.network.v1.CreateVpcResponse
+	(*CreateVpcSubnetRequest)(nil),            // 5: aes.network.v1.CreateVpcSubnetRequest
+	(*CreateVpcSubnetResponse)(nil),           // 6: aes.network.v1.CreateVpcSubnetResponse
+	(*ListVpcsRequest)(nil),                   // 7: aes.network.v1.ListVpcsRequest
+	(*ListVpcsResponse)(nil),                  // 8: aes.network.v1.ListVpcsResponse
+	(*GetVpcRequest)(nil),                     // 9: aes.network.v1.GetVpcRequest
+	(*GetVpcResponse)(nil),                    // 10: aes.network.v1.GetVpcResponse
+	(*ListVpcSubnetsRequest)(nil),             // 11: aes.network.v1.ListVpcSubnetsRequest
+	(*ListVpcSubnetsResponse)(nil),            // 12: aes.network.v1.ListVpcSubnetsResponse
+	(*GetVpcSubnetRequest)(nil),               // 13: aes.network.v1.GetVpcSubnetRequest
+	(*GetVpcSubnetResponse)(nil),              // 14: aes.network.v1.GetVpcSubnetResponse
+	(*UpdateVpcRequest)(nil),                  // 15: aes.network.v1.UpdateVpcRequest
+	(*UpdateVpcResponse)(nil),                 // 16: aes.network.v1.UpdateVpcResponse
+	(*UpdateVpcSubnetRequest)(nil),            // 17: aes.network.v1.UpdateVpcSubnetRequest
+	(*UpdateVpcSubnetResponse)(nil),           // 18: aes.network.v1.UpdateVpcSubnetResponse
+	(*DeleteVpcRequest)(nil),                  // 19: aes.network.v1.DeleteVpcRequest
+	(*DeleteVpcResponse)(nil),                 // 20: aes.network.v1.DeleteVpcResponse
+	(*DeleteVpcSubnetRequest)(nil),            // 21: aes.network.v1.DeleteVpcSubnetRequest
+	(*DeleteVpcSubnetResponse)(nil),           // 22: aes.network.v1.DeleteVpcSubnetResponse
+	(*RemoveVmIpv4AliasRequest)(nil),          // 23: aes.network.v1.RemoveVmIpv4AliasRequest
+	(*RemoveVmIpv4AliasResponse)(nil),         // 24: aes.network.v1.RemoveVmIpv4AliasResponse
+	(*VmNetworkAddress)(nil),                  // 25: aes.network.v1.VmNetworkAddress
+	(*VmNetworkInterface)(nil),                // 26: aes.network.v1.VmNetworkInterface
+	(*VpcNetworkReconciliationStatus)(nil),    // 27: aes.network.v1.VpcNetworkReconciliationStatus
+	(*GetVmNetworkInterfacesRequest)(nil),     // 28: aes.network.v1.GetVmNetworkInterfacesRequest
+	(*GetVmNetworkInterfacesResponse)(nil),    // 29: aes.network.v1.GetVmNetworkInterfacesResponse
+	(*AddVmIpv4AliasRequest)(nil),             // 30: aes.network.v1.AddVmIpv4AliasRequest
+	(*AddVmIpv4AliasResponse)(nil),            // 31: aes.network.v1.AddVmIpv4AliasResponse
+	(*SetVmDefaultPublicIpRequest)(nil),       // 32: aes.network.v1.SetVmDefaultPublicIpRequest
+	(*SetVmDefaultPublicIpResponse)(nil),      // 33: aes.network.v1.SetVmDefaultPublicIpResponse
+	(*LoadBalancerHealthCheck)(nil),           // 34: aes.network.v1.LoadBalancerHealthCheck
+	(*LoadBalancerListener)(nil),              // 35: aes.network.v1.LoadBalancerListener
+	(*LoadBalancer)(nil),                      // 36: aes.network.v1.LoadBalancer
+	(*LoadBalancerBackendHealth)(nil),         // 37: aes.network.v1.LoadBalancerBackendHealth
+	(*CreateLoadBalancerRequest)(nil),         // 38: aes.network.v1.CreateLoadBalancerRequest
+	(*CreateLoadBalancerResponse)(nil),        // 39: aes.network.v1.CreateLoadBalancerResponse
+	(*GetLoadBalancerRequest)(nil),            // 40: aes.network.v1.GetLoadBalancerRequest
+	(*GetLoadBalancerResponse)(nil),           // 41: aes.network.v1.GetLoadBalancerResponse
+	(*ListLoadBalancersRequest)(nil),          // 42: aes.network.v1.ListLoadBalancersRequest
+	(*ListLoadBalancersResponse)(nil),         // 43: aes.network.v1.ListLoadBalancersResponse
+	(*UpdateLoadBalancerRequest)(nil),         // 44: aes.network.v1.UpdateLoadBalancerRequest
+	(*UpdateLoadBalancerResponse)(nil),        // 45: aes.network.v1.UpdateLoadBalancerResponse
+	(*DeleteLoadBalancerRequest)(nil),         // 46: aes.network.v1.DeleteLoadBalancerRequest
+	(*DeleteLoadBalancerResponse)(nil),        // 47: aes.network.v1.DeleteLoadBalancerResponse
+	(*VmInternetPolicy)(nil),                  // 48: aes.network.v1.VmInternetPolicy
+	(*GetVmInternetPolicyRequest)(nil),        // 49: aes.network.v1.GetVmInternetPolicyRequest
+	(*GetVmInternetPolicyResponse)(nil),       // 50: aes.network.v1.GetVmInternetPolicyResponse
+	(*UpdateVmInternetPolicyRequest)(nil),     // 51: aes.network.v1.UpdateVmInternetPolicyRequest
+	(*UpdateVmInternetPolicyResponse)(nil),    // 52: aes.network.v1.UpdateVmInternetPolicyResponse
+	(*Network)(nil),                           // 53: aes.network.v1.Network
+	(*AttachVpcSubnetRequest)(nil),            // 54: aes.network.v1.AttachVpcSubnetRequest
+	(*AttachVpcSubnetResponse)(nil),           // 55: aes.network.v1.AttachVpcSubnetResponse
+	(*DetachVpcDatacenterRequest)(nil),        // 56: aes.network.v1.DetachVpcDatacenterRequest
+	(*DetachVpcDatacenterResponse)(nil),       // 57: aes.network.v1.DetachVpcDatacenterResponse
+	(*CreateNetworkRequest)(nil),              // 58: aes.network.v1.CreateNetworkRequest
+	(*CreateNetworkResponse)(nil),             // 59: aes.network.v1.CreateNetworkResponse
+	(*ListNetworksRequest)(nil),               // 60: aes.network.v1.ListNetworksRequest
+	(*ListNetworksResponse)(nil),              // 61: aes.network.v1.ListNetworksResponse
+	(*PortMapping)(nil),                       // 62: aes.network.v1.PortMapping
+	(*PublicIp)(nil),                          // 63: aes.network.v1.PublicIp
+	(*PublicIpBinding)(nil),                   // 64: aes.network.v1.PublicIpBinding
+	(*GetPublicIpRequest)(nil),                // 65: aes.network.v1.GetPublicIpRequest
+	(*GetPublicIpResponse)(nil),               // 66: aes.network.v1.GetPublicIpResponse
+	(*ListPublicIpsRequest)(nil),              // 67: aes.network.v1.ListPublicIpsRequest
+	(*ListPublicIpsResponse)(nil),             // 68: aes.network.v1.ListPublicIpsResponse
+	(*ReservePublicIpRequest)(nil),            // 69: aes.network.v1.ReservePublicIpRequest
+	(*ReservePublicIpResponse)(nil),           // 70: aes.network.v1.ReservePublicIpResponse
+	(*AttachPublicIpRequest)(nil),             // 71: aes.network.v1.AttachPublicIpRequest
+	(*AttachPublicIpResponse)(nil),            // 72: aes.network.v1.AttachPublicIpResponse
+	(*DetachPublicIpRequest)(nil),             // 73: aes.network.v1.DetachPublicIpRequest
+	(*DetachPublicIpResponse)(nil),            // 74: aes.network.v1.DetachPublicIpResponse
+	(*ReleasePublicIpRequest)(nil),            // 75: aes.network.v1.ReleasePublicIpRequest
+	(*ReleasePublicIpResponse)(nil),           // 76: aes.network.v1.ReleasePublicIpResponse
+	(*FirewallRule)(nil),                      // 77: aes.network.v1.FirewallRule
+	(*CreateFirewallRuleRequest)(nil),         // 78: aes.network.v1.CreateFirewallRuleRequest
+	(*CreateFirewallRuleResponse)(nil),        // 79: aes.network.v1.CreateFirewallRuleResponse
+	(*ListFirewallRulesRequest)(nil),          // 80: aes.network.v1.ListFirewallRulesRequest
+	(*ListFirewallRulesResponse)(nil),         // 81: aes.network.v1.ListFirewallRulesResponse
+	(*DeleteFirewallRuleRequest)(nil),         // 82: aes.network.v1.DeleteFirewallRuleRequest
+	(*DeleteFirewallRuleResponse)(nil),        // 83: aes.network.v1.DeleteFirewallRuleResponse
+	(*SecurityGroup)(nil),                     // 84: aes.network.v1.SecurityGroup
+	(*SecurityGroupRule)(nil),                 // 85: aes.network.v1.SecurityGroupRule
+	(*CreateSecurityGroupRequest)(nil),        // 86: aes.network.v1.CreateSecurityGroupRequest
+	(*CreateSecurityGroupResponse)(nil),       // 87: aes.network.v1.CreateSecurityGroupResponse
+	(*GetSecurityGroupRequest)(nil),           // 88: aes.network.v1.GetSecurityGroupRequest
+	(*GetSecurityGroupResponse)(nil),          // 89: aes.network.v1.GetSecurityGroupResponse
+	(*ListSecurityGroupsRequest)(nil),         // 90: aes.network.v1.ListSecurityGroupsRequest
+	(*ListSecurityGroupsResponse)(nil),        // 91: aes.network.v1.ListSecurityGroupsResponse
+	(*UpdateSecurityGroupRequest)(nil),        // 92: aes.network.v1.UpdateSecurityGroupRequest
+	(*UpdateSecurityGroupResponse)(nil),       // 93: aes.network.v1.UpdateSecurityGroupResponse
+	(*DeleteSecurityGroupRequest)(nil),        // 94: aes.network.v1.DeleteSecurityGroupRequest
+	(*DeleteSecurityGroupResponse)(nil),       // 95: aes.network.v1.DeleteSecurityGroupResponse
+	(*AddVmToSecurityGroupRequest)(nil),       // 96: aes.network.v1.AddVmToSecurityGroupRequest
+	(*AddVmToSecurityGroupResponse)(nil),      // 97: aes.network.v1.AddVmToSecurityGroupResponse
+	(*RemoveVmFromSecurityGroupRequest)(nil),  // 98: aes.network.v1.RemoveVmFromSecurityGroupRequest
+	(*RemoveVmFromSecurityGroupResponse)(nil), // 99: aes.network.v1.RemoveVmFromSecurityGroupResponse
+	nil,                           // 100: aes.network.v1.Network.LabelsEntry
+	nil,                           // 101: aes.network.v1.Network.AnnotationsEntry
+	nil,                           // 102: aes.network.v1.CreateNetworkRequest.LabelsEntry
+	nil,                           // 103: aes.network.v1.CreateNetworkRequest.AnnotationsEntry
+	nil,                           // 104: aes.network.v1.PublicIp.LabelsEntry
+	nil,                           // 105: aes.network.v1.PublicIp.AnnotationsEntry
+	nil,                           // 106: aes.network.v1.ReservePublicIpRequest.LabelsEntry
+	nil,                           // 107: aes.network.v1.ReservePublicIpRequest.AnnotationsEntry
+	nil,                           // 108: aes.network.v1.FirewallRule.LabelsEntry
+	nil,                           // 109: aes.network.v1.FirewallRule.AnnotationsEntry
+	nil,                           // 110: aes.network.v1.CreateFirewallRuleRequest.LabelsEntry
+	nil,                           // 111: aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry
+	nil,                           // 112: aes.network.v1.SecurityGroup.LabelsEntry
+	nil,                           // 113: aes.network.v1.SecurityGroup.AnnotationsEntry
+	nil,                           // 114: aes.network.v1.CreateSecurityGroupRequest.LabelsEntry
+	nil,                           // 115: aes.network.v1.CreateSecurityGroupRequest.AnnotationsEntry
+	(*timestamppb.Timestamp)(nil), // 116: google.protobuf.Timestamp
 }
 var file_aes_network_v1_network_proto_depIdxs = []int32{
-	30, // 0: aes.network.v1.Network.labels:type_name -> aes.network.v1.Network.LabelsEntry
-	31, // 1: aes.network.v1.Network.annotations:type_name -> aes.network.v1.Network.AnnotationsEntry
-	32, // 2: aes.network.v1.CreateNetworkRequest.labels:type_name -> aes.network.v1.CreateNetworkRequest.LabelsEntry
-	33, // 3: aes.network.v1.CreateNetworkRequest.annotations:type_name -> aes.network.v1.CreateNetworkRequest.AnnotationsEntry
-	0,  // 4: aes.network.v1.CreateNetworkResponse.network:type_name -> aes.network.v1.Network
-	0,  // 5: aes.network.v1.ListNetworksResponse.networks:type_name -> aes.network.v1.Network
-	5,  // 6: aes.network.v1.PublicIp.ports:type_name -> aes.network.v1.PortMapping
-	34, // 7: aes.network.v1.PublicIp.labels:type_name -> aes.network.v1.PublicIp.LabelsEntry
-	35, // 8: aes.network.v1.PublicIp.annotations:type_name -> aes.network.v1.PublicIp.AnnotationsEntry
-	5,  // 9: aes.network.v1.FirewallRule.ports:type_name -> aes.network.v1.PortMapping
-	36, // 10: aes.network.v1.FirewallRule.labels:type_name -> aes.network.v1.FirewallRule.LabelsEntry
-	37, // 11: aes.network.v1.FirewallRule.annotations:type_name -> aes.network.v1.FirewallRule.AnnotationsEntry
-	5,  // 12: aes.network.v1.CreateFirewallRuleRequest.ports:type_name -> aes.network.v1.PortMapping
-	38, // 13: aes.network.v1.CreateFirewallRuleRequest.labels:type_name -> aes.network.v1.CreateFirewallRuleRequest.LabelsEntry
-	39, // 14: aes.network.v1.CreateFirewallRuleRequest.annotations:type_name -> aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry
-	7,  // 15: aes.network.v1.CreateFirewallRuleResponse.rule:type_name -> aes.network.v1.FirewallRule
-	7,  // 16: aes.network.v1.ListFirewallRulesResponse.firewall_rules:type_name -> aes.network.v1.FirewallRule
-	15, // 17: aes.network.v1.SecurityGroup.rules:type_name -> aes.network.v1.SecurityGroupRule
-	40, // 18: aes.network.v1.SecurityGroup.labels:type_name -> aes.network.v1.SecurityGroup.LabelsEntry
-	41, // 19: aes.network.v1.SecurityGroup.annotations:type_name -> aes.network.v1.SecurityGroup.AnnotationsEntry
-	15, // 20: aes.network.v1.CreateSecurityGroupRequest.rules:type_name -> aes.network.v1.SecurityGroupRule
-	42, // 21: aes.network.v1.CreateSecurityGroupRequest.labels:type_name -> aes.network.v1.CreateSecurityGroupRequest.LabelsEntry
-	43, // 22: aes.network.v1.CreateSecurityGroupRequest.annotations:type_name -> aes.network.v1.CreateSecurityGroupRequest.AnnotationsEntry
-	14, // 23: aes.network.v1.CreateSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
-	14, // 24: aes.network.v1.GetSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
-	14, // 25: aes.network.v1.ListSecurityGroupsResponse.security_groups:type_name -> aes.network.v1.SecurityGroup
-	15, // 26: aes.network.v1.UpdateSecurityGroupRequest.rules:type_name -> aes.network.v1.SecurityGroupRule
-	14, // 27: aes.network.v1.UpdateSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
-	14, // 28: aes.network.v1.AddVmToSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
-	14, // 29: aes.network.v1.RemoveVmFromSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
-	1,  // 30: aes.network.v1.NetworkService.CreateNetwork:input_type -> aes.network.v1.CreateNetworkRequest
-	3,  // 31: aes.network.v1.NetworkService.ListNetworks:input_type -> aes.network.v1.ListNetworksRequest
-	8,  // 32: aes.network.v1.NetworkService.CreateFirewallRule:input_type -> aes.network.v1.CreateFirewallRuleRequest
-	10, // 33: aes.network.v1.NetworkService.ListFirewallRules:input_type -> aes.network.v1.ListFirewallRulesRequest
-	12, // 34: aes.network.v1.NetworkService.DeleteFirewallRule:input_type -> aes.network.v1.DeleteFirewallRuleRequest
-	16, // 35: aes.network.v1.NetworkService.CreateSecurityGroup:input_type -> aes.network.v1.CreateSecurityGroupRequest
-	18, // 36: aes.network.v1.NetworkService.GetSecurityGroup:input_type -> aes.network.v1.GetSecurityGroupRequest
-	20, // 37: aes.network.v1.NetworkService.ListSecurityGroups:input_type -> aes.network.v1.ListSecurityGroupsRequest
-	22, // 38: aes.network.v1.NetworkService.UpdateSecurityGroup:input_type -> aes.network.v1.UpdateSecurityGroupRequest
-	24, // 39: aes.network.v1.NetworkService.DeleteSecurityGroup:input_type -> aes.network.v1.DeleteSecurityGroupRequest
-	26, // 40: aes.network.v1.NetworkService.AddVmToSecurityGroup:input_type -> aes.network.v1.AddVmToSecurityGroupRequest
-	28, // 41: aes.network.v1.NetworkService.RemoveVmFromSecurityGroup:input_type -> aes.network.v1.RemoveVmFromSecurityGroupRequest
-	2,  // 42: aes.network.v1.NetworkService.CreateNetwork:output_type -> aes.network.v1.CreateNetworkResponse
-	4,  // 43: aes.network.v1.NetworkService.ListNetworks:output_type -> aes.network.v1.ListNetworksResponse
-	9,  // 44: aes.network.v1.NetworkService.CreateFirewallRule:output_type -> aes.network.v1.CreateFirewallRuleResponse
-	11, // 45: aes.network.v1.NetworkService.ListFirewallRules:output_type -> aes.network.v1.ListFirewallRulesResponse
-	13, // 46: aes.network.v1.NetworkService.DeleteFirewallRule:output_type -> aes.network.v1.DeleteFirewallRuleResponse
-	17, // 47: aes.network.v1.NetworkService.CreateSecurityGroup:output_type -> aes.network.v1.CreateSecurityGroupResponse
-	19, // 48: aes.network.v1.NetworkService.GetSecurityGroup:output_type -> aes.network.v1.GetSecurityGroupResponse
-	21, // 49: aes.network.v1.NetworkService.ListSecurityGroups:output_type -> aes.network.v1.ListSecurityGroupsResponse
-	23, // 50: aes.network.v1.NetworkService.UpdateSecurityGroup:output_type -> aes.network.v1.UpdateSecurityGroupResponse
-	25, // 51: aes.network.v1.NetworkService.DeleteSecurityGroup:output_type -> aes.network.v1.DeleteSecurityGroupResponse
-	27, // 52: aes.network.v1.NetworkService.AddVmToSecurityGroup:output_type -> aes.network.v1.AddVmToSecurityGroupResponse
-	29, // 53: aes.network.v1.NetworkService.RemoveVmFromSecurityGroup:output_type -> aes.network.v1.RemoveVmFromSecurityGroupResponse
-	42, // [42:54] is the sub-list for method output_type
-	30, // [30:42] is the sub-list for method input_type
-	30, // [30:30] is the sub-list for extension type_name
-	30, // [30:30] is the sub-list for extension extendee
-	0,  // [0:30] is the sub-list for field type_name
+	116, // 0: aes.network.v1.Vpc.create_time:type_name -> google.protobuf.Timestamp
+	116, // 1: aes.network.v1.Vpc.update_time:type_name -> google.protobuf.Timestamp
+	0,   // 2: aes.network.v1.Vpc.datacenters:type_name -> aes.network.v1.VpcDatacenterMembership
+	116, // 3: aes.network.v1.VpcSubnet.create_time:type_name -> google.protobuf.Timestamp
+	116, // 4: aes.network.v1.VpcSubnet.update_time:type_name -> google.protobuf.Timestamp
+	0,   // 5: aes.network.v1.VpcSubnet.datacenters:type_name -> aes.network.v1.VpcDatacenterMembership
+	1,   // 6: aes.network.v1.CreateVpcResponse.vpc:type_name -> aes.network.v1.Vpc
+	2,   // 7: aes.network.v1.CreateVpcSubnetResponse.subnet:type_name -> aes.network.v1.VpcSubnet
+	1,   // 8: aes.network.v1.ListVpcsResponse.vpcs:type_name -> aes.network.v1.Vpc
+	1,   // 9: aes.network.v1.GetVpcResponse.vpc:type_name -> aes.network.v1.Vpc
+	2,   // 10: aes.network.v1.ListVpcSubnetsResponse.subnets:type_name -> aes.network.v1.VpcSubnet
+	2,   // 11: aes.network.v1.GetVpcSubnetResponse.subnet:type_name -> aes.network.v1.VpcSubnet
+	25,  // 12: aes.network.v1.VmNetworkInterface.addresses:type_name -> aes.network.v1.VmNetworkAddress
+	27,  // 13: aes.network.v1.VmNetworkInterface.reconciliation:type_name -> aes.network.v1.VpcNetworkReconciliationStatus
+	116, // 14: aes.network.v1.VpcNetworkReconciliationStatus.report_time:type_name -> google.protobuf.Timestamp
+	26,  // 15: aes.network.v1.GetVmNetworkInterfacesResponse.interfaces:type_name -> aes.network.v1.VmNetworkInterface
+	34,  // 16: aes.network.v1.LoadBalancerListener.health_check:type_name -> aes.network.v1.LoadBalancerHealthCheck
+	35,  // 17: aes.network.v1.LoadBalancer.listeners:type_name -> aes.network.v1.LoadBalancerListener
+	27,  // 18: aes.network.v1.LoadBalancer.reconciliation:type_name -> aes.network.v1.VpcNetworkReconciliationStatus
+	37,  // 19: aes.network.v1.LoadBalancer.backend_health:type_name -> aes.network.v1.LoadBalancerBackendHealth
+	116, // 20: aes.network.v1.LoadBalancer.health_report_time:type_name -> google.protobuf.Timestamp
+	116, // 21: aes.network.v1.LoadBalancerBackendHealth.last_check_time:type_name -> google.protobuf.Timestamp
+	116, // 22: aes.network.v1.LoadBalancerBackendHealth.valid_until:type_name -> google.protobuf.Timestamp
+	35,  // 23: aes.network.v1.CreateLoadBalancerRequest.listeners:type_name -> aes.network.v1.LoadBalancerListener
+	36,  // 24: aes.network.v1.CreateLoadBalancerResponse.load_balancer:type_name -> aes.network.v1.LoadBalancer
+	36,  // 25: aes.network.v1.GetLoadBalancerResponse.load_balancer:type_name -> aes.network.v1.LoadBalancer
+	36,  // 26: aes.network.v1.ListLoadBalancersResponse.load_balancers:type_name -> aes.network.v1.LoadBalancer
+	35,  // 27: aes.network.v1.UpdateLoadBalancerRequest.listeners:type_name -> aes.network.v1.LoadBalancerListener
+	36,  // 28: aes.network.v1.UpdateLoadBalancerResponse.load_balancer:type_name -> aes.network.v1.LoadBalancer
+	48,  // 29: aes.network.v1.GetVmInternetPolicyResponse.policy:type_name -> aes.network.v1.VmInternetPolicy
+	100, // 30: aes.network.v1.Network.labels:type_name -> aes.network.v1.Network.LabelsEntry
+	101, // 31: aes.network.v1.Network.annotations:type_name -> aes.network.v1.Network.AnnotationsEntry
+	102, // 32: aes.network.v1.CreateNetworkRequest.labels:type_name -> aes.network.v1.CreateNetworkRequest.LabelsEntry
+	103, // 33: aes.network.v1.CreateNetworkRequest.annotations:type_name -> aes.network.v1.CreateNetworkRequest.AnnotationsEntry
+	53,  // 34: aes.network.v1.CreateNetworkResponse.network:type_name -> aes.network.v1.Network
+	53,  // 35: aes.network.v1.ListNetworksResponse.networks:type_name -> aes.network.v1.Network
+	62,  // 36: aes.network.v1.PublicIp.ports:type_name -> aes.network.v1.PortMapping
+	104, // 37: aes.network.v1.PublicIp.labels:type_name -> aes.network.v1.PublicIp.LabelsEntry
+	105, // 38: aes.network.v1.PublicIp.annotations:type_name -> aes.network.v1.PublicIp.AnnotationsEntry
+	64,  // 39: aes.network.v1.PublicIp.binding:type_name -> aes.network.v1.PublicIpBinding
+	63,  // 40: aes.network.v1.GetPublicIpResponse.public_ip:type_name -> aes.network.v1.PublicIp
+	63,  // 41: aes.network.v1.ListPublicIpsResponse.public_ips:type_name -> aes.network.v1.PublicIp
+	106, // 42: aes.network.v1.ReservePublicIpRequest.labels:type_name -> aes.network.v1.ReservePublicIpRequest.LabelsEntry
+	107, // 43: aes.network.v1.ReservePublicIpRequest.annotations:type_name -> aes.network.v1.ReservePublicIpRequest.AnnotationsEntry
+	63,  // 44: aes.network.v1.ReservePublicIpResponse.public_ip:type_name -> aes.network.v1.PublicIp
+	62,  // 45: aes.network.v1.FirewallRule.ports:type_name -> aes.network.v1.PortMapping
+	108, // 46: aes.network.v1.FirewallRule.labels:type_name -> aes.network.v1.FirewallRule.LabelsEntry
+	109, // 47: aes.network.v1.FirewallRule.annotations:type_name -> aes.network.v1.FirewallRule.AnnotationsEntry
+	62,  // 48: aes.network.v1.CreateFirewallRuleRequest.ports:type_name -> aes.network.v1.PortMapping
+	110, // 49: aes.network.v1.CreateFirewallRuleRequest.labels:type_name -> aes.network.v1.CreateFirewallRuleRequest.LabelsEntry
+	111, // 50: aes.network.v1.CreateFirewallRuleRequest.annotations:type_name -> aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry
+	77,  // 51: aes.network.v1.CreateFirewallRuleResponse.rule:type_name -> aes.network.v1.FirewallRule
+	77,  // 52: aes.network.v1.ListFirewallRulesResponse.firewall_rules:type_name -> aes.network.v1.FirewallRule
+	85,  // 53: aes.network.v1.SecurityGroup.rules:type_name -> aes.network.v1.SecurityGroupRule
+	112, // 54: aes.network.v1.SecurityGroup.labels:type_name -> aes.network.v1.SecurityGroup.LabelsEntry
+	113, // 55: aes.network.v1.SecurityGroup.annotations:type_name -> aes.network.v1.SecurityGroup.AnnotationsEntry
+	85,  // 56: aes.network.v1.CreateSecurityGroupRequest.rules:type_name -> aes.network.v1.SecurityGroupRule
+	114, // 57: aes.network.v1.CreateSecurityGroupRequest.labels:type_name -> aes.network.v1.CreateSecurityGroupRequest.LabelsEntry
+	115, // 58: aes.network.v1.CreateSecurityGroupRequest.annotations:type_name -> aes.network.v1.CreateSecurityGroupRequest.AnnotationsEntry
+	84,  // 59: aes.network.v1.CreateSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	84,  // 60: aes.network.v1.GetSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	84,  // 61: aes.network.v1.ListSecurityGroupsResponse.security_groups:type_name -> aes.network.v1.SecurityGroup
+	85,  // 62: aes.network.v1.UpdateSecurityGroupRequest.rules:type_name -> aes.network.v1.SecurityGroupRule
+	84,  // 63: aes.network.v1.UpdateSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	84,  // 64: aes.network.v1.AddVmToSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	84,  // 65: aes.network.v1.RemoveVmFromSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	7,   // 66: aes.network.v1.NetworkService.ListVpcs:input_type -> aes.network.v1.ListVpcsRequest
+	9,   // 67: aes.network.v1.NetworkService.GetVpc:input_type -> aes.network.v1.GetVpcRequest
+	11,  // 68: aes.network.v1.NetworkService.ListVpcSubnets:input_type -> aes.network.v1.ListVpcSubnetsRequest
+	13,  // 69: aes.network.v1.NetworkService.GetVpcSubnet:input_type -> aes.network.v1.GetVpcSubnetRequest
+	3,   // 70: aes.network.v1.NetworkService.CreateVpc:input_type -> aes.network.v1.CreateVpcRequest
+	5,   // 71: aes.network.v1.NetworkService.CreateVpcSubnet:input_type -> aes.network.v1.CreateVpcSubnetRequest
+	15,  // 72: aes.network.v1.NetworkService.UpdateVpc:input_type -> aes.network.v1.UpdateVpcRequest
+	17,  // 73: aes.network.v1.NetworkService.UpdateVpcSubnet:input_type -> aes.network.v1.UpdateVpcSubnetRequest
+	19,  // 74: aes.network.v1.NetworkService.DeleteVpc:input_type -> aes.network.v1.DeleteVpcRequest
+	21,  // 75: aes.network.v1.NetworkService.DeleteVpcSubnet:input_type -> aes.network.v1.DeleteVpcSubnetRequest
+	54,  // 76: aes.network.v1.NetworkService.AttachVpcSubnet:input_type -> aes.network.v1.AttachVpcSubnetRequest
+	56,  // 77: aes.network.v1.NetworkService.DetachVpcDatacenter:input_type -> aes.network.v1.DetachVpcDatacenterRequest
+	58,  // 78: aes.network.v1.NetworkService.CreateNetwork:input_type -> aes.network.v1.CreateNetworkRequest
+	60,  // 79: aes.network.v1.NetworkService.ListNetworks:input_type -> aes.network.v1.ListNetworksRequest
+	78,  // 80: aes.network.v1.NetworkService.CreateFirewallRule:input_type -> aes.network.v1.CreateFirewallRuleRequest
+	80,  // 81: aes.network.v1.NetworkService.ListFirewallRules:input_type -> aes.network.v1.ListFirewallRulesRequest
+	82,  // 82: aes.network.v1.NetworkService.DeleteFirewallRule:input_type -> aes.network.v1.DeleteFirewallRuleRequest
+	49,  // 83: aes.network.v1.NetworkService.GetVmInternetPolicy:input_type -> aes.network.v1.GetVmInternetPolicyRequest
+	51,  // 84: aes.network.v1.NetworkService.UpdateVmInternetPolicy:input_type -> aes.network.v1.UpdateVmInternetPolicyRequest
+	28,  // 85: aes.network.v1.NetworkService.GetVmNetworkInterfaces:input_type -> aes.network.v1.GetVmNetworkInterfacesRequest
+	30,  // 86: aes.network.v1.NetworkService.AddVmIpv4Alias:input_type -> aes.network.v1.AddVmIpv4AliasRequest
+	23,  // 87: aes.network.v1.NetworkService.RemoveVmIpv4Alias:input_type -> aes.network.v1.RemoveVmIpv4AliasRequest
+	32,  // 88: aes.network.v1.NetworkService.SetVmDefaultPublicIp:input_type -> aes.network.v1.SetVmDefaultPublicIpRequest
+	65,  // 89: aes.network.v1.NetworkService.GetPublicIp:input_type -> aes.network.v1.GetPublicIpRequest
+	67,  // 90: aes.network.v1.NetworkService.ListPublicIps:input_type -> aes.network.v1.ListPublicIpsRequest
+	69,  // 91: aes.network.v1.NetworkService.ReservePublicIp:input_type -> aes.network.v1.ReservePublicIpRequest
+	71,  // 92: aes.network.v1.NetworkService.AttachPublicIp:input_type -> aes.network.v1.AttachPublicIpRequest
+	73,  // 93: aes.network.v1.NetworkService.DetachPublicIp:input_type -> aes.network.v1.DetachPublicIpRequest
+	75,  // 94: aes.network.v1.NetworkService.ReleasePublicIp:input_type -> aes.network.v1.ReleasePublicIpRequest
+	38,  // 95: aes.network.v1.NetworkService.CreateLoadBalancer:input_type -> aes.network.v1.CreateLoadBalancerRequest
+	40,  // 96: aes.network.v1.NetworkService.GetLoadBalancer:input_type -> aes.network.v1.GetLoadBalancerRequest
+	42,  // 97: aes.network.v1.NetworkService.ListLoadBalancers:input_type -> aes.network.v1.ListLoadBalancersRequest
+	44,  // 98: aes.network.v1.NetworkService.UpdateLoadBalancer:input_type -> aes.network.v1.UpdateLoadBalancerRequest
+	46,  // 99: aes.network.v1.NetworkService.DeleteLoadBalancer:input_type -> aes.network.v1.DeleteLoadBalancerRequest
+	86,  // 100: aes.network.v1.NetworkService.CreateSecurityGroup:input_type -> aes.network.v1.CreateSecurityGroupRequest
+	88,  // 101: aes.network.v1.NetworkService.GetSecurityGroup:input_type -> aes.network.v1.GetSecurityGroupRequest
+	90,  // 102: aes.network.v1.NetworkService.ListSecurityGroups:input_type -> aes.network.v1.ListSecurityGroupsRequest
+	92,  // 103: aes.network.v1.NetworkService.UpdateSecurityGroup:input_type -> aes.network.v1.UpdateSecurityGroupRequest
+	94,  // 104: aes.network.v1.NetworkService.DeleteSecurityGroup:input_type -> aes.network.v1.DeleteSecurityGroupRequest
+	96,  // 105: aes.network.v1.NetworkService.AddVmToSecurityGroup:input_type -> aes.network.v1.AddVmToSecurityGroupRequest
+	98,  // 106: aes.network.v1.NetworkService.RemoveVmFromSecurityGroup:input_type -> aes.network.v1.RemoveVmFromSecurityGroupRequest
+	8,   // 107: aes.network.v1.NetworkService.ListVpcs:output_type -> aes.network.v1.ListVpcsResponse
+	10,  // 108: aes.network.v1.NetworkService.GetVpc:output_type -> aes.network.v1.GetVpcResponse
+	12,  // 109: aes.network.v1.NetworkService.ListVpcSubnets:output_type -> aes.network.v1.ListVpcSubnetsResponse
+	14,  // 110: aes.network.v1.NetworkService.GetVpcSubnet:output_type -> aes.network.v1.GetVpcSubnetResponse
+	4,   // 111: aes.network.v1.NetworkService.CreateVpc:output_type -> aes.network.v1.CreateVpcResponse
+	6,   // 112: aes.network.v1.NetworkService.CreateVpcSubnet:output_type -> aes.network.v1.CreateVpcSubnetResponse
+	16,  // 113: aes.network.v1.NetworkService.UpdateVpc:output_type -> aes.network.v1.UpdateVpcResponse
+	18,  // 114: aes.network.v1.NetworkService.UpdateVpcSubnet:output_type -> aes.network.v1.UpdateVpcSubnetResponse
+	20,  // 115: aes.network.v1.NetworkService.DeleteVpc:output_type -> aes.network.v1.DeleteVpcResponse
+	22,  // 116: aes.network.v1.NetworkService.DeleteVpcSubnet:output_type -> aes.network.v1.DeleteVpcSubnetResponse
+	55,  // 117: aes.network.v1.NetworkService.AttachVpcSubnet:output_type -> aes.network.v1.AttachVpcSubnetResponse
+	57,  // 118: aes.network.v1.NetworkService.DetachVpcDatacenter:output_type -> aes.network.v1.DetachVpcDatacenterResponse
+	59,  // 119: aes.network.v1.NetworkService.CreateNetwork:output_type -> aes.network.v1.CreateNetworkResponse
+	61,  // 120: aes.network.v1.NetworkService.ListNetworks:output_type -> aes.network.v1.ListNetworksResponse
+	79,  // 121: aes.network.v1.NetworkService.CreateFirewallRule:output_type -> aes.network.v1.CreateFirewallRuleResponse
+	81,  // 122: aes.network.v1.NetworkService.ListFirewallRules:output_type -> aes.network.v1.ListFirewallRulesResponse
+	83,  // 123: aes.network.v1.NetworkService.DeleteFirewallRule:output_type -> aes.network.v1.DeleteFirewallRuleResponse
+	50,  // 124: aes.network.v1.NetworkService.GetVmInternetPolicy:output_type -> aes.network.v1.GetVmInternetPolicyResponse
+	52,  // 125: aes.network.v1.NetworkService.UpdateVmInternetPolicy:output_type -> aes.network.v1.UpdateVmInternetPolicyResponse
+	29,  // 126: aes.network.v1.NetworkService.GetVmNetworkInterfaces:output_type -> aes.network.v1.GetVmNetworkInterfacesResponse
+	31,  // 127: aes.network.v1.NetworkService.AddVmIpv4Alias:output_type -> aes.network.v1.AddVmIpv4AliasResponse
+	24,  // 128: aes.network.v1.NetworkService.RemoveVmIpv4Alias:output_type -> aes.network.v1.RemoveVmIpv4AliasResponse
+	33,  // 129: aes.network.v1.NetworkService.SetVmDefaultPublicIp:output_type -> aes.network.v1.SetVmDefaultPublicIpResponse
+	66,  // 130: aes.network.v1.NetworkService.GetPublicIp:output_type -> aes.network.v1.GetPublicIpResponse
+	68,  // 131: aes.network.v1.NetworkService.ListPublicIps:output_type -> aes.network.v1.ListPublicIpsResponse
+	70,  // 132: aes.network.v1.NetworkService.ReservePublicIp:output_type -> aes.network.v1.ReservePublicIpResponse
+	72,  // 133: aes.network.v1.NetworkService.AttachPublicIp:output_type -> aes.network.v1.AttachPublicIpResponse
+	74,  // 134: aes.network.v1.NetworkService.DetachPublicIp:output_type -> aes.network.v1.DetachPublicIpResponse
+	76,  // 135: aes.network.v1.NetworkService.ReleasePublicIp:output_type -> aes.network.v1.ReleasePublicIpResponse
+	39,  // 136: aes.network.v1.NetworkService.CreateLoadBalancer:output_type -> aes.network.v1.CreateLoadBalancerResponse
+	41,  // 137: aes.network.v1.NetworkService.GetLoadBalancer:output_type -> aes.network.v1.GetLoadBalancerResponse
+	43,  // 138: aes.network.v1.NetworkService.ListLoadBalancers:output_type -> aes.network.v1.ListLoadBalancersResponse
+	45,  // 139: aes.network.v1.NetworkService.UpdateLoadBalancer:output_type -> aes.network.v1.UpdateLoadBalancerResponse
+	47,  // 140: aes.network.v1.NetworkService.DeleteLoadBalancer:output_type -> aes.network.v1.DeleteLoadBalancerResponse
+	87,  // 141: aes.network.v1.NetworkService.CreateSecurityGroup:output_type -> aes.network.v1.CreateSecurityGroupResponse
+	89,  // 142: aes.network.v1.NetworkService.GetSecurityGroup:output_type -> aes.network.v1.GetSecurityGroupResponse
+	91,  // 143: aes.network.v1.NetworkService.ListSecurityGroups:output_type -> aes.network.v1.ListSecurityGroupsResponse
+	93,  // 144: aes.network.v1.NetworkService.UpdateSecurityGroup:output_type -> aes.network.v1.UpdateSecurityGroupResponse
+	95,  // 145: aes.network.v1.NetworkService.DeleteSecurityGroup:output_type -> aes.network.v1.DeleteSecurityGroupResponse
+	97,  // 146: aes.network.v1.NetworkService.AddVmToSecurityGroup:output_type -> aes.network.v1.AddVmToSecurityGroupResponse
+	99,  // 147: aes.network.v1.NetworkService.RemoveVmFromSecurityGroup:output_type -> aes.network.v1.RemoveVmFromSecurityGroupResponse
+	107, // [107:148] is the sub-list for method output_type
+	66,  // [66:107] is the sub-list for method input_type
+	66,  // [66:66] is the sub-list for extension type_name
+	66,  // [66:66] is the sub-list for extension extendee
+	0,   // [0:66] is the sub-list for field type_name
 }
 
 func init() { file_aes_network_v1_network_proto_init() }
@@ -2562,7 +8001,8 @@ func file_aes_network_v1_network_proto_init() {
 	if File_aes_network_v1_network_proto != nil {
 		return
 	}
-	file_aes_network_v1_network_proto_msgTypes[15].OneofWrappers = []any{
+	file_aes_network_v1_network_proto_msgTypes[51].OneofWrappers = []any{}
+	file_aes_network_v1_network_proto_msgTypes[85].OneofWrappers = []any{
 		(*SecurityGroupRule_Cidr)(nil),
 		(*SecurityGroupRule_SecurityGroup)(nil),
 	}
@@ -2572,7 +8012,7 @@ func file_aes_network_v1_network_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_network_v1_network_proto_rawDesc), len(file_aes_network_v1_network_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   44,
+			NumMessages:   116,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

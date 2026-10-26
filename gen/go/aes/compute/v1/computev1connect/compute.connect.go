@@ -130,8 +130,12 @@ type ComputeServiceClient interface {
 	// extension. Refuses on HOURLY (no term to renew).
 	RenewVMNow(context.Context, *connect.Request[v1.RenewVMNowRequest]) (*connect.Response[v1.RenewVMNowResponse], error)
 	// ReimageVirtualMachine wipes the OS disk and reinstalls from a (potentially new) image.
+	// The returned operation cannot be cancelled or force-retried through generic
+	// operation controls. The original workflow retries interrupted disk cutover.
 	// The VM must be STOPPED — refuses on RUNNING to avoid surprising the customer.
 	// Networks, public IPs, and firewall rules survive — only the disk is replaced.
+	// Requires an Idempotency-Key header. Returns a durable operation; the VM stays
+	// stopped after completion. A replacement disk temporarily consumes storage quota.
 	//
 	// Use cases: customer wants to start from a clean slate without recreating the VM (preserves
 	// resource name, networks, IPs, ssh keys), or wants to upgrade the base image (Ubuntu 24.04
@@ -474,8 +478,12 @@ type ComputeServiceHandler interface {
 	// extension. Refuses on HOURLY (no term to renew).
 	RenewVMNow(context.Context, *connect.Request[v1.RenewVMNowRequest]) (*connect.Response[v1.RenewVMNowResponse], error)
 	// ReimageVirtualMachine wipes the OS disk and reinstalls from a (potentially new) image.
+	// The returned operation cannot be cancelled or force-retried through generic
+	// operation controls. The original workflow retries interrupted disk cutover.
 	// The VM must be STOPPED — refuses on RUNNING to avoid surprising the customer.
 	// Networks, public IPs, and firewall rules survive — only the disk is replaced.
+	// Requires an Idempotency-Key header. Returns a durable operation; the VM stays
+	// stopped after completion. A replacement disk temporarily consumes storage quota.
 	//
 	// Use cases: customer wants to start from a clean slate without recreating the VM (preserves
 	// resource name, networks, IPs, ssh keys), or wants to upgrade the base image (Ubuntu 24.04

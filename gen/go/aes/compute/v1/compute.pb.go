@@ -265,8 +265,13 @@ type VirtualMachine struct {
 	// this field lets burn-rate and balance projections still account for the commitment.
 	// Empty for hourly-billed VMs.
 	RenewalCostPerHourMinorDecimal string `protobuf:"bytes,38,opt,name=renewal_cost_per_hour_minor_decimal,json=renewalCostPerHourMinorDecimal,proto3" json:"renewal_cost_per_hour_minor_decimal,omitempty"`
-	unknownFields                  protoimpl.UnknownFields
-	sizeCache                      protoimpl.SizeCache
+	// Persisted networking model (output only): LEGACY_DIRECT or PRIVATE_NAT.
+	// PRIVATE_NAT uses private interfaces and separately managed public address mappings.
+	// An empty or unrecognized value means unknown; clients must not infer the model
+	// from address presence or use it to select a mutating network workflow.
+	NetworkModel  string `protobuf:"bytes,39,opt,name=network_model,json=networkModel,proto3" json:"network_model,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *VirtualMachine) Reset() {
@@ -533,6 +538,13 @@ func (x *VirtualMachine) GetCreatedBy() string {
 func (x *VirtualMachine) GetRenewalCostPerHourMinorDecimal() string {
 	if x != nil {
 		return x.RenewalCostPerHourMinorDecimal
+	}
+	return ""
+}
+
+func (x *VirtualMachine) GetNetworkModel() string {
+	if x != nil {
+		return x.NetworkModel
 	}
 	return ""
 }
@@ -1006,9 +1018,18 @@ type VMNetworkSpec struct {
 	// private_only attaches NO public NIC at all — no public IPv4, no public IPv6, no inbound
 	// internet surface. The VM still has outbound internet via the private NIC's NAT. Default
 	// false: every VM gets a public NIC with a free IPv6 GUA. Use for air-gapped-ish workloads.
-	PrivateOnly   bool `protobuf:"varint,4,opt,name=private_only,json=privateOnly,proto3" json:"private_only,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	PrivateOnly bool `protobuf:"varint,4,opt,name=private_only,json=privateOnly,proto3" json:"private_only,omitempty"`
+	// Existing detached public IPv4 reservation in this project and region.
+	// Mutually exclusive with public_ipv4 and private_only. The VM provisioning
+	// operation binds it to the primary private address before first boot; it
+	// does not allocate or charge for an additional IP. The reservation remains
+	// separately billed. Concurrent changes can fail provisioning rather than
+	// stealing an address. Requires network.write for automation callers.
+	PublicIpName string `protobuf:"bytes,5,opt,name=public_ip_name,json=publicIpName,proto3" json:"public_ip_name,omitempty"`
+	// Required current reservation generation when public_ip_name is supplied.
+	ExpectedPublicIpGeneration int64 `protobuf:"varint,6,opt,name=expected_public_ip_generation,json=expectedPublicIpGeneration,proto3" json:"expected_public_ip_generation,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *VMNetworkSpec) Reset() {
@@ -1067,6 +1088,20 @@ func (x *VMNetworkSpec) GetPrivateOnly() bool {
 		return x.PrivateOnly
 	}
 	return false
+}
+
+func (x *VMNetworkSpec) GetPublicIpName() string {
+	if x != nil {
+		return x.PublicIpName
+	}
+	return ""
+}
+
+func (x *VMNetworkSpec) GetExpectedPublicIpGeneration() int64 {
+	if x != nil {
+		return x.ExpectedPublicIpGeneration
+	}
+	return 0
 }
 
 type UserSpec struct {
@@ -2482,9 +2517,8 @@ func (x *RenewVMNowResponse) GetChargedAmountMinor() int64 {
 type ReimageVirtualMachineRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Required: streamable raw disk image URL. Setting this is the canonical way to upgrade
-	// the base OS (Ubuntu 24.04 → 26.04) without recreating the VM. Empty = reuse the original
-	// boot source.
+	// Streamable raw disk image URL. Empty reuses the recorded original import source;
+	// disks without a recorded image source require an explicit URL.
 	BootImageUrl string `protobuf:"bytes,3,opt,name=boot_image_url,json=bootImageUrl,proto3" json:"boot_image_url,omitempty"`
 	// Required confirmation token. Server returns the expected value on a first call and the
 	// client echoes it back on the second to acknowledge data loss. Wire format: must equal
@@ -2549,8 +2583,10 @@ func (x *ReimageVirtualMachineRequest) GetConfirmationToken() string {
 type ReimageVirtualMachineResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	VirtualMachine *VirtualMachine        `protobuf:"bytes,1,opt,name=virtual_machine,json=virtualMachine,proto3" json:"virtual_machine,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Poll until terminal. The VM remains stopped; only its boot disk is replaced.
+	Operation     *v1.Operation `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ReimageVirtualMachineResponse) Reset() {
@@ -2586,6 +2622,13 @@ func (*ReimageVirtualMachineResponse) Descriptor() ([]byte, []int) {
 func (x *ReimageVirtualMachineResponse) GetVirtualMachine() *VirtualMachine {
 	if x != nil {
 		return x.VirtualMachine
+	}
+	return nil
+}
+
+func (x *ReimageVirtualMachineResponse) GetOperation() *v1.Operation {
+	if x != nil {
+		return x.Operation
 	}
 	return nil
 }
@@ -4165,7 +4208,7 @@ var File_aes_compute_v1_compute_proto protoreflect.FileDescriptor
 
 const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\n" +
-	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\xdb\f\n" +
+	"\x1caes/compute/v1/compute.proto\x12\x0eaes.compute.v1\x1a\x1baes/ops/v1/operations.proto\"\x80\r\n" +
 	"\x0eVirtualMachine\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fproject_name\x18\x02 \x01(\tR\vprojectName\x12'\n" +
@@ -4204,7 +4247,8 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"!datacenter_unreachable_since_unix\x18# \x01(\x03R\x1edatacenterUnreachableSinceUnix\x12\x1d\n" +
 	"\n" +
 	"created_by\x18$ \x01(\tR\tcreatedBy\x12K\n" +
-	"#renewal_cost_per_hour_minor_decimal\x18& \x01(\tR\x1erenewalCostPerHourMinorDecimal\x1a9\n" +
+	"#renewal_cost_per_hour_minor_decimal\x18& \x01(\tR\x1erenewalCostPerHourMinorDecimal\x12#\n" +
+	"\rnetwork_model\x18' \x01(\tR\fnetworkModel\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
@@ -4251,13 +4295,15 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x05image\x18\x01 \x01(\tR\x05image\x12\x1b\n" +
 	"\timage_url\x18\x02 \x01(\tR\bimageUrl\x12\x19\n" +
 	"\bdisk_gib\x18\x03 \x01(\x05R\adiskGib\x12\x1b\n" +
-	"\tdisk_name\x18\x04 \x01(\tR\bdiskName\"\x96\x01\n" +
+	"\tdisk_name\x18\x04 \x01(\tR\bdiskName\"\xff\x01\n" +
 	"\rVMNetworkSpec\x12\x18\n" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x1f\n" +
 	"\vpublic_ipv4\x18\x02 \x01(\bR\n" +
 	"publicIpv4\x12'\n" +
 	"\x0fsecurity_groups\x18\x03 \x03(\tR\x0esecurityGroups\x12!\n" +
-	"\fprivate_only\x18\x04 \x01(\bR\vprivateOnly\"\x88\x01\n" +
+	"\fprivate_only\x18\x04 \x01(\bR\vprivateOnly\x12$\n" +
+	"\x0epublic_ip_name\x18\x05 \x01(\tR\fpublicIpName\x12A\n" +
+	"\x1dexpected_public_ip_generation\x18\x06 \x01(\x03R\x1aexpectedPublicIpGeneration\"\x88\x01\n" +
 	"\bUserSpec\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x12\n" +
@@ -4352,9 +4398,10 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12$\n" +
 	"\x0eboot_image_url\x18\x03 \x01(\tR\fbootImageUrl\x12-\n" +
 	"\x12confirmation_token\x18\x04 \x01(\tR\x11confirmationTokenJ\x04\b\x02\x10\x03R\n" +
-	"image_name\"h\n" +
+	"image_name\"\x9d\x01\n" +
 	"\x1dReimageVirtualMachineResponse\x12G\n" +
-	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\"Y\n" +
+	"\x0fvirtual_machine\x18\x01 \x01(\v2\x1e.aes.compute.v1.VirtualMachineR\x0evirtualMachine\x123\n" +
+	"\toperation\x18\x02 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"Y\n" +
 	"\x12OpenConsoleRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12/\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1b.aes.compute.v1.ConsoleTypeR\x04type\"z\n" +
@@ -4652,74 +4699,75 @@ var file_aes_compute_v1_compute_proto_depIdxs = []int32{
 	2,  // 29: aes.compute.v1.SetVMAutorenewResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
 	2,  // 30: aes.compute.v1.RenewVMNowResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
 	2,  // 31: aes.compute.v1.ReimageVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	1,  // 32: aes.compute.v1.OpenConsoleRequest.type:type_name -> aes.compute.v1.ConsoleType
-	66, // 33: aes.compute.v1.VmSnapshot.labels:type_name -> aes.compute.v1.VmSnapshot.LabelsEntry
-	67, // 34: aes.compute.v1.VmSnapshot.annotations:type_name -> aes.compute.v1.VmSnapshot.AnnotationsEntry
-	40, // 35: aes.compute.v1.VmSnapshot.volumes:type_name -> aes.compute.v1.BackupVolume
-	68, // 36: aes.compute.v1.SnapshotVirtualMachineRequest.labels:type_name -> aes.compute.v1.SnapshotVirtualMachineRequest.LabelsEntry
-	69, // 37: aes.compute.v1.SnapshotVirtualMachineRequest.annotations:type_name -> aes.compute.v1.SnapshotVirtualMachineRequest.AnnotationsEntry
-	39, // 38: aes.compute.v1.SnapshotVirtualMachineResponse.snapshot:type_name -> aes.compute.v1.VmSnapshot
-	39, // 39: aes.compute.v1.GetVmSnapshotResponse.snapshot:type_name -> aes.compute.v1.VmSnapshot
-	39, // 40: aes.compute.v1.ListVmSnapshotsResponse.vm_snapshots:type_name -> aes.compute.v1.VmSnapshot
-	50, // 41: aes.compute.v1.ListVMUtilizationResponse.vms:type_name -> aes.compute.v1.VMUtilization
-	53, // 42: aes.compute.v1.MetricSeries.samples:type_name -> aes.compute.v1.MetricSample
-	54, // 43: aes.compute.v1.GetVMMetricsResponse.series:type_name -> aes.compute.v1.MetricSeries
-	70, // 44: aes.compute.v1.CloneVirtualMachineRequest.labels:type_name -> aes.compute.v1.CloneVirtualMachineRequest.LabelsEntry
-	71, // 45: aes.compute.v1.CloneVirtualMachineRequest.annotations:type_name -> aes.compute.v1.CloneVirtualMachineRequest.AnnotationsEntry
-	2,  // 46: aes.compute.v1.CloneVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	74, // 47: aes.compute.v1.CloneVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
-	0,  // 48: aes.compute.v1.CreateVirtualMachineFromBackupRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
-	72, // 49: aes.compute.v1.CreateVirtualMachineFromBackupRequest.labels:type_name -> aes.compute.v1.CreateVirtualMachineFromBackupRequest.LabelsEntry
-	73, // 50: aes.compute.v1.CreateVirtualMachineFromBackupRequest.annotations:type_name -> aes.compute.v1.CreateVirtualMachineFromBackupRequest.AnnotationsEntry
-	2,  // 51: aes.compute.v1.CreateVirtualMachineFromBackupResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
-	74, // 52: aes.compute.v1.CreateVirtualMachineFromBackupResponse.operation:type_name -> aes.ops.v1.Operation
-	12, // 53: aes.compute.v1.ComputeService.CreateVirtualMachine:input_type -> aes.compute.v1.CreateVirtualMachineRequest
-	15, // 54: aes.compute.v1.ComputeService.GetVirtualMachine:input_type -> aes.compute.v1.GetVirtualMachineRequest
-	17, // 55: aes.compute.v1.ComputeService.ListVirtualMachines:input_type -> aes.compute.v1.ListVirtualMachinesRequest
-	21, // 56: aes.compute.v1.ComputeService.StartVirtualMachine:input_type -> aes.compute.v1.StartVirtualMachineRequest
-	23, // 57: aes.compute.v1.ComputeService.StopVirtualMachine:input_type -> aes.compute.v1.StopVirtualMachineRequest
-	25, // 58: aes.compute.v1.ComputeService.RestartVirtualMachine:input_type -> aes.compute.v1.RestartVirtualMachineRequest
-	27, // 59: aes.compute.v1.ComputeService.ResizeVirtualMachine:input_type -> aes.compute.v1.ResizeVirtualMachineRequest
-	28, // 60: aes.compute.v1.ComputeService.QuoteVirtualMachineResize:input_type -> aes.compute.v1.QuoteVirtualMachineResizeRequest
-	31, // 61: aes.compute.v1.ComputeService.SetVMAutorenew:input_type -> aes.compute.v1.SetVMAutorenewRequest
-	33, // 62: aes.compute.v1.ComputeService.RenewVMNow:input_type -> aes.compute.v1.RenewVMNowRequest
-	35, // 63: aes.compute.v1.ComputeService.ReimageVirtualMachine:input_type -> aes.compute.v1.ReimageVirtualMachineRequest
-	37, // 64: aes.compute.v1.ComputeService.OpenConsole:input_type -> aes.compute.v1.OpenConsoleRequest
-	41, // 65: aes.compute.v1.ComputeService.SnapshotVirtualMachine:input_type -> aes.compute.v1.SnapshotVirtualMachineRequest
-	43, // 66: aes.compute.v1.ComputeService.GetVmSnapshot:input_type -> aes.compute.v1.GetVmSnapshotRequest
-	45, // 67: aes.compute.v1.ComputeService.ListVmSnapshots:input_type -> aes.compute.v1.ListVmSnapshotsRequest
-	47, // 68: aes.compute.v1.ComputeService.DeleteVmSnapshot:input_type -> aes.compute.v1.DeleteVmSnapshotRequest
-	19, // 69: aes.compute.v1.ComputeService.DeleteVirtualMachine:input_type -> aes.compute.v1.DeleteVirtualMachineRequest
-	52, // 70: aes.compute.v1.ComputeService.GetVMMetrics:input_type -> aes.compute.v1.GetVMMetricsRequest
-	49, // 71: aes.compute.v1.ComputeService.ListVMUtilization:input_type -> aes.compute.v1.ListVMUtilizationRequest
-	56, // 72: aes.compute.v1.ComputeService.CloneVirtualMachine:input_type -> aes.compute.v1.CloneVirtualMachineRequest
-	58, // 73: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup:input_type -> aes.compute.v1.CreateVirtualMachineFromBackupRequest
-	14, // 74: aes.compute.v1.ComputeService.CreateVirtualMachine:output_type -> aes.compute.v1.CreateVirtualMachineResponse
-	16, // 75: aes.compute.v1.ComputeService.GetVirtualMachine:output_type -> aes.compute.v1.GetVirtualMachineResponse
-	18, // 76: aes.compute.v1.ComputeService.ListVirtualMachines:output_type -> aes.compute.v1.ListVirtualMachinesResponse
-	22, // 77: aes.compute.v1.ComputeService.StartVirtualMachine:output_type -> aes.compute.v1.StartVirtualMachineResponse
-	24, // 78: aes.compute.v1.ComputeService.StopVirtualMachine:output_type -> aes.compute.v1.StopVirtualMachineResponse
-	26, // 79: aes.compute.v1.ComputeService.RestartVirtualMachine:output_type -> aes.compute.v1.RestartVirtualMachineResponse
-	30, // 80: aes.compute.v1.ComputeService.ResizeVirtualMachine:output_type -> aes.compute.v1.ResizeVirtualMachineResponse
-	29, // 81: aes.compute.v1.ComputeService.QuoteVirtualMachineResize:output_type -> aes.compute.v1.QuoteVirtualMachineResizeResponse
-	32, // 82: aes.compute.v1.ComputeService.SetVMAutorenew:output_type -> aes.compute.v1.SetVMAutorenewResponse
-	34, // 83: aes.compute.v1.ComputeService.RenewVMNow:output_type -> aes.compute.v1.RenewVMNowResponse
-	36, // 84: aes.compute.v1.ComputeService.ReimageVirtualMachine:output_type -> aes.compute.v1.ReimageVirtualMachineResponse
-	38, // 85: aes.compute.v1.ComputeService.OpenConsole:output_type -> aes.compute.v1.OpenConsoleResponse
-	42, // 86: aes.compute.v1.ComputeService.SnapshotVirtualMachine:output_type -> aes.compute.v1.SnapshotVirtualMachineResponse
-	44, // 87: aes.compute.v1.ComputeService.GetVmSnapshot:output_type -> aes.compute.v1.GetVmSnapshotResponse
-	46, // 88: aes.compute.v1.ComputeService.ListVmSnapshots:output_type -> aes.compute.v1.ListVmSnapshotsResponse
-	48, // 89: aes.compute.v1.ComputeService.DeleteVmSnapshot:output_type -> aes.compute.v1.DeleteVmSnapshotResponse
-	20, // 90: aes.compute.v1.ComputeService.DeleteVirtualMachine:output_type -> aes.compute.v1.DeleteVirtualMachineResponse
-	55, // 91: aes.compute.v1.ComputeService.GetVMMetrics:output_type -> aes.compute.v1.GetVMMetricsResponse
-	51, // 92: aes.compute.v1.ComputeService.ListVMUtilization:output_type -> aes.compute.v1.ListVMUtilizationResponse
-	57, // 93: aes.compute.v1.ComputeService.CloneVirtualMachine:output_type -> aes.compute.v1.CloneVirtualMachineResponse
-	59, // 94: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup:output_type -> aes.compute.v1.CreateVirtualMachineFromBackupResponse
-	74, // [74:95] is the sub-list for method output_type
-	53, // [53:74] is the sub-list for method input_type
-	53, // [53:53] is the sub-list for extension type_name
-	53, // [53:53] is the sub-list for extension extendee
-	0,  // [0:53] is the sub-list for field type_name
+	74, // 32: aes.compute.v1.ReimageVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
+	1,  // 33: aes.compute.v1.OpenConsoleRequest.type:type_name -> aes.compute.v1.ConsoleType
+	66, // 34: aes.compute.v1.VmSnapshot.labels:type_name -> aes.compute.v1.VmSnapshot.LabelsEntry
+	67, // 35: aes.compute.v1.VmSnapshot.annotations:type_name -> aes.compute.v1.VmSnapshot.AnnotationsEntry
+	40, // 36: aes.compute.v1.VmSnapshot.volumes:type_name -> aes.compute.v1.BackupVolume
+	68, // 37: aes.compute.v1.SnapshotVirtualMachineRequest.labels:type_name -> aes.compute.v1.SnapshotVirtualMachineRequest.LabelsEntry
+	69, // 38: aes.compute.v1.SnapshotVirtualMachineRequest.annotations:type_name -> aes.compute.v1.SnapshotVirtualMachineRequest.AnnotationsEntry
+	39, // 39: aes.compute.v1.SnapshotVirtualMachineResponse.snapshot:type_name -> aes.compute.v1.VmSnapshot
+	39, // 40: aes.compute.v1.GetVmSnapshotResponse.snapshot:type_name -> aes.compute.v1.VmSnapshot
+	39, // 41: aes.compute.v1.ListVmSnapshotsResponse.vm_snapshots:type_name -> aes.compute.v1.VmSnapshot
+	50, // 42: aes.compute.v1.ListVMUtilizationResponse.vms:type_name -> aes.compute.v1.VMUtilization
+	53, // 43: aes.compute.v1.MetricSeries.samples:type_name -> aes.compute.v1.MetricSample
+	54, // 44: aes.compute.v1.GetVMMetricsResponse.series:type_name -> aes.compute.v1.MetricSeries
+	70, // 45: aes.compute.v1.CloneVirtualMachineRequest.labels:type_name -> aes.compute.v1.CloneVirtualMachineRequest.LabelsEntry
+	71, // 46: aes.compute.v1.CloneVirtualMachineRequest.annotations:type_name -> aes.compute.v1.CloneVirtualMachineRequest.AnnotationsEntry
+	2,  // 47: aes.compute.v1.CloneVirtualMachineResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	74, // 48: aes.compute.v1.CloneVirtualMachineResponse.operation:type_name -> aes.ops.v1.Operation
+	0,  // 49: aes.compute.v1.CreateVirtualMachineFromBackupRequest.billing_mode:type_name -> aes.compute.v1.BillingMode
+	72, // 50: aes.compute.v1.CreateVirtualMachineFromBackupRequest.labels:type_name -> aes.compute.v1.CreateVirtualMachineFromBackupRequest.LabelsEntry
+	73, // 51: aes.compute.v1.CreateVirtualMachineFromBackupRequest.annotations:type_name -> aes.compute.v1.CreateVirtualMachineFromBackupRequest.AnnotationsEntry
+	2,  // 52: aes.compute.v1.CreateVirtualMachineFromBackupResponse.virtual_machine:type_name -> aes.compute.v1.VirtualMachine
+	74, // 53: aes.compute.v1.CreateVirtualMachineFromBackupResponse.operation:type_name -> aes.ops.v1.Operation
+	12, // 54: aes.compute.v1.ComputeService.CreateVirtualMachine:input_type -> aes.compute.v1.CreateVirtualMachineRequest
+	15, // 55: aes.compute.v1.ComputeService.GetVirtualMachine:input_type -> aes.compute.v1.GetVirtualMachineRequest
+	17, // 56: aes.compute.v1.ComputeService.ListVirtualMachines:input_type -> aes.compute.v1.ListVirtualMachinesRequest
+	21, // 57: aes.compute.v1.ComputeService.StartVirtualMachine:input_type -> aes.compute.v1.StartVirtualMachineRequest
+	23, // 58: aes.compute.v1.ComputeService.StopVirtualMachine:input_type -> aes.compute.v1.StopVirtualMachineRequest
+	25, // 59: aes.compute.v1.ComputeService.RestartVirtualMachine:input_type -> aes.compute.v1.RestartVirtualMachineRequest
+	27, // 60: aes.compute.v1.ComputeService.ResizeVirtualMachine:input_type -> aes.compute.v1.ResizeVirtualMachineRequest
+	28, // 61: aes.compute.v1.ComputeService.QuoteVirtualMachineResize:input_type -> aes.compute.v1.QuoteVirtualMachineResizeRequest
+	31, // 62: aes.compute.v1.ComputeService.SetVMAutorenew:input_type -> aes.compute.v1.SetVMAutorenewRequest
+	33, // 63: aes.compute.v1.ComputeService.RenewVMNow:input_type -> aes.compute.v1.RenewVMNowRequest
+	35, // 64: aes.compute.v1.ComputeService.ReimageVirtualMachine:input_type -> aes.compute.v1.ReimageVirtualMachineRequest
+	37, // 65: aes.compute.v1.ComputeService.OpenConsole:input_type -> aes.compute.v1.OpenConsoleRequest
+	41, // 66: aes.compute.v1.ComputeService.SnapshotVirtualMachine:input_type -> aes.compute.v1.SnapshotVirtualMachineRequest
+	43, // 67: aes.compute.v1.ComputeService.GetVmSnapshot:input_type -> aes.compute.v1.GetVmSnapshotRequest
+	45, // 68: aes.compute.v1.ComputeService.ListVmSnapshots:input_type -> aes.compute.v1.ListVmSnapshotsRequest
+	47, // 69: aes.compute.v1.ComputeService.DeleteVmSnapshot:input_type -> aes.compute.v1.DeleteVmSnapshotRequest
+	19, // 70: aes.compute.v1.ComputeService.DeleteVirtualMachine:input_type -> aes.compute.v1.DeleteVirtualMachineRequest
+	52, // 71: aes.compute.v1.ComputeService.GetVMMetrics:input_type -> aes.compute.v1.GetVMMetricsRequest
+	49, // 72: aes.compute.v1.ComputeService.ListVMUtilization:input_type -> aes.compute.v1.ListVMUtilizationRequest
+	56, // 73: aes.compute.v1.ComputeService.CloneVirtualMachine:input_type -> aes.compute.v1.CloneVirtualMachineRequest
+	58, // 74: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup:input_type -> aes.compute.v1.CreateVirtualMachineFromBackupRequest
+	14, // 75: aes.compute.v1.ComputeService.CreateVirtualMachine:output_type -> aes.compute.v1.CreateVirtualMachineResponse
+	16, // 76: aes.compute.v1.ComputeService.GetVirtualMachine:output_type -> aes.compute.v1.GetVirtualMachineResponse
+	18, // 77: aes.compute.v1.ComputeService.ListVirtualMachines:output_type -> aes.compute.v1.ListVirtualMachinesResponse
+	22, // 78: aes.compute.v1.ComputeService.StartVirtualMachine:output_type -> aes.compute.v1.StartVirtualMachineResponse
+	24, // 79: aes.compute.v1.ComputeService.StopVirtualMachine:output_type -> aes.compute.v1.StopVirtualMachineResponse
+	26, // 80: aes.compute.v1.ComputeService.RestartVirtualMachine:output_type -> aes.compute.v1.RestartVirtualMachineResponse
+	30, // 81: aes.compute.v1.ComputeService.ResizeVirtualMachine:output_type -> aes.compute.v1.ResizeVirtualMachineResponse
+	29, // 82: aes.compute.v1.ComputeService.QuoteVirtualMachineResize:output_type -> aes.compute.v1.QuoteVirtualMachineResizeResponse
+	32, // 83: aes.compute.v1.ComputeService.SetVMAutorenew:output_type -> aes.compute.v1.SetVMAutorenewResponse
+	34, // 84: aes.compute.v1.ComputeService.RenewVMNow:output_type -> aes.compute.v1.RenewVMNowResponse
+	36, // 85: aes.compute.v1.ComputeService.ReimageVirtualMachine:output_type -> aes.compute.v1.ReimageVirtualMachineResponse
+	38, // 86: aes.compute.v1.ComputeService.OpenConsole:output_type -> aes.compute.v1.OpenConsoleResponse
+	42, // 87: aes.compute.v1.ComputeService.SnapshotVirtualMachine:output_type -> aes.compute.v1.SnapshotVirtualMachineResponse
+	44, // 88: aes.compute.v1.ComputeService.GetVmSnapshot:output_type -> aes.compute.v1.GetVmSnapshotResponse
+	46, // 89: aes.compute.v1.ComputeService.ListVmSnapshots:output_type -> aes.compute.v1.ListVmSnapshotsResponse
+	48, // 90: aes.compute.v1.ComputeService.DeleteVmSnapshot:output_type -> aes.compute.v1.DeleteVmSnapshotResponse
+	20, // 91: aes.compute.v1.ComputeService.DeleteVirtualMachine:output_type -> aes.compute.v1.DeleteVirtualMachineResponse
+	55, // 92: aes.compute.v1.ComputeService.GetVMMetrics:output_type -> aes.compute.v1.GetVMMetricsResponse
+	51, // 93: aes.compute.v1.ComputeService.ListVMUtilization:output_type -> aes.compute.v1.ListVMUtilizationResponse
+	57, // 94: aes.compute.v1.ComputeService.CloneVirtualMachine:output_type -> aes.compute.v1.CloneVirtualMachineResponse
+	59, // 95: aes.compute.v1.ComputeService.CreateVirtualMachineFromBackup:output_type -> aes.compute.v1.CreateVirtualMachineFromBackupResponse
+	75, // [75:96] is the sub-list for method output_type
+	54, // [54:75] is the sub-list for method input_type
+	54, // [54:54] is the sub-list for extension type_name
+	54, // [54:54] is the sub-list for extension extendee
+	0,  // [0:54] is the sub-list for field type_name
 }
 
 func init() { file_aes_compute_v1_compute_proto_init() }

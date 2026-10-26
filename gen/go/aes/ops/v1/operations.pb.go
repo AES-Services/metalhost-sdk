@@ -222,8 +222,11 @@ type CreateOperationRequest struct {
 	VmBackupName string `protobuf:"bytes,61,opt,name=vm_backup_name,json=vmBackupName,proto3" json:"vm_backup_name,omitempty"`
 	// Internal provisioning opt-in; admitted by ComputeService.
 	VmInstallGuestCollector bool `protobuf:"varint,62,opt,name=vm_install_guest_collector,json=vmInstallGuestCollector,proto3" json:"vm_install_guest_collector,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	// Existing reservation selection captured in the durable VM create command.
+	VmPublicIpName               string `protobuf:"bytes,63,opt,name=vm_public_ip_name,json=vmPublicIpName,proto3" json:"vm_public_ip_name,omitempty"`
+	VmExpectedPublicIpGeneration int64  `protobuf:"varint,64,opt,name=vm_expected_public_ip_generation,json=vmExpectedPublicIpGeneration,proto3" json:"vm_expected_public_ip_generation,omitempty"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *CreateOperationRequest) Reset() {
@@ -646,6 +649,20 @@ func (x *CreateOperationRequest) GetVmInstallGuestCollector() bool {
 		return x.VmInstallGuestCollector
 	}
 	return false
+}
+
+func (x *CreateOperationRequest) GetVmPublicIpName() string {
+	if x != nil {
+		return x.VmPublicIpName
+	}
+	return ""
+}
+
+func (x *CreateOperationRequest) GetVmExpectedPublicIpGeneration() int64 {
+	if x != nil {
+		return x.VmExpectedPublicIpGeneration
+	}
+	return 0
 }
 
 type CreateOperationResponse struct {
@@ -1080,7 +1097,7 @@ type Operation struct {
 	State          State                  `protobuf:"varint,2,opt,name=state,proto3,enum=aes.ops.v1.State" json:"state,omitempty"`
 	CreateTimeUnix int64                  `protobuf:"varint,3,opt,name=create_time_unix,json=createTimeUnix,proto3" json:"create_time_unix,omitempty"`
 	UpdateTimeUnix int64                  `protobuf:"varint,4,opt,name=update_time_unix,json=updateTimeUnix,proto3" json:"update_time_unix,omitempty"`
-	// Set when state == STATE_FAILED; optional detail later via google.rpc.Status.
+	// Customer-safe explanation, set when the operation failed or was cancelled.
 	ErrorMessage string `protobuf:"bytes,5,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	// Same as CreateOperationRequest.kind; immutable after create.
 	Kind string `protobuf:"bytes,6,opt,name=kind,proto3" json:"kind,omitempty"`
@@ -1090,7 +1107,12 @@ type Operation struct {
 	// Opaque key/value (e.g. vm_project_name on create; virtual_machine_name when provision completes).
 	Metadata map[string]string `protobuf:"bytes,9,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Caller principal that started the operation (” for platform-started ops).
-	Principal     string `protobuf:"bytes,10,opt,name=principal,proto3" json:"principal,omitempty"`
+	Principal string `protobuf:"bytes,10,opt,name=principal,proto3" json:"principal,omitempty"`
+	// Stable machine-readable reason for a failed or cancelled operation, for
+	// example CAPACITY_UNAVAILABLE. Empty otherwise.
+	FailureReason string `protobuf:"bytes,11,opt,name=failure_reason,json=failureReason,proto3" json:"failure_reason,omitempty"`
+	// Operator diagnostic detail. Always empty for customer callers.
+	InternalError string `protobuf:"bytes,12,opt,name=internal_error,json=internalError,proto3" json:"internal_error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1195,12 +1217,26 @@ func (x *Operation) GetPrincipal() string {
 	return ""
 }
 
+func (x *Operation) GetFailureReason() string {
+	if x != nil {
+		return x.FailureReason
+	}
+	return ""
+}
+
+func (x *Operation) GetInternalError() string {
+	if x != nil {
+		return x.InternalError
+	}
+	return ""
+}
+
 var File_aes_ops_v1_operations_proto protoreflect.FileDescriptor
 
 const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\n" +
 	"\x1baes/ops/v1/operations.proto\x12\n" +
-	"aes.ops.v1\"\xaa\x16\n" +
+	"aes.ops.v1\"\x9d\x17\n" +
 	"\x16CreateOperationRequest\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12'\n" +
 	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12&\n" +
@@ -1263,7 +1299,9 @@ const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\rdefrag_budget\x18; \x01(\x05R\fdefragBudget\x125\n" +
 	"\x17vm_runtime_target_state\x18< \x01(\tR\x14vmRuntimeTargetState\x12$\n" +
 	"\x0evm_backup_name\x18= \x01(\tR\fvmBackupName\x12;\n" +
-	"\x1avm_install_guest_collector\x18> \x01(\bR\x17vmInstallGuestCollector\x1a;\n" +
+	"\x1avm_install_guest_collector\x18> \x01(\bR\x17vmInstallGuestCollector\x12)\n" +
+	"\x11vm_public_ip_name\x18? \x01(\tR\x0evmPublicIpName\x12F\n" +
+	" vm_expected_public_ip_generation\x18@ \x01(\x03R\x1cvmExpectedPublicIpGeneration\x1a;\n" +
 	"\rVmLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a@\n" +
@@ -1295,7 +1333,7 @@ const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\x15WatchOperationRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"M\n" +
 	"\x16WatchOperationResponse\x123\n" +
-	"\toperation\x18\x01 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"\xcb\x03\n" +
+	"\toperation\x18\x01 \x01(\v2\x15.aes.ops.v1.OperationR\toperation\"\x99\x04\n" +
 	"\tOperation\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12'\n" +
 	"\x05state\x18\x02 \x01(\x0e2\x11.aes.ops.v1.StateR\x05state\x12(\n" +
@@ -1307,7 +1345,9 @@ const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\x0ftemporal_run_id\x18\b \x01(\tR\rtemporalRunId\x12?\n" +
 	"\bmetadata\x18\t \x03(\v2#.aes.ops.v1.Operation.MetadataEntryR\bmetadata\x12\x1c\n" +
 	"\tprincipal\x18\n" +
-	" \x01(\tR\tprincipal\x1a;\n" +
+	" \x01(\tR\tprincipal\x12%\n" +
+	"\x0efailure_reason\x18\v \x01(\tR\rfailureReason\x12%\n" +
+	"\x0einternal_error\x18\f \x01(\tR\rinternalError\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*\x80\x01\n" +
