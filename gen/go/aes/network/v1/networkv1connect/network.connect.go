@@ -88,6 +88,18 @@ const (
 	// NetworkServiceUpdateVmInternetPolicyProcedure is the fully-qualified name of the NetworkService's
 	// UpdateVmInternetPolicy RPC.
 	NetworkServiceUpdateVmInternetPolicyProcedure = "/aes.network.v1.NetworkService/UpdateVmInternetPolicy"
+	// NetworkServiceGetVmPublicAccessProcedure is the fully-qualified name of the NetworkService's
+	// GetVmPublicAccess RPC.
+	NetworkServiceGetVmPublicAccessProcedure = "/aes.network.v1.NetworkService/GetVmPublicAccess"
+	// NetworkServiceAddVmPublicIpv4Procedure is the fully-qualified name of the NetworkService's
+	// AddVmPublicIpv4 RPC.
+	NetworkServiceAddVmPublicIpv4Procedure = "/aes.network.v1.NetworkService/AddVmPublicIpv4"
+	// NetworkServiceRemoveVmPublicIpv4Procedure is the fully-qualified name of the NetworkService's
+	// RemoveVmPublicIpv4 RPC.
+	NetworkServiceRemoveVmPublicIpv4Procedure = "/aes.network.v1.NetworkService/RemoveVmPublicIpv4"
+	// NetworkServiceUpdateVmPublicIpv4Procedure is the fully-qualified name of the NetworkService's
+	// UpdateVmPublicIpv4 RPC.
+	NetworkServiceUpdateVmPublicIpv4Procedure = "/aes.network.v1.NetworkService/UpdateVmPublicIpv4"
 	// NetworkServiceGetVmNetworkInterfacesProcedure is the fully-qualified name of the NetworkService's
 	// GetVmNetworkInterfaces RPC.
 	NetworkServiceGetVmNetworkInterfacesProcedure = "/aes.network.v1.NetworkService/GetVmNetworkInterfaces"
@@ -198,6 +210,19 @@ type NetworkServiceClient interface {
 	// Accepts an asynchronous change. A response is not proof of enforcement;
 	// wait for the returned operation and check observed_generation.
 	UpdateVmInternetPolicy(context.Context, *connect.Request[v1.UpdateVmInternetPolicyRequest]) (*connect.Response[v1.UpdateVmInternetPolicyResponse], error)
+	// Public access for one VM: its public IPv4 addresses, IPv6 prefix, Internet
+	// switches and firewall rule count.
+	GetVmPublicAccess(context.Context, *connect.Request[v1.GetVmPublicAccessRequest]) (*connect.Response[v1.GetVmPublicAccessResponse], error)
+	// Adds a public IPv4 to a VM: a new address, or a reserved IP when
+	// public_ip_name is set. The first address becomes the VM's main address.
+	AddVmPublicIpv4(context.Context, *connect.Request[v1.AddVmPublicIpv4Request]) (*connect.Response[v1.AddVmPublicIpv4Response], error)
+	// Removes a public IPv4 from a VM. An address added as new is released
+	// unless keep is set; a reserved IP stays reserved. Removing the main address
+	// makes the oldest remaining address main.
+	RemoveVmPublicIpv4(context.Context, *connect.Request[v1.RemoveVmPublicIpv4Request]) (*connect.Response[v1.RemoveVmPublicIpv4Response], error)
+	// Makes an address the VM's main address, or switches it between shared and
+	// dedicated.
+	UpdateVmPublicIpv4(context.Context, *connect.Request[v1.UpdateVmPublicIpv4Request]) (*connect.Response[v1.UpdateVmPublicIpv4Response], error)
 	// Returns desired addresses and separate network/guest observation revisions.
 	GetVmNetworkInterfaces(context.Context, *connect.Request[v1.GetVmNetworkInterfacesRequest]) (*connect.Response[v1.GetVmNetworkInterfacesResponse], error)
 	// Allocates another private IPv4 source on the primary interface. Delivery to
@@ -376,6 +401,30 @@ func NewNetworkServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(networkServiceMethods.ByName("UpdateVmInternetPolicy")),
 			connect.WithClientOptions(opts...),
 		),
+		getVmPublicAccess: connect.NewClient[v1.GetVmPublicAccessRequest, v1.GetVmPublicAccessResponse](
+			httpClient,
+			baseURL+NetworkServiceGetVmPublicAccessProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("GetVmPublicAccess")),
+			connect.WithClientOptions(opts...),
+		),
+		addVmPublicIpv4: connect.NewClient[v1.AddVmPublicIpv4Request, v1.AddVmPublicIpv4Response](
+			httpClient,
+			baseURL+NetworkServiceAddVmPublicIpv4Procedure,
+			connect.WithSchema(networkServiceMethods.ByName("AddVmPublicIpv4")),
+			connect.WithClientOptions(opts...),
+		),
+		removeVmPublicIpv4: connect.NewClient[v1.RemoveVmPublicIpv4Request, v1.RemoveVmPublicIpv4Response](
+			httpClient,
+			baseURL+NetworkServiceRemoveVmPublicIpv4Procedure,
+			connect.WithSchema(networkServiceMethods.ByName("RemoveVmPublicIpv4")),
+			connect.WithClientOptions(opts...),
+		),
+		updateVmPublicIpv4: connect.NewClient[v1.UpdateVmPublicIpv4Request, v1.UpdateVmPublicIpv4Response](
+			httpClient,
+			baseURL+NetworkServiceUpdateVmPublicIpv4Procedure,
+			connect.WithSchema(networkServiceMethods.ByName("UpdateVmPublicIpv4")),
+			connect.WithClientOptions(opts...),
+		),
 		getVmNetworkInterfaces: connect.NewClient[v1.GetVmNetworkInterfacesRequest, v1.GetVmNetworkInterfacesResponse](
 			httpClient,
 			baseURL+NetworkServiceGetVmNetworkInterfacesProcedure,
@@ -532,6 +581,10 @@ type networkServiceClient struct {
 	deleteFirewallRule        *connect.Client[v1.DeleteFirewallRuleRequest, v1.DeleteFirewallRuleResponse]
 	getVmInternetPolicy       *connect.Client[v1.GetVmInternetPolicyRequest, v1.GetVmInternetPolicyResponse]
 	updateVmInternetPolicy    *connect.Client[v1.UpdateVmInternetPolicyRequest, v1.UpdateVmInternetPolicyResponse]
+	getVmPublicAccess         *connect.Client[v1.GetVmPublicAccessRequest, v1.GetVmPublicAccessResponse]
+	addVmPublicIpv4           *connect.Client[v1.AddVmPublicIpv4Request, v1.AddVmPublicIpv4Response]
+	removeVmPublicIpv4        *connect.Client[v1.RemoveVmPublicIpv4Request, v1.RemoveVmPublicIpv4Response]
+	updateVmPublicIpv4        *connect.Client[v1.UpdateVmPublicIpv4Request, v1.UpdateVmPublicIpv4Response]
 	getVmNetworkInterfaces    *connect.Client[v1.GetVmNetworkInterfacesRequest, v1.GetVmNetworkInterfacesResponse]
 	addVmIpv4Alias            *connect.Client[v1.AddVmIpv4AliasRequest, v1.AddVmIpv4AliasResponse]
 	removeVmIpv4Alias         *connect.Client[v1.RemoveVmIpv4AliasRequest, v1.RemoveVmIpv4AliasResponse]
@@ -649,6 +702,26 @@ func (c *networkServiceClient) GetVmInternetPolicy(ctx context.Context, req *con
 // UpdateVmInternetPolicy calls aes.network.v1.NetworkService.UpdateVmInternetPolicy.
 func (c *networkServiceClient) UpdateVmInternetPolicy(ctx context.Context, req *connect.Request[v1.UpdateVmInternetPolicyRequest]) (*connect.Response[v1.UpdateVmInternetPolicyResponse], error) {
 	return c.updateVmInternetPolicy.CallUnary(ctx, req)
+}
+
+// GetVmPublicAccess calls aes.network.v1.NetworkService.GetVmPublicAccess.
+func (c *networkServiceClient) GetVmPublicAccess(ctx context.Context, req *connect.Request[v1.GetVmPublicAccessRequest]) (*connect.Response[v1.GetVmPublicAccessResponse], error) {
+	return c.getVmPublicAccess.CallUnary(ctx, req)
+}
+
+// AddVmPublicIpv4 calls aes.network.v1.NetworkService.AddVmPublicIpv4.
+func (c *networkServiceClient) AddVmPublicIpv4(ctx context.Context, req *connect.Request[v1.AddVmPublicIpv4Request]) (*connect.Response[v1.AddVmPublicIpv4Response], error) {
+	return c.addVmPublicIpv4.CallUnary(ctx, req)
+}
+
+// RemoveVmPublicIpv4 calls aes.network.v1.NetworkService.RemoveVmPublicIpv4.
+func (c *networkServiceClient) RemoveVmPublicIpv4(ctx context.Context, req *connect.Request[v1.RemoveVmPublicIpv4Request]) (*connect.Response[v1.RemoveVmPublicIpv4Response], error) {
+	return c.removeVmPublicIpv4.CallUnary(ctx, req)
+}
+
+// UpdateVmPublicIpv4 calls aes.network.v1.NetworkService.UpdateVmPublicIpv4.
+func (c *networkServiceClient) UpdateVmPublicIpv4(ctx context.Context, req *connect.Request[v1.UpdateVmPublicIpv4Request]) (*connect.Response[v1.UpdateVmPublicIpv4Response], error) {
+	return c.updateVmPublicIpv4.CallUnary(ctx, req)
 }
 
 // GetVmNetworkInterfaces calls aes.network.v1.NetworkService.GetVmNetworkInterfaces.
@@ -803,6 +876,19 @@ type NetworkServiceHandler interface {
 	// Accepts an asynchronous change. A response is not proof of enforcement;
 	// wait for the returned operation and check observed_generation.
 	UpdateVmInternetPolicy(context.Context, *connect.Request[v1.UpdateVmInternetPolicyRequest]) (*connect.Response[v1.UpdateVmInternetPolicyResponse], error)
+	// Public access for one VM: its public IPv4 addresses, IPv6 prefix, Internet
+	// switches and firewall rule count.
+	GetVmPublicAccess(context.Context, *connect.Request[v1.GetVmPublicAccessRequest]) (*connect.Response[v1.GetVmPublicAccessResponse], error)
+	// Adds a public IPv4 to a VM: a new address, or a reserved IP when
+	// public_ip_name is set. The first address becomes the VM's main address.
+	AddVmPublicIpv4(context.Context, *connect.Request[v1.AddVmPublicIpv4Request]) (*connect.Response[v1.AddVmPublicIpv4Response], error)
+	// Removes a public IPv4 from a VM. An address added as new is released
+	// unless keep is set; a reserved IP stays reserved. Removing the main address
+	// makes the oldest remaining address main.
+	RemoveVmPublicIpv4(context.Context, *connect.Request[v1.RemoveVmPublicIpv4Request]) (*connect.Response[v1.RemoveVmPublicIpv4Response], error)
+	// Makes an address the VM's main address, or switches it between shared and
+	// dedicated.
+	UpdateVmPublicIpv4(context.Context, *connect.Request[v1.UpdateVmPublicIpv4Request]) (*connect.Response[v1.UpdateVmPublicIpv4Response], error)
 	// Returns desired addresses and separate network/guest observation revisions.
 	GetVmNetworkInterfaces(context.Context, *connect.Request[v1.GetVmNetworkInterfacesRequest]) (*connect.Response[v1.GetVmNetworkInterfacesResponse], error)
 	// Allocates another private IPv4 source on the primary interface. Delivery to
@@ -977,6 +1063,30 @@ func NewNetworkServiceHandler(svc NetworkServiceHandler, opts ...connect.Handler
 		connect.WithSchema(networkServiceMethods.ByName("UpdateVmInternetPolicy")),
 		connect.WithHandlerOptions(opts...),
 	)
+	networkServiceGetVmPublicAccessHandler := connect.NewUnaryHandler(
+		NetworkServiceGetVmPublicAccessProcedure,
+		svc.GetVmPublicAccess,
+		connect.WithSchema(networkServiceMethods.ByName("GetVmPublicAccess")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceAddVmPublicIpv4Handler := connect.NewUnaryHandler(
+		NetworkServiceAddVmPublicIpv4Procedure,
+		svc.AddVmPublicIpv4,
+		connect.WithSchema(networkServiceMethods.ByName("AddVmPublicIpv4")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceRemoveVmPublicIpv4Handler := connect.NewUnaryHandler(
+		NetworkServiceRemoveVmPublicIpv4Procedure,
+		svc.RemoveVmPublicIpv4,
+		connect.WithSchema(networkServiceMethods.ByName("RemoveVmPublicIpv4")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceUpdateVmPublicIpv4Handler := connect.NewUnaryHandler(
+		NetworkServiceUpdateVmPublicIpv4Procedure,
+		svc.UpdateVmPublicIpv4,
+		connect.WithSchema(networkServiceMethods.ByName("UpdateVmPublicIpv4")),
+		connect.WithHandlerOptions(opts...),
+	)
 	networkServiceGetVmNetworkInterfacesHandler := connect.NewUnaryHandler(
 		NetworkServiceGetVmNetworkInterfacesProcedure,
 		svc.GetVmNetworkInterfaces,
@@ -1149,6 +1259,14 @@ func NewNetworkServiceHandler(svc NetworkServiceHandler, opts ...connect.Handler
 			networkServiceGetVmInternetPolicyHandler.ServeHTTP(w, r)
 		case NetworkServiceUpdateVmInternetPolicyProcedure:
 			networkServiceUpdateVmInternetPolicyHandler.ServeHTTP(w, r)
+		case NetworkServiceGetVmPublicAccessProcedure:
+			networkServiceGetVmPublicAccessHandler.ServeHTTP(w, r)
+		case NetworkServiceAddVmPublicIpv4Procedure:
+			networkServiceAddVmPublicIpv4Handler.ServeHTTP(w, r)
+		case NetworkServiceRemoveVmPublicIpv4Procedure:
+			networkServiceRemoveVmPublicIpv4Handler.ServeHTTP(w, r)
+		case NetworkServiceUpdateVmPublicIpv4Procedure:
+			networkServiceUpdateVmPublicIpv4Handler.ServeHTTP(w, r)
 		case NetworkServiceGetVmNetworkInterfacesProcedure:
 			networkServiceGetVmNetworkInterfacesHandler.ServeHTTP(w, r)
 		case NetworkServiceAddVmIpv4AliasProcedure:
@@ -1276,6 +1394,22 @@ func (UnimplementedNetworkServiceHandler) GetVmInternetPolicy(context.Context, *
 
 func (UnimplementedNetworkServiceHandler) UpdateVmInternetPolicy(context.Context, *connect.Request[v1.UpdateVmInternetPolicyRequest]) (*connect.Response[v1.UpdateVmInternetPolicyResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.UpdateVmInternetPolicy is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) GetVmPublicAccess(context.Context, *connect.Request[v1.GetVmPublicAccessRequest]) (*connect.Response[v1.GetVmPublicAccessResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.GetVmPublicAccess is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) AddVmPublicIpv4(context.Context, *connect.Request[v1.AddVmPublicIpv4Request]) (*connect.Response[v1.AddVmPublicIpv4Response], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.AddVmPublicIpv4 is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) RemoveVmPublicIpv4(context.Context, *connect.Request[v1.RemoveVmPublicIpv4Request]) (*connect.Response[v1.RemoveVmPublicIpv4Response], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.RemoveVmPublicIpv4 is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) UpdateVmPublicIpv4(context.Context, *connect.Request[v1.UpdateVmPublicIpv4Request]) (*connect.Response[v1.UpdateVmPublicIpv4Response], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aes.network.v1.NetworkService.UpdateVmPublicIpv4 is not implemented"))
 }
 
 func (UnimplementedNetworkServiceHandler) GetVmNetworkInterfaces(context.Context, *connect.Request[v1.GetVmNetworkInterfacesRequest]) (*connect.Response[v1.GetVmNetworkInterfacesResponse], error) {

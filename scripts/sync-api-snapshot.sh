@@ -73,6 +73,15 @@ do
   fi
 done
 
+# Files in public packages that the API does not serve yet. StatusService
+# (aes.network.v1.SubscribeStatus) is defined but not mounted by any backend
+# binary; publish it only once the API serves it.
+for file in \
+  network/v1/status.proto
+do
+  rm -f "${ROOT}/proto/aes/${file}"
+done
+
 cd "${ROOT}"
 buf lint
 buf generate

@@ -169,6 +169,8 @@ message CreateOperationRequest {
   // Existing reservation selection captured in the durable VM create command.
   string vm_public_ip_name = 63;
   int64 vm_expected_public_ip_generation = 64;
+  // VM create: add the default inbound SSH firewall rule (VMNetworkSpec.allow_ssh).
+  bool vm_allow_ssh = 65;
 }
 
 message CreateOperationResponse {

@@ -110,3 +110,24 @@ metadata `request_id` identifies the request for support. Branch on the reason,
 not on message text. Failed operations expose `Operation.failure_reason` with
 the same values. `CreateTicketRequest.error_reference` attaches an error a
 customer hit to a support ticket.
+
+## November VM public IPv4 contract (v1.4.0)
+
+A VM can hold several public IPv4 addresses. `NetworkService` adds
+`GetVmPublicAccess` (a VM's public IPv4 addresses, IPv6 prefix, Internet
+switches and firewall rule count), `AddVmPublicIpv4` (a new address or a
+reserved IP), `RemoveVmPublicIpv4` (release, keep as reserved, or release a
+reserved IP) and `UpdateVmPublicIpv4` (make main, or switch between
+`VM_PUBLIC_IPV4_MODE_SHARED` and `VM_PUBLIC_IPV4_MODE_DEDICATED`). A dedicated
+address reports its guest configuration in `VmPublicIpv4.guest_status` and,
+when the guest still needs it, a `guest_command`.
+
+`PublicIp.reserved` says whether an address is kept when removed from its VM,
+and `PublicIpBinding.mode` reports how a bound address reaches the VM.
+`VMNetworkSpec.allow_ssh` (unset means true) controls the default inbound SSH
+firewall rule on VM create. `VirtualMachineSpec.cloud_init` is now kept as
+supplied and `users` with keys or a password are added alongside it, rather
+than ignored. All additions are compatible with `v1.3.0`.
+
+Clients decoding JSON responses should ignore unknown fields so that later
+additive fields do not break them.

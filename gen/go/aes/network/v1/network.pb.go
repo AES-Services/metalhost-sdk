@@ -22,6 +22,128 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// How a public IPv4 reaches the VM.
+type VmPublicIpv4Mode int32
+
+const (
+	VmPublicIpv4Mode_VM_PUBLIC_IPV4_MODE_UNSPECIFIED VmPublicIpv4Mode = 0
+	// Inbound traffic reaches the VM's primary private IPv4. No guest setup.
+	VmPublicIpv4Mode_VM_PUBLIC_IPV4_MODE_SHARED VmPublicIpv4Mode = 1
+	// Maps to its own private IPv4 on the VM, which the guest configures.
+	VmPublicIpv4Mode_VM_PUBLIC_IPV4_MODE_DEDICATED VmPublicIpv4Mode = 2
+)
+
+// Enum value maps for VmPublicIpv4Mode.
+var (
+	VmPublicIpv4Mode_name = map[int32]string{
+		0: "VM_PUBLIC_IPV4_MODE_UNSPECIFIED",
+		1: "VM_PUBLIC_IPV4_MODE_SHARED",
+		2: "VM_PUBLIC_IPV4_MODE_DEDICATED",
+	}
+	VmPublicIpv4Mode_value = map[string]int32{
+		"VM_PUBLIC_IPV4_MODE_UNSPECIFIED": 0,
+		"VM_PUBLIC_IPV4_MODE_SHARED":      1,
+		"VM_PUBLIC_IPV4_MODE_DEDICATED":   2,
+	}
+)
+
+func (x VmPublicIpv4Mode) Enum() *VmPublicIpv4Mode {
+	p := new(VmPublicIpv4Mode)
+	*p = x
+	return p
+}
+
+func (x VmPublicIpv4Mode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (VmPublicIpv4Mode) Descriptor() protoreflect.EnumDescriptor {
+	return file_aes_network_v1_network_proto_enumTypes[0].Descriptor()
+}
+
+func (VmPublicIpv4Mode) Type() protoreflect.EnumType {
+	return &file_aes_network_v1_network_proto_enumTypes[0]
+}
+
+func (x VmPublicIpv4Mode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use VmPublicIpv4Mode.Descriptor instead.
+func (VmPublicIpv4Mode) EnumDescriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{0}
+}
+
+// Whether a dedicated address is configured in the guest.
+type VmPublicIpv4GuestStatus int32
+
+const (
+	VmPublicIpv4GuestStatus_VM_PUBLIC_IPV4_GUEST_STATUS_UNSPECIFIED VmPublicIpv4GuestStatus = 0
+	// Shared addresses need no guest configuration.
+	VmPublicIpv4GuestStatus_VM_PUBLIC_IPV4_GUEST_STATUS_NOT_REQUIRED VmPublicIpv4GuestStatus = 1
+	// The VM has not restarted since the address was added. Restart it, or run
+	// guest_command to configure the address now.
+	VmPublicIpv4GuestStatus_VM_PUBLIC_IPV4_GUEST_STATUS_APPLIES_AT_NEXT_RESTART VmPublicIpv4GuestStatus = 2
+	// The running VM booted with the address in its network configuration.
+	VmPublicIpv4GuestStatus_VM_PUBLIC_IPV4_GUEST_STATUS_CONFIGURED_AT_BOOT VmPublicIpv4GuestStatus = 3
+	// The guest answers on the address.
+	VmPublicIpv4GuestStatus_VM_PUBLIC_IPV4_GUEST_STATUS_ACTIVE_IN_GUEST VmPublicIpv4GuestStatus = 4
+	// The VM booted with the address but the guest does not answer on it.
+	VmPublicIpv4GuestStatus_VM_PUBLIC_IPV4_GUEST_STATUS_NOT_SEEN_IN_GUEST VmPublicIpv4GuestStatus = 5
+	// The VM was created before network changes applied at restart: configure the
+	// guest with guest_command. The platform can't confirm the guest's state.
+	VmPublicIpv4GuestStatus_VM_PUBLIC_IPV4_GUEST_STATUS_NEEDS_GUEST_CONFIGURATION VmPublicIpv4GuestStatus = 6
+)
+
+// Enum value maps for VmPublicIpv4GuestStatus.
+var (
+	VmPublicIpv4GuestStatus_name = map[int32]string{
+		0: "VM_PUBLIC_IPV4_GUEST_STATUS_UNSPECIFIED",
+		1: "VM_PUBLIC_IPV4_GUEST_STATUS_NOT_REQUIRED",
+		2: "VM_PUBLIC_IPV4_GUEST_STATUS_APPLIES_AT_NEXT_RESTART",
+		3: "VM_PUBLIC_IPV4_GUEST_STATUS_CONFIGURED_AT_BOOT",
+		4: "VM_PUBLIC_IPV4_GUEST_STATUS_ACTIVE_IN_GUEST",
+		5: "VM_PUBLIC_IPV4_GUEST_STATUS_NOT_SEEN_IN_GUEST",
+		6: "VM_PUBLIC_IPV4_GUEST_STATUS_NEEDS_GUEST_CONFIGURATION",
+	}
+	VmPublicIpv4GuestStatus_value = map[string]int32{
+		"VM_PUBLIC_IPV4_GUEST_STATUS_UNSPECIFIED":               0,
+		"VM_PUBLIC_IPV4_GUEST_STATUS_NOT_REQUIRED":              1,
+		"VM_PUBLIC_IPV4_GUEST_STATUS_APPLIES_AT_NEXT_RESTART":   2,
+		"VM_PUBLIC_IPV4_GUEST_STATUS_CONFIGURED_AT_BOOT":        3,
+		"VM_PUBLIC_IPV4_GUEST_STATUS_ACTIVE_IN_GUEST":           4,
+		"VM_PUBLIC_IPV4_GUEST_STATUS_NOT_SEEN_IN_GUEST":         5,
+		"VM_PUBLIC_IPV4_GUEST_STATUS_NEEDS_GUEST_CONFIGURATION": 6,
+	}
+)
+
+func (x VmPublicIpv4GuestStatus) Enum() *VmPublicIpv4GuestStatus {
+	p := new(VmPublicIpv4GuestStatus)
+	*p = x
+	return p
+}
+
+func (x VmPublicIpv4GuestStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (VmPublicIpv4GuestStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_aes_network_v1_network_proto_enumTypes[1].Descriptor()
+}
+
+func (VmPublicIpv4GuestStatus) Type() protoreflect.EnumType {
+	return &file_aes_network_v1_network_proto_enumTypes[1]
+}
+
+func (x VmPublicIpv4GuestStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use VmPublicIpv4GuestStatus.Descriptor instead.
+func (VmPublicIpv4GuestStatus) EnumDescriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{1}
+}
+
 type VpcDatacenterMembership struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	DatacenterName string                 `protobuf:"bytes,1,opt,name=datacenter_name,json=datacenterName,proto3" json:"datacenter_name,omitempty"`
@@ -4341,7 +4463,10 @@ type PublicIp struct {
 	// Reservation revision for attachment changes. Zero on legacy allocations.
 	Generation int64 `protobuf:"varint,13,opt,name=generation,proto3" json:"generation,omitempty"`
 	// Current or removing attachment. Absent when detached; not proof of readiness.
-	Binding       *PublicIpBinding `protobuf:"bytes,14,opt,name=binding,proto3" json:"binding,omitempty"`
+	Binding *PublicIpBinding `protobuf:"bytes,14,opt,name=binding,proto3" json:"binding,omitempty"`
+	// Kept when removed from its VM or when the VM is deleted. False for an
+	// address added to a VM as new, which is released with it.
+	Reserved      bool `protobuf:"varint,15,opt,name=reserved,proto3" json:"reserved,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4474,6 +4599,13 @@ func (x *PublicIp) GetBinding() *PublicIpBinding {
 	return nil
 }
 
+func (x *PublicIp) GetReserved() bool {
+	if x != nil {
+		return x.Reserved
+	}
+	return false
+}
+
 type PublicIpBinding struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -4481,8 +4613,9 @@ type PublicIpBinding struct {
 	// An already assigned private IPv4 on the target VM, never a public guest IP.
 	PrivateIpv4 string `protobuf:"bytes,3,opt,name=private_ipv4,json=privateIpv4,proto3" json:"private_ipv4,omitempty"`
 	// APPLYING / ACTIVE / REMOVING.
-	State         string `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
-	Generation    int64  `protobuf:"varint,5,opt,name=generation,proto3" json:"generation,omitempty"`
+	State         string           `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	Generation    int64            `protobuf:"varint,5,opt,name=generation,proto3" json:"generation,omitempty"`
+	Mode          VmPublicIpv4Mode `protobuf:"varint,6,opt,name=mode,proto3,enum=aes.network.v1.VmPublicIpv4Mode" json:"mode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4550,6 +4683,13 @@ func (x *PublicIpBinding) GetGeneration() int64 {
 		return x.Generation
 	}
 	return 0
+}
+
+func (x *PublicIpBinding) GetMode() VmPublicIpv4Mode {
+	if x != nil {
+		return x.Mode
+	}
+	return VmPublicIpv4Mode_VM_PUBLIC_IPV4_MODE_UNSPECIFIED
 }
 
 type GetPublicIpRequest struct {
@@ -7028,6 +7168,671 @@ func (x *RemoveVmFromSecurityGroupResponse) GetOperationName() string {
 	return ""
 }
 
+type VmPublicIpv4 struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Public IP resource name.
+	Name      string           `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	IpAddress string           `protobuf:"bytes,2,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
+	Mode      VmPublicIpv4Mode `protobuf:"varint,3,opt,name=mode,proto3,enum=aes.network.v1.VmPublicIpv4Mode" json:"mode,omitempty"`
+	// The VM's outbound address and the address shown in lists.
+	Main bool `protobuf:"varint,4,opt,name=main,proto3" json:"main,omitempty"`
+	// APPLYING, ACTIVE or REMOVING.
+	State       string                  `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
+	GuestStatus VmPublicIpv4GuestStatus `protobuf:"varint,6,opt,name=guest_status,json=guestStatus,proto3,enum=aes.network.v1.VmPublicIpv4GuestStatus" json:"guest_status,omitempty"`
+	// Private IPv4 the address maps to on the VM.
+	PrivateIpv4 string `protobuf:"bytes,7,opt,name=private_ipv4,json=privateIpv4,proto3" json:"private_ipv4,omitempty"`
+	// True for a reserved IP: kept when removed or when the VM is deleted.
+	Reserved bool `protobuf:"varint,8,opt,name=reserved,proto3" json:"reserved,omitempty"`
+	// For a dedicated address not yet configured at boot: Linux commands for the
+	// guest. APPLIES_AT_NEXT_RESTART: adds it to the running guest until the
+	// restart applies it. NEEDS_GUEST_CONFIGURATION: also makes later restarts
+	// apply the VM's network changes.
+	GuestCommand  string `protobuf:"bytes,9,opt,name=guest_command,json=guestCommand,proto3" json:"guest_command,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VmPublicIpv4) Reset() {
+	*x = VmPublicIpv4{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[100]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VmPublicIpv4) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VmPublicIpv4) ProtoMessage() {}
+
+func (x *VmPublicIpv4) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[100]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VmPublicIpv4.ProtoReflect.Descriptor instead.
+func (*VmPublicIpv4) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{100}
+}
+
+func (x *VmPublicIpv4) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *VmPublicIpv4) GetIpAddress() string {
+	if x != nil {
+		return x.IpAddress
+	}
+	return ""
+}
+
+func (x *VmPublicIpv4) GetMode() VmPublicIpv4Mode {
+	if x != nil {
+		return x.Mode
+	}
+	return VmPublicIpv4Mode_VM_PUBLIC_IPV4_MODE_UNSPECIFIED
+}
+
+func (x *VmPublicIpv4) GetMain() bool {
+	if x != nil {
+		return x.Main
+	}
+	return false
+}
+
+func (x *VmPublicIpv4) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *VmPublicIpv4) GetGuestStatus() VmPublicIpv4GuestStatus {
+	if x != nil {
+		return x.GuestStatus
+	}
+	return VmPublicIpv4GuestStatus_VM_PUBLIC_IPV4_GUEST_STATUS_UNSPECIFIED
+}
+
+func (x *VmPublicIpv4) GetPrivateIpv4() string {
+	if x != nil {
+		return x.PrivateIpv4
+	}
+	return ""
+}
+
+func (x *VmPublicIpv4) GetReserved() bool {
+	if x != nil {
+		return x.Reserved
+	}
+	return false
+}
+
+func (x *VmPublicIpv4) GetGuestCommand() string {
+	if x != nil {
+		return x.GuestCommand
+	}
+	return ""
+}
+
+type GetVmPublicAccessRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName   string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	TargetVm      string                 `protobuf:"bytes,2,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVmPublicAccessRequest) Reset() {
+	*x = GetVmPublicAccessRequest{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[101]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVmPublicAccessRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVmPublicAccessRequest) ProtoMessage() {}
+
+func (x *GetVmPublicAccessRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[101]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVmPublicAccessRequest.ProtoReflect.Descriptor instead.
+func (*GetVmPublicAccessRequest) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{101}
+}
+
+func (x *GetVmPublicAccessRequest) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *GetVmPublicAccessRequest) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+type GetVmPublicAccessResponse struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Ipv4                  []*VmPublicIpv4        `protobuf:"bytes,1,rep,name=ipv4,proto3" json:"ipv4,omitempty"`
+	Ipv6Prefix            string                 `protobuf:"bytes,2,opt,name=ipv6_prefix,json=ipv6Prefix,proto3" json:"ipv6_prefix,omitempty"`
+	AllowOutboundInternet bool                   `protobuf:"varint,3,opt,name=allow_outbound_internet,json=allowOutboundInternet,proto3" json:"allow_outbound_internet,omitempty"`
+	AllowIpv6Internet     bool                   `protobuf:"varint,4,opt,name=allow_ipv6_internet,json=allowIpv6Internet,proto3" json:"allow_ipv6_internet,omitempty"`
+	FirewallRuleCount     int32                  `protobuf:"varint,5,opt,name=firewall_rule_count,json=firewallRuleCount,proto3" json:"firewall_rule_count,omitempty"`
+	// Maximum public IPv4 addresses on this VM.
+	MaxIpv4 int32 `protobuf:"varint,6,opt,name=max_ipv4,json=maxIpv4,proto3" json:"max_ipv4,omitempty"`
+	// False for a private-only VM.
+	PublicAccess bool `protobuf:"varint,7,opt,name=public_access,json=publicAccess,proto3" json:"public_access,omitempty"`
+	// A make-main, mode or removal change still in progress.
+	PendingOperationName string `protobuf:"bytes,8,opt,name=pending_operation_name,json=pendingOperationName,proto3" json:"pending_operation_name,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *GetVmPublicAccessResponse) Reset() {
+	*x = GetVmPublicAccessResponse{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[102]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVmPublicAccessResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVmPublicAccessResponse) ProtoMessage() {}
+
+func (x *GetVmPublicAccessResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[102]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVmPublicAccessResponse.ProtoReflect.Descriptor instead.
+func (*GetVmPublicAccessResponse) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{102}
+}
+
+func (x *GetVmPublicAccessResponse) GetIpv4() []*VmPublicIpv4 {
+	if x != nil {
+		return x.Ipv4
+	}
+	return nil
+}
+
+func (x *GetVmPublicAccessResponse) GetIpv6Prefix() string {
+	if x != nil {
+		return x.Ipv6Prefix
+	}
+	return ""
+}
+
+func (x *GetVmPublicAccessResponse) GetAllowOutboundInternet() bool {
+	if x != nil {
+		return x.AllowOutboundInternet
+	}
+	return false
+}
+
+func (x *GetVmPublicAccessResponse) GetAllowIpv6Internet() bool {
+	if x != nil {
+		return x.AllowIpv6Internet
+	}
+	return false
+}
+
+func (x *GetVmPublicAccessResponse) GetFirewallRuleCount() int32 {
+	if x != nil {
+		return x.FirewallRuleCount
+	}
+	return 0
+}
+
+func (x *GetVmPublicAccessResponse) GetMaxIpv4() int32 {
+	if x != nil {
+		return x.MaxIpv4
+	}
+	return 0
+}
+
+func (x *GetVmPublicAccessResponse) GetPublicAccess() bool {
+	if x != nil {
+		return x.PublicAccess
+	}
+	return false
+}
+
+func (x *GetVmPublicAccessResponse) GetPendingOperationName() string {
+	if x != nil {
+		return x.PendingOperationName
+	}
+	return ""
+}
+
+type AddVmPublicIpv4Request struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	TargetVm    string                 `protobuf:"bytes,2,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	// Reserved IP to add. Empty allocates a new address.
+	PublicIpName string `protobuf:"bytes,3,opt,name=public_ip_name,json=publicIpName,proto3" json:"public_ip_name,omitempty"`
+	// Map to its own private IPv4 instead of the primary. The first address is
+	// always the shared main address.
+	Dedicated bool `protobuf:"varint,4,opt,name=dedicated,proto3" json:"dedicated,omitempty"`
+	// Canonical UUID; reuse it on retries.
+	RequestId     string `protobuf:"bytes,5,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddVmPublicIpv4Request) Reset() {
+	*x = AddVmPublicIpv4Request{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[103]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddVmPublicIpv4Request) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddVmPublicIpv4Request) ProtoMessage() {}
+
+func (x *AddVmPublicIpv4Request) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[103]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddVmPublicIpv4Request.ProtoReflect.Descriptor instead.
+func (*AddVmPublicIpv4Request) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{103}
+}
+
+func (x *AddVmPublicIpv4Request) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *AddVmPublicIpv4Request) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+func (x *AddVmPublicIpv4Request) GetPublicIpName() string {
+	if x != nil {
+		return x.PublicIpName
+	}
+	return ""
+}
+
+func (x *AddVmPublicIpv4Request) GetDedicated() bool {
+	if x != nil {
+		return x.Dedicated
+	}
+	return false
+}
+
+func (x *AddVmPublicIpv4Request) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type AddVmPublicIpv4Response struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	Address       *VmPublicIpv4          `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddVmPublicIpv4Response) Reset() {
+	*x = AddVmPublicIpv4Response{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[104]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddVmPublicIpv4Response) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddVmPublicIpv4Response) ProtoMessage() {}
+
+func (x *AddVmPublicIpv4Response) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[104]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddVmPublicIpv4Response.ProtoReflect.Descriptor instead.
+func (*AddVmPublicIpv4Response) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{104}
+}
+
+func (x *AddVmPublicIpv4Response) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+func (x *AddVmPublicIpv4Response) GetAddress() *VmPublicIpv4 {
+	if x != nil {
+		return x.Address
+	}
+	return nil
+}
+
+type RemoveVmPublicIpv4Request struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName  string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	TargetVm     string                 `protobuf:"bytes,2,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	PublicIpName string                 `protobuf:"bytes,3,opt,name=public_ip_name,json=publicIpName,proto3" json:"public_ip_name,omitempty"`
+	// Keep the address as a reserved IP instead of releasing it.
+	Keep      bool   `protobuf:"varint,4,opt,name=keep,proto3" json:"keep,omitempty"`
+	RequestId string `protobuf:"bytes,5,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	// Release the address once removed, including a reserved IP. Can't be
+	// combined with keep.
+	Release       bool `protobuf:"varint,6,opt,name=release,proto3" json:"release,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveVmPublicIpv4Request) Reset() {
+	*x = RemoveVmPublicIpv4Request{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[105]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveVmPublicIpv4Request) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveVmPublicIpv4Request) ProtoMessage() {}
+
+func (x *RemoveVmPublicIpv4Request) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[105]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveVmPublicIpv4Request.ProtoReflect.Descriptor instead.
+func (*RemoveVmPublicIpv4Request) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{105}
+}
+
+func (x *RemoveVmPublicIpv4Request) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *RemoveVmPublicIpv4Request) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+func (x *RemoveVmPublicIpv4Request) GetPublicIpName() string {
+	if x != nil {
+		return x.PublicIpName
+	}
+	return ""
+}
+
+func (x *RemoveVmPublicIpv4Request) GetKeep() bool {
+	if x != nil {
+		return x.Keep
+	}
+	return false
+}
+
+func (x *RemoveVmPublicIpv4Request) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *RemoveVmPublicIpv4Request) GetRelease() bool {
+	if x != nil {
+		return x.Release
+	}
+	return false
+}
+
+type RemoveVmPublicIpv4Response struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveVmPublicIpv4Response) Reset() {
+	*x = RemoveVmPublicIpv4Response{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[106]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveVmPublicIpv4Response) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveVmPublicIpv4Response) ProtoMessage() {}
+
+func (x *RemoveVmPublicIpv4Response) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[106]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveVmPublicIpv4Response.ProtoReflect.Descriptor instead.
+func (*RemoveVmPublicIpv4Response) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{106}
+}
+
+func (x *RemoveVmPublicIpv4Response) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
+type UpdateVmPublicIpv4Request struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName  string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	TargetVm     string                 `protobuf:"bytes,2,opt,name=target_vm,json=targetVm,proto3" json:"target_vm,omitempty"`
+	PublicIpName string                 `protobuf:"bytes,3,opt,name=public_ip_name,json=publicIpName,proto3" json:"public_ip_name,omitempty"`
+	// Make this the main address. A dedicated address becomes shared.
+	MakeMain bool `protobuf:"varint,4,opt,name=make_main,json=makeMain,proto3" json:"make_main,omitempty"`
+	// New mode; unspecified keeps the current mode.
+	Mode          VmPublicIpv4Mode `protobuf:"varint,5,opt,name=mode,proto3,enum=aes.network.v1.VmPublicIpv4Mode" json:"mode,omitempty"`
+	RequestId     string           `protobuf:"bytes,6,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateVmPublicIpv4Request) Reset() {
+	*x = UpdateVmPublicIpv4Request{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[107]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateVmPublicIpv4Request) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateVmPublicIpv4Request) ProtoMessage() {}
+
+func (x *UpdateVmPublicIpv4Request) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[107]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateVmPublicIpv4Request.ProtoReflect.Descriptor instead.
+func (*UpdateVmPublicIpv4Request) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{107}
+}
+
+func (x *UpdateVmPublicIpv4Request) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *UpdateVmPublicIpv4Request) GetTargetVm() string {
+	if x != nil {
+		return x.TargetVm
+	}
+	return ""
+}
+
+func (x *UpdateVmPublicIpv4Request) GetPublicIpName() string {
+	if x != nil {
+		return x.PublicIpName
+	}
+	return ""
+}
+
+func (x *UpdateVmPublicIpv4Request) GetMakeMain() bool {
+	if x != nil {
+		return x.MakeMain
+	}
+	return false
+}
+
+func (x *UpdateVmPublicIpv4Request) GetMode() VmPublicIpv4Mode {
+	if x != nil {
+		return x.Mode
+	}
+	return VmPublicIpv4Mode_VM_PUBLIC_IPV4_MODE_UNSPECIFIED
+}
+
+func (x *UpdateVmPublicIpv4Request) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type UpdateVmPublicIpv4Response struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationName string                 `protobuf:"bytes,1,opt,name=operation_name,json=operationName,proto3" json:"operation_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateVmPublicIpv4Response) Reset() {
+	*x = UpdateVmPublicIpv4Response{}
+	mi := &file_aes_network_v1_network_proto_msgTypes[108]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateVmPublicIpv4Response) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateVmPublicIpv4Response) ProtoMessage() {}
+
+func (x *UpdateVmPublicIpv4Response) ProtoReflect() protoreflect.Message {
+	mi := &file_aes_network_v1_network_proto_msgTypes[108]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateVmPublicIpv4Response.ProtoReflect.Descriptor instead.
+func (*UpdateVmPublicIpv4Response) Descriptor() ([]byte, []int) {
+	return file_aes_network_v1_network_proto_rawDescGZIP(), []int{108}
+}
+
+func (x *UpdateVmPublicIpv4Response) GetOperationName() string {
+	if x != nil {
+		return x.OperationName
+	}
+	return ""
+}
+
 var File_aes_network_v1_network_proto protoreflect.FileDescriptor
 
 const file_aes_network_v1_network_proto_rawDesc = "" +
@@ -7402,7 +8207,7 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\bprotocol\x18\x02 \x01(\tR\bprotocol\x12\x1f\n" +
 	"\vtarget_port\x18\x03 \x01(\x05R\n" +
 	"targetPort\x12\x19\n" +
-	"\bend_port\x18\x04 \x01(\x05R\aendPort\"\xc7\x05\n" +
+	"\bend_port\x18\x04 \x01(\x05R\aendPort\"\xe3\x05\n" +
 	"\bPublicIp\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12!\n" +
@@ -7421,13 +8226,14 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\n" +
 	"generation\x18\r \x01(\x03R\n" +
 	"generation\x129\n" +
-	"\abinding\x18\x0e \x01(\v2\x1f.aes.network.v1.PublicIpBindingR\abinding\x1a9\n" +
+	"\abinding\x18\x0e \x01(\v2\x1f.aes.network.v1.PublicIpBindingR\abinding\x12\x1a\n" +
+	"\breserved\x18\x0f \x01(\bR\breserved\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x97\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xcd\x01\n" +
 	"\x0fPublicIpBinding\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\x12!\n" +
@@ -7435,7 +8241,8 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\x05state\x18\x04 \x01(\tR\x05state\x12\x1e\n" +
 	"\n" +
 	"generation\x18\x05 \x01(\x03R\n" +
-	"generation\"(\n" +
+	"generation\x124\n" +
+	"\x04mode\x18\x06 \x01(\x0e2 .aes.network.v1.VmPublicIpv4ModeR\x04mode\"(\n" +
 	"\x12GetPublicIpRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"L\n" +
 	"\x13GetPublicIpResponse\x125\n" +
@@ -7663,7 +8470,73 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"request_id\x18\x03 \x01(\tR\trequestId\"\x90\x01\n" +
 	"!RemoveVmFromSecurityGroupResponse\x12D\n" +
 	"\x0esecurity_group\x18\x01 \x01(\v2\x1d.aes.network.v1.SecurityGroupR\rsecurityGroup\x12%\n" +
-	"\x0eoperation_name\x18\x02 \x01(\tR\roperationName2\xe6 \n" +
+	"\x0eoperation_name\x18\x02 \x01(\tR\roperationName\"\xd1\x02\n" +
+	"\fVmPublicIpv4\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
+	"\n" +
+	"ip_address\x18\x02 \x01(\tR\tipAddress\x124\n" +
+	"\x04mode\x18\x03 \x01(\x0e2 .aes.network.v1.VmPublicIpv4ModeR\x04mode\x12\x12\n" +
+	"\x04main\x18\x04 \x01(\bR\x04main\x12\x14\n" +
+	"\x05state\x18\x05 \x01(\tR\x05state\x12J\n" +
+	"\fguest_status\x18\x06 \x01(\x0e2'.aes.network.v1.VmPublicIpv4GuestStatusR\vguestStatus\x12!\n" +
+	"\fprivate_ipv4\x18\a \x01(\tR\vprivateIpv4\x12\x1a\n" +
+	"\breserved\x18\b \x01(\bR\breserved\x12#\n" +
+	"\rguest_command\x18\t \x01(\tR\fguestCommand\"Z\n" +
+	"\x18GetVmPublicAccessRequest\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
+	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\"\xfc\x02\n" +
+	"\x19GetVmPublicAccessResponse\x120\n" +
+	"\x04ipv4\x18\x01 \x03(\v2\x1c.aes.network.v1.VmPublicIpv4R\x04ipv4\x12\x1f\n" +
+	"\vipv6_prefix\x18\x02 \x01(\tR\n" +
+	"ipv6Prefix\x126\n" +
+	"\x17allow_outbound_internet\x18\x03 \x01(\bR\x15allowOutboundInternet\x12.\n" +
+	"\x13allow_ipv6_internet\x18\x04 \x01(\bR\x11allowIpv6Internet\x12.\n" +
+	"\x13firewall_rule_count\x18\x05 \x01(\x05R\x11firewallRuleCount\x12\x19\n" +
+	"\bmax_ipv4\x18\x06 \x01(\x05R\amaxIpv4\x12#\n" +
+	"\rpublic_access\x18\a \x01(\bR\fpublicAccess\x124\n" +
+	"\x16pending_operation_name\x18\b \x01(\tR\x14pendingOperationName\"\xbb\x01\n" +
+	"\x16AddVmPublicIpv4Request\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
+	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\x12$\n" +
+	"\x0epublic_ip_name\x18\x03 \x01(\tR\fpublicIpName\x12\x1c\n" +
+	"\tdedicated\x18\x04 \x01(\bR\tdedicated\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x05 \x01(\tR\trequestId\"x\n" +
+	"\x17AddVmPublicIpv4Response\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\x126\n" +
+	"\aaddress\x18\x02 \x01(\v2\x1c.aes.network.v1.VmPublicIpv4R\aaddress\"\xce\x01\n" +
+	"\x19RemoveVmPublicIpv4Request\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
+	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\x12$\n" +
+	"\x0epublic_ip_name\x18\x03 \x01(\tR\fpublicIpName\x12\x12\n" +
+	"\x04keep\x18\x04 \x01(\bR\x04keep\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x05 \x01(\tR\trequestId\x12\x18\n" +
+	"\arelease\x18\x06 \x01(\bR\arelease\"C\n" +
+	"\x1aRemoveVmPublicIpv4Response\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName\"\xf3\x01\n" +
+	"\x19UpdateVmPublicIpv4Request\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12\x1b\n" +
+	"\ttarget_vm\x18\x02 \x01(\tR\btargetVm\x12$\n" +
+	"\x0epublic_ip_name\x18\x03 \x01(\tR\fpublicIpName\x12\x1b\n" +
+	"\tmake_main\x18\x04 \x01(\bR\bmakeMain\x124\n" +
+	"\x04mode\x18\x05 \x01(\x0e2 .aes.network.v1.VmPublicIpv4ModeR\x04mode\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x06 \x01(\tR\trequestId\"C\n" +
+	"\x1aUpdateVmPublicIpv4Response\x12%\n" +
+	"\x0eoperation_name\x18\x01 \x01(\tR\roperationName*z\n" +
+	"\x10VmPublicIpv4Mode\x12#\n" +
+	"\x1fVM_PUBLIC_IPV4_MODE_UNSPECIFIED\x10\x00\x12\x1e\n" +
+	"\x1aVM_PUBLIC_IPV4_MODE_SHARED\x10\x01\x12!\n" +
+	"\x1dVM_PUBLIC_IPV4_MODE_DEDICATED\x10\x02*\x80\x03\n" +
+	"\x17VmPublicIpv4GuestStatus\x12+\n" +
+	"'VM_PUBLIC_IPV4_GUEST_STATUS_UNSPECIFIED\x10\x00\x12,\n" +
+	"(VM_PUBLIC_IPV4_GUEST_STATUS_NOT_REQUIRED\x10\x01\x127\n" +
+	"3VM_PUBLIC_IPV4_GUEST_STATUS_APPLIES_AT_NEXT_RESTART\x10\x02\x122\n" +
+	".VM_PUBLIC_IPV4_GUEST_STATUS_CONFIGURED_AT_BOOT\x10\x03\x12/\n" +
+	"+VM_PUBLIC_IPV4_GUEST_STATUS_ACTIVE_IN_GUEST\x10\x04\x121\n" +
+	"-VM_PUBLIC_IPV4_GUEST_STATUS_NOT_SEEN_IN_GUEST\x10\x05\x129\n" +
+	"5VM_PUBLIC_IPV4_GUEST_STATUS_NEEDS_GUEST_CONFIGURATION\x10\x062\x8e$\n" +
 	"\x0eNetworkService\x12M\n" +
 	"\bListVpcs\x12\x1f.aes.network.v1.ListVpcsRequest\x1a .aes.network.v1.ListVpcsResponse\x12G\n" +
 	"\x06GetVpc\x12\x1d.aes.network.v1.GetVpcRequest\x1a\x1e.aes.network.v1.GetVpcResponse\x12_\n" +
@@ -7683,7 +8556,11 @@ const file_aes_network_v1_network_proto_rawDesc = "" +
 	"\x11ListFirewallRules\x12(.aes.network.v1.ListFirewallRulesRequest\x1a).aes.network.v1.ListFirewallRulesResponse\x12k\n" +
 	"\x12DeleteFirewallRule\x12).aes.network.v1.DeleteFirewallRuleRequest\x1a*.aes.network.v1.DeleteFirewallRuleResponse\x12n\n" +
 	"\x13GetVmInternetPolicy\x12*.aes.network.v1.GetVmInternetPolicyRequest\x1a+.aes.network.v1.GetVmInternetPolicyResponse\x12w\n" +
-	"\x16UpdateVmInternetPolicy\x12-.aes.network.v1.UpdateVmInternetPolicyRequest\x1a..aes.network.v1.UpdateVmInternetPolicyResponse\x12w\n" +
+	"\x16UpdateVmInternetPolicy\x12-.aes.network.v1.UpdateVmInternetPolicyRequest\x1a..aes.network.v1.UpdateVmInternetPolicyResponse\x12h\n" +
+	"\x11GetVmPublicAccess\x12(.aes.network.v1.GetVmPublicAccessRequest\x1a).aes.network.v1.GetVmPublicAccessResponse\x12b\n" +
+	"\x0fAddVmPublicIpv4\x12&.aes.network.v1.AddVmPublicIpv4Request\x1a'.aes.network.v1.AddVmPublicIpv4Response\x12k\n" +
+	"\x12RemoveVmPublicIpv4\x12).aes.network.v1.RemoveVmPublicIpv4Request\x1a*.aes.network.v1.RemoveVmPublicIpv4Response\x12k\n" +
+	"\x12UpdateVmPublicIpv4\x12).aes.network.v1.UpdateVmPublicIpv4Request\x1a*.aes.network.v1.UpdateVmPublicIpv4Response\x12w\n" +
 	"\x16GetVmNetworkInterfaces\x12-.aes.network.v1.GetVmNetworkInterfacesRequest\x1a..aes.network.v1.GetVmNetworkInterfacesResponse\x12_\n" +
 	"\x0eAddVmIpv4Alias\x12%.aes.network.v1.AddVmIpv4AliasRequest\x1a&.aes.network.v1.AddVmIpv4AliasResponse\x12h\n" +
 	"\x11RemoveVmIpv4Alias\x12(.aes.network.v1.RemoveVmIpv4AliasRequest\x1a).aes.network.v1.RemoveVmIpv4AliasResponse\x12q\n" +
@@ -7720,280 +8597,306 @@ func file_aes_network_v1_network_proto_rawDescGZIP() []byte {
 	return file_aes_network_v1_network_proto_rawDescData
 }
 
-var file_aes_network_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 116)
+var file_aes_network_v1_network_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_aes_network_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 125)
 var file_aes_network_v1_network_proto_goTypes = []any{
-	(*VpcDatacenterMembership)(nil),           // 0: aes.network.v1.VpcDatacenterMembership
-	(*Vpc)(nil),                               // 1: aes.network.v1.Vpc
-	(*VpcSubnet)(nil),                         // 2: aes.network.v1.VpcSubnet
-	(*CreateVpcRequest)(nil),                  // 3: aes.network.v1.CreateVpcRequest
-	(*CreateVpcResponse)(nil),                 // 4: aes.network.v1.CreateVpcResponse
-	(*CreateVpcSubnetRequest)(nil),            // 5: aes.network.v1.CreateVpcSubnetRequest
-	(*CreateVpcSubnetResponse)(nil),           // 6: aes.network.v1.CreateVpcSubnetResponse
-	(*ListVpcsRequest)(nil),                   // 7: aes.network.v1.ListVpcsRequest
-	(*ListVpcsResponse)(nil),                  // 8: aes.network.v1.ListVpcsResponse
-	(*GetVpcRequest)(nil),                     // 9: aes.network.v1.GetVpcRequest
-	(*GetVpcResponse)(nil),                    // 10: aes.network.v1.GetVpcResponse
-	(*ListVpcSubnetsRequest)(nil),             // 11: aes.network.v1.ListVpcSubnetsRequest
-	(*ListVpcSubnetsResponse)(nil),            // 12: aes.network.v1.ListVpcSubnetsResponse
-	(*GetVpcSubnetRequest)(nil),               // 13: aes.network.v1.GetVpcSubnetRequest
-	(*GetVpcSubnetResponse)(nil),              // 14: aes.network.v1.GetVpcSubnetResponse
-	(*UpdateVpcRequest)(nil),                  // 15: aes.network.v1.UpdateVpcRequest
-	(*UpdateVpcResponse)(nil),                 // 16: aes.network.v1.UpdateVpcResponse
-	(*UpdateVpcSubnetRequest)(nil),            // 17: aes.network.v1.UpdateVpcSubnetRequest
-	(*UpdateVpcSubnetResponse)(nil),           // 18: aes.network.v1.UpdateVpcSubnetResponse
-	(*DeleteVpcRequest)(nil),                  // 19: aes.network.v1.DeleteVpcRequest
-	(*DeleteVpcResponse)(nil),                 // 20: aes.network.v1.DeleteVpcResponse
-	(*DeleteVpcSubnetRequest)(nil),            // 21: aes.network.v1.DeleteVpcSubnetRequest
-	(*DeleteVpcSubnetResponse)(nil),           // 22: aes.network.v1.DeleteVpcSubnetResponse
-	(*RemoveVmIpv4AliasRequest)(nil),          // 23: aes.network.v1.RemoveVmIpv4AliasRequest
-	(*RemoveVmIpv4AliasResponse)(nil),         // 24: aes.network.v1.RemoveVmIpv4AliasResponse
-	(*VmNetworkAddress)(nil),                  // 25: aes.network.v1.VmNetworkAddress
-	(*VmNetworkInterface)(nil),                // 26: aes.network.v1.VmNetworkInterface
-	(*VpcNetworkReconciliationStatus)(nil),    // 27: aes.network.v1.VpcNetworkReconciliationStatus
-	(*GetVmNetworkInterfacesRequest)(nil),     // 28: aes.network.v1.GetVmNetworkInterfacesRequest
-	(*GetVmNetworkInterfacesResponse)(nil),    // 29: aes.network.v1.GetVmNetworkInterfacesResponse
-	(*AddVmIpv4AliasRequest)(nil),             // 30: aes.network.v1.AddVmIpv4AliasRequest
-	(*AddVmIpv4AliasResponse)(nil),            // 31: aes.network.v1.AddVmIpv4AliasResponse
-	(*SetVmDefaultPublicIpRequest)(nil),       // 32: aes.network.v1.SetVmDefaultPublicIpRequest
-	(*SetVmDefaultPublicIpResponse)(nil),      // 33: aes.network.v1.SetVmDefaultPublicIpResponse
-	(*LoadBalancerHealthCheck)(nil),           // 34: aes.network.v1.LoadBalancerHealthCheck
-	(*LoadBalancerListener)(nil),              // 35: aes.network.v1.LoadBalancerListener
-	(*LoadBalancer)(nil),                      // 36: aes.network.v1.LoadBalancer
-	(*LoadBalancerBackendHealth)(nil),         // 37: aes.network.v1.LoadBalancerBackendHealth
-	(*CreateLoadBalancerRequest)(nil),         // 38: aes.network.v1.CreateLoadBalancerRequest
-	(*CreateLoadBalancerResponse)(nil),        // 39: aes.network.v1.CreateLoadBalancerResponse
-	(*GetLoadBalancerRequest)(nil),            // 40: aes.network.v1.GetLoadBalancerRequest
-	(*GetLoadBalancerResponse)(nil),           // 41: aes.network.v1.GetLoadBalancerResponse
-	(*ListLoadBalancersRequest)(nil),          // 42: aes.network.v1.ListLoadBalancersRequest
-	(*ListLoadBalancersResponse)(nil),         // 43: aes.network.v1.ListLoadBalancersResponse
-	(*UpdateLoadBalancerRequest)(nil),         // 44: aes.network.v1.UpdateLoadBalancerRequest
-	(*UpdateLoadBalancerResponse)(nil),        // 45: aes.network.v1.UpdateLoadBalancerResponse
-	(*DeleteLoadBalancerRequest)(nil),         // 46: aes.network.v1.DeleteLoadBalancerRequest
-	(*DeleteLoadBalancerResponse)(nil),        // 47: aes.network.v1.DeleteLoadBalancerResponse
-	(*VmInternetPolicy)(nil),                  // 48: aes.network.v1.VmInternetPolicy
-	(*GetVmInternetPolicyRequest)(nil),        // 49: aes.network.v1.GetVmInternetPolicyRequest
-	(*GetVmInternetPolicyResponse)(nil),       // 50: aes.network.v1.GetVmInternetPolicyResponse
-	(*UpdateVmInternetPolicyRequest)(nil),     // 51: aes.network.v1.UpdateVmInternetPolicyRequest
-	(*UpdateVmInternetPolicyResponse)(nil),    // 52: aes.network.v1.UpdateVmInternetPolicyResponse
-	(*Network)(nil),                           // 53: aes.network.v1.Network
-	(*AttachVpcSubnetRequest)(nil),            // 54: aes.network.v1.AttachVpcSubnetRequest
-	(*AttachVpcSubnetResponse)(nil),           // 55: aes.network.v1.AttachVpcSubnetResponse
-	(*DetachVpcDatacenterRequest)(nil),        // 56: aes.network.v1.DetachVpcDatacenterRequest
-	(*DetachVpcDatacenterResponse)(nil),       // 57: aes.network.v1.DetachVpcDatacenterResponse
-	(*CreateNetworkRequest)(nil),              // 58: aes.network.v1.CreateNetworkRequest
-	(*CreateNetworkResponse)(nil),             // 59: aes.network.v1.CreateNetworkResponse
-	(*ListNetworksRequest)(nil),               // 60: aes.network.v1.ListNetworksRequest
-	(*ListNetworksResponse)(nil),              // 61: aes.network.v1.ListNetworksResponse
-	(*PortMapping)(nil),                       // 62: aes.network.v1.PortMapping
-	(*PublicIp)(nil),                          // 63: aes.network.v1.PublicIp
-	(*PublicIpBinding)(nil),                   // 64: aes.network.v1.PublicIpBinding
-	(*GetPublicIpRequest)(nil),                // 65: aes.network.v1.GetPublicIpRequest
-	(*GetPublicIpResponse)(nil),               // 66: aes.network.v1.GetPublicIpResponse
-	(*ListPublicIpsRequest)(nil),              // 67: aes.network.v1.ListPublicIpsRequest
-	(*ListPublicIpsResponse)(nil),             // 68: aes.network.v1.ListPublicIpsResponse
-	(*ReservePublicIpRequest)(nil),            // 69: aes.network.v1.ReservePublicIpRequest
-	(*ReservePublicIpResponse)(nil),           // 70: aes.network.v1.ReservePublicIpResponse
-	(*AttachPublicIpRequest)(nil),             // 71: aes.network.v1.AttachPublicIpRequest
-	(*AttachPublicIpResponse)(nil),            // 72: aes.network.v1.AttachPublicIpResponse
-	(*DetachPublicIpRequest)(nil),             // 73: aes.network.v1.DetachPublicIpRequest
-	(*DetachPublicIpResponse)(nil),            // 74: aes.network.v1.DetachPublicIpResponse
-	(*ReleasePublicIpRequest)(nil),            // 75: aes.network.v1.ReleasePublicIpRequest
-	(*ReleasePublicIpResponse)(nil),           // 76: aes.network.v1.ReleasePublicIpResponse
-	(*FirewallRule)(nil),                      // 77: aes.network.v1.FirewallRule
-	(*CreateFirewallRuleRequest)(nil),         // 78: aes.network.v1.CreateFirewallRuleRequest
-	(*CreateFirewallRuleResponse)(nil),        // 79: aes.network.v1.CreateFirewallRuleResponse
-	(*ListFirewallRulesRequest)(nil),          // 80: aes.network.v1.ListFirewallRulesRequest
-	(*ListFirewallRulesResponse)(nil),         // 81: aes.network.v1.ListFirewallRulesResponse
-	(*DeleteFirewallRuleRequest)(nil),         // 82: aes.network.v1.DeleteFirewallRuleRequest
-	(*DeleteFirewallRuleResponse)(nil),        // 83: aes.network.v1.DeleteFirewallRuleResponse
-	(*SecurityGroup)(nil),                     // 84: aes.network.v1.SecurityGroup
-	(*SecurityGroupRule)(nil),                 // 85: aes.network.v1.SecurityGroupRule
-	(*CreateSecurityGroupRequest)(nil),        // 86: aes.network.v1.CreateSecurityGroupRequest
-	(*CreateSecurityGroupResponse)(nil),       // 87: aes.network.v1.CreateSecurityGroupResponse
-	(*GetSecurityGroupRequest)(nil),           // 88: aes.network.v1.GetSecurityGroupRequest
-	(*GetSecurityGroupResponse)(nil),          // 89: aes.network.v1.GetSecurityGroupResponse
-	(*ListSecurityGroupsRequest)(nil),         // 90: aes.network.v1.ListSecurityGroupsRequest
-	(*ListSecurityGroupsResponse)(nil),        // 91: aes.network.v1.ListSecurityGroupsResponse
-	(*UpdateSecurityGroupRequest)(nil),        // 92: aes.network.v1.UpdateSecurityGroupRequest
-	(*UpdateSecurityGroupResponse)(nil),       // 93: aes.network.v1.UpdateSecurityGroupResponse
-	(*DeleteSecurityGroupRequest)(nil),        // 94: aes.network.v1.DeleteSecurityGroupRequest
-	(*DeleteSecurityGroupResponse)(nil),       // 95: aes.network.v1.DeleteSecurityGroupResponse
-	(*AddVmToSecurityGroupRequest)(nil),       // 96: aes.network.v1.AddVmToSecurityGroupRequest
-	(*AddVmToSecurityGroupResponse)(nil),      // 97: aes.network.v1.AddVmToSecurityGroupResponse
-	(*RemoveVmFromSecurityGroupRequest)(nil),  // 98: aes.network.v1.RemoveVmFromSecurityGroupRequest
-	(*RemoveVmFromSecurityGroupResponse)(nil), // 99: aes.network.v1.RemoveVmFromSecurityGroupResponse
-	nil,                           // 100: aes.network.v1.Network.LabelsEntry
-	nil,                           // 101: aes.network.v1.Network.AnnotationsEntry
-	nil,                           // 102: aes.network.v1.CreateNetworkRequest.LabelsEntry
-	nil,                           // 103: aes.network.v1.CreateNetworkRequest.AnnotationsEntry
-	nil,                           // 104: aes.network.v1.PublicIp.LabelsEntry
-	nil,                           // 105: aes.network.v1.PublicIp.AnnotationsEntry
-	nil,                           // 106: aes.network.v1.ReservePublicIpRequest.LabelsEntry
-	nil,                           // 107: aes.network.v1.ReservePublicIpRequest.AnnotationsEntry
-	nil,                           // 108: aes.network.v1.FirewallRule.LabelsEntry
-	nil,                           // 109: aes.network.v1.FirewallRule.AnnotationsEntry
-	nil,                           // 110: aes.network.v1.CreateFirewallRuleRequest.LabelsEntry
-	nil,                           // 111: aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry
-	nil,                           // 112: aes.network.v1.SecurityGroup.LabelsEntry
-	nil,                           // 113: aes.network.v1.SecurityGroup.AnnotationsEntry
-	nil,                           // 114: aes.network.v1.CreateSecurityGroupRequest.LabelsEntry
-	nil,                           // 115: aes.network.v1.CreateSecurityGroupRequest.AnnotationsEntry
-	(*timestamppb.Timestamp)(nil), // 116: google.protobuf.Timestamp
+	(VmPublicIpv4Mode)(0),                     // 0: aes.network.v1.VmPublicIpv4Mode
+	(VmPublicIpv4GuestStatus)(0),              // 1: aes.network.v1.VmPublicIpv4GuestStatus
+	(*VpcDatacenterMembership)(nil),           // 2: aes.network.v1.VpcDatacenterMembership
+	(*Vpc)(nil),                               // 3: aes.network.v1.Vpc
+	(*VpcSubnet)(nil),                         // 4: aes.network.v1.VpcSubnet
+	(*CreateVpcRequest)(nil),                  // 5: aes.network.v1.CreateVpcRequest
+	(*CreateVpcResponse)(nil),                 // 6: aes.network.v1.CreateVpcResponse
+	(*CreateVpcSubnetRequest)(nil),            // 7: aes.network.v1.CreateVpcSubnetRequest
+	(*CreateVpcSubnetResponse)(nil),           // 8: aes.network.v1.CreateVpcSubnetResponse
+	(*ListVpcsRequest)(nil),                   // 9: aes.network.v1.ListVpcsRequest
+	(*ListVpcsResponse)(nil),                  // 10: aes.network.v1.ListVpcsResponse
+	(*GetVpcRequest)(nil),                     // 11: aes.network.v1.GetVpcRequest
+	(*GetVpcResponse)(nil),                    // 12: aes.network.v1.GetVpcResponse
+	(*ListVpcSubnetsRequest)(nil),             // 13: aes.network.v1.ListVpcSubnetsRequest
+	(*ListVpcSubnetsResponse)(nil),            // 14: aes.network.v1.ListVpcSubnetsResponse
+	(*GetVpcSubnetRequest)(nil),               // 15: aes.network.v1.GetVpcSubnetRequest
+	(*GetVpcSubnetResponse)(nil),              // 16: aes.network.v1.GetVpcSubnetResponse
+	(*UpdateVpcRequest)(nil),                  // 17: aes.network.v1.UpdateVpcRequest
+	(*UpdateVpcResponse)(nil),                 // 18: aes.network.v1.UpdateVpcResponse
+	(*UpdateVpcSubnetRequest)(nil),            // 19: aes.network.v1.UpdateVpcSubnetRequest
+	(*UpdateVpcSubnetResponse)(nil),           // 20: aes.network.v1.UpdateVpcSubnetResponse
+	(*DeleteVpcRequest)(nil),                  // 21: aes.network.v1.DeleteVpcRequest
+	(*DeleteVpcResponse)(nil),                 // 22: aes.network.v1.DeleteVpcResponse
+	(*DeleteVpcSubnetRequest)(nil),            // 23: aes.network.v1.DeleteVpcSubnetRequest
+	(*DeleteVpcSubnetResponse)(nil),           // 24: aes.network.v1.DeleteVpcSubnetResponse
+	(*RemoveVmIpv4AliasRequest)(nil),          // 25: aes.network.v1.RemoveVmIpv4AliasRequest
+	(*RemoveVmIpv4AliasResponse)(nil),         // 26: aes.network.v1.RemoveVmIpv4AliasResponse
+	(*VmNetworkAddress)(nil),                  // 27: aes.network.v1.VmNetworkAddress
+	(*VmNetworkInterface)(nil),                // 28: aes.network.v1.VmNetworkInterface
+	(*VpcNetworkReconciliationStatus)(nil),    // 29: aes.network.v1.VpcNetworkReconciliationStatus
+	(*GetVmNetworkInterfacesRequest)(nil),     // 30: aes.network.v1.GetVmNetworkInterfacesRequest
+	(*GetVmNetworkInterfacesResponse)(nil),    // 31: aes.network.v1.GetVmNetworkInterfacesResponse
+	(*AddVmIpv4AliasRequest)(nil),             // 32: aes.network.v1.AddVmIpv4AliasRequest
+	(*AddVmIpv4AliasResponse)(nil),            // 33: aes.network.v1.AddVmIpv4AliasResponse
+	(*SetVmDefaultPublicIpRequest)(nil),       // 34: aes.network.v1.SetVmDefaultPublicIpRequest
+	(*SetVmDefaultPublicIpResponse)(nil),      // 35: aes.network.v1.SetVmDefaultPublicIpResponse
+	(*LoadBalancerHealthCheck)(nil),           // 36: aes.network.v1.LoadBalancerHealthCheck
+	(*LoadBalancerListener)(nil),              // 37: aes.network.v1.LoadBalancerListener
+	(*LoadBalancer)(nil),                      // 38: aes.network.v1.LoadBalancer
+	(*LoadBalancerBackendHealth)(nil),         // 39: aes.network.v1.LoadBalancerBackendHealth
+	(*CreateLoadBalancerRequest)(nil),         // 40: aes.network.v1.CreateLoadBalancerRequest
+	(*CreateLoadBalancerResponse)(nil),        // 41: aes.network.v1.CreateLoadBalancerResponse
+	(*GetLoadBalancerRequest)(nil),            // 42: aes.network.v1.GetLoadBalancerRequest
+	(*GetLoadBalancerResponse)(nil),           // 43: aes.network.v1.GetLoadBalancerResponse
+	(*ListLoadBalancersRequest)(nil),          // 44: aes.network.v1.ListLoadBalancersRequest
+	(*ListLoadBalancersResponse)(nil),         // 45: aes.network.v1.ListLoadBalancersResponse
+	(*UpdateLoadBalancerRequest)(nil),         // 46: aes.network.v1.UpdateLoadBalancerRequest
+	(*UpdateLoadBalancerResponse)(nil),        // 47: aes.network.v1.UpdateLoadBalancerResponse
+	(*DeleteLoadBalancerRequest)(nil),         // 48: aes.network.v1.DeleteLoadBalancerRequest
+	(*DeleteLoadBalancerResponse)(nil),        // 49: aes.network.v1.DeleteLoadBalancerResponse
+	(*VmInternetPolicy)(nil),                  // 50: aes.network.v1.VmInternetPolicy
+	(*GetVmInternetPolicyRequest)(nil),        // 51: aes.network.v1.GetVmInternetPolicyRequest
+	(*GetVmInternetPolicyResponse)(nil),       // 52: aes.network.v1.GetVmInternetPolicyResponse
+	(*UpdateVmInternetPolicyRequest)(nil),     // 53: aes.network.v1.UpdateVmInternetPolicyRequest
+	(*UpdateVmInternetPolicyResponse)(nil),    // 54: aes.network.v1.UpdateVmInternetPolicyResponse
+	(*Network)(nil),                           // 55: aes.network.v1.Network
+	(*AttachVpcSubnetRequest)(nil),            // 56: aes.network.v1.AttachVpcSubnetRequest
+	(*AttachVpcSubnetResponse)(nil),           // 57: aes.network.v1.AttachVpcSubnetResponse
+	(*DetachVpcDatacenterRequest)(nil),        // 58: aes.network.v1.DetachVpcDatacenterRequest
+	(*DetachVpcDatacenterResponse)(nil),       // 59: aes.network.v1.DetachVpcDatacenterResponse
+	(*CreateNetworkRequest)(nil),              // 60: aes.network.v1.CreateNetworkRequest
+	(*CreateNetworkResponse)(nil),             // 61: aes.network.v1.CreateNetworkResponse
+	(*ListNetworksRequest)(nil),               // 62: aes.network.v1.ListNetworksRequest
+	(*ListNetworksResponse)(nil),              // 63: aes.network.v1.ListNetworksResponse
+	(*PortMapping)(nil),                       // 64: aes.network.v1.PortMapping
+	(*PublicIp)(nil),                          // 65: aes.network.v1.PublicIp
+	(*PublicIpBinding)(nil),                   // 66: aes.network.v1.PublicIpBinding
+	(*GetPublicIpRequest)(nil),                // 67: aes.network.v1.GetPublicIpRequest
+	(*GetPublicIpResponse)(nil),               // 68: aes.network.v1.GetPublicIpResponse
+	(*ListPublicIpsRequest)(nil),              // 69: aes.network.v1.ListPublicIpsRequest
+	(*ListPublicIpsResponse)(nil),             // 70: aes.network.v1.ListPublicIpsResponse
+	(*ReservePublicIpRequest)(nil),            // 71: aes.network.v1.ReservePublicIpRequest
+	(*ReservePublicIpResponse)(nil),           // 72: aes.network.v1.ReservePublicIpResponse
+	(*AttachPublicIpRequest)(nil),             // 73: aes.network.v1.AttachPublicIpRequest
+	(*AttachPublicIpResponse)(nil),            // 74: aes.network.v1.AttachPublicIpResponse
+	(*DetachPublicIpRequest)(nil),             // 75: aes.network.v1.DetachPublicIpRequest
+	(*DetachPublicIpResponse)(nil),            // 76: aes.network.v1.DetachPublicIpResponse
+	(*ReleasePublicIpRequest)(nil),            // 77: aes.network.v1.ReleasePublicIpRequest
+	(*ReleasePublicIpResponse)(nil),           // 78: aes.network.v1.ReleasePublicIpResponse
+	(*FirewallRule)(nil),                      // 79: aes.network.v1.FirewallRule
+	(*CreateFirewallRuleRequest)(nil),         // 80: aes.network.v1.CreateFirewallRuleRequest
+	(*CreateFirewallRuleResponse)(nil),        // 81: aes.network.v1.CreateFirewallRuleResponse
+	(*ListFirewallRulesRequest)(nil),          // 82: aes.network.v1.ListFirewallRulesRequest
+	(*ListFirewallRulesResponse)(nil),         // 83: aes.network.v1.ListFirewallRulesResponse
+	(*DeleteFirewallRuleRequest)(nil),         // 84: aes.network.v1.DeleteFirewallRuleRequest
+	(*DeleteFirewallRuleResponse)(nil),        // 85: aes.network.v1.DeleteFirewallRuleResponse
+	(*SecurityGroup)(nil),                     // 86: aes.network.v1.SecurityGroup
+	(*SecurityGroupRule)(nil),                 // 87: aes.network.v1.SecurityGroupRule
+	(*CreateSecurityGroupRequest)(nil),        // 88: aes.network.v1.CreateSecurityGroupRequest
+	(*CreateSecurityGroupResponse)(nil),       // 89: aes.network.v1.CreateSecurityGroupResponse
+	(*GetSecurityGroupRequest)(nil),           // 90: aes.network.v1.GetSecurityGroupRequest
+	(*GetSecurityGroupResponse)(nil),          // 91: aes.network.v1.GetSecurityGroupResponse
+	(*ListSecurityGroupsRequest)(nil),         // 92: aes.network.v1.ListSecurityGroupsRequest
+	(*ListSecurityGroupsResponse)(nil),        // 93: aes.network.v1.ListSecurityGroupsResponse
+	(*UpdateSecurityGroupRequest)(nil),        // 94: aes.network.v1.UpdateSecurityGroupRequest
+	(*UpdateSecurityGroupResponse)(nil),       // 95: aes.network.v1.UpdateSecurityGroupResponse
+	(*DeleteSecurityGroupRequest)(nil),        // 96: aes.network.v1.DeleteSecurityGroupRequest
+	(*DeleteSecurityGroupResponse)(nil),       // 97: aes.network.v1.DeleteSecurityGroupResponse
+	(*AddVmToSecurityGroupRequest)(nil),       // 98: aes.network.v1.AddVmToSecurityGroupRequest
+	(*AddVmToSecurityGroupResponse)(nil),      // 99: aes.network.v1.AddVmToSecurityGroupResponse
+	(*RemoveVmFromSecurityGroupRequest)(nil),  // 100: aes.network.v1.RemoveVmFromSecurityGroupRequest
+	(*RemoveVmFromSecurityGroupResponse)(nil), // 101: aes.network.v1.RemoveVmFromSecurityGroupResponse
+	(*VmPublicIpv4)(nil),                      // 102: aes.network.v1.VmPublicIpv4
+	(*GetVmPublicAccessRequest)(nil),          // 103: aes.network.v1.GetVmPublicAccessRequest
+	(*GetVmPublicAccessResponse)(nil),         // 104: aes.network.v1.GetVmPublicAccessResponse
+	(*AddVmPublicIpv4Request)(nil),            // 105: aes.network.v1.AddVmPublicIpv4Request
+	(*AddVmPublicIpv4Response)(nil),           // 106: aes.network.v1.AddVmPublicIpv4Response
+	(*RemoveVmPublicIpv4Request)(nil),         // 107: aes.network.v1.RemoveVmPublicIpv4Request
+	(*RemoveVmPublicIpv4Response)(nil),        // 108: aes.network.v1.RemoveVmPublicIpv4Response
+	(*UpdateVmPublicIpv4Request)(nil),         // 109: aes.network.v1.UpdateVmPublicIpv4Request
+	(*UpdateVmPublicIpv4Response)(nil),        // 110: aes.network.v1.UpdateVmPublicIpv4Response
+	nil,                                       // 111: aes.network.v1.Network.LabelsEntry
+	nil,                                       // 112: aes.network.v1.Network.AnnotationsEntry
+	nil,                                       // 113: aes.network.v1.CreateNetworkRequest.LabelsEntry
+	nil,                                       // 114: aes.network.v1.CreateNetworkRequest.AnnotationsEntry
+	nil,                                       // 115: aes.network.v1.PublicIp.LabelsEntry
+	nil,                                       // 116: aes.network.v1.PublicIp.AnnotationsEntry
+	nil,                                       // 117: aes.network.v1.ReservePublicIpRequest.LabelsEntry
+	nil,                                       // 118: aes.network.v1.ReservePublicIpRequest.AnnotationsEntry
+	nil,                                       // 119: aes.network.v1.FirewallRule.LabelsEntry
+	nil,                                       // 120: aes.network.v1.FirewallRule.AnnotationsEntry
+	nil,                                       // 121: aes.network.v1.CreateFirewallRuleRequest.LabelsEntry
+	nil,                                       // 122: aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry
+	nil,                                       // 123: aes.network.v1.SecurityGroup.LabelsEntry
+	nil,                                       // 124: aes.network.v1.SecurityGroup.AnnotationsEntry
+	nil,                                       // 125: aes.network.v1.CreateSecurityGroupRequest.LabelsEntry
+	nil,                                       // 126: aes.network.v1.CreateSecurityGroupRequest.AnnotationsEntry
+	(*timestamppb.Timestamp)(nil),             // 127: google.protobuf.Timestamp
 }
 var file_aes_network_v1_network_proto_depIdxs = []int32{
-	116, // 0: aes.network.v1.Vpc.create_time:type_name -> google.protobuf.Timestamp
-	116, // 1: aes.network.v1.Vpc.update_time:type_name -> google.protobuf.Timestamp
-	0,   // 2: aes.network.v1.Vpc.datacenters:type_name -> aes.network.v1.VpcDatacenterMembership
-	116, // 3: aes.network.v1.VpcSubnet.create_time:type_name -> google.protobuf.Timestamp
-	116, // 4: aes.network.v1.VpcSubnet.update_time:type_name -> google.protobuf.Timestamp
-	0,   // 5: aes.network.v1.VpcSubnet.datacenters:type_name -> aes.network.v1.VpcDatacenterMembership
-	1,   // 6: aes.network.v1.CreateVpcResponse.vpc:type_name -> aes.network.v1.Vpc
-	2,   // 7: aes.network.v1.CreateVpcSubnetResponse.subnet:type_name -> aes.network.v1.VpcSubnet
-	1,   // 8: aes.network.v1.ListVpcsResponse.vpcs:type_name -> aes.network.v1.Vpc
-	1,   // 9: aes.network.v1.GetVpcResponse.vpc:type_name -> aes.network.v1.Vpc
-	2,   // 10: aes.network.v1.ListVpcSubnetsResponse.subnets:type_name -> aes.network.v1.VpcSubnet
-	2,   // 11: aes.network.v1.GetVpcSubnetResponse.subnet:type_name -> aes.network.v1.VpcSubnet
-	25,  // 12: aes.network.v1.VmNetworkInterface.addresses:type_name -> aes.network.v1.VmNetworkAddress
-	27,  // 13: aes.network.v1.VmNetworkInterface.reconciliation:type_name -> aes.network.v1.VpcNetworkReconciliationStatus
-	116, // 14: aes.network.v1.VpcNetworkReconciliationStatus.report_time:type_name -> google.protobuf.Timestamp
-	26,  // 15: aes.network.v1.GetVmNetworkInterfacesResponse.interfaces:type_name -> aes.network.v1.VmNetworkInterface
-	34,  // 16: aes.network.v1.LoadBalancerListener.health_check:type_name -> aes.network.v1.LoadBalancerHealthCheck
-	35,  // 17: aes.network.v1.LoadBalancer.listeners:type_name -> aes.network.v1.LoadBalancerListener
-	27,  // 18: aes.network.v1.LoadBalancer.reconciliation:type_name -> aes.network.v1.VpcNetworkReconciliationStatus
-	37,  // 19: aes.network.v1.LoadBalancer.backend_health:type_name -> aes.network.v1.LoadBalancerBackendHealth
-	116, // 20: aes.network.v1.LoadBalancer.health_report_time:type_name -> google.protobuf.Timestamp
-	116, // 21: aes.network.v1.LoadBalancerBackendHealth.last_check_time:type_name -> google.protobuf.Timestamp
-	116, // 22: aes.network.v1.LoadBalancerBackendHealth.valid_until:type_name -> google.protobuf.Timestamp
-	35,  // 23: aes.network.v1.CreateLoadBalancerRequest.listeners:type_name -> aes.network.v1.LoadBalancerListener
-	36,  // 24: aes.network.v1.CreateLoadBalancerResponse.load_balancer:type_name -> aes.network.v1.LoadBalancer
-	36,  // 25: aes.network.v1.GetLoadBalancerResponse.load_balancer:type_name -> aes.network.v1.LoadBalancer
-	36,  // 26: aes.network.v1.ListLoadBalancersResponse.load_balancers:type_name -> aes.network.v1.LoadBalancer
-	35,  // 27: aes.network.v1.UpdateLoadBalancerRequest.listeners:type_name -> aes.network.v1.LoadBalancerListener
-	36,  // 28: aes.network.v1.UpdateLoadBalancerResponse.load_balancer:type_name -> aes.network.v1.LoadBalancer
-	48,  // 29: aes.network.v1.GetVmInternetPolicyResponse.policy:type_name -> aes.network.v1.VmInternetPolicy
-	100, // 30: aes.network.v1.Network.labels:type_name -> aes.network.v1.Network.LabelsEntry
-	101, // 31: aes.network.v1.Network.annotations:type_name -> aes.network.v1.Network.AnnotationsEntry
-	102, // 32: aes.network.v1.CreateNetworkRequest.labels:type_name -> aes.network.v1.CreateNetworkRequest.LabelsEntry
-	103, // 33: aes.network.v1.CreateNetworkRequest.annotations:type_name -> aes.network.v1.CreateNetworkRequest.AnnotationsEntry
-	53,  // 34: aes.network.v1.CreateNetworkResponse.network:type_name -> aes.network.v1.Network
-	53,  // 35: aes.network.v1.ListNetworksResponse.networks:type_name -> aes.network.v1.Network
-	62,  // 36: aes.network.v1.PublicIp.ports:type_name -> aes.network.v1.PortMapping
-	104, // 37: aes.network.v1.PublicIp.labels:type_name -> aes.network.v1.PublicIp.LabelsEntry
-	105, // 38: aes.network.v1.PublicIp.annotations:type_name -> aes.network.v1.PublicIp.AnnotationsEntry
-	64,  // 39: aes.network.v1.PublicIp.binding:type_name -> aes.network.v1.PublicIpBinding
-	63,  // 40: aes.network.v1.GetPublicIpResponse.public_ip:type_name -> aes.network.v1.PublicIp
-	63,  // 41: aes.network.v1.ListPublicIpsResponse.public_ips:type_name -> aes.network.v1.PublicIp
-	106, // 42: aes.network.v1.ReservePublicIpRequest.labels:type_name -> aes.network.v1.ReservePublicIpRequest.LabelsEntry
-	107, // 43: aes.network.v1.ReservePublicIpRequest.annotations:type_name -> aes.network.v1.ReservePublicIpRequest.AnnotationsEntry
-	63,  // 44: aes.network.v1.ReservePublicIpResponse.public_ip:type_name -> aes.network.v1.PublicIp
-	62,  // 45: aes.network.v1.FirewallRule.ports:type_name -> aes.network.v1.PortMapping
-	108, // 46: aes.network.v1.FirewallRule.labels:type_name -> aes.network.v1.FirewallRule.LabelsEntry
-	109, // 47: aes.network.v1.FirewallRule.annotations:type_name -> aes.network.v1.FirewallRule.AnnotationsEntry
-	62,  // 48: aes.network.v1.CreateFirewallRuleRequest.ports:type_name -> aes.network.v1.PortMapping
-	110, // 49: aes.network.v1.CreateFirewallRuleRequest.labels:type_name -> aes.network.v1.CreateFirewallRuleRequest.LabelsEntry
-	111, // 50: aes.network.v1.CreateFirewallRuleRequest.annotations:type_name -> aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry
-	77,  // 51: aes.network.v1.CreateFirewallRuleResponse.rule:type_name -> aes.network.v1.FirewallRule
-	77,  // 52: aes.network.v1.ListFirewallRulesResponse.firewall_rules:type_name -> aes.network.v1.FirewallRule
-	85,  // 53: aes.network.v1.SecurityGroup.rules:type_name -> aes.network.v1.SecurityGroupRule
-	112, // 54: aes.network.v1.SecurityGroup.labels:type_name -> aes.network.v1.SecurityGroup.LabelsEntry
-	113, // 55: aes.network.v1.SecurityGroup.annotations:type_name -> aes.network.v1.SecurityGroup.AnnotationsEntry
-	85,  // 56: aes.network.v1.CreateSecurityGroupRequest.rules:type_name -> aes.network.v1.SecurityGroupRule
-	114, // 57: aes.network.v1.CreateSecurityGroupRequest.labels:type_name -> aes.network.v1.CreateSecurityGroupRequest.LabelsEntry
-	115, // 58: aes.network.v1.CreateSecurityGroupRequest.annotations:type_name -> aes.network.v1.CreateSecurityGroupRequest.AnnotationsEntry
-	84,  // 59: aes.network.v1.CreateSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
-	84,  // 60: aes.network.v1.GetSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
-	84,  // 61: aes.network.v1.ListSecurityGroupsResponse.security_groups:type_name -> aes.network.v1.SecurityGroup
-	85,  // 62: aes.network.v1.UpdateSecurityGroupRequest.rules:type_name -> aes.network.v1.SecurityGroupRule
-	84,  // 63: aes.network.v1.UpdateSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
-	84,  // 64: aes.network.v1.AddVmToSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
-	84,  // 65: aes.network.v1.RemoveVmFromSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
-	7,   // 66: aes.network.v1.NetworkService.ListVpcs:input_type -> aes.network.v1.ListVpcsRequest
-	9,   // 67: aes.network.v1.NetworkService.GetVpc:input_type -> aes.network.v1.GetVpcRequest
-	11,  // 68: aes.network.v1.NetworkService.ListVpcSubnets:input_type -> aes.network.v1.ListVpcSubnetsRequest
-	13,  // 69: aes.network.v1.NetworkService.GetVpcSubnet:input_type -> aes.network.v1.GetVpcSubnetRequest
-	3,   // 70: aes.network.v1.NetworkService.CreateVpc:input_type -> aes.network.v1.CreateVpcRequest
-	5,   // 71: aes.network.v1.NetworkService.CreateVpcSubnet:input_type -> aes.network.v1.CreateVpcSubnetRequest
-	15,  // 72: aes.network.v1.NetworkService.UpdateVpc:input_type -> aes.network.v1.UpdateVpcRequest
-	17,  // 73: aes.network.v1.NetworkService.UpdateVpcSubnet:input_type -> aes.network.v1.UpdateVpcSubnetRequest
-	19,  // 74: aes.network.v1.NetworkService.DeleteVpc:input_type -> aes.network.v1.DeleteVpcRequest
-	21,  // 75: aes.network.v1.NetworkService.DeleteVpcSubnet:input_type -> aes.network.v1.DeleteVpcSubnetRequest
-	54,  // 76: aes.network.v1.NetworkService.AttachVpcSubnet:input_type -> aes.network.v1.AttachVpcSubnetRequest
-	56,  // 77: aes.network.v1.NetworkService.DetachVpcDatacenter:input_type -> aes.network.v1.DetachVpcDatacenterRequest
-	58,  // 78: aes.network.v1.NetworkService.CreateNetwork:input_type -> aes.network.v1.CreateNetworkRequest
-	60,  // 79: aes.network.v1.NetworkService.ListNetworks:input_type -> aes.network.v1.ListNetworksRequest
-	78,  // 80: aes.network.v1.NetworkService.CreateFirewallRule:input_type -> aes.network.v1.CreateFirewallRuleRequest
-	80,  // 81: aes.network.v1.NetworkService.ListFirewallRules:input_type -> aes.network.v1.ListFirewallRulesRequest
-	82,  // 82: aes.network.v1.NetworkService.DeleteFirewallRule:input_type -> aes.network.v1.DeleteFirewallRuleRequest
-	49,  // 83: aes.network.v1.NetworkService.GetVmInternetPolicy:input_type -> aes.network.v1.GetVmInternetPolicyRequest
-	51,  // 84: aes.network.v1.NetworkService.UpdateVmInternetPolicy:input_type -> aes.network.v1.UpdateVmInternetPolicyRequest
-	28,  // 85: aes.network.v1.NetworkService.GetVmNetworkInterfaces:input_type -> aes.network.v1.GetVmNetworkInterfacesRequest
-	30,  // 86: aes.network.v1.NetworkService.AddVmIpv4Alias:input_type -> aes.network.v1.AddVmIpv4AliasRequest
-	23,  // 87: aes.network.v1.NetworkService.RemoveVmIpv4Alias:input_type -> aes.network.v1.RemoveVmIpv4AliasRequest
-	32,  // 88: aes.network.v1.NetworkService.SetVmDefaultPublicIp:input_type -> aes.network.v1.SetVmDefaultPublicIpRequest
-	65,  // 89: aes.network.v1.NetworkService.GetPublicIp:input_type -> aes.network.v1.GetPublicIpRequest
-	67,  // 90: aes.network.v1.NetworkService.ListPublicIps:input_type -> aes.network.v1.ListPublicIpsRequest
-	69,  // 91: aes.network.v1.NetworkService.ReservePublicIp:input_type -> aes.network.v1.ReservePublicIpRequest
-	71,  // 92: aes.network.v1.NetworkService.AttachPublicIp:input_type -> aes.network.v1.AttachPublicIpRequest
-	73,  // 93: aes.network.v1.NetworkService.DetachPublicIp:input_type -> aes.network.v1.DetachPublicIpRequest
-	75,  // 94: aes.network.v1.NetworkService.ReleasePublicIp:input_type -> aes.network.v1.ReleasePublicIpRequest
-	38,  // 95: aes.network.v1.NetworkService.CreateLoadBalancer:input_type -> aes.network.v1.CreateLoadBalancerRequest
-	40,  // 96: aes.network.v1.NetworkService.GetLoadBalancer:input_type -> aes.network.v1.GetLoadBalancerRequest
-	42,  // 97: aes.network.v1.NetworkService.ListLoadBalancers:input_type -> aes.network.v1.ListLoadBalancersRequest
-	44,  // 98: aes.network.v1.NetworkService.UpdateLoadBalancer:input_type -> aes.network.v1.UpdateLoadBalancerRequest
-	46,  // 99: aes.network.v1.NetworkService.DeleteLoadBalancer:input_type -> aes.network.v1.DeleteLoadBalancerRequest
-	86,  // 100: aes.network.v1.NetworkService.CreateSecurityGroup:input_type -> aes.network.v1.CreateSecurityGroupRequest
-	88,  // 101: aes.network.v1.NetworkService.GetSecurityGroup:input_type -> aes.network.v1.GetSecurityGroupRequest
-	90,  // 102: aes.network.v1.NetworkService.ListSecurityGroups:input_type -> aes.network.v1.ListSecurityGroupsRequest
-	92,  // 103: aes.network.v1.NetworkService.UpdateSecurityGroup:input_type -> aes.network.v1.UpdateSecurityGroupRequest
-	94,  // 104: aes.network.v1.NetworkService.DeleteSecurityGroup:input_type -> aes.network.v1.DeleteSecurityGroupRequest
-	96,  // 105: aes.network.v1.NetworkService.AddVmToSecurityGroup:input_type -> aes.network.v1.AddVmToSecurityGroupRequest
-	98,  // 106: aes.network.v1.NetworkService.RemoveVmFromSecurityGroup:input_type -> aes.network.v1.RemoveVmFromSecurityGroupRequest
-	8,   // 107: aes.network.v1.NetworkService.ListVpcs:output_type -> aes.network.v1.ListVpcsResponse
-	10,  // 108: aes.network.v1.NetworkService.GetVpc:output_type -> aes.network.v1.GetVpcResponse
-	12,  // 109: aes.network.v1.NetworkService.ListVpcSubnets:output_type -> aes.network.v1.ListVpcSubnetsResponse
-	14,  // 110: aes.network.v1.NetworkService.GetVpcSubnet:output_type -> aes.network.v1.GetVpcSubnetResponse
-	4,   // 111: aes.network.v1.NetworkService.CreateVpc:output_type -> aes.network.v1.CreateVpcResponse
-	6,   // 112: aes.network.v1.NetworkService.CreateVpcSubnet:output_type -> aes.network.v1.CreateVpcSubnetResponse
-	16,  // 113: aes.network.v1.NetworkService.UpdateVpc:output_type -> aes.network.v1.UpdateVpcResponse
-	18,  // 114: aes.network.v1.NetworkService.UpdateVpcSubnet:output_type -> aes.network.v1.UpdateVpcSubnetResponse
-	20,  // 115: aes.network.v1.NetworkService.DeleteVpc:output_type -> aes.network.v1.DeleteVpcResponse
-	22,  // 116: aes.network.v1.NetworkService.DeleteVpcSubnet:output_type -> aes.network.v1.DeleteVpcSubnetResponse
-	55,  // 117: aes.network.v1.NetworkService.AttachVpcSubnet:output_type -> aes.network.v1.AttachVpcSubnetResponse
-	57,  // 118: aes.network.v1.NetworkService.DetachVpcDatacenter:output_type -> aes.network.v1.DetachVpcDatacenterResponse
-	59,  // 119: aes.network.v1.NetworkService.CreateNetwork:output_type -> aes.network.v1.CreateNetworkResponse
-	61,  // 120: aes.network.v1.NetworkService.ListNetworks:output_type -> aes.network.v1.ListNetworksResponse
-	79,  // 121: aes.network.v1.NetworkService.CreateFirewallRule:output_type -> aes.network.v1.CreateFirewallRuleResponse
-	81,  // 122: aes.network.v1.NetworkService.ListFirewallRules:output_type -> aes.network.v1.ListFirewallRulesResponse
-	83,  // 123: aes.network.v1.NetworkService.DeleteFirewallRule:output_type -> aes.network.v1.DeleteFirewallRuleResponse
-	50,  // 124: aes.network.v1.NetworkService.GetVmInternetPolicy:output_type -> aes.network.v1.GetVmInternetPolicyResponse
-	52,  // 125: aes.network.v1.NetworkService.UpdateVmInternetPolicy:output_type -> aes.network.v1.UpdateVmInternetPolicyResponse
-	29,  // 126: aes.network.v1.NetworkService.GetVmNetworkInterfaces:output_type -> aes.network.v1.GetVmNetworkInterfacesResponse
-	31,  // 127: aes.network.v1.NetworkService.AddVmIpv4Alias:output_type -> aes.network.v1.AddVmIpv4AliasResponse
-	24,  // 128: aes.network.v1.NetworkService.RemoveVmIpv4Alias:output_type -> aes.network.v1.RemoveVmIpv4AliasResponse
-	33,  // 129: aes.network.v1.NetworkService.SetVmDefaultPublicIp:output_type -> aes.network.v1.SetVmDefaultPublicIpResponse
-	66,  // 130: aes.network.v1.NetworkService.GetPublicIp:output_type -> aes.network.v1.GetPublicIpResponse
-	68,  // 131: aes.network.v1.NetworkService.ListPublicIps:output_type -> aes.network.v1.ListPublicIpsResponse
-	70,  // 132: aes.network.v1.NetworkService.ReservePublicIp:output_type -> aes.network.v1.ReservePublicIpResponse
-	72,  // 133: aes.network.v1.NetworkService.AttachPublicIp:output_type -> aes.network.v1.AttachPublicIpResponse
-	74,  // 134: aes.network.v1.NetworkService.DetachPublicIp:output_type -> aes.network.v1.DetachPublicIpResponse
-	76,  // 135: aes.network.v1.NetworkService.ReleasePublicIp:output_type -> aes.network.v1.ReleasePublicIpResponse
-	39,  // 136: aes.network.v1.NetworkService.CreateLoadBalancer:output_type -> aes.network.v1.CreateLoadBalancerResponse
-	41,  // 137: aes.network.v1.NetworkService.GetLoadBalancer:output_type -> aes.network.v1.GetLoadBalancerResponse
-	43,  // 138: aes.network.v1.NetworkService.ListLoadBalancers:output_type -> aes.network.v1.ListLoadBalancersResponse
-	45,  // 139: aes.network.v1.NetworkService.UpdateLoadBalancer:output_type -> aes.network.v1.UpdateLoadBalancerResponse
-	47,  // 140: aes.network.v1.NetworkService.DeleteLoadBalancer:output_type -> aes.network.v1.DeleteLoadBalancerResponse
-	87,  // 141: aes.network.v1.NetworkService.CreateSecurityGroup:output_type -> aes.network.v1.CreateSecurityGroupResponse
-	89,  // 142: aes.network.v1.NetworkService.GetSecurityGroup:output_type -> aes.network.v1.GetSecurityGroupResponse
-	91,  // 143: aes.network.v1.NetworkService.ListSecurityGroups:output_type -> aes.network.v1.ListSecurityGroupsResponse
-	93,  // 144: aes.network.v1.NetworkService.UpdateSecurityGroup:output_type -> aes.network.v1.UpdateSecurityGroupResponse
-	95,  // 145: aes.network.v1.NetworkService.DeleteSecurityGroup:output_type -> aes.network.v1.DeleteSecurityGroupResponse
-	97,  // 146: aes.network.v1.NetworkService.AddVmToSecurityGroup:output_type -> aes.network.v1.AddVmToSecurityGroupResponse
-	99,  // 147: aes.network.v1.NetworkService.RemoveVmFromSecurityGroup:output_type -> aes.network.v1.RemoveVmFromSecurityGroupResponse
-	107, // [107:148] is the sub-list for method output_type
-	66,  // [66:107] is the sub-list for method input_type
-	66,  // [66:66] is the sub-list for extension type_name
-	66,  // [66:66] is the sub-list for extension extendee
-	0,   // [0:66] is the sub-list for field type_name
+	127, // 0: aes.network.v1.Vpc.create_time:type_name -> google.protobuf.Timestamp
+	127, // 1: aes.network.v1.Vpc.update_time:type_name -> google.protobuf.Timestamp
+	2,   // 2: aes.network.v1.Vpc.datacenters:type_name -> aes.network.v1.VpcDatacenterMembership
+	127, // 3: aes.network.v1.VpcSubnet.create_time:type_name -> google.protobuf.Timestamp
+	127, // 4: aes.network.v1.VpcSubnet.update_time:type_name -> google.protobuf.Timestamp
+	2,   // 5: aes.network.v1.VpcSubnet.datacenters:type_name -> aes.network.v1.VpcDatacenterMembership
+	3,   // 6: aes.network.v1.CreateVpcResponse.vpc:type_name -> aes.network.v1.Vpc
+	4,   // 7: aes.network.v1.CreateVpcSubnetResponse.subnet:type_name -> aes.network.v1.VpcSubnet
+	3,   // 8: aes.network.v1.ListVpcsResponse.vpcs:type_name -> aes.network.v1.Vpc
+	3,   // 9: aes.network.v1.GetVpcResponse.vpc:type_name -> aes.network.v1.Vpc
+	4,   // 10: aes.network.v1.ListVpcSubnetsResponse.subnets:type_name -> aes.network.v1.VpcSubnet
+	4,   // 11: aes.network.v1.GetVpcSubnetResponse.subnet:type_name -> aes.network.v1.VpcSubnet
+	27,  // 12: aes.network.v1.VmNetworkInterface.addresses:type_name -> aes.network.v1.VmNetworkAddress
+	29,  // 13: aes.network.v1.VmNetworkInterface.reconciliation:type_name -> aes.network.v1.VpcNetworkReconciliationStatus
+	127, // 14: aes.network.v1.VpcNetworkReconciliationStatus.report_time:type_name -> google.protobuf.Timestamp
+	28,  // 15: aes.network.v1.GetVmNetworkInterfacesResponse.interfaces:type_name -> aes.network.v1.VmNetworkInterface
+	36,  // 16: aes.network.v1.LoadBalancerListener.health_check:type_name -> aes.network.v1.LoadBalancerHealthCheck
+	37,  // 17: aes.network.v1.LoadBalancer.listeners:type_name -> aes.network.v1.LoadBalancerListener
+	29,  // 18: aes.network.v1.LoadBalancer.reconciliation:type_name -> aes.network.v1.VpcNetworkReconciliationStatus
+	39,  // 19: aes.network.v1.LoadBalancer.backend_health:type_name -> aes.network.v1.LoadBalancerBackendHealth
+	127, // 20: aes.network.v1.LoadBalancer.health_report_time:type_name -> google.protobuf.Timestamp
+	127, // 21: aes.network.v1.LoadBalancerBackendHealth.last_check_time:type_name -> google.protobuf.Timestamp
+	127, // 22: aes.network.v1.LoadBalancerBackendHealth.valid_until:type_name -> google.protobuf.Timestamp
+	37,  // 23: aes.network.v1.CreateLoadBalancerRequest.listeners:type_name -> aes.network.v1.LoadBalancerListener
+	38,  // 24: aes.network.v1.CreateLoadBalancerResponse.load_balancer:type_name -> aes.network.v1.LoadBalancer
+	38,  // 25: aes.network.v1.GetLoadBalancerResponse.load_balancer:type_name -> aes.network.v1.LoadBalancer
+	38,  // 26: aes.network.v1.ListLoadBalancersResponse.load_balancers:type_name -> aes.network.v1.LoadBalancer
+	37,  // 27: aes.network.v1.UpdateLoadBalancerRequest.listeners:type_name -> aes.network.v1.LoadBalancerListener
+	38,  // 28: aes.network.v1.UpdateLoadBalancerResponse.load_balancer:type_name -> aes.network.v1.LoadBalancer
+	50,  // 29: aes.network.v1.GetVmInternetPolicyResponse.policy:type_name -> aes.network.v1.VmInternetPolicy
+	111, // 30: aes.network.v1.Network.labels:type_name -> aes.network.v1.Network.LabelsEntry
+	112, // 31: aes.network.v1.Network.annotations:type_name -> aes.network.v1.Network.AnnotationsEntry
+	113, // 32: aes.network.v1.CreateNetworkRequest.labels:type_name -> aes.network.v1.CreateNetworkRequest.LabelsEntry
+	114, // 33: aes.network.v1.CreateNetworkRequest.annotations:type_name -> aes.network.v1.CreateNetworkRequest.AnnotationsEntry
+	55,  // 34: aes.network.v1.CreateNetworkResponse.network:type_name -> aes.network.v1.Network
+	55,  // 35: aes.network.v1.ListNetworksResponse.networks:type_name -> aes.network.v1.Network
+	64,  // 36: aes.network.v1.PublicIp.ports:type_name -> aes.network.v1.PortMapping
+	115, // 37: aes.network.v1.PublicIp.labels:type_name -> aes.network.v1.PublicIp.LabelsEntry
+	116, // 38: aes.network.v1.PublicIp.annotations:type_name -> aes.network.v1.PublicIp.AnnotationsEntry
+	66,  // 39: aes.network.v1.PublicIp.binding:type_name -> aes.network.v1.PublicIpBinding
+	0,   // 40: aes.network.v1.PublicIpBinding.mode:type_name -> aes.network.v1.VmPublicIpv4Mode
+	65,  // 41: aes.network.v1.GetPublicIpResponse.public_ip:type_name -> aes.network.v1.PublicIp
+	65,  // 42: aes.network.v1.ListPublicIpsResponse.public_ips:type_name -> aes.network.v1.PublicIp
+	117, // 43: aes.network.v1.ReservePublicIpRequest.labels:type_name -> aes.network.v1.ReservePublicIpRequest.LabelsEntry
+	118, // 44: aes.network.v1.ReservePublicIpRequest.annotations:type_name -> aes.network.v1.ReservePublicIpRequest.AnnotationsEntry
+	65,  // 45: aes.network.v1.ReservePublicIpResponse.public_ip:type_name -> aes.network.v1.PublicIp
+	64,  // 46: aes.network.v1.FirewallRule.ports:type_name -> aes.network.v1.PortMapping
+	119, // 47: aes.network.v1.FirewallRule.labels:type_name -> aes.network.v1.FirewallRule.LabelsEntry
+	120, // 48: aes.network.v1.FirewallRule.annotations:type_name -> aes.network.v1.FirewallRule.AnnotationsEntry
+	64,  // 49: aes.network.v1.CreateFirewallRuleRequest.ports:type_name -> aes.network.v1.PortMapping
+	121, // 50: aes.network.v1.CreateFirewallRuleRequest.labels:type_name -> aes.network.v1.CreateFirewallRuleRequest.LabelsEntry
+	122, // 51: aes.network.v1.CreateFirewallRuleRequest.annotations:type_name -> aes.network.v1.CreateFirewallRuleRequest.AnnotationsEntry
+	79,  // 52: aes.network.v1.CreateFirewallRuleResponse.rule:type_name -> aes.network.v1.FirewallRule
+	79,  // 53: aes.network.v1.ListFirewallRulesResponse.firewall_rules:type_name -> aes.network.v1.FirewallRule
+	87,  // 54: aes.network.v1.SecurityGroup.rules:type_name -> aes.network.v1.SecurityGroupRule
+	123, // 55: aes.network.v1.SecurityGroup.labels:type_name -> aes.network.v1.SecurityGroup.LabelsEntry
+	124, // 56: aes.network.v1.SecurityGroup.annotations:type_name -> aes.network.v1.SecurityGroup.AnnotationsEntry
+	87,  // 57: aes.network.v1.CreateSecurityGroupRequest.rules:type_name -> aes.network.v1.SecurityGroupRule
+	125, // 58: aes.network.v1.CreateSecurityGroupRequest.labels:type_name -> aes.network.v1.CreateSecurityGroupRequest.LabelsEntry
+	126, // 59: aes.network.v1.CreateSecurityGroupRequest.annotations:type_name -> aes.network.v1.CreateSecurityGroupRequest.AnnotationsEntry
+	86,  // 60: aes.network.v1.CreateSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	86,  // 61: aes.network.v1.GetSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	86,  // 62: aes.network.v1.ListSecurityGroupsResponse.security_groups:type_name -> aes.network.v1.SecurityGroup
+	87,  // 63: aes.network.v1.UpdateSecurityGroupRequest.rules:type_name -> aes.network.v1.SecurityGroupRule
+	86,  // 64: aes.network.v1.UpdateSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	86,  // 65: aes.network.v1.AddVmToSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	86,  // 66: aes.network.v1.RemoveVmFromSecurityGroupResponse.security_group:type_name -> aes.network.v1.SecurityGroup
+	0,   // 67: aes.network.v1.VmPublicIpv4.mode:type_name -> aes.network.v1.VmPublicIpv4Mode
+	1,   // 68: aes.network.v1.VmPublicIpv4.guest_status:type_name -> aes.network.v1.VmPublicIpv4GuestStatus
+	102, // 69: aes.network.v1.GetVmPublicAccessResponse.ipv4:type_name -> aes.network.v1.VmPublicIpv4
+	102, // 70: aes.network.v1.AddVmPublicIpv4Response.address:type_name -> aes.network.v1.VmPublicIpv4
+	0,   // 71: aes.network.v1.UpdateVmPublicIpv4Request.mode:type_name -> aes.network.v1.VmPublicIpv4Mode
+	9,   // 72: aes.network.v1.NetworkService.ListVpcs:input_type -> aes.network.v1.ListVpcsRequest
+	11,  // 73: aes.network.v1.NetworkService.GetVpc:input_type -> aes.network.v1.GetVpcRequest
+	13,  // 74: aes.network.v1.NetworkService.ListVpcSubnets:input_type -> aes.network.v1.ListVpcSubnetsRequest
+	15,  // 75: aes.network.v1.NetworkService.GetVpcSubnet:input_type -> aes.network.v1.GetVpcSubnetRequest
+	5,   // 76: aes.network.v1.NetworkService.CreateVpc:input_type -> aes.network.v1.CreateVpcRequest
+	7,   // 77: aes.network.v1.NetworkService.CreateVpcSubnet:input_type -> aes.network.v1.CreateVpcSubnetRequest
+	17,  // 78: aes.network.v1.NetworkService.UpdateVpc:input_type -> aes.network.v1.UpdateVpcRequest
+	19,  // 79: aes.network.v1.NetworkService.UpdateVpcSubnet:input_type -> aes.network.v1.UpdateVpcSubnetRequest
+	21,  // 80: aes.network.v1.NetworkService.DeleteVpc:input_type -> aes.network.v1.DeleteVpcRequest
+	23,  // 81: aes.network.v1.NetworkService.DeleteVpcSubnet:input_type -> aes.network.v1.DeleteVpcSubnetRequest
+	56,  // 82: aes.network.v1.NetworkService.AttachVpcSubnet:input_type -> aes.network.v1.AttachVpcSubnetRequest
+	58,  // 83: aes.network.v1.NetworkService.DetachVpcDatacenter:input_type -> aes.network.v1.DetachVpcDatacenterRequest
+	60,  // 84: aes.network.v1.NetworkService.CreateNetwork:input_type -> aes.network.v1.CreateNetworkRequest
+	62,  // 85: aes.network.v1.NetworkService.ListNetworks:input_type -> aes.network.v1.ListNetworksRequest
+	80,  // 86: aes.network.v1.NetworkService.CreateFirewallRule:input_type -> aes.network.v1.CreateFirewallRuleRequest
+	82,  // 87: aes.network.v1.NetworkService.ListFirewallRules:input_type -> aes.network.v1.ListFirewallRulesRequest
+	84,  // 88: aes.network.v1.NetworkService.DeleteFirewallRule:input_type -> aes.network.v1.DeleteFirewallRuleRequest
+	51,  // 89: aes.network.v1.NetworkService.GetVmInternetPolicy:input_type -> aes.network.v1.GetVmInternetPolicyRequest
+	53,  // 90: aes.network.v1.NetworkService.UpdateVmInternetPolicy:input_type -> aes.network.v1.UpdateVmInternetPolicyRequest
+	103, // 91: aes.network.v1.NetworkService.GetVmPublicAccess:input_type -> aes.network.v1.GetVmPublicAccessRequest
+	105, // 92: aes.network.v1.NetworkService.AddVmPublicIpv4:input_type -> aes.network.v1.AddVmPublicIpv4Request
+	107, // 93: aes.network.v1.NetworkService.RemoveVmPublicIpv4:input_type -> aes.network.v1.RemoveVmPublicIpv4Request
+	109, // 94: aes.network.v1.NetworkService.UpdateVmPublicIpv4:input_type -> aes.network.v1.UpdateVmPublicIpv4Request
+	30,  // 95: aes.network.v1.NetworkService.GetVmNetworkInterfaces:input_type -> aes.network.v1.GetVmNetworkInterfacesRequest
+	32,  // 96: aes.network.v1.NetworkService.AddVmIpv4Alias:input_type -> aes.network.v1.AddVmIpv4AliasRequest
+	25,  // 97: aes.network.v1.NetworkService.RemoveVmIpv4Alias:input_type -> aes.network.v1.RemoveVmIpv4AliasRequest
+	34,  // 98: aes.network.v1.NetworkService.SetVmDefaultPublicIp:input_type -> aes.network.v1.SetVmDefaultPublicIpRequest
+	67,  // 99: aes.network.v1.NetworkService.GetPublicIp:input_type -> aes.network.v1.GetPublicIpRequest
+	69,  // 100: aes.network.v1.NetworkService.ListPublicIps:input_type -> aes.network.v1.ListPublicIpsRequest
+	71,  // 101: aes.network.v1.NetworkService.ReservePublicIp:input_type -> aes.network.v1.ReservePublicIpRequest
+	73,  // 102: aes.network.v1.NetworkService.AttachPublicIp:input_type -> aes.network.v1.AttachPublicIpRequest
+	75,  // 103: aes.network.v1.NetworkService.DetachPublicIp:input_type -> aes.network.v1.DetachPublicIpRequest
+	77,  // 104: aes.network.v1.NetworkService.ReleasePublicIp:input_type -> aes.network.v1.ReleasePublicIpRequest
+	40,  // 105: aes.network.v1.NetworkService.CreateLoadBalancer:input_type -> aes.network.v1.CreateLoadBalancerRequest
+	42,  // 106: aes.network.v1.NetworkService.GetLoadBalancer:input_type -> aes.network.v1.GetLoadBalancerRequest
+	44,  // 107: aes.network.v1.NetworkService.ListLoadBalancers:input_type -> aes.network.v1.ListLoadBalancersRequest
+	46,  // 108: aes.network.v1.NetworkService.UpdateLoadBalancer:input_type -> aes.network.v1.UpdateLoadBalancerRequest
+	48,  // 109: aes.network.v1.NetworkService.DeleteLoadBalancer:input_type -> aes.network.v1.DeleteLoadBalancerRequest
+	88,  // 110: aes.network.v1.NetworkService.CreateSecurityGroup:input_type -> aes.network.v1.CreateSecurityGroupRequest
+	90,  // 111: aes.network.v1.NetworkService.GetSecurityGroup:input_type -> aes.network.v1.GetSecurityGroupRequest
+	92,  // 112: aes.network.v1.NetworkService.ListSecurityGroups:input_type -> aes.network.v1.ListSecurityGroupsRequest
+	94,  // 113: aes.network.v1.NetworkService.UpdateSecurityGroup:input_type -> aes.network.v1.UpdateSecurityGroupRequest
+	96,  // 114: aes.network.v1.NetworkService.DeleteSecurityGroup:input_type -> aes.network.v1.DeleteSecurityGroupRequest
+	98,  // 115: aes.network.v1.NetworkService.AddVmToSecurityGroup:input_type -> aes.network.v1.AddVmToSecurityGroupRequest
+	100, // 116: aes.network.v1.NetworkService.RemoveVmFromSecurityGroup:input_type -> aes.network.v1.RemoveVmFromSecurityGroupRequest
+	10,  // 117: aes.network.v1.NetworkService.ListVpcs:output_type -> aes.network.v1.ListVpcsResponse
+	12,  // 118: aes.network.v1.NetworkService.GetVpc:output_type -> aes.network.v1.GetVpcResponse
+	14,  // 119: aes.network.v1.NetworkService.ListVpcSubnets:output_type -> aes.network.v1.ListVpcSubnetsResponse
+	16,  // 120: aes.network.v1.NetworkService.GetVpcSubnet:output_type -> aes.network.v1.GetVpcSubnetResponse
+	6,   // 121: aes.network.v1.NetworkService.CreateVpc:output_type -> aes.network.v1.CreateVpcResponse
+	8,   // 122: aes.network.v1.NetworkService.CreateVpcSubnet:output_type -> aes.network.v1.CreateVpcSubnetResponse
+	18,  // 123: aes.network.v1.NetworkService.UpdateVpc:output_type -> aes.network.v1.UpdateVpcResponse
+	20,  // 124: aes.network.v1.NetworkService.UpdateVpcSubnet:output_type -> aes.network.v1.UpdateVpcSubnetResponse
+	22,  // 125: aes.network.v1.NetworkService.DeleteVpc:output_type -> aes.network.v1.DeleteVpcResponse
+	24,  // 126: aes.network.v1.NetworkService.DeleteVpcSubnet:output_type -> aes.network.v1.DeleteVpcSubnetResponse
+	57,  // 127: aes.network.v1.NetworkService.AttachVpcSubnet:output_type -> aes.network.v1.AttachVpcSubnetResponse
+	59,  // 128: aes.network.v1.NetworkService.DetachVpcDatacenter:output_type -> aes.network.v1.DetachVpcDatacenterResponse
+	61,  // 129: aes.network.v1.NetworkService.CreateNetwork:output_type -> aes.network.v1.CreateNetworkResponse
+	63,  // 130: aes.network.v1.NetworkService.ListNetworks:output_type -> aes.network.v1.ListNetworksResponse
+	81,  // 131: aes.network.v1.NetworkService.CreateFirewallRule:output_type -> aes.network.v1.CreateFirewallRuleResponse
+	83,  // 132: aes.network.v1.NetworkService.ListFirewallRules:output_type -> aes.network.v1.ListFirewallRulesResponse
+	85,  // 133: aes.network.v1.NetworkService.DeleteFirewallRule:output_type -> aes.network.v1.DeleteFirewallRuleResponse
+	52,  // 134: aes.network.v1.NetworkService.GetVmInternetPolicy:output_type -> aes.network.v1.GetVmInternetPolicyResponse
+	54,  // 135: aes.network.v1.NetworkService.UpdateVmInternetPolicy:output_type -> aes.network.v1.UpdateVmInternetPolicyResponse
+	104, // 136: aes.network.v1.NetworkService.GetVmPublicAccess:output_type -> aes.network.v1.GetVmPublicAccessResponse
+	106, // 137: aes.network.v1.NetworkService.AddVmPublicIpv4:output_type -> aes.network.v1.AddVmPublicIpv4Response
+	108, // 138: aes.network.v1.NetworkService.RemoveVmPublicIpv4:output_type -> aes.network.v1.RemoveVmPublicIpv4Response
+	110, // 139: aes.network.v1.NetworkService.UpdateVmPublicIpv4:output_type -> aes.network.v1.UpdateVmPublicIpv4Response
+	31,  // 140: aes.network.v1.NetworkService.GetVmNetworkInterfaces:output_type -> aes.network.v1.GetVmNetworkInterfacesResponse
+	33,  // 141: aes.network.v1.NetworkService.AddVmIpv4Alias:output_type -> aes.network.v1.AddVmIpv4AliasResponse
+	26,  // 142: aes.network.v1.NetworkService.RemoveVmIpv4Alias:output_type -> aes.network.v1.RemoveVmIpv4AliasResponse
+	35,  // 143: aes.network.v1.NetworkService.SetVmDefaultPublicIp:output_type -> aes.network.v1.SetVmDefaultPublicIpResponse
+	68,  // 144: aes.network.v1.NetworkService.GetPublicIp:output_type -> aes.network.v1.GetPublicIpResponse
+	70,  // 145: aes.network.v1.NetworkService.ListPublicIps:output_type -> aes.network.v1.ListPublicIpsResponse
+	72,  // 146: aes.network.v1.NetworkService.ReservePublicIp:output_type -> aes.network.v1.ReservePublicIpResponse
+	74,  // 147: aes.network.v1.NetworkService.AttachPublicIp:output_type -> aes.network.v1.AttachPublicIpResponse
+	76,  // 148: aes.network.v1.NetworkService.DetachPublicIp:output_type -> aes.network.v1.DetachPublicIpResponse
+	78,  // 149: aes.network.v1.NetworkService.ReleasePublicIp:output_type -> aes.network.v1.ReleasePublicIpResponse
+	41,  // 150: aes.network.v1.NetworkService.CreateLoadBalancer:output_type -> aes.network.v1.CreateLoadBalancerResponse
+	43,  // 151: aes.network.v1.NetworkService.GetLoadBalancer:output_type -> aes.network.v1.GetLoadBalancerResponse
+	45,  // 152: aes.network.v1.NetworkService.ListLoadBalancers:output_type -> aes.network.v1.ListLoadBalancersResponse
+	47,  // 153: aes.network.v1.NetworkService.UpdateLoadBalancer:output_type -> aes.network.v1.UpdateLoadBalancerResponse
+	49,  // 154: aes.network.v1.NetworkService.DeleteLoadBalancer:output_type -> aes.network.v1.DeleteLoadBalancerResponse
+	89,  // 155: aes.network.v1.NetworkService.CreateSecurityGroup:output_type -> aes.network.v1.CreateSecurityGroupResponse
+	91,  // 156: aes.network.v1.NetworkService.GetSecurityGroup:output_type -> aes.network.v1.GetSecurityGroupResponse
+	93,  // 157: aes.network.v1.NetworkService.ListSecurityGroups:output_type -> aes.network.v1.ListSecurityGroupsResponse
+	95,  // 158: aes.network.v1.NetworkService.UpdateSecurityGroup:output_type -> aes.network.v1.UpdateSecurityGroupResponse
+	97,  // 159: aes.network.v1.NetworkService.DeleteSecurityGroup:output_type -> aes.network.v1.DeleteSecurityGroupResponse
+	99,  // 160: aes.network.v1.NetworkService.AddVmToSecurityGroup:output_type -> aes.network.v1.AddVmToSecurityGroupResponse
+	101, // 161: aes.network.v1.NetworkService.RemoveVmFromSecurityGroup:output_type -> aes.network.v1.RemoveVmFromSecurityGroupResponse
+	117, // [117:162] is the sub-list for method output_type
+	72,  // [72:117] is the sub-list for method input_type
+	72,  // [72:72] is the sub-list for extension type_name
+	72,  // [72:72] is the sub-list for extension extendee
+	0,   // [0:72] is the sub-list for field type_name
 }
 
 func init() { file_aes_network_v1_network_proto_init() }
@@ -8011,13 +8914,14 @@ func file_aes_network_v1_network_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_aes_network_v1_network_proto_rawDesc), len(file_aes_network_v1_network_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   116,
+			NumEnums:      2,
+			NumMessages:   125,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_aes_network_v1_network_proto_goTypes,
 		DependencyIndexes: file_aes_network_v1_network_proto_depIdxs,
+		EnumInfos:         file_aes_network_v1_network_proto_enumTypes,
 		MessageInfos:      file_aes_network_v1_network_proto_msgTypes,
 	}.Build()
 	File_aes_network_v1_network_proto = out.File
