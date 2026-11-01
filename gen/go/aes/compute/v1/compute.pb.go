@@ -706,10 +706,10 @@ type VirtualMachineSpec struct {
 	// Network attachment + public IP choice.
 	Network *VMNetworkSpec `protobuf:"bytes,4,opt,name=network,proto3" json:"network,omitempty"`
 	// Login users created via cloud-init. Empty AND cloud_init empty → no inbound login (console
-	// only). When cloud_init is set it OWNS user creation and users is ignored.
+	// only). With cloud_init, users with keys or a password are added alongside it.
 	Users []*UserSpec `protobuf:"bytes,5,rep,name=users,proto3" json:"users,omitempty"`
-	// Raw #cloud-config userdata. When set, replaces all generated cloud-init (users included).
-	// Must be valid `#cloud-config` YAML.
+	// Raw cloud-init userdata, kept as supplied. Its own settings take precedence; users are
+	// added after it. A MIME multipart document can't be combined with users.
 	CloudInit string `protobuf:"bytes,6,opt,name=cloud_init,json=cloudInit,proto3" json:"cloud_init,omitempty"`
 	// Billing term. Defaults to HOURLY.
 	Billing *VMBillingSpec `protobuf:"bytes,7,opt,name=billing,proto3" json:"billing,omitempty"`
@@ -1028,8 +1028,12 @@ type VMNetworkSpec struct {
 	PublicIpName string `protobuf:"bytes,5,opt,name=public_ip_name,json=publicIpName,proto3" json:"public_ip_name,omitempty"`
 	// Required current reservation generation when public_ip_name is supplied.
 	ExpectedPublicIpGeneration int64 `protobuf:"varint,6,opt,name=expected_public_ip_generation,json=expectedPublicIpGeneration,proto3" json:"expected_public_ip_generation,omitempty"`
-	unknownFields              protoimpl.UnknownFields
-	sizeCache                  protoimpl.SizeCache
+	// Adds a firewall rule allowing inbound SSH (TCP 22) from anywhere over IPv4 and
+	// IPv6. Unset means true. The rule is ordinary and can be removed later. Ignored
+	// when private_only is set.
+	AllowSsh      *bool `protobuf:"varint,7,opt,name=allow_ssh,json=allowSsh,proto3,oneof" json:"allow_ssh,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *VMNetworkSpec) Reset() {
@@ -1102,6 +1106,13 @@ func (x *VMNetworkSpec) GetExpectedPublicIpGeneration() int64 {
 		return x.ExpectedPublicIpGeneration
 	}
 	return 0
+}
+
+func (x *VMNetworkSpec) GetAllowSsh() bool {
+	if x != nil && x.AllowSsh != nil {
+		return *x.AllowSsh
+	}
+	return false
 }
 
 type UserSpec struct {
@@ -4295,7 +4306,7 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x05image\x18\x01 \x01(\tR\x05image\x12\x1b\n" +
 	"\timage_url\x18\x02 \x01(\tR\bimageUrl\x12\x19\n" +
 	"\bdisk_gib\x18\x03 \x01(\x05R\adiskGib\x12\x1b\n" +
-	"\tdisk_name\x18\x04 \x01(\tR\bdiskName\"\xff\x01\n" +
+	"\tdisk_name\x18\x04 \x01(\tR\bdiskName\"\xaf\x02\n" +
 	"\rVMNetworkSpec\x12\x18\n" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x1f\n" +
 	"\vpublic_ipv4\x18\x02 \x01(\bR\n" +
@@ -4303,7 +4314,10 @@ const file_aes_compute_v1_compute_proto_rawDesc = "" +
 	"\x0fsecurity_groups\x18\x03 \x03(\tR\x0esecurityGroups\x12!\n" +
 	"\fprivate_only\x18\x04 \x01(\bR\vprivateOnly\x12$\n" +
 	"\x0epublic_ip_name\x18\x05 \x01(\tR\fpublicIpName\x12A\n" +
-	"\x1dexpected_public_ip_generation\x18\x06 \x01(\x03R\x1aexpectedPublicIpGeneration\"\x88\x01\n" +
+	"\x1dexpected_public_ip_generation\x18\x06 \x01(\x03R\x1aexpectedPublicIpGeneration\x12 \n" +
+	"\tallow_ssh\x18\a \x01(\bH\x00R\ballowSsh\x88\x01\x01B\f\n" +
+	"\n" +
+	"_allow_ssh\"\x88\x01\n" +
 	"\bUserSpec\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x12\n" +
@@ -4775,6 +4789,7 @@ func file_aes_compute_v1_compute_proto_init() {
 	if File_aes_compute_v1_compute_proto != nil {
 		return
 	}
+	file_aes_compute_v1_compute_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -225,8 +225,10 @@ type CreateOperationRequest struct {
 	// Existing reservation selection captured in the durable VM create command.
 	VmPublicIpName               string `protobuf:"bytes,63,opt,name=vm_public_ip_name,json=vmPublicIpName,proto3" json:"vm_public_ip_name,omitempty"`
 	VmExpectedPublicIpGeneration int64  `protobuf:"varint,64,opt,name=vm_expected_public_ip_generation,json=vmExpectedPublicIpGeneration,proto3" json:"vm_expected_public_ip_generation,omitempty"`
-	unknownFields                protoimpl.UnknownFields
-	sizeCache                    protoimpl.SizeCache
+	// VM create: add the default inbound SSH firewall rule (VMNetworkSpec.allow_ssh).
+	VmAllowSsh    bool `protobuf:"varint,65,opt,name=vm_allow_ssh,json=vmAllowSsh,proto3" json:"vm_allow_ssh,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateOperationRequest) Reset() {
@@ -663,6 +665,13 @@ func (x *CreateOperationRequest) GetVmExpectedPublicIpGeneration() int64 {
 		return x.VmExpectedPublicIpGeneration
 	}
 	return 0
+}
+
+func (x *CreateOperationRequest) GetVmAllowSsh() bool {
+	if x != nil {
+		return x.VmAllowSsh
+	}
+	return false
 }
 
 type CreateOperationResponse struct {
@@ -1236,7 +1245,7 @@ var File_aes_ops_v1_operations_proto protoreflect.FileDescriptor
 const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\n" +
 	"\x1baes/ops/v1/operations.proto\x12\n" +
-	"aes.ops.v1\"\x9d\x17\n" +
+	"aes.ops.v1\"\xbf\x17\n" +
 	"\x16CreateOperationRequest\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12'\n" +
 	"\x0fdatacenter_name\x18\x02 \x01(\tR\x0edatacenterName\x12&\n" +
@@ -1301,7 +1310,9 @@ const file_aes_ops_v1_operations_proto_rawDesc = "" +
 	"\x0evm_backup_name\x18= \x01(\tR\fvmBackupName\x12;\n" +
 	"\x1avm_install_guest_collector\x18> \x01(\bR\x17vmInstallGuestCollector\x12)\n" +
 	"\x11vm_public_ip_name\x18? \x01(\tR\x0evmPublicIpName\x12F\n" +
-	" vm_expected_public_ip_generation\x18@ \x01(\x03R\x1cvmExpectedPublicIpGeneration\x1a;\n" +
+	" vm_expected_public_ip_generation\x18@ \x01(\x03R\x1cvmExpectedPublicIpGeneration\x12 \n" +
+	"\fvm_allow_ssh\x18A \x01(\bR\n" +
+	"vmAllowSsh\x1a;\n" +
 	"\rVmLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a@\n" +

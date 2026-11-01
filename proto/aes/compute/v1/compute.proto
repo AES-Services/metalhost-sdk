@@ -273,10 +273,10 @@ message VirtualMachineSpec {
   // Network attachment + public IP choice.
   VMNetworkSpec network = 4;
   // Login users created via cloud-init. Empty AND cloud_init empty → no inbound login (console
-  // only). When cloud_init is set it OWNS user creation and users is ignored.
+  // only). With cloud_init, users with keys or a password are added alongside it.
   repeated UserSpec users = 5;
-  // Raw #cloud-config userdata. When set, replaces all generated cloud-init (users included).
-  // Must be valid `#cloud-config` YAML.
+  // Raw cloud-init userdata, kept as supplied. Its own settings take precedence; users are
+  // added after it. A MIME multipart document can't be combined with users.
   string cloud_init = 6;
   // Billing term. Defaults to HOURLY.
   VMBillingSpec billing = 7;
@@ -337,6 +337,10 @@ message VMNetworkSpec {
   string public_ip_name = 5;
   // Required current reservation generation when public_ip_name is supplied.
   int64 expected_public_ip_generation = 6;
+  // Adds a firewall rule allowing inbound SSH (TCP 22) from anywhere over IPv4 and
+  // IPv6. Unset means true. The rule is ordinary and can be removed later. Ignored
+  // when private_only is set.
+  optional bool allow_ssh = 7;
 }
 
 message UserSpec {

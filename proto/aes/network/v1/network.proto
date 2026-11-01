@@ -49,6 +49,19 @@ service NetworkService {
   // Accepts an asynchronous change. A response is not proof of enforcement;
   // wait for the returned operation and check observed_generation.
   rpc UpdateVmInternetPolicy(UpdateVmInternetPolicyRequest) returns (UpdateVmInternetPolicyResponse);
+  // Public access for one VM: its public IPv4 addresses, IPv6 prefix, Internet
+  // switches and firewall rule count.
+  rpc GetVmPublicAccess(GetVmPublicAccessRequest) returns (GetVmPublicAccessResponse);
+  // Adds a public IPv4 to a VM: a new address, or a reserved IP when
+  // public_ip_name is set. The first address becomes the VM's main address.
+  rpc AddVmPublicIpv4(AddVmPublicIpv4Request) returns (AddVmPublicIpv4Response);
+  // Removes a public IPv4 from a VM. An address added as new is released
+  // unless keep is set; a reserved IP stays reserved. Removing the main address
+  // makes the oldest remaining address main.
+  rpc RemoveVmPublicIpv4(RemoveVmPublicIpv4Request) returns (RemoveVmPublicIpv4Response);
+  // Makes an address the VM's main address, or switches it between shared and
+  // dedicated.
+  rpc UpdateVmPublicIpv4(UpdateVmPublicIpv4Request) returns (UpdateVmPublicIpv4Response);
   // Returns desired addresses and separate network/guest observation revisions.
   rpc GetVmNetworkInterfaces(GetVmNetworkInterfacesRequest) returns (GetVmNetworkInterfacesResponse);
   // Allocates another private IPv4 source on the primary interface. Delivery to
@@ -619,6 +632,9 @@ message PublicIp {
   int64 generation = 13;
   // Current or removing attachment. Absent when detached; not proof of readiness.
   PublicIpBinding binding = 14;
+  // Kept when removed from its VM or when the VM is deleted. False for an
+  // address added to a VM as new, which is released with it.
+  bool reserved = 15;
 }
 
 message PublicIpBinding {
@@ -629,6 +645,7 @@ message PublicIpBinding {
   // APPLYING / ACTIVE / REMOVING.
   string state = 4;
   int64 generation = 5;
+  VmPublicIpv4Mode mode = 6;
 }
 message GetPublicIpRequest { string name = 1; }
 message GetPublicIpResponse { PublicIp public_ip = 1; }
@@ -915,4 +932,116 @@ message RemoveVmFromSecurityGroupRequest {
 message RemoveVmFromSecurityGroupResponse {
   SecurityGroup security_group = 1;
   string operation_name = 2;
+}
+
+// How a public IPv4 reaches the VM.
+enum VmPublicIpv4Mode {
+  VM_PUBLIC_IPV4_MODE_UNSPECIFIED = 0;
+  // Inbound traffic reaches the VM's primary private IPv4. No guest setup.
+  VM_PUBLIC_IPV4_MODE_SHARED = 1;
+  // Maps to its own private IPv4 on the VM, which the guest configures.
+  VM_PUBLIC_IPV4_MODE_DEDICATED = 2;
+}
+
+// Whether a dedicated address is configured in the guest.
+enum VmPublicIpv4GuestStatus {
+  VM_PUBLIC_IPV4_GUEST_STATUS_UNSPECIFIED = 0;
+  // Shared addresses need no guest configuration.
+  VM_PUBLIC_IPV4_GUEST_STATUS_NOT_REQUIRED = 1;
+  // The VM has not restarted since the address was added. Restart it, or run
+  // guest_command to configure the address now.
+  VM_PUBLIC_IPV4_GUEST_STATUS_APPLIES_AT_NEXT_RESTART = 2;
+  // The running VM booted with the address in its network configuration.
+  VM_PUBLIC_IPV4_GUEST_STATUS_CONFIGURED_AT_BOOT = 3;
+  // The guest answers on the address.
+  VM_PUBLIC_IPV4_GUEST_STATUS_ACTIVE_IN_GUEST = 4;
+  // The VM booted with the address but the guest does not answer on it.
+  VM_PUBLIC_IPV4_GUEST_STATUS_NOT_SEEN_IN_GUEST = 5;
+  // The VM was created before network changes applied at restart: configure the
+  // guest with guest_command. The platform can't confirm the guest's state.
+  VM_PUBLIC_IPV4_GUEST_STATUS_NEEDS_GUEST_CONFIGURATION = 6;
+}
+
+message VmPublicIpv4 {
+  // Public IP resource name.
+  string name = 1;
+  string ip_address = 2;
+  VmPublicIpv4Mode mode = 3;
+  // The VM's outbound address and the address shown in lists.
+  bool main = 4;
+  // APPLYING, ACTIVE or REMOVING.
+  string state = 5;
+  VmPublicIpv4GuestStatus guest_status = 6;
+  // Private IPv4 the address maps to on the VM.
+  string private_ipv4 = 7;
+  // True for a reserved IP: kept when removed or when the VM is deleted.
+  bool reserved = 8;
+  // For a dedicated address not yet configured at boot: Linux commands for the
+  // guest. APPLIES_AT_NEXT_RESTART: adds it to the running guest until the
+  // restart applies it. NEEDS_GUEST_CONFIGURATION: also makes later restarts
+  // apply the VM's network changes.
+  string guest_command = 9;
+}
+
+message GetVmPublicAccessRequest {
+  string project_name = 1;
+  string target_vm = 2;
+}
+message GetVmPublicAccessResponse {
+  repeated VmPublicIpv4 ipv4 = 1;
+  string ipv6_prefix = 2;
+  bool allow_outbound_internet = 3;
+  bool allow_ipv6_internet = 4;
+  int32 firewall_rule_count = 5;
+  // Maximum public IPv4 addresses on this VM.
+  int32 max_ipv4 = 6;
+  // False for a private-only VM.
+  bool public_access = 7;
+  // A make-main, mode or removal change still in progress.
+  string pending_operation_name = 8;
+}
+
+message AddVmPublicIpv4Request {
+  string project_name = 1;
+  string target_vm = 2;
+  // Reserved IP to add. Empty allocates a new address.
+  string public_ip_name = 3;
+  // Map to its own private IPv4 instead of the primary. The first address is
+  // always the shared main address.
+  bool dedicated = 4;
+  // Canonical UUID; reuse it on retries.
+  string request_id = 5;
+}
+message AddVmPublicIpv4Response {
+  string operation_name = 1;
+  VmPublicIpv4 address = 2;
+}
+
+message RemoveVmPublicIpv4Request {
+  string project_name = 1;
+  string target_vm = 2;
+  string public_ip_name = 3;
+  // Keep the address as a reserved IP instead of releasing it.
+  bool keep = 4;
+  string request_id = 5;
+  // Release the address once removed, including a reserved IP. Can't be
+  // combined with keep.
+  bool release = 6;
+}
+message RemoveVmPublicIpv4Response {
+  string operation_name = 1;
+}
+
+message UpdateVmPublicIpv4Request {
+  string project_name = 1;
+  string target_vm = 2;
+  string public_ip_name = 3;
+  // Make this the main address. A dedicated address becomes shared.
+  bool make_main = 4;
+  // New mode; unspecified keeps the current mode.
+  VmPublicIpv4Mode mode = 5;
+  string request_id = 6;
+}
+message UpdateVmPublicIpv4Response {
+  string operation_name = 1;
 }
